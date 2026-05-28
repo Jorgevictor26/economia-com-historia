@@ -15,14 +15,14 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
       <section class="relative flex min-h-[85vh] items-center overflow-hidden pt-24">
         <div class="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1800&q=85"
-            alt=""
-            class="landing-hero-image h-full w-full object-cover"
+            src="/assets/bna-hero.jpg"
+            alt="Fachada do Banco Nacional de Angola em Luanda"
+            class="landing-hero-image h-full w-full object-cover object-[58%_center] sm:object-[62%_center] xl:object-center"
           />
-          <div class="absolute inset-0 bg-[linear-gradient(90deg,#f8f9fa_0%,rgba(248,249,250,0.86)_34%,rgba(248,249,250,0.24)_72%,transparent_100%)]"></div>
+          <div class="absolute inset-0 bg-[linear-gradient(90deg,#f8f9fa_0%,rgba(248,249,250,0.9)_38%,rgba(248,249,250,0.36)_72%,transparent_100%)]"></div>
         </div>
 
-        <div class="relative z-10 mx-auto w-full max-w-7xl px-5 py-16 lg:px-10">
+        <div class="relative z-10 mx-auto w-full max-w-[1500px] px-5 py-16 lg:px-10 2xl:px-14">
           <div class="max-w-[720px]">
             <p class="mb-5 text-[12px] font-bold uppercase tracking-[0.16em] text-[#735c00]">Economia com História: Angola</p>
             <h1 class="font-display text-[38px] font-extrabold leading-[1.04] text-[#40081a] sm:text-[48px] lg:text-[60px]">
@@ -33,45 +33,22 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
             </p>
             <div class="mt-10 flex flex-wrap gap-4">
               <a routerLink="/app/contents" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-[8px] bg-[#40081a] px-7 text-[13px] font-bold text-white shadow-lg shadow-[#40081a]/15 transition hover:-translate-y-0.5 hover:shadow-xl">
-                Começar Exploração <span aria-hidden="true">→</span>
+                Explorar conteúdo <span aria-hidden="true">→</span>
               </a>
-              <a routerLink="/app/quizzes" class="inline-flex min-h-12 items-center justify-center rounded-[8px] border border-[#40081a] px-7 text-[13px] font-bold text-[#40081a] transition hover:bg-[#40081a] hover:text-white">
-                Testar Conhecimento
+              <a routerLink="/auth/register" class="inline-flex min-h-12 items-center justify-center rounded-[8px] border border-[#40081a] px-7 text-[13px] font-bold text-[#40081a] transition hover:bg-[#40081a] hover:text-white">
+                Criar conta
               </a>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="bg-white py-20">
-        <div class="mx-auto max-w-[760px] px-5 text-center">
-          <h2 class="font-display text-[28px] font-semibold text-[#40081a] sm:text-[34px]">Rigor Académico e Preservação</h2>
-          <p class="mt-7 text-[17px] leading-8 text-[#5e5e5f]">
-            A nossa plataforma dedica-se à sistematização do conhecimento histórico-económico de Angola. Com curadoria de especialistas e académicos,
-            transformamos dados brutos em narrativas de progresso, resiliência e identidade institucional.
-          </p>
-        </div>
-
-        <div class="mx-auto mt-12 grid max-w-6xl gap-4 px-5 sm:grid-cols-2 lg:grid-cols-3 lg:px-10">
-          @for (point of institutionalPoints; track point.title) {
-            <article class="rounded-[8px] border border-[#d8c1c4]/55 bg-[#f8f9fa] p-5 text-left">
-              <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#735c00]">{{ point.label }}</span>
-              <h3 class="mt-3 font-display text-[21px] font-semibold text-[#40081a]">{{ point.title }}</h3>
-              <p class="mt-3 text-[15px] leading-6 text-[#534345]">{{ point.text }}</p>
-            </article>
-          }
-        </div>
-      </section>
-
-      <section class="mx-auto max-w-7xl px-5 py-20 lg:px-10">
+      <section class="mx-auto max-w-[1500px] px-5 py-20 lg:px-10 2xl:px-14">
         <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           @for (pillar of pillars; track pillar.title) {
-            <article class="landing-card group overflow-hidden rounded-[8px] border border-[#d8c1c4]/60 bg-[#f3f4f5] transition duration-300 hover:-translate-y-2 hover:shadow-xl">
-              <div class="relative h-48 overflow-hidden bg-[#d9dadb]">
-                <img [src]="pillar.image" [alt]="pillar.title" class="h-full w-full object-cover grayscale transition duration-500 group-hover:scale-110" />
-                @if (pillar.badge) {
-                  <span class="absolute right-4 top-4 rounded-[4px] bg-[#735c00] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">{{ pillar.badge }}</span>
-                }
+            <article class="landing-card group overflow-hidden rounded-[8px] border border-[#d8c1c4]/60 bg-white transition duration-300 hover:-translate-y-2 hover:shadow-xl">
+              <div class="relative h-48 overflow-hidden bg-white">
+                <img [src]="pillar.image" [alt]="pillar.title" class="h-full w-full object-cover transition duration-500 group-hover:scale-110" />
               </div>
               <div class="p-6">
                 <h3 class="font-display text-[24px] font-semibold text-[#40081a]">{{ pillar.title }}</h3>
@@ -86,7 +63,7 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
       </section>
 
       <section class="bg-white py-20">
-        <div class="mx-auto max-w-7xl px-5 lg:px-10">
+        <div class="mx-auto max-w-[1500px] px-5 lg:px-10 2xl:px-14">
           <div class="mb-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 class="font-display text-[30px] font-semibold text-[#40081a]">Podcasts Académicos</h2>
@@ -99,9 +76,9 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
 
           <div class="grid gap-8 md:grid-cols-3">
             @for (podcast of podcasts; track podcast.title) {
-              <article class="group overflow-hidden rounded-[8px] border border-[#d8c1c4]/50 bg-[#f3f4f5] transition hover:shadow-xl">
-                <div class="relative h-56 overflow-hidden">
-                  <img [src]="podcast.image" [alt]="podcast.title" class="h-full w-full object-cover grayscale transition duration-500 group-hover:scale-110" />
+              <article class="group overflow-hidden rounded-[8px] border border-[#d8c1c4]/50 bg-white transition hover:shadow-xl">
+                <div class="relative h-56 overflow-hidden bg-white">
+                  <img [src]="podcast.image" [alt]="podcast.title" class="h-full w-full object-cover transition duration-500 group-hover:scale-110" />
                   <span class="absolute bottom-4 right-4 rounded-[4px] bg-[#40081a]/90 px-3 py-1 text-[12px] font-medium text-white backdrop-blur-sm">{{ podcast.duration }}</span>
                 </div>
                 <div class="p-6">
@@ -117,8 +94,28 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
         </div>
       </section>
 
+      <section class="bg-white py-20">
+        <div class="mx-auto max-w-[900px] px-5 text-center">
+          <h2 class="font-display text-[28px] font-semibold text-[#40081a] sm:text-[34px]">Rigor Académico e Preservação</h2>
+          <p class="mt-7 text-[17px] leading-8 text-[#5e5e5f]">
+            A nossa plataforma dedica-se à sistematização do conhecimento histórico-económico de Angola. Com curadoria de especialistas e académicos,
+            transformamos dados brutos em narrativas de progresso, resiliência e identidade institucional.
+          </p>
+        </div>
+
+        <div class="mx-auto mt-12 grid max-w-[1320px] gap-4 px-5 sm:grid-cols-2 lg:grid-cols-3 lg:px-10 2xl:px-14">
+          @for (point of institutionalPoints; track point.title) {
+            <article class="rounded-[8px] border border-[#d8c1c4]/55 bg-[#f8f9fa] p-5 text-left">
+              <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#735c00]">{{ point.label }}</span>
+              <h3 class="mt-3 font-display text-[21px] font-semibold text-[#40081a]">{{ point.title }}</h3>
+              <p class="mt-3 text-[15px] leading-6 text-[#534345]">{{ point.text }}</p>
+            </article>
+          }
+        </div>
+      </section>
+
       <section class="overflow-hidden bg-[#5c1e2f] py-20 text-[#d98496]">
-        <div class="mx-auto flex max-w-7xl flex-col items-center gap-16 px-5 lg:flex-row lg:px-10">
+        <div class="mx-auto flex max-w-[1500px] flex-col items-center gap-16 px-5 lg:flex-row lg:px-10 2xl:px-14">
           <div class="space-y-8 lg:w-1/2">
             <span class="text-[12px] font-bold uppercase tracking-[0.18em] text-[#ffe088]">Gamificação Académica</span>
             <h2 class="font-display text-[38px] font-extrabold leading-tight text-white sm:text-[48px]">Domine o Conhecimento em Minutos</h2>
@@ -160,23 +157,25 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
         </div>
       </section>
 
-      <section class="mx-auto max-w-[900px] px-5 py-20">
-        <h2 class="text-center font-display text-[30px] font-semibold text-[#40081a]">Perguntas Frequentes</h2>
-        <div class="mt-12 grid gap-4">
+      <section class="bg-[#f3f4f5] px-5 py-20 lg:px-10">
+        <div class="mx-auto max-w-[1120px]">
+          <h2 class="text-center font-display text-[30px] font-extrabold text-[#40081a] sm:text-[34px]">Perguntas Frequentes</h2>
+          <div class="mt-12 overflow-hidden rounded-[4px] border border-[#d8c1c4]/80 bg-white">
           @for (faq of faqs; track faq.question) {
-            <details class="group rounded-[8px] border border-[#d8c1c4]/50 bg-[#f3f4f5] p-6 transition hover:border-[#40081a]">
-              <summary class="flex cursor-pointer list-none items-center justify-between gap-6 font-display text-[20px] font-semibold text-[#40081a]">
+            <details class="group border-b border-[#d8c1c4]/70 last:border-b-0">
+              <summary class="flex min-h-[54px] cursor-pointer list-none items-center justify-between gap-6 px-5 py-4 text-[15px] font-medium text-[#40081a] transition hover:bg-[#fff6f8] group-open:bg-[#ffd9df] sm:px-7 sm:text-[16px] [&::-webkit-details-marker]:hidden">
                 {{ faq.question }}
-                <span class="transition group-open:rotate-180">⌄</span>
+                <span class="text-[22px] leading-none text-[#40081a] transition group-open:rotate-180">⌄</span>
               </summary>
-              <p class="mt-4 text-[16px] leading-7 text-[#5e5e5f]">{{ faq.answer }}</p>
+              <p class="px-5 pb-5 pt-1 text-[15px] leading-7 text-[#5e5e5f] sm:px-7">{{ faq.answer }}</p>
             </details>
           }
+          </div>
         </div>
       </section>
 
       <section class="bg-[#e7e8e9] px-5 py-20 lg:px-10">
-        <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-10 rounded-[16px] border border-[#d8c1c4]/70 bg-white p-8 md:flex-row md:p-12">
+        <div class="mx-auto flex max-w-[1500px] flex-col items-center justify-between gap-10 rounded-[16px] border border-[#d8c1c4]/70 bg-white p-8 md:flex-row md:p-12">
           <div class="max-w-md">
             <h2 class="font-display text-[30px] font-semibold text-[#40081a]">A Crónica Semanal</h2>
             <p class="mt-4 text-[16px] leading-7 text-[#5e5e5f]">Receba os destaques históricos e análises económicas diretamente no seu e-mail.</p>
@@ -217,8 +216,7 @@ export class LandingPage implements AfterViewInit, OnDestroy {
       text: 'Acesso a conteúdos exclusivos, relatórios detalhados e insights para subscritores.',
       action: 'Assinar',
       route: '/app/subscriptions',
-      badge: 'Premium',
-      image: 'https://images.unsplash.com/photo-1528826007177-f38517ce9a8a?auto=format&fit=crop&w=900&q=80',
+      image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80',
     },
     {
       title: 'Podcasts',

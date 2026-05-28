@@ -7,7 +7,7 @@ import { AuthStateService } from '../../services/auth-state.service';
   imports: [RouterLink, RouterLinkActive],
   template: `
     <header class="public-navbar sticky top-0 z-40 border-b border-[#ece7e4] bg-white">
-      <div class="mx-auto flex min-h-[58px] max-w-7xl flex-wrap items-center gap-4 px-5 lg:px-10">
+      <div class="mx-auto flex min-h-[58px] max-w-[1500px] flex-wrap items-center gap-4 px-5 lg:px-10 2xl:px-14">
         <a [routerLink]="homeRoute()" class="flex shrink-0 items-center gap-2 font-display text-[15px] font-extrabold text-[#8a4055]">
           <img src="/auth-logo.png" alt="Economia com História" class="h-[24px] w-auto" />
           <span [class.hidden]="menuOpen()">Economia com História</span>
@@ -41,6 +41,7 @@ import { AuthStateService } from '../../services/auth-state.service';
             </a>
           } @else {
             <a routerLink="/auth/login" class="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#5c1e2f] px-5 text-[13px] font-bold text-[#5c1e2f]">Entrar</a>
+            <a routerLink="/auth/register" class="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white transition hover:bg-[#471525]">Criar conta</a>
           }
         </div>
 
@@ -99,6 +100,7 @@ import { AuthStateService } from '../../services/auth-state.service';
             <a routerLink="/app/profile" class="inline-flex h-10 items-center justify-center rounded-[8px] border border-[#5c1e2f] px-5 text-[13px] font-bold text-[#5c1e2f]" (click)="closeMenu()">Perfil</a>
           } @else {
             <a routerLink="/auth/login" class="inline-flex h-10 items-center justify-center rounded-[8px] border border-[#5c1e2f] px-5 text-[13px] font-bold text-[#5c1e2f]" (click)="closeMenu()">Entrar</a>
+            <a routerLink="/auth/register" class="inline-flex h-10 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white" (click)="closeMenu()">Criar conta</a>
           }
         </div>
       </aside>

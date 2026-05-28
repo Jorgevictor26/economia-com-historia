@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1100" role="img" aria-labelledby="title desc">
+  <title id="title">Banco Nacional de Angola</title>
+  <desc id="desc">Ilustracao editorial inspirada no Banco Nacional de Angola, com fachada institucional, bandeira de Angola e notas de kwanza.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff7df"/>
+      <stop offset="0.48" stop-color="#f3d786"/>
+      <stop offset="1" stop-color="#a63a32"/>
+    </linearGradient>
+    <linearGradient id="building" x1="0" x2="1">
+      <stop offset="0" stop-color="#fff3cc"/>
+      <stop offset="0.48" stop-color="#d5a64b"/>
+      <stop offset="1" stop-color="#8d5b21"/>
+    </linearGradient>
+    <linearGradient id="shadow" x1="0" x2="1">
+      <stop offset="0" stop-color="#24030d" stop-opacity="0.86"/>
+      <stop offset="1" stop-color="#24030d" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+  <rect width="1800" height="1100" fill="url(#sky)"/>
+  <circle cx="1390" cy="230" r="250" fill="#ffe9a7" opacity="0.72"/>
+  <path d="M0 780 C330 690 545 720 830 654 C1128 585 1386 512 1800 600 L1800 1100 L0 1100 Z" fill="#300713" opacity="0.16"/>
+  <path d="M1094 207 L1678 410 L1640 470 L1058 272 Z" fill="#111111"/>
+  <path d="M1094 207 L1678 410 L1418 514 L842 314 Z" fill="#c0172b"/>
+  <path d="M1116 258 L1420 364 L1282 419 L982 315 Z" fill="#f3c13b"/>
+  <path d="M1220 349 l58 20 -43 31 -58 -20 z" fill="#111111"/>
+  <g transform="translate(492 257)">
+    <path d="M46 355 L418 0 L790 355 Z" fill="#5c1e2f"/>
+    <path d="M114 349 L418 62 L722 349 Z" fill="#f4d47c"/>
+    <rect x="128" y="351" width="580" height="54" fill="#5c1e2f"/>
+    <g fill="url(#building)">
+      <rect x="164" y="405" width="74" height="324"/>
+      <rect x="281" y="405" width="74" height="324"/>
+      <rect x="398" y="405" width="74" height="324"/>
+      <rect x="515" y="405" width="74" height="324"/>
+      <rect x="632" y="405" width="74" height="324"/>
+    </g>
+    <g fill="#7c491d" opacity="0.38">
+      <rect x="188" y="430" width="24" height="270"/>
+      <rect x="305" y="430" width="24" height="270"/>
+      <rect x="422" y="430" width="24" height="270"/>
+      <rect x="539" y="430" width="24" height="270"/>
+      <rect x="656" y="430" width="24" height="270"/>
+    </g>
+    <rect x="94" y="730" width="648" height="82" fill="#3b0717"/>
+    <rect x="38" y="812" width="760" height="54" fill="#24030d"/>
+    <text x="418" y="283" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="800" fill="#3b0717">BNA</text>
+    <text x="418" y="333" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="4" fill="#3b0717">BANCO NACIONAL DE ANGOLA</text>
+  </g>
+  <g opacity="0.88">
+    <rect x="1194" y="740" width="390" height="170" rx="18" fill="#fff1c9" transform="rotate(-9 1389 825)"/>
+    <rect x="1218" y="766" width="342" height="118" rx="12" fill="#d7a62e" opacity="0.85" transform="rotate(-9 1389 825)"/>
+    <circle cx="1388" cy="824" r="42" fill="#5c1e2f" opacity="0.9"/>
+    <text x="1388" y="839" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="900" fill="#fff7df">Kz</text>
+  </g>
+  <g opacity="0.76">
+    <rect x="1270" y="838" width="420" height="184" rx="20" fill="#fff7df" transform="rotate(7 1480 930)"/>
+    <rect x="1298" y="868" width="364" height="124" rx="13" fill="#6b8a3a" opacity="0.72" transform="rotate(7 1480 930)"/>
+    <text x="1480" y="944" text-anchor="middle" font-family="Arial, sans-serif" font-size="39" font-weight="900" fill="#2a3b12">KWANZA</text>
+  </g>
+  <ellipse cx="900" cy="996" rx="760" ry="64" fill="#24030d" opacity="0.24" filter="url(#soft)"/>
+  <rect y="0" width="760" height="1100" fill="url(#shadow)"/>
+</svg>

@@ -30,5 +30,6 @@ Route::prefix('v1')->group(function () {
         // COMMENTS
         Route::post('/comments', [CommentController::class, 'store']);
         Route::get('/comments/content/{contentId}', [CommentController::class, 'indexByContent']);
+        Route::post('/comments/{commentId}/reply', [CommentController::class, 'replyToComment']);
     });
 });

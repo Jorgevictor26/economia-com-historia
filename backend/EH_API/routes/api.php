@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\CommentController;
+use App\Http\Controllers\Api\V1\ReactionController;
 
 Route::prefix('v1')->group(function () {
     Route::post('/register', RegisterController::class);
@@ -31,5 +32,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/comments', [CommentController::class, 'store']);
         Route::get('/comments/content/{contentId}', [CommentController::class, 'indexByContent']);
         Route::post('/comments/{commentId}/reply', [CommentController::class, 'replyToComment']);
+
+        // REACTIONS
+        Route::post('/reactions', [ReactionController::class, 'store']);
+        Route::get('/reactions/content/{contentId}', [ReactionController::class, 'getByContent']);
+        Route::get('/reactions/content/{contentId}/count', [ReactionController::class, 'getCountByType']);
     });
 });

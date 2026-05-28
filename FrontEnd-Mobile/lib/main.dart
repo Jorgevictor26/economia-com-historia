@@ -35,7 +35,7 @@ class EconomiaApp extends StatelessWidget {
       //home: const SplashScreen(),
       //home: const LoginScreen(),
       //home: const ExplorarConteudoScreen(),
-      //home: const CriarSalaDebateScreen(),
+      home: const CriarSalaDebateScreen(),
       //home: const EditarPerfilScreen(),
       //home: const PerfilScreen(),
       //home: const PraticarQuizScreen(),

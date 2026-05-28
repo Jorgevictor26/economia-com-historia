@@ -32,7 +32,7 @@ class EconomiaApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       // SplashScreen é sempre o ponto de entrada —
       // ela mesma decide para onde navegar depois dos 2s
-      //home: const SplashScreen(),
+      home: const SplashScreen(),
       //home: const LoginScreen(),
       //home: const ExplorarConteudoScreen(),
       //home: const CriarSalaDebateScreen(),

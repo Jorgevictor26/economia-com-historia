@@ -1,0 +1,14 @@
+<article class="profile-card">
+  <img [src]="user().avatarUrl" [alt]="user().name" />
+  <div class="profile-copy">
+    <div class="profile-title">
+      <h2>{{ user().name }}</h2>
+      <span>{{ user().badge }}</span>
+    </div>
+    <p>{{ user().description }}</p>
+  </div>
+  <a routerLink="/app/profile/edit" class="edit-profile-link">
+    <span>✎</span>
+    Editar Perfil
+  </a>
+</article>

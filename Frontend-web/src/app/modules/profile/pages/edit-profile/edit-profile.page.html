@@ -1,0 +1,187 @@
+<section class="profile-shell -m-6 min-h-dvh bg-[#f6f6f7] text-[#2b2628]">
+  <button class="sidebar-backdrop" [class.is-open]="sidebarOpen()" type="button" aria-label="Fechar menu" (click)="closeSidebar()"></button>
+
+  <aside class="sidebar" [class.is-open]="sidebarOpen()">
+    <div class="brand">
+      <img src="/auth-logo.png" alt="Economia com História" />
+      <span>Economia com História</span>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Navegação do perfil">
+      <p>PLATAFORMA</p>
+      @for (item of platformItems; track item.label) {
+        <a [routerLink]="item.route" [class.active]="item.active">
+          <span class="nav-icon" [attr.data-icon]="item.icon"></span>
+          {{ item.label }}
+        </a>
+      }
+
+      <p>ADMINISTRAÇÃO</p>
+      @for (item of administrationItems; track item.label) {
+        <a [routerLink]="item.route" [class.active]="item.active">
+          <span class="nav-icon" [attr.data-icon]="item.icon"></span>
+          {{ item.label }}
+        </a>
+      }
+
+      <p>INFRAESTRUTURA</p>
+      @for (item of infrastructureItems; track item.label) {
+        <a [routerLink]="item.route" [class.active]="item.active">
+          <span class="nav-icon" [attr.data-icon]="item.icon"></span>
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+
+    <footer class="sidebar-footer">
+      <div>
+        <span>Nível de Acesso</span>
+        <strong>{{ accessLevel() }}</strong>
+      </div>
+      <button type="button" class="certificate-button">Ver Certificados</button>
+      <a routerLink="/app/profile" class="support-link">
+        <span class="nav-icon" data-icon="help_outline"></span>
+        Suporte
+      </a>
+      <a routerLink="/auth/login" class="logout-link" (click)="auth.logout()">
+        <span class="nav-icon" data-icon="logout"></span>
+        Sair
+      </a>
+    </footer>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar">
+      <button class="menu-button" type="button" aria-label="Abrir menu lateral" (click)="toggleSidebar()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <label class="search">
+        <span class="nav-icon" data-icon="search"></span>
+        <input type="search" placeholder="Pesquisar..." [value]="searchTerm()" (input)="updateSearch($event)" />
+        @if (searchTerm()) {
+          <section class="profile-search-dropdown">
+            @if (searchResults().length) {
+              @for (result of searchResults(); track result.label) {
+                <a [routerLink]="result.route" (click)="searchTerm.set('')">
+                  <strong>{{ result.label }}</strong>
+                  <span>{{ result.detail }}</span>
+                </a>
+              }
+            } @else {
+              <p>Nenhum resultado encontrado.</p>
+            }
+          </section>
+        }
+      </label>
+
+      <div class="topbar-actions">
+        <button type="button" class="notification-button" aria-label="Notificações" (click)="toggleNotifications()">
+          <span class="nav-icon" data-icon="notifications"></span>
+        </button>
+        @if (notificationsOpen()) {
+          <button type="button" class="notification-scrim" aria-label="Fechar notificações" (click)="closeNotifications()"></button>
+          <section class="notification-dropdown">
+            <header>
+              <strong>Notificações</strong>
+              <span>{{ notifications.length }} novas</span>
+            </header>
+            @for (notification of notifications; track notification.title) {
+              <article>
+                <strong>{{ notification.title }}</strong>
+                <p>{{ notification.text }}</p>
+                <span>{{ notification.time }}</span>
+              </article>
+            }
+          </section>
+        }
+        <a routerLink="/app/profile" class="profile-avatar-link" aria-label="Abrir perfil">
+          <img [src]="dashboard().user.avatarUrl" [alt]="dashboard().user.name" />
+        </a>
+      </div>
+    </header>
+
+    <main class="edit-profile-content">
+      <h1>Editar perfil</h1>
+
+      <form class="edit-profile-card" [formGroup]="form" (ngSubmit)="saveChanges()">
+        <section class="identity-section" aria-label="Dados do perfil">
+          <div class="avatar-editor">
+            <img [src]="dashboard().user.avatarUrl" [alt]="dashboard().user.name" />
+            <button type="button" aria-label="Alterar fotografia">
+              <span class="nav-icon" data-icon="photo_camera"></span>
+            </button>
+          </div>
+
+          <div class="field-grid">
+            <label class="profile-field">
+              <span>Nome Completo</span>
+              <input formControlName="fullName" type="text" autocomplete="name" />
+            </label>
+
+            <label class="profile-field">
+              <span>E-mail Académico</span>
+              <input formControlName="email" type="email" autocomplete="email" />
+            </label>
+
+            <label class="profile-field profile-field-wide">
+              <span>Biografia Profissional</span>
+              <textarea formControlName="biography" rows="4"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section" aria-labelledby="security-title">
+          <h2 id="security-title">
+            <span class="section-icon nav-icon" data-icon="lock_reset"></span>
+            Segurança de Acesso
+          </h2>
+
+          <div class="field-grid two-columns">
+            <label class="profile-field">
+              <span>Nova Senha</span>
+              <input formControlName="newPassword" type="password" autocomplete="new-password" />
+            </label>
+
+            <label class="profile-field">
+              <span>Confirmar Nova Senha</span>
+              <input formControlName="confirmPassword" type="password" autocomplete="new-password" />
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section" aria-labelledby="notifications-title">
+          <h2 id="notifications-title">
+            <span class="section-icon nav-icon" data-icon="notifications_active"></span>
+            Preferências de Notificação
+          </h2>
+
+          <div class="notification-panel">
+            <label class="notification-row">
+              <span>
+                <strong>Resumo Semanal de Economia</strong>
+                <small>Receba as análises históricas mais importantes da semana.</small>
+              </span>
+              <input formControlName="weeklySummary" type="checkbox" />
+            </label>
+
+            <label class="notification-row">
+              <span>
+                <strong>Alertas de Novos Conteúdos</strong>
+                <small>Notificações imediatas sobre novos módulos e conteúdos.</small>
+              </span>
+              <input formControlName="contentAlerts" type="checkbox" />
+            </label>
+          </div>
+        </section>
+
+        <div class="form-actions">
+          <button type="submit" class="save-button">Salvar Alterações</button>
+          <button type="button" class="discard-button" (click)="discardChanges()">Descartar Mudanças</button>
+        </div>
+      </form>
+    </main>
+  </div>
+</section>

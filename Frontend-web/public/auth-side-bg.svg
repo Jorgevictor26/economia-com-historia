@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 1120" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#471022"/>
+      <stop offset=".55" stop-color="#67223a"/>
+      <stop offset="1" stop-color="#350b19"/>
+    </linearGradient>
+    <radialGradient id="centerLight" cx="50%" cy="47%" r="58%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".16"/>
+      <stop offset=".52" stop-color="#ffffff" stop-opacity=".04"/>
+      <stop offset="1" stop-color="#200712" stop-opacity=".66"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="14" flood-color="#16050b" flood-opacity=".55"/>
+    </filter>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.1"/>
+    </filter>
+  </defs>
+
+  <rect width="720" height="1120" fill="url(#bg)"/>
+  <rect width="720" height="1120" fill="url(#centerLight)"/>
+  <path d="M0 316H720" stroke="#fff" stroke-opacity=".15" stroke-width="1"/>
+
+  <g opacity=".18" fill="none" stroke="#fff" stroke-linecap="round">
+    <path d="M0 474h108m484 0h128M0 520h94m468 0h158M0 566h124m418 0h178" stroke-opacity=".24"/>
+    <path d="M0 615C54 579 82 640 141 598C203 555 228 489 294 511C356 532 367 624 437 598C512 570 520 486 598 514C647 531 673 577 720 553" stroke-width="2.5" stroke-opacity=".23"/>
+    <path d="M16 690V610M52 690V548M88 690V630M124 690V502M160 690V585M196 690V535M532 690V560M568 690V500M604 690V594M640 690V534M676 690V625" stroke-width="8" stroke-opacity=".26"/>
+  </g>
+
+  <g opacity=".13" fill="#fff">
+    <rect x="9" y="456" width="72" height="3"/>
+    <rect x="9" y="476" width="116" height="3"/>
+    <rect x="9" y="496" width="88" height="3"/>
+    <rect x="9" y="516" width="126" height="3"/>
+    <rect x="565" y="415" width="52" height="3"/>
+    <rect x="565" y="435" width="94" height="3"/>
+    <rect x="565" y="455" width="68" height="3"/>
+    <rect x="565" y="475" width="112" height="3"/>
+    <text x="560" y="392" font-family="Arial, sans-serif" font-size="10" letter-spacing="2">CUNENE</text>
+  </g>
+
+  <g opacity=".21" filter="url(#soft)">
+    <path d="M106 724L358 652L635 704L392 782L106 724Z" fill="#1e0710"/>
+    <path d="M108 700L361 628L636 681L388 750L108 700Z" fill="#f2dce3"/>
+    <path d="M158 678L366 623L586 669L386 724L158 678Z" fill="#fff"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <path
+      d="M291 196
+         L336 213 L368 250 L382 295 L430 318 L436 360 L476 389
+         L468 444 L508 484 L497 536 L535 588 L492 638 L496 694
+         L453 724 L438 789 L380 799 L345 860 L290 818 L246 846
+         L207 792 L215 727 L178 685 L191 627 L162 578 L185 525
+         L168 465 L202 420 L190 365 L236 334 L249 276 Z"
+      fill="#c8aab3"
+      opacity=".68"
+    />
+    <path
+      d="M291 196
+         L336 213 L368 250 L382 295 L430 318 L436 360 L476 389
+         L468 444 L508 484 L497 536 L535 588 L492 638 L496 694
+         L453 724 L438 789 L380 799 L345 860 L290 818 L246 846
+         L207 792 L215 727 L178 685 L191 627 L162 578 L185 525
+         L168 465 L202 420 L190 365 L236 334 L249 276 Z"
+      fill="#fff"
+      opacity=".07"
+    />
+    <path
+      d="M291 196
+         L336 213 L368 250 L382 295 L430 318 L436 360 L476 389
+         L468 444 L508 484 L497 536 L535 588 L492 638 L496 694
+         L453 724 L438 789 L380 799 L345 860 L290 818 L246 846
+         L207 792 L215 727 L178 685 L191 627 L162 578 L185 525
+         L168 465 L202 420 L190 365 L236 334 L249 276 Z"
+      stroke="#f4e8ec"
+      stroke-opacity=".34"
+      stroke-width="3"
+      fill="none"
+    />
+    <path
+      d="M230 344C266 360 304 344 338 370
+         M204 432C260 424 304 443 350 421
+         M199 515C252 493 311 504 367 536
+         M225 611C281 578 348 582 417 616
+         M247 712C295 676 364 681 427 708
+         M289 229C278 284 287 329 323 372
+         M247 369C308 413 321 469 298 530
+         M395 323C350 365 334 421 342 490
+         M450 435C397 466 370 521 372 602
+         M456 607C419 654 403 703 404 770"
+      stroke="#572535"
+      stroke-opacity=".54"
+      stroke-width="2.5"
+      fill="none"
+    />
+    <g fill="#572535" opacity=".5">
+      <circle cx="282" cy="321" r="4"/>
+      <circle cx="348" cy="445" r="4"/>
+      <circle cx="265" cy="568" r="4"/>
+      <circle cx="427" cy="610" r="4"/>
+      <circle cx="358" cy="710" r="4"/>
+    </g>
+    <text x="248" y="337" font-family="Arial, sans-serif" font-size="9" letter-spacing="1.8" fill="#572535" opacity=".45">LUANDA</text>
+    <text x="366" y="437" font-family="Arial, sans-serif" font-size="9" letter-spacing="1.8" fill="#572535" opacity=".45">MALANJE</text>
+    <text x="271" y="580" font-family="Arial, sans-serif" font-size="9" letter-spacing="1.8" fill="#572535" opacity=".45">HUAMBO</text>
+  </g>
+
+  <g opacity=".16" fill="#fff">
+    <rect x="560" y="650" width="110" height="6"/>
+    <rect x="560" y="672" width="82" height="6"/>
+    <rect x="560" y="694" width="100" height="6"/>
+    <rect x="560" y="716" width="68" height="6"/>
+  </g>
+</svg>

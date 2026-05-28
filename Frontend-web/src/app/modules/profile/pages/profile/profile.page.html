@@ -1,0 +1,124 @@
+<section class="profile-shell -m-6 min-h-dvh bg-[#f6f6f7] text-[#2b2628]">
+  <button class="sidebar-backdrop" [class.is-open]="sidebarOpen()" type="button" aria-label="Fechar menu" (click)="closeSidebar()"></button>
+
+  <aside class="sidebar" [class.is-open]="sidebarOpen()">
+    <div class="brand">
+      <img src="/auth-logo.png" alt="Economia com História" />
+      <span>Economia com História</span>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Navegação do perfil">
+      <p>PLATAFORMA</p>
+      @for (item of platformItems; track item.label) {
+        <a [routerLink]="item.route" [class.active]="item.active">
+          <span class="nav-icon" [attr.data-icon]="item.icon"></span>
+          {{ item.label }}
+        </a>
+      }
+
+      <p>ADMINISTRAÇÃO</p>
+      @for (item of administrationItems; track item.label) {
+        <a [routerLink]="item.route" [class.active]="item.active">
+          <span class="nav-icon" [attr.data-icon]="item.icon"></span>
+          {{ item.label }}
+        </a>
+      }
+
+      <p>INFRAESTRUTURA</p>
+      @for (item of infrastructureItems; track item.label) {
+        <a [routerLink]="item.route" [class.active]="item.active">
+          <span class="nav-icon" [attr.data-icon]="item.icon"></span>
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+
+    <footer class="sidebar-footer">
+      <div>
+        <span>Nível de Acesso</span>
+        <strong>{{ accessLevel() }}</strong>
+      </div>
+      <button type="button" class="certificate-button">Ver Certificados</button>
+      <a routerLink="/app/profile" class="support-link">
+        <span class="nav-icon" data-icon="help_outline"></span>
+        Suporte
+      </a>
+      <a routerLink="/auth/login" class="logout-link" (click)="auth.logout()">
+        <span class="nav-icon" data-icon="logout"></span>
+        Sair
+      </a>
+    </footer>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar">
+      <button class="menu-button" type="button" aria-label="Abrir menu lateral" (click)="toggleSidebar()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <label class="search">
+        <span class="nav-icon" data-icon="search"></span>
+        <input type="search" placeholder="Pesquisar..." [value]="searchTerm()" (input)="updateSearch($event)" />
+        @if (searchTerm()) {
+          <section class="profile-search-dropdown">
+            @if (searchResults().length) {
+              @for (result of searchResults(); track result.label) {
+                <a [routerLink]="result.route" (click)="searchTerm.set('')">
+                  <strong>{{ result.label }}</strong>
+                  <span>{{ result.detail }}</span>
+                </a>
+              }
+            } @else {
+              <p>Nenhum resultado encontrado.</p>
+            }
+          </section>
+        }
+      </label>
+
+      <div class="topbar-actions">
+        <button type="button" class="notification-button" aria-label="Notificações" (click)="toggleNotifications()">
+          <span class="nav-icon" data-icon="notifications"></span>
+        </button>
+        @if (notificationsOpen()) {
+          <button type="button" class="notification-scrim" aria-label="Fechar notificações" (click)="closeNotifications()"></button>
+          <section class="notification-dropdown">
+            <header>
+              <strong>Notificações</strong>
+              <span>{{ notifications.length }} novas</span>
+            </header>
+            @for (notification of notifications; track notification.title) {
+              <article>
+                <strong>{{ notification.title }}</strong>
+                <p>{{ notification.text }}</p>
+                <span>{{ notification.time }}</span>
+              </article>
+            }
+          </section>
+        }
+        <a routerLink="/app/profile" class="profile-avatar-link" aria-label="Abrir perfil">
+          <img [src]="dashboard().user.avatarUrl" [alt]="dashboard().user.name" />
+        </a>
+      </div>
+    </header>
+
+    <main class="profile-content">
+      <h1>Perfil</h1>
+
+      <app-profile-header [user]="dashboard().user" />
+
+      <section class="insight-grid">
+        <app-academic-ranking [ranking]="dashboard().ranking" />
+        <app-progress-domains [domains]="dashboard().domains" />
+      </section>
+
+      <app-achievements [achievements]="dashboard().achievements" />
+
+      <section class="bottom-grid">
+        <app-learning-progress [learning]="dashboard().learning" />
+        <app-statistics-card [stats]="dashboard().stats" />
+      </section>
+    </main>
+  </div>
+</section>

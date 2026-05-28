@@ -1,0 +1,87 @@
+.achievements-card {
+  margin-top: 1rem;
+  border: 1px solid #ebe7e9;
+  background: #fff;
+  padding: 1.2rem;
+  box-shadow: 0 16px 42px rgb(22 19 21 / 0.045);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+h2 {
+  color: #5c1e2f;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+button {
+  color: #5c1e2f;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badges {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(96px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+article {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  border-radius: 8px;
+  padding: 0.7rem 0.4rem;
+  text-align: center;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+article:hover {
+  background: #faf7f8;
+  transform: translateY(-3px);
+}
+
+.badge-icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border-radius: 9px;
+  background: #f1ece6;
+  color: #5c1e2f;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+strong {
+  color: #5c1e2f;
+  font-size: 11px;
+}
+
+span {
+  color: #777;
+  font-size: 10px;
+}
+
+.locked {
+  opacity: 0.38;
+}
+
+@media (max-width: 900px) {
+  .badges {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .badges {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

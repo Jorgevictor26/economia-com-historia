@@ -10,6 +10,7 @@ use App\Http\Controllers\ContentController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\ReactionController;
+use App\Http\Controllers\Api\V1\NotificationController;
 
 Route::prefix('v1')->group(function () {
     Route::post('/register', RegisterController::class);
@@ -37,5 +38,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/reactions', [ReactionController::class, 'store']);
         Route::get('/reactions/content/{contentId}', [ReactionController::class, 'getByContent']);
         Route::get('/reactions/content/{contentId}/count', [ReactionController::class, 'getCountByType']);
+        
+        // NOTIFICATIONS
+        Route::post('/notifications', [NotificationController::class, 'store']);
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     });
 });

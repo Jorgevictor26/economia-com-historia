@@ -29,6 +29,16 @@ export interface Achievement {
   unlocked: boolean;
 }
 
+export interface RankingAchievement {
+  position: number;
+  previousPosition: number;
+  quizTitle: string;
+  quizTopic: string;
+  score: number;
+  earnedXp: number;
+  achievedAt: string;
+}
+
 export interface LearningProgress {
   title: string;
   subtitle: string;
@@ -53,6 +63,7 @@ export interface ProfileDashboard {
   };
   domains: DomainProgress[];
   achievements: Achievement[];
+  rankingAchievements: RankingAchievement[];
   learning: LearningProgress;
   stats: ProfileStats;
 }

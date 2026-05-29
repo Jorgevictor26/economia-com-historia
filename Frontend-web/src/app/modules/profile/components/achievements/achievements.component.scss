@@ -20,10 +20,79 @@ h2 {
   font-weight: 700;
 }
 
-button {
+h3 {
+  margin-top: 1.2rem;
   color: #5c1e2f;
-  font-size: 11px;
+  font-family: var(--font-display);
+  font-size: 12px;
   font-weight: 700;
+}
+
+header p {
+  margin-top: 0.35rem;
+  color: #6f686b;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.ranking-achievements {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.ranking-achievement {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  justify-items: stretch;
+  border: 1px solid #eee4e7;
+  border-radius: 8px;
+  background: #fffdf8;
+  padding: 0.95rem;
+  text-align: left;
+}
+
+.ranking-achievement:hover {
+  background: #fff9e8;
+  transform: translateY(-2px);
+}
+
+.ranking-position {
+  display: grid;
+  min-height: 70px;
+  place-items: center;
+  border-radius: 8px;
+  background: #5c1e2f;
+  color: #fff;
+}
+
+.ranking-position span {
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.ranking-position small {
+  color: #f3d777;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ranking-detail {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.ranking-detail strong {
+  font-size: 13px;
+}
+
+.ranking-detail span,
+.ranking-detail small {
+  text-align: left;
 }
 
 .badges {
@@ -81,6 +150,10 @@ span {
 }
 
 @media (max-width: 520px) {
+  .ranking-achievement {
+    grid-template-columns: 1fr;
+  }
+
   .badges {
     grid-template-columns: repeat(2, 1fr);
   }

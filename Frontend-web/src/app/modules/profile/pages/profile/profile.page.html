@@ -48,7 +48,7 @@
           </header>
 
           <section class="profile-section-grid">
-            <app-achievements [achievements]="dashboard.achievements" />
+            <app-achievements [achievements]="dashboard.achievements" [rankingAchievements]="dashboard.rankingAchievements" />
           </section>
         } @else if (isHistorySection) {
           <header class="profile-form-header">

@@ -27,7 +27,7 @@
   aspect-ratio: 1;
   place-items: center;
   border-radius: 999px;
-  background: #161315;
+  background: #5c1e2f;
   color: #fff;
   font: 800 clamp(1.9rem, 2.5vw, 2.35rem) var(--font-display);
 }
@@ -42,7 +42,7 @@
 
 .profile-identity h2 {
   max-width: 12rem;
-  color: #191c1d;
+  color: #5c1e2f;
   font-size: 0.98rem;
   line-height: 1.25;
 }
@@ -141,7 +141,7 @@
 
 .form-block h2,
 .photo-upload h2 {
-  color: #191c1d;
+  color: #5c1e2f;
   font-size: 0.88rem;
   font-weight: 800;
 }
@@ -159,10 +159,9 @@ textarea,
 input,
 select,
 textarea {
-  color: #191c1d;
-  font: inherit;
+  color: #534345;
+  font-family: inherit;
   font-size: 0.92rem;
-  outline: none;
 }
 
 input,
@@ -238,15 +237,15 @@ textarea:focus,
   display: grid;
   min-height: 235px;
   place-items: center;
-  border: 1px solid #8f9ab2;
-  background: #f2f3f5;
+  border: 1px solid #d9c5cc;
+  background: #fff8fb;
   padding: 1rem;
 }
 
 .photo-preview-box img {
   width: clamp(150px, 28vw, 200px);
   aspect-ratio: 1;
-  border: 5px solid #6f767f;
+  border: 5px solid #5c1e2f;
   border-radius: 999px;
   object-fit: cover;
 }
@@ -269,14 +268,14 @@ textarea:focus,
 }
 
 .upload-row span {
-  color: #534345;
+  color: #8a8587;
+  font-weight: 400;
 }
 
 .upload-row button {
   justify-content: center;
-  border-color: #5c1e2f;
-  color: #5c1e2f;
-  font-weight: 800;
+  border-color: #b8aeb2;
+  color: #6f686b;
 }
 
 @media (max-width: 900px) {

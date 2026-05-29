@@ -1,5 +1,5 @@
 import { Component, input } from '@angular/core';
-import { Achievement } from '../../models/profile.model';
+import { Achievement, RankingAchievement } from '../../models/profile.model';
 
 @Component({
   selector: 'app-achievements',
@@ -8,4 +8,8 @@ import { Achievement } from '../../models/profile.model';
 })
 export class AchievementsComponent {
   readonly achievements = input.required<Achievement[]>();
+  readonly rankingAchievements = input.required<RankingAchievement[]>();
+
+  readonly topFiveRankingAchievements = () =>
+    this.rankingAchievements().filter((achievement) => achievement.position <= 5);
 }

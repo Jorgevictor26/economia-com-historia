@@ -505,6 +505,63 @@
     border-radius: 999px;
   }
 
+  .profile-shell .profile-avatar-menu {
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding-block: 0.55rem;
+  }
+
+  .profile-shell .profile-avatar-dropdown {
+    position: absolute;
+    top: calc(100% - 2px);
+    right: 0;
+    z-index: 70;
+    display: grid;
+    width: min(230px, 82vw);
+    padding: 0.45rem;
+    border: 1px solid #e3d4d8;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 18px 45px rgb(22 19 21 / 0.14);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(6px);
+    transition: opacity 160ms ease, transform 160ms ease;
+  }
+
+  .profile-shell .profile-avatar-menu:hover .profile-avatar-dropdown,
+  .profile-shell .profile-avatar-menu:focus-within .profile-avatar-dropdown {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .profile-shell .profile-avatar-dropdown a {
+    display: flex;
+    min-height: 38px;
+    align-items: center;
+    gap: 0.55rem;
+    border-radius: 8px;
+    padding: 0.55rem 0.65rem;
+    color: #363234;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .profile-shell .profile-avatar-dropdown a:hover,
+  .profile-shell .profile-avatar-dropdown a:focus-visible {
+    background: #f7edef;
+    color: #5c1e2f;
+    outline: none;
+  }
+
+  .profile-shell .profile-avatar-dropdown a:last-child {
+    margin-top: 0.2rem;
+    border-top: 1px solid #f0ecee;
+    color: #b42318;
+  }
+
   .profile-shell .topbar-actions img {
     width: 29px;
     height: 29px;
@@ -1000,6 +1057,68 @@
     padding: 1rem;
     color: #6f686b;
     font-size: 12px;
+  }
+
+  .public-profile-menu {
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding-block: 0.65rem;
+  }
+
+  .public-profile-trigger {
+    display: flex;
+    align-items: center;
+    border-radius: 999px;
+  }
+
+  .public-profile-dropdown {
+    position: absolute;
+    top: calc(100% - 2px);
+    right: 0;
+    z-index: 70;
+    display: grid;
+    width: min(220px, 82vw);
+    padding: 0.45rem;
+    border: 1px solid #e3d4d8;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 18px 45px rgb(22 19 21 / 0.14);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(6px);
+    transition: opacity 160ms ease, transform 160ms ease;
+  }
+
+  .public-profile-menu:hover .public-profile-dropdown,
+  .public-profile-menu:focus-within .public-profile-dropdown {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .public-profile-dropdown a {
+    display: flex;
+    min-height: 38px;
+    align-items: center;
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    color: #363234;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .public-profile-dropdown a:hover,
+  .public-profile-dropdown a:focus-visible {
+    background: #f7edef;
+    color: #5c1e2f;
+    outline: none;
+  }
+
+  .public-profile-dropdown a:last-child {
+    margin-top: 0.2rem;
+    border-top: 1px solid #f0ecee;
+    color: #b42318;
   }
 
   .account-form {

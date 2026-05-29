@@ -66,19 +66,30 @@ import { NotificationService } from '../../services/notification.service';
               }
             </div>
 
-            <a routerLink="/app/profile" class="flex items-center" aria-label="Perfil">
-              @if (auth.user()?.avatarUrl) {
-                <img
-                  [src]="auth.user()?.avatarUrl"
-                  alt="Perfil"
-                  class="size-[34px] rounded-full object-cover ring-1 ring-[#5c1e2f]/10"
-                />
-              } @else {
-                <span class="grid size-[34px] place-items-center rounded-full bg-[#161315] font-display text-[12px] font-extrabold text-white ring-1 ring-[#5c1e2f]/10">
-                  {{ userInitials() }}
-                </span>
-              }
-            </a>
+            <div class="public-profile-menu">
+              <a routerLink="/app/profile" class="public-profile-trigger" aria-label="Perfil" aria-haspopup="menu">
+                @if (auth.user()?.avatarUrl) {
+                  <img
+                    [src]="auth.user()?.avatarUrl"
+                    alt="Perfil"
+                    class="size-[34px] rounded-full object-cover ring-1 ring-[#5c1e2f]/10"
+                  />
+                } @else {
+                  <span class="grid size-[34px] place-items-center rounded-full bg-[#161315] font-display text-[12px] font-extrabold text-white ring-1 ring-[#5c1e2f]/10">
+                    {{ userInitials() }}
+                  </span>
+                }
+              </a>
+
+              <nav class="public-profile-dropdown" aria-label="Menu do perfil" role="menu">
+                <a routerLink="/app/profile" role="menuitem">Perfil</a>
+                <a routerLink="/app/contents" role="menuitem">Meu aprendizado</a>
+                <a routerLink="/app/profile" role="menuitem">Minhas conquistas</a>
+                <a routerLink="/app/favorites" role="menuitem">Histórico</a>
+                <a routerLink="/app/forums" role="menuitem">Suporte</a>
+                <a routerLink="/auth/login" role="menuitem" (click)="auth.logout()">Sair</a>
+              </nav>
+            </div>
           } @else {
             <a routerLink="/auth/login" class="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#5c1e2f] px-5 text-[13px] font-bold text-[#5c1e2f]">Entrar</a>
             <a routerLink="/auth/register" class="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white transition hover:bg-[#471525]">Criar conta</a>

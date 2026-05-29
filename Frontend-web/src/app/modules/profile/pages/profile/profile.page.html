@@ -19,7 +19,7 @@
         <div class="profile-sidebar-note">
           <span>{{ dashboard.user.badge }}</span>
           <strong>{{ dashboard.ranking.points }} XP</strong>
-          <p>Ranking académico #{{ dashboard.ranking.currentPosition }} entre {{ dashboard.ranking.totalStudents }} estudantes.</p>
+          <p>Ranking #{{ dashboard.ranking.currentPosition }} entre {{ dashboard.ranking.totalStudents }} utilizadores.</p>
         </div>
       </aside>
 
@@ -64,13 +64,6 @@
                 <button type="submit">Alterar a palavra-passe</button>
               </div>
             </section>
-
-            <section class="account-section" aria-labelledby="multifactor-title">
-              <div class="multifactor-card">
-                <h2 id="multifactor-title">Autenticação multifator</h2>
-                <p>Adicione uma camada extra de segurança à sua conta.</p>
-              </div>
-            </section>
           </form>
         } @else if (isNotificationPreferencesSection) {
           <header class="profile-form-header">
@@ -79,14 +72,6 @@
           </header>
 
           <section class="notification-preferences-panel" aria-labelledby="notification-preferences-title">
-            <h2 id="notification-preferences-title">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M18 16v-5a6 6 0 0 0-12 0v5l-2 2h16l-2-2Z" />
-                <path d="M10 20a2 2 0 0 0 4 0" />
-              </svg>
-              Preferências de Notificação
-            </h2>
-
             <div class="notification-preferences-card">
               <label class="notification-preference-row">
                 <span>
@@ -108,7 +93,7 @@
         } @else if (isPhotoSection) {
           <header class="profile-form-header">
             <h1>Foto</h1>
-            <span>Adicione uma bela foto sua para o seu perfil.</span>
+            <span>Adicione uma foto sua para o seu perfil.</span>
           </header>
 
           <form class="profile-form photo-form" (submit)="$event.preventDefault()">
@@ -170,7 +155,7 @@
             </section>
 
             <section class="form-block" aria-labelledby="profile-context">
-              <h2 id="profile-context">Preferências académicas</h2>
+              <h2 id="profile-context">Preferências de Idioma</h2>
               <label>
                 <span class="sr-only">Idioma principal</span>
                 <select>

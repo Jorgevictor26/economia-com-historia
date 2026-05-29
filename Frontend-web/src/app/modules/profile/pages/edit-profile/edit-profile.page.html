@@ -97,9 +97,37 @@
             }
           </section>
         }
-        <a routerLink="/app/profile" class="profile-avatar-link" aria-label="Abrir perfil">
-          <img [src]="dashboard().user.avatarUrl" [alt]="dashboard().user.name" />
-        </a>
+        <div class="profile-avatar-menu">
+          <a routerLink="/app/profile" class="profile-avatar-link" aria-label="Abrir perfil" aria-haspopup="menu">
+            <img [src]="dashboard().user.avatarUrl" [alt]="dashboard().user.name" />
+          </a>
+          <nav class="profile-avatar-dropdown" aria-label="Menu do perfil" role="menu">
+            <a routerLink="/app/profile" role="menuitem">
+              <span class="nav-icon" data-icon="person"></span>
+              Perfil
+            </a>
+            <a routerLink="/app/contents" role="menuitem">
+              <span class="nav-icon" data-icon="school"></span>
+              Meu aprendizado
+            </a>
+            <a routerLink="/app/profile" role="menuitem">
+              <span class="nav-icon" data-icon="military_tech"></span>
+              Minhas conquistas
+            </a>
+            <a routerLink="/app/favorites" role="menuitem">
+              <span class="nav-icon" data-icon="history"></span>
+              Histórico
+            </a>
+            <a routerLink="/app/forums" role="menuitem">
+              <span class="nav-icon" data-icon="help_outline"></span>
+              Suporte
+            </a>
+            <a routerLink="/auth/login" role="menuitem" (click)="auth.logout()">
+              <span class="nav-icon" data-icon="logout"></span>
+              Sair
+            </a>
+          </nav>
+        </div>
       </div>
     </header>
 

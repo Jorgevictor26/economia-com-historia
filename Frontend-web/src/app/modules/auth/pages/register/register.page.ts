@@ -98,6 +98,12 @@ export class RegisterPage {
     this.step.set('bio');
   }
 
+  skipPhoto(): void {
+    this.selectedPhotoName.set('');
+    this.photoPreviewUrl.set('');
+    this.step.set('bio');
+  }
+
   advanceFromBio(): void {
     this.bioSubmitted.set(true);
 
@@ -109,9 +115,7 @@ export class RegisterPage {
     this.finishRegistration();
   }
 
-  skipOnboarding(): void {
-    this.selectedPhotoName.set('');
-    this.photoPreviewUrl.set('');
+  skipBiography(): void {
     this.bioForm.reset({ biography: '' });
     this.finishRegistration();
   }

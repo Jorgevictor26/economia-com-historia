@@ -3,8 +3,18 @@
 
   <section class="flex min-h-dvh items-center justify-center bg-white px-6 py-10 sm:px-10">
     <div class="w-full max-w-[430px] animate-[fadeUp_.55s_ease-out]">
+      <div class="step-progress" [class.is-pulsing]="completionPulse()" aria-hidden="true">
+        <span [class.is-active]="step() === 'account'" [class.is-complete]="step() !== 'account'"></span>
+        <span [class.is-active]="step() === 'photo'" [class.is-complete]="step() === 'bio'"></span>
+        <span [class.is-active]="step() === 'bio'"></span>
+      </div>
+
+      @if (feedbackMessage()) {
+        <p class="feedback-banner">{{ feedbackMessage() }}</p>
+      }
+
       @if (step() === 'account') {
-        <header class="mb-8 text-center">
+        <header class="step-panel mb-8 text-center">
           <img src="/auth-logo.png" alt="Economia com História" class="mx-auto mb-7 h-[54px] w-auto" />
           <h2 class="font-display text-[21px] font-semibold leading-[1.45] tracking-[0.10em] text-[#8A4055]">
             Bem-vindo à<br />Economia com História
@@ -15,7 +25,7 @@
           Preencha os seus dados para iniciar a sua jornada académica.
         </p>
 
-        <form class="grid gap-5" aria-label="Criar conta na plataforma" [formGroup]="form" (ngSubmit)="submit()">
+        <form class="step-panel grid gap-5" aria-label="Criar conta na plataforma" [formGroup]="form" (ngSubmit)="submit()">
           <label class="grid gap-2 font-sans text-[12px] font-medium text-[#555]">
             Nome completo
             <input
@@ -120,7 +130,7 @@
           <a routerLink="/auth/login" class="font-semibold text-[#7A2038] transition hover:text-[#5C1E2F] hover:underline">Entrar</a>
         </p>
       } @else if (step() === 'photo') {
-        <section class="onboarding-card" aria-labelledby="profile-photo-title">
+        <section class="onboarding-card step-panel" aria-labelledby="profile-photo-title">
           <div class="step-avatar" aria-hidden="true">
             @if (photoPreviewUrl()) {
               <img [src]="photoPreviewUrl()" alt="" />
@@ -147,7 +157,7 @@
           </div>
         </section>
       } @else {
-        <section class="onboarding-card" aria-labelledby="profile-bio-title">
+        <section class="onboarding-card step-panel" aria-labelledby="profile-bio-title">
           <div class="step-avatar" aria-hidden="true">
             @if (photoPreviewUrl()) {
               <img [src]="photoPreviewUrl()" alt="" />

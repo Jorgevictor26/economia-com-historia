@@ -31,12 +31,14 @@ export class AuthStateService {
     });
   }
 
-  registerStudent(name: string, email: string): void {
+  registerStudent(name: string, email: string, avatarUrl = '', biography = ''): void {
     this.setUser({
       id: `student-${Date.now()}`,
       name,
       email,
       role: 'student',
+      avatarUrl: avatarUrl || undefined,
+      biography,
       hasPremiumAccess: false,
       invitedForumIds: [],
       streakDays: 0,

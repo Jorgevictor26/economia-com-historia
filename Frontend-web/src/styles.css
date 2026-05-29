@@ -1035,6 +1035,20 @@
     font-size: 0.82rem;
   }
 
+  .photo-preview-initials {
+    display: grid;
+    width: clamp(150px, 28vw, 200px);
+    aspect-ratio: 1;
+    place-items: center;
+    border: 5px solid #6f767f;
+    border-radius: 999px;
+    background: #161315;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 2.25rem;
+    font-weight: 800;
+  }
+
   .jindungo-card {
     border: 1px solid #e3d4d8;
   }

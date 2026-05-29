@@ -6,7 +6,7 @@
       <aside class="profile-sidebar" aria-label="Menu de perfil">
         <div class="profile-identity">
           <div class="profile-initials" aria-hidden="true">{{ initials() }}</div>
-          <h2>{{ dashboard.user.name }}</h2>
+          <h2>{{ profileName() }}</h2>
           <p>{{ dashboard.user.accessLevel }}</p>
         </div>
 
@@ -35,7 +35,7 @@
               <label class="account-field">
                 <span id="account-email-title">E-mail:</span>
                 <div class="account-email-row">
-                  <input type="email" [value]="'Seu endereço de e-mail é ' + dashboard.user.email" readonly />
+                  <input type="email" [value]="'Seu endereço de e-mail é ' + profileEmail()" readonly />
                   <button type="button" aria-label="Editar e-mail">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M12 20h9" />
@@ -82,7 +82,11 @@
             <section class="photo-upload" aria-labelledby="photo-preview">
               <h2 id="photo-preview">Visualização da imagem</h2>
               <div class="photo-preview-box">
-                <img [src]="dashboard.user.avatarUrl" [alt]="dashboard.user.name" />
+                @if (profileAvatarUrl()) {
+                  <img [src]="profileAvatarUrl()" [alt]="profileName()" />
+                } @else {
+                  <span class="photo-preview-initials">{{ initials() }}</span>
+                }
               </div>
             </section>
 
@@ -110,12 +114,12 @@
               <div class="field-stack">
                 <label>
                   <span class="sr-only">Nome completo</span>
-                  <input type="text" [value]="dashboard.user.name" aria-label="Nome completo" />
+                  <input type="text" [value]="profileName()" aria-label="Nome completo" />
                 </label>
 
                 <label>
                   <span class="sr-only">E-mail</span>
-                  <input type="email" [value]="dashboard.user.email" aria-label="E-mail" />
+                  <input type="email" [value]="profileEmail()" aria-label="E-mail" />
                 </label>
               </div>
             </section>
@@ -127,7 +131,7 @@
                   <strong>B</strong>
                   <i>I</i>
                 </div>
-                <textarea rows="6" placeholder="Biografia">{{ dashboard.user.description }}</textarea>
+                <textarea rows="6" placeholder="Sem biografia">{{ profileDescription() }}</textarea>
               </div>
               <p class="field-help">Use este espaço para resumir os seus interesses em economia, história de Angola, investigação ou ensino.</p>
             </section>

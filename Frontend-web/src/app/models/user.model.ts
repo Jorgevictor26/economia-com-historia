@@ -6,6 +6,7 @@ export interface User {
   email: string;
   role: UserRole;
   avatarUrl?: string;
+  biography?: string;
   hasPremiumAccess: boolean;
   invitedForumIds?: string[];
   streakDays: number;

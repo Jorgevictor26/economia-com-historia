@@ -24,6 +24,8 @@ export class RegisterPage {
   readonly bioSubmitted = signal(false);
   readonly selectedPhotoName = signal('');
   readonly photoPreviewUrl = signal('');
+  readonly feedbackMessage = signal('');
+  readonly completionPulse = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     fullName: ['', [Validators.required, Validators.minLength(3)]],
@@ -70,8 +72,11 @@ export class RegisterPage {
     }
 
     this.isLoading.set(true);
+    this.feedbackMessage.set('A preparar os próximos passos do perfil...');
     await new Promise((resolve) => setTimeout(resolve, 700));
     this.isLoading.set(false);
+    this.feedbackMessage.set('Conta criada. Agora pode personalizar o seu perfil.');
+    this.pulseStep();
     this.step.set('photo');
   }
 
@@ -82,6 +87,7 @@ export class RegisterPage {
     }
 
     this.selectedPhotoName.set(file.name);
+    this.feedbackMessage.set('Foto selecionada. Pode avançar quando estiver pronto.');
 
     const reader = new FileReader();
     reader.onload = () => this.photoPreviewUrl.set(String(reader.result || ''));
@@ -92,15 +98,20 @@ export class RegisterPage {
     this.photoSubmitted.set(true);
 
     if (!this.selectedPhotoName()) {
+      this.feedbackMessage.set('Escolha uma foto ou use Pular para continuar sem foto.');
       return;
     }
 
+    this.feedbackMessage.set('Foto adicionada ao perfil. Agora escreva uma biografia.');
+    this.pulseStep();
     this.step.set('bio');
   }
 
   skipPhoto(): void {
     this.selectedPhotoName.set('');
     this.photoPreviewUrl.set('');
+    this.feedbackMessage.set('Sem problema. Pode adicionar uma foto mais tarde; agora sugerimos uma biografia.');
+    this.pulseStep();
     this.step.set('bio');
   }
 
@@ -109,21 +120,29 @@ export class RegisterPage {
 
     if (this.bioForm.invalid) {
       this.bioForm.markAllAsTouched();
+      this.feedbackMessage.set('Escreva uma breve biografia para avançar.');
       return;
     }
 
+    this.feedbackMessage.set('Biografia guardada. A finalizar a criação da conta...');
     this.finishRegistration();
   }
 
   skipBiography(): void {
     this.bioForm.reset({ biography: '' });
+    this.feedbackMessage.set('Biografia ignorada. O perfil ficará sem biografia por agora.');
     this.finishRegistration();
   }
 
   private finishRegistration(): void {
     const { fullName, email } = this.form.getRawValue();
-    this.auth.registerStudent(fullName, email);
+    this.auth.registerStudent(fullName, email, this.photoPreviewUrl(), this.bioForm.controls.biography.value.trim());
     void this.router.navigateByUrl('/app/contents');
+  }
+
+  private pulseStep(): void {
+    this.completionPulse.set(true);
+    window.setTimeout(() => this.completionPulse.set(false), 650);
   }
 
   private passwordsDoNotMatch(): boolean {

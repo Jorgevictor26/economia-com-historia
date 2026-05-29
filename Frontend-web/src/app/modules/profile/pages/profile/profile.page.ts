@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthStateService } from '../../../../services/auth-state.service';
 import { BackToTopComponent } from '../../../../shared/back-to-top/back-to-top.component';
@@ -38,8 +38,19 @@ export class ProfilePage {
     { label: 'Publicações no fórum', value: this.dashboard.stats.forumPosts },
   ];
 
+  readonly profileName = computed(() => this.auth.user()?.name || this.dashboard.user.name);
+  readonly profileEmail = computed(() => this.auth.user()?.email || this.dashboard.user.email);
+  readonly profileAvatarUrl = computed(() => {
+    const authenticatedUser = this.auth.user();
+    return authenticatedUser ? (authenticatedUser.avatarUrl ?? '') : this.dashboard.user.avatarUrl;
+  });
+  readonly profileDescription = computed(() => {
+    const authenticatedUser = this.auth.user();
+    return authenticatedUser ? (authenticatedUser.biography ?? '') : this.dashboard.user.description;
+  });
+
   initials(): string {
-    return this.dashboard.user.name
+    return this.profileName()
       .split(' ')
       .filter(Boolean)
       .slice(0, 2)

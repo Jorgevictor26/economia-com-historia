@@ -44,6 +44,52 @@
   font-weight: 500;
 }
 
+.step-progress {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.step-progress span {
+  width: 2rem;
+  height: 0.28rem;
+  border-radius: 999px;
+  background: #eadde2;
+  transition: width 220ms ease, background-color 220ms ease, transform 220ms ease;
+}
+
+.step-progress span.is-active {
+  width: 3rem;
+  background: #5c1e2f;
+}
+
+.step-progress span.is-complete {
+  background: #d4af37;
+}
+
+.step-progress.is-pulsing span.is-complete,
+.step-progress.is-pulsing span.is-active {
+  animation: progressPulse 620ms ease;
+}
+
+.feedback-banner {
+  margin-bottom: 1rem;
+  border: 1px solid #e3d4d8;
+  border-radius: 8px;
+  background: #fff8fb;
+  padding: 0.75rem 1rem;
+  color: #5c1e2f;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  animation: feedbackIn 260ms ease both;
+}
+
+.step-panel {
+  animation: stepIn 320ms ease both;
+}
+
 .onboarding-card {
   display: grid;
   gap: 1rem;
@@ -76,6 +122,7 @@
   font-family: var(--font-display);
   font-size: 2rem;
   font-weight: 800;
+  animation: avatarPop 420ms ease both;
 }
 
 .step-avatar img {
@@ -158,6 +205,48 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes feedbackIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes stepIn {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes avatarPop {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes progressPulse {
+  50% {
+    transform: scaleX(1.08);
   }
 }
 

@@ -165,13 +165,14 @@ export class PublicNavbarComponent {
   readonly notificationsOpen = signal(false);
 
   homeRoute(): string {
-    return this.auth.isAuthenticated() ? '/app/contents' : '/';
+    return this.auth.isAuthenticated() ? '/app/home' : '/';
   }
 
   navItems(): Array<{ label: string; route: string; exact: boolean }> {
     if (this.auth.isAuthenticated()) {
       return [
         { label: 'Home', route: this.homeRoute(), exact: true },
+        { label: 'Conteúdo', route: '/app/contents', exact: false },
         { label: 'Quiz', route: '/app/quizzes', exact: false },
         { label: 'Fórum', route: '/app/forums', exact: false },
       ];

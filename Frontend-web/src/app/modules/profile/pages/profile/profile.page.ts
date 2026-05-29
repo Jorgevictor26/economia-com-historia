@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthStateService } from '../../../../services/auth-state.service';
+import { AngolaEconomicMapComponent } from '../../../../shared/angola-economic-map/angola-economic-map.component';
 import { BackToTopComponent } from '../../../../shared/back-to-top/back-to-top.component';
 import { PublicFooterComponent } from '../../../../shared/public-footer/public-footer.component';
 import { PublicNavbarComponent } from '../../../../shared/public-navbar/public-navbar.component';
@@ -16,6 +17,7 @@ import { ProfileService } from '../../services/profile.service';
     PublicNavbarComponent,
     PublicFooterComponent,
     BackToTopComponent,
+    AngolaEconomicMapComponent,
     AchievementsComponent,
     LearningProgressComponent,
     ProgressDomainsComponent,

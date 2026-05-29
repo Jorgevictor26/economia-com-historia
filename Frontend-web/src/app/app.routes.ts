@@ -20,6 +20,7 @@ export const routes: Routes = [
     path: 'app',
     component: DashboardLayoutComponent,
     children: [
+      { path: 'home', loadChildren: () => import('./modules/daily-home/routes/daily-home.routes').then((m) => m.DAILY_HOME_ROUTES) },
       { path: 'contents', loadChildren: () => import('./modules/contents/routes/contents.routes').then((m) => m.CONTENTS_ROUTES) },
       { path: 'forums', canActivate: [authGuard], data: { loginOperation: 'aceder aos fóruns' }, loadChildren: () => import('./modules/forums/routes/forums.routes').then((m) => m.FORUMS_ROUTES) },
       { path: 'quizzes', loadChildren: () => import('./modules/quizzes/routes/quizzes.routes').then((m) => m.QUIZZES_ROUTES) },
@@ -29,7 +30,7 @@ export const routes: Routes = [
       { path: 'subscriptions', canActivate: [authGuard], data: { loginOperation: 'subscrever ao Jindungo' }, loadChildren: () => import('./modules/subscriptions/routes/subscriptions.routes').then((m) => m.SUBSCRIPTIONS_ROUTES) },
       { path: 'profile', canActivate: [authGuard], data: { loginOperation: 'ver o perfil' }, loadChildren: () => import('./modules/profile/routes/profile.routes').then((m) => m.PROFILE_ROUTES) },
       { path: 'notifications', canActivate: [authGuard], data: { loginOperation: 'ver notificações' }, loadChildren: () => import('./modules/notifications/routes/notifications.routes').then((m) => m.NOTIFICATIONS_ROUTES) },
-      { path: '', pathMatch: 'full', redirectTo: 'contents' },
+      { path: '', pathMatch: 'full', redirectTo: 'home' },
     ],
   },
   { path: 'admin', component: AdminLayoutComponent, canActivate: [adminGuard], loadChildren: () => import('./modules/admin/routes/admin.routes').then((m) => m.ADMIN_ROUTES) },

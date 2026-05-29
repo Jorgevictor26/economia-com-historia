@@ -343,10 +343,10 @@ const redirectAuthenticatedToContents: CanActivateFn = () => {
   const auth = inject(AuthStateService);
   const router = inject(Router);
 
-  return auth.isAuthenticated() ? router.createUrlTree(['/app/contents']) : true;
+  return auth.isAuthenticated() ? router.createUrlTree(['/app/home']) : true;
 };
 
 export const HOME_ROUTES: Routes = [
   { path: '', canActivate: [redirectAuthenticatedToContents], component: LandingPage },
-  { path: 'dashboard', redirectTo: '/app/contents', pathMatch: 'full' },
+  { path: 'dashboard', redirectTo: '/app/home', pathMatch: 'full' },
 ];

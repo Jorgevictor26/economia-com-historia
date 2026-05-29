@@ -895,17 +895,35 @@
     display: inline-flex;
     min-height: 58px;
     align-items: center;
-    border-bottom: 2px solid transparent;
     color: inherit;
     white-space: nowrap;
-    transition: color 160ms ease, border-color 160ms ease;
+    transition: color 160ms ease;
+  }
+
+  .public-navbar-link::after {
+    position: absolute;
+    right: 0;
+    bottom: 10px;
+    left: 0;
+    height: 3px;
+    border-radius: 999px;
+    background: #5c1e2f;
+    content: "";
+    opacity: 0;
+    transform: scaleX(0.45);
+    transition: opacity 160ms ease, transform 160ms ease;
   }
 
   .public-navbar-link:hover,
   .public-navbar-link.is-active {
-    border-color: #d4af37;
     color: #5c1e2f;
     font-weight: 800;
+  }
+
+  .public-navbar-link:hover::after,
+  .public-navbar-link.is-active::after {
+    opacity: 1;
+    transform: scaleX(1);
   }
 
   .public-navbar-drawer-link {

@@ -82,12 +82,12 @@ import { NotificationService } from '../../services/notification.service';
               </a>
 
               <nav class="public-profile-dropdown" aria-label="Menu do perfil" role="menu">
-                <a routerLink="/app/profile" role="menuitem">Perfil</a>
-                <a routerLink="/app/contents" role="menuitem">Meu aprendizado</a>
-                <a routerLink="/app/profile" role="menuitem">Minhas conquistas</a>
-                <a routerLink="/app/favorites" role="menuitem">Histórico</a>
-                <a routerLink="/app/forums" role="menuitem">Suporte</a>
-                <a routerLink="/auth/login" role="menuitem" (click)="auth.logout()">Sair</a>
+                <a routerLink="/app/profile" role="menuitem"><span class="public-menu-icon" aria-hidden="true">person</span>Perfil</a>
+                <a routerLink="/app/profile/learning" role="menuitem"><span class="public-menu-icon" aria-hidden="true">school</span>Meu aprendizado</a>
+                <a routerLink="/app/profile/achievements" role="menuitem"><span class="public-menu-icon" aria-hidden="true">military_tech</span>Minhas conquistas</a>
+                <a routerLink="/app/profile/history" role="menuitem"><span class="public-menu-icon" aria-hidden="true">history</span>Histórico</a>
+                <a routerLink="/app/profile/support" role="menuitem"><span class="public-menu-icon" aria-hidden="true">help_outline</span>Suporte</a>
+                <a routerLink="/auth/login" role="menuitem" (click)="auth.logout()"><span class="public-menu-icon" aria-hidden="true">logout</span>Sair</a>
               </nav>
             </div>
           } @else {

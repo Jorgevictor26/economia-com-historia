@@ -12,8 +12,15 @@
 
         <nav class="profile-menu">
           @for (item of profileMenu; track item.label) {
-            <a [routerLink]="item.route" [class.active]="item.active">{{ item.label }}</a>
+            <a [routerLink]="item.route" [class.active]="item.active">
+              <span class="profile-menu-icon" aria-hidden="true">{{ item.icon }}</span>
+              {{ item.label }}
+            </a>
           }
+          <a routerLink="/auth/login" class="profile-menu-logout" (click)="auth.logout()">
+            <span class="profile-menu-icon" aria-hidden="true">logout</span>
+            Sair
+          </a>
         </nav>
 
         <div class="profile-sidebar-note">
@@ -24,7 +31,59 @@
       </aside>
 
       <section class="profile-form-panel">
-        @if (isSecuritySection) {
+        @if (isLearningSection) {
+          <header class="profile-form-header">
+            <h1>Meu aprendizado</h1>
+            <span>Continue os seus módulos e acompanhe o avanço por domínio.</span>
+          </header>
+
+          <section class="profile-section-grid">
+            <app-learning-progress [learning]="dashboard.learning" />
+            <app-progress-domains [domains]="dashboard.domains" />
+          </section>
+        } @else if (isAchievementsSection) {
+          <header class="profile-form-header">
+            <h1>Minhas conquistas</h1>
+            <span>Veja medalhas, certificados e marcos conquistados na plataforma.</span>
+          </header>
+
+          <section class="profile-section-grid">
+            <app-achievements [achievements]="dashboard.achievements" />
+          </section>
+        } @else if (isHistorySection) {
+          <header class="profile-form-header">
+            <h1>Histórico</h1>
+            <span>Retome conteúdos, quizzes e materiais consultados recentemente.</span>
+          </header>
+
+          <section class="profile-history-list">
+            @for (item of historyItems; track item.title) {
+              <a [routerLink]="item.route">
+                <span class="profile-menu-icon" aria-hidden="true">history</span>
+                <strong>{{ item.title }}</strong>
+                <small>{{ item.detail }}</small>
+              </a>
+            }
+          </section>
+        } @else if (isSupportSection) {
+          <header class="profile-form-header">
+            <h1>Suporte</h1>
+            <span>Encontre ajuda para a sua conta, aprendizagem e acesso aos conteúdos.</span>
+          </header>
+
+          <section class="profile-support-panel">
+            <a routerLink="/app/forums">
+              <span class="profile-menu-icon" aria-hidden="true">forum</span>
+              <strong>Abrir fórum de suporte</strong>
+              <small>Faça perguntas e acompanhe respostas da comunidade.</small>
+            </a>
+            <a routerLink="/app/notifications">
+              <span class="profile-menu-icon" aria-hidden="true">notifications</span>
+              <strong>Ver notificações</strong>
+              <small>Consulte avisos importantes sobre a sua conta.</small>
+            </a>
+          </section>
+        } @else if (isSecuritySection) {
           <header class="profile-form-header">
             <h1>Conta</h1>
             <span>Edite as suas configurações de conta e altere a sua palavra-passe aqui.</span>

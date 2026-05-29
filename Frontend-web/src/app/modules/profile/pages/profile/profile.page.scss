@@ -63,19 +63,18 @@
   display: flex;
   min-height: 2.35rem;
   align-items: center;
+  gap: 0.55rem;
+  margin-inline: 0.55rem;
+  border-radius: 8px;
   padding-inline: 1rem 1.25rem;
   color: #2c2729;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
 }
 
 .profile-menu a:hover,
 .profile-menu a.active {
-  background: #5c1e2f;
-  color: #fff;
-}
-
-.profile-menu a.active {
-  font-weight: 800;
+  background: #f7edef;
+  color: #5c1e2f;
 }
 
 .profile-sidebar-note {

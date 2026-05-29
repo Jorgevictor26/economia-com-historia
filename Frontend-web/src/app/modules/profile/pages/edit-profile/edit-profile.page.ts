@@ -56,7 +56,7 @@ export class EditProfilePage {
   readonly notifications = [
     { title: 'Perfil pronto para edição', text: 'Pode atualizar os seus dados académicos.', time: 'Agora' },
     { title: 'Preferências guardadas', text: 'As notificações semanais estão ativas.', time: 'Hoje' },
-    { title: 'Segurança', text: 'Recomendamos atualizar a senha regularmente.', time: 'Ontem' },
+    { title: 'Segurança', text: 'Recomendamos atualizar a palavra-passe regularmente.', time: 'Ontem' },
   ];
   readonly searchResults = computed(() => {
     const query = this.normalizeText(this.searchTerm());

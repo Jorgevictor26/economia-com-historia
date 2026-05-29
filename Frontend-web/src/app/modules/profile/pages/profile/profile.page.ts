@@ -19,22 +19,23 @@ export class ProfilePage {
   readonly dashboard = this.profileService.getDashboard();
   readonly section = this.route.snapshot.data['section'];
   readonly isPhotoSection = this.section === 'photo';
+  readonly isSecuritySection = this.section === 'security';
 
   readonly profileMenu = [
-    { label: 'Visualizar perfil publico', route: '/app/profile', active: false },
-    { label: 'Perfil', route: '/app/profile', active: !this.isPhotoSection },
+    { label: 'Visualizar perfil público', route: '/app/profile', active: false },
+    { label: 'Perfil', route: '/app/profile', active: !this.isPhotoSection && !this.isSecuritySection },
     { label: 'Foto', route: '/app/profile/photo', active: this.isPhotoSection },
-    { label: 'Seguranca da conta', route: '/app/profile/edit', active: false },
+    { label: 'Segurança da conta', route: '/app/profile/security', active: this.isSecuritySection },
     { label: 'Subscrições', route: '/app/subscriptions', active: false },
-    { label: 'Preferencias', route: '/app/profile/edit', active: false },
-    { label: 'Notificacoes', route: '/app/notifications', active: false },
+    { label: 'Preferências', route: '/app/profile/edit', active: false },
+    { label: 'Notificações', route: '/app/notifications', active: false },
   ];
 
-  readonly languages = ['Portugues (Angola)', 'Portugues (Brasil)', 'Ingles', 'Frances'];
+  readonly languages = ['Português (Angola)', 'Português (Brasil)', 'Inglês', 'Francês'];
   readonly profileStats = [
     { label: 'Horas de estudo', value: this.dashboard.stats.studyHours },
-    { label: 'Quizzes concluidos', value: this.dashboard.stats.completedQuizzes },
-    { label: 'Publicacoes no forum', value: this.dashboard.stats.forumPosts },
+    { label: 'Quizzes concluídos', value: this.dashboard.stats.completedQuizzes },
+    { label: 'Publicações no fórum', value: this.dashboard.stats.forumPosts },
   ];
 
   initials(): string {

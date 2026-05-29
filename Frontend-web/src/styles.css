@@ -968,6 +968,73 @@
     line-height: 1.45;
   }
 
+  .account-form {
+    display: grid;
+  }
+
+  .account-section {
+    display: grid;
+    gap: 1rem;
+    border-bottom: 1px solid #e3d4d8;
+    padding: clamp(1.45rem, 3.2vw, 2.15rem) clamp(1.25rem, 5vw, 4rem);
+  }
+
+  .account-field {
+    display: grid;
+    gap: 0.65rem;
+    color: #191c1d;
+    font-size: 0.88rem;
+    font-weight: 800;
+  }
+
+  .account-field input {
+    min-height: 3rem;
+    border-color: #8f9ab2;
+  }
+
+  .account-section h2 {
+    color: #191c1d;
+    font-size: 0.88rem;
+    font-weight: 800;
+  }
+
+  .account-email-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.6rem;
+  }
+
+  .account-email-row button {
+    display: grid;
+    width: 3rem;
+    min-height: 3rem;
+    place-items: center;
+    border: 1px solid #5c1e2f;
+    border-radius: 8px;
+    color: #5c1e2f;
+  }
+
+  .account-email-row svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  .multifactor-card {
+    border: 1px solid #d7dce8;
+    padding: 1.2rem;
+  }
+
+  .multifactor-card p {
+    margin-top: 0.35rem;
+    color: #534345;
+    font-size: 0.82rem;
+  }
+
   .jindungo-card {
     border: 1px solid #e3d4d8;
   }

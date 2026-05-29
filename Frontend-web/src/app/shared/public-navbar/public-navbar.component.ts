@@ -59,11 +59,17 @@ import { NotificationService } from '../../services/notification.service';
             </div>
 
             <a routerLink="/app/profile" class="flex items-center" aria-label="Perfil">
-              <img
-                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=160&q=80"
-                alt="Perfil"
-                class="size-[34px] rounded-full object-cover ring-1 ring-[#5c1e2f]/10"
-              />
+              @if (auth.user()?.avatarUrl) {
+                <img
+                  [src]="auth.user()?.avatarUrl"
+                  alt="Perfil"
+                  class="size-[34px] rounded-full object-cover ring-1 ring-[#5c1e2f]/10"
+                />
+              } @else {
+                <span class="grid size-[34px] place-items-center rounded-full bg-[#161315] font-display text-[12px] font-extrabold text-white ring-1 ring-[#5c1e2f]/10">
+                  {{ userInitials() }}
+                </span>
+              }
             </a>
           } @else {
             <a routerLink="/auth/login" class="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#5c1e2f] px-5 text-[13px] font-bold text-[#5c1e2f]">Entrar</a>
@@ -174,6 +180,16 @@ export class PublicNavbarComponent {
 
   closeNotifications(): void {
     this.notificationsOpen.set(false);
+  }
+
+  userInitials(): string {
+    return (this.auth.user()?.name ?? 'Utilizador')
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((name) => name[0])
+      .join('')
+      .toUpperCase();
   }
 }
 

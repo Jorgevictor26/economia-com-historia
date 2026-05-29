@@ -31,6 +31,18 @@ export class AuthStateService {
     });
   }
 
+  registerStudent(name: string, email: string): void {
+    this.setUser({
+      id: `student-${Date.now()}`,
+      name,
+      email,
+      role: 'student',
+      hasPremiumAccess: false,
+      invitedForumIds: [],
+      streakDays: 0,
+    });
+  }
+
   canAccessForum(roomId: string, visibility: 'public' | 'private'): boolean {
     const user = this.userSignal();
     if (!user) {

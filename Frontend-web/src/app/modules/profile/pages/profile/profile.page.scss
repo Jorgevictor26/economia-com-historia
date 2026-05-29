@@ -223,7 +223,6 @@ textarea:focus,
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  padding-top: 0.25rem;
 }
 
 .form-actions button {
@@ -283,7 +282,8 @@ textarea:focus,
 
 @media (max-width: 900px) {
   .profile-editor,
-  .upload-row {
+  .upload-row,
+  .account-email-row {
     grid-template-columns: 1fr;
   }
 

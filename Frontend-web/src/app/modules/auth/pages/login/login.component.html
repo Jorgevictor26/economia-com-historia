@@ -57,9 +57,9 @@
   <section class="flex min-h-dvh items-center justify-center bg-white px-6 py-10 sm:px-10">
     <div class="w-full max-w-[420px] animate-[fadeUp_.55s_ease-out]">
       <header class="mb-10 text-center">
-        <img src="/auth-logo.png" alt="Economia com Historia" class="mx-auto mb-7 h-[54px] w-auto" />
+        <img src="/auth-logo.png" alt="Economia com História" class="mx-auto mb-7 h-[54px] w-auto" />
         <h2 class="font-display text-[21px] font-semibold leading-[1.45] tracking-[0.10em] text-[#8A4055]">
-          Bem-Vindo a<br />Economia com História
+          Bem-vindo à<br />Economia com História
         </h2>
       </header>
 
@@ -69,7 +69,7 @@
 
       <form class="grid gap-5" aria-label="Entrar na plataforma" [formGroup]="form" (ngSubmit)="submit()">
         <label class="grid gap-2 font-sans text-[12px] font-medium text-[#555]">
-          Endereço de Email
+          Endereço de e-mail
           <input
             formControlName="email"
             class="h-[46px] rounded-[7px] border bg-white px-4 font-sans text-[12px] font-normal text-[#333] outline-none transition duration-200 placeholder:text-[#c8c8c8] focus:border-[#5C1E2F] focus:ring-4 focus:ring-[#5C1E2F]/10"
@@ -81,7 +81,7 @@
             autocomplete="email"
           />
           @if (emailInvalid()) {
-            <span class="text-[10px] font-medium text-[#b42318]">Insira um email válido.</span>
+            <span class="text-[10px] font-medium text-[#b42318]">Insira um e-mail válido.</span>
           }
         </label>
 

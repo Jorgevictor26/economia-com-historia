@@ -22,7 +22,7 @@ export class ContentService {
       excerpt: 'Conceitos economicos explicados com exemplos do quotidiano angolano.',
       type: 'economia',
       status: 'published',
-      author: 'Nucleo academico',
+      author: 'Núcleo académico',
       coverUrl: 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1200&q=80',
       premium: false,
       publishedAt: '2026-05-08',

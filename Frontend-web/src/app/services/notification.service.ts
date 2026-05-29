@@ -12,8 +12,8 @@ export class NotificationService {
   readonly notifications = signal<AppNotification[]>([
     {
       id: '1',
-      title: 'Novo quiz disponivel',
-      description: 'Mercados e Historia ja pode ser jogado.',
+      title: 'Novo quiz disponível',
+      description: 'Mercados e História já pode ser jogado.',
       read: false,
     },
   ]);

@@ -9,7 +9,7 @@ export class SubscriptionService {
       name: 'Academico',
       price: 0,
       interval: 'month',
-      features: ['Conteudos abertos', 'Quizzes essenciais', 'Foruns publicos'],
+      features: ['Conteúdos abertos', 'Quizzes essenciais', 'Fóruns públicos'],
     },
     {
       id: 'jindungo',

@@ -3,7 +3,7 @@ import { NavigationItem } from '../../interfaces/navigation-item.interface';
 export const DASHBOARD_NAVIGATION: NavigationItem[] = [
   { label: 'Conteudos', route: '/app/contents', icon: 'book' },
   { label: 'Quizzes', route: '/app/quizzes', icon: 'spark' },
-  { label: 'Foruns', route: '/app/forums', icon: 'chat' },
+  { label: 'Fóruns', route: '/app/forums', icon: 'chat' },
   { label: 'Podcasts', route: '/app/podcasts', icon: 'audio' },
   { label: 'Jindungo', route: '/app/jindungo', icon: 'lock' },
   { label: 'Perfil', route: '/app/profile', icon: 'user' },

@@ -947,10 +947,38 @@
     font-weight: 700;
   }
 
+  .public-notification-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    border-bottom: 1px solid #f0ecee;
+    padding: 0.7rem 1rem;
+  }
+
+  .public-notification-actions button {
+    display: inline-flex;
+    min-height: 1.9rem;
+    align-items: center;
+    border: 1px solid #e3d4d8;
+    border-radius: 6px;
+    padding-inline: 0.7rem;
+    color: #5c1e2f;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .public-notification-actions button:hover {
+    background: #fff8fb;
+  }
+
   .public-notification-dropdown article {
     display: grid;
     gap: 0.25rem;
     padding: 0.85rem 1rem;
+  }
+
+  .public-notification-dropdown article.is-read {
+    opacity: 0.58;
   }
 
   .public-notification-dropdown article + article {
@@ -966,6 +994,12 @@
     color: #6f686b;
     font-size: 12px;
     line-height: 1.45;
+  }
+
+  .public-notification-empty {
+    padding: 1rem;
+    color: #6f686b;
+    font-size: 12px;
   }
 
   .account-form {
@@ -1047,6 +1081,95 @@
     font-family: var(--font-display);
     font-size: 2.25rem;
     font-weight: 800;
+  }
+
+  .notification-preferences-panel {
+    display: grid;
+    gap: 1.4rem;
+    padding: clamp(1.45rem, 3.2vw, 2.15rem) clamp(1.25rem, 5vw, 4rem);
+  }
+
+  .notification-preferences-panel h2 {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: #5c1e2f;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .notification-preferences-panel h2 svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  .notification-preferences-card {
+    display: grid;
+    border: 1px solid #e3d4d8;
+    border-radius: 4px;
+    background: #fff;
+    padding: 0.95rem 1.35rem;
+  }
+
+  .notification-preference-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    min-height: 4.55rem;
+  }
+
+  .notification-preference-row + .notification-preference-row {
+    border-top: 1px solid #ece7e4;
+  }
+
+  .notification-preference-row span {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .notification-preference-row strong {
+    color: #191c1d;
+    font-size: 0.92rem;
+  }
+
+  .notification-preference-row small {
+    color: #6f686b;
+    font-size: 0.78rem;
+  }
+
+  .notification-preference-row input {
+    width: 2.7rem;
+    height: 1.35rem;
+    appearance: none;
+    border-radius: 999px;
+    background: #e2e4e6;
+    padding: 0.18rem;
+    transition: background-color 160ms ease;
+  }
+
+  .notification-preference-row input::after {
+    display: block;
+    width: 0.98rem;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(22 19 21 / 0.12);
+    content: "";
+    transition: transform 160ms ease;
+  }
+
+  .notification-preference-row input:checked {
+    background: #d4af37;
+  }
+
+  .notification-preference-row input:checked::after {
+    transform: translateX(1.32rem);
   }
 
   .jindungo-card {

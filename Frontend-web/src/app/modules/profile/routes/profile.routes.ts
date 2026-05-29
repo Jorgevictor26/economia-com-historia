@@ -6,5 +6,6 @@ export const PROFILE_ROUTES: Routes = [
   { path: 'edit', component: EditProfilePage },
   { path: 'photo', component: ProfilePage, data: { section: 'photo' } },
   { path: 'security', component: ProfilePage, data: { section: 'security' } },
+  { path: 'notification-preferences', component: ProfilePage, data: { section: 'notification-preferences' } },
   { path: '', component: ProfilePage },
 ];

@@ -17,4 +17,12 @@ export class NotificationService {
       read: false,
     },
   ]);
+
+  markAllAsRead(): void {
+    this.notifications.update((notifications) => notifications.map((notification) => ({ ...notification, read: true })));
+  }
+
+  clearNotifications(): void {
+    this.notifications.set([]);
+  }
 }

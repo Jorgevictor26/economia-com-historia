@@ -20,15 +20,24 @@ export class ProfilePage {
   readonly section = this.route.snapshot.data['section'];
   readonly isPhotoSection = this.section === 'photo';
   readonly isSecuritySection = this.section === 'security';
+  readonly isNotificationPreferencesSection = this.section === 'notification-preferences';
 
   readonly profileMenu = [
     { label: 'Visualizar perfil público', route: '/app/profile', active: false },
-    { label: 'Perfil', route: '/app/profile', active: !this.isPhotoSection && !this.isSecuritySection },
+    {
+      label: 'Perfil',
+      route: '/app/profile',
+      active: !this.isPhotoSection && !this.isSecuritySection && !this.isNotificationPreferencesSection,
+    },
     { label: 'Foto', route: '/app/profile/photo', active: this.isPhotoSection },
     { label: 'Segurança da conta', route: '/app/profile/security', active: this.isSecuritySection },
     { label: 'Subscrições', route: '/app/subscriptions', active: false },
     { label: 'Preferências', route: '/app/profile/edit', active: false },
-    { label: 'Notificações', route: '/app/notifications', active: false },
+    {
+      label: 'Preferência de notificação',
+      route: '/app/profile/notification-preferences',
+      active: this.isNotificationPreferencesSection,
+    },
   ];
 
   readonly languages = ['Português (Angola)', 'Português (Brasil)', 'Inglês', 'Francês'];

@@ -72,6 +72,39 @@
               </div>
             </section>
           </form>
+        } @else if (isNotificationPreferencesSection) {
+          <header class="profile-form-header">
+            <h1>Preferências de notificação</h1>
+            <span>Escolha como deseja receber novidades, resumos e alertas da plataforma.</span>
+          </header>
+
+          <section class="notification-preferences-panel" aria-labelledby="notification-preferences-title">
+            <h2 id="notification-preferences-title">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18 16v-5a6 6 0 0 0-12 0v5l-2 2h16l-2-2Z" />
+                <path d="M10 20a2 2 0 0 0 4 0" />
+              </svg>
+              Preferências de Notificação
+            </h2>
+
+            <div class="notification-preferences-card">
+              <label class="notification-preference-row">
+                <span>
+                  <strong>Resumo Semanal de Economia</strong>
+                  <small>Receba as análises históricas mais importantes da semana.</small>
+                </span>
+                <input type="checkbox" checked />
+              </label>
+
+              <label class="notification-preference-row">
+                <span>
+                  <strong>Alertas de Novos Conteúdos</strong>
+                  <small>Notificações imediatas sobre novos módulos e conteúdos.</small>
+                </span>
+                <input type="checkbox" />
+              </label>
+            </div>
+          </section>
         } @else if (isPhotoSection) {
           <header class="profile-form-header">
             <h1>Foto</h1>

@@ -46,13 +46,21 @@ import { NotificationService } from '../../services/notification.service';
                 <section class="public-notification-dropdown">
                   <header>
                     <strong>Notificações</strong>
-                    <span>{{ notificationService.notifications().length }} novas</span>
+                    <span>{{ unreadNotificationsCount() }} novas</span>
                   </header>
-                  @for (notification of notificationService.notifications(); track notification.id) {
-                    <article>
-                      <strong>{{ notification.title }}</strong>
-                      <p>{{ notification.description }}</p>
-                    </article>
+                  <div class="public-notification-actions">
+                    <button type="button" (click)="markAllNotificationsAsRead()">Marcar todas como lidas</button>
+                    <button type="button" (click)="clearNotifications()">Limpar notificações</button>
+                  </div>
+                  @if (notificationService.notifications().length) {
+                    @for (notification of notificationService.notifications(); track notification.id) {
+                      <article [class.is-read]="notification.read">
+                        <strong>{{ notification.title }}</strong>
+                        <p>{{ notification.description }}</p>
+                      </article>
+                    }
+                  } @else {
+                    <p class="public-notification-empty">Sem notificações por agora.</p>
                   }
                 </section>
               }
@@ -180,6 +188,18 @@ export class PublicNavbarComponent {
 
   closeNotifications(): void {
     this.notificationsOpen.set(false);
+  }
+
+  unreadNotificationsCount(): number {
+    return this.notificationService.notifications().filter((notification) => !notification.read).length;
+  }
+
+  markAllNotificationsAsRead(): void {
+    this.notificationService.markAllAsRead();
+  }
+
+  clearNotifications(): void {
+    this.notificationService.clearNotifications();
   }
 
   userInitials(): string {

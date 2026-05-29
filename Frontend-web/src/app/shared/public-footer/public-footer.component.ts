@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   template: `
     <footer class="landing-footer border-t border-[#d8c1c4]/50 bg-white pt-10">
-      <div class="mx-auto max-w-7xl px-5 lg:px-10">
+      <div class="fluid-container">
         <div class="grid gap-8 pb-10 sm:grid-cols-2 lg:grid-cols-[1.35fr_0.8fr_0.8fr_1fr]">
           <div>
             <h2 class="font-display text-[21px] font-bold text-[#40081a]">Economia com História: Angola</h2>

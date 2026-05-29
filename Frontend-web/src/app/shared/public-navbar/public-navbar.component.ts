@@ -1,13 +1,14 @@
 ﻿import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthStateService } from '../../services/auth-state.service';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-public-navbar',
   imports: [RouterLink, RouterLinkActive],
   template: `
     <header class="public-navbar sticky top-0 z-40 border-b border-[#ece7e4] bg-white">
-      <div class="mx-auto flex min-h-[58px] max-w-[1500px] flex-wrap items-center gap-4 px-5 lg:px-10 2xl:px-14">
+      <div class="fluid-container flex min-h-[58px] flex-wrap items-center gap-4">
         <a [routerLink]="homeRoute()" class="flex shrink-0 items-center gap-2 font-display text-[15px] font-extrabold text-[#8a4055]">
           <img src="/auth-logo.png" alt="Economia com História" class="h-[24px] w-auto" />
           <span [class.hidden]="menuOpen()">Economia com História</span>
@@ -32,6 +33,31 @@ import { AuthStateService } from '../../services/auth-state.service';
           }
 
           @if (auth.isAuthenticated()) {
+            <div class="relative">
+              <button type="button" class="public-notification-button" aria-label="Notificações" (click)="toggleNotifications()">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M18 16v-5a6 6 0 0 0-12 0v5l-2 2h16l-2-2Z"></path>
+                  <path d="M10 20a2 2 0 0 0 4 0"></path>
+                </svg>
+              </button>
+
+              @if (notificationsOpen()) {
+                <button type="button" class="public-notification-scrim" aria-label="Fechar notificações" (click)="closeNotifications()"></button>
+                <section class="public-notification-dropdown">
+                  <header>
+                    <strong>Notificações</strong>
+                    <span>{{ notificationService.notifications().length }} novas</span>
+                  </header>
+                  @for (notification of notificationService.notifications(); track notification.id) {
+                    <article>
+                      <strong>{{ notification.title }}</strong>
+                      <p>{{ notification.description }}</p>
+                    </article>
+                  }
+                </section>
+              }
+            </div>
+
             <a routerLink="/app/profile" class="flex items-center" aria-label="Perfil">
               <img
                 src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=160&q=80"
@@ -97,6 +123,7 @@ import { AuthStateService } from '../../services/auth-state.service';
           }
 
           @if (auth.isAuthenticated()) {
+            <a routerLink="/app/notifications" class="inline-flex h-10 items-center justify-center rounded-[8px] border border-[#5c1e2f] px-5 text-[13px] font-bold text-[#5c1e2f]" (click)="closeMenu()">Notificações</a>
             <a routerLink="/app/profile" class="inline-flex h-10 items-center justify-center rounded-[8px] border border-[#5c1e2f] px-5 text-[13px] font-bold text-[#5c1e2f]" (click)="closeMenu()">Perfil</a>
           } @else {
             <a routerLink="/auth/login" class="inline-flex h-10 items-center justify-center rounded-[8px] border border-[#5c1e2f] px-5 text-[13px] font-bold text-[#5c1e2f]" (click)="closeMenu()">Entrar</a>
@@ -108,7 +135,9 @@ import { AuthStateService } from '../../services/auth-state.service';
 })
 export class PublicNavbarComponent {
   readonly auth = inject(AuthStateService);
+  readonly notificationService = inject(NotificationService);
   readonly menuOpen = signal(false);
+  readonly notificationsOpen = signal(false);
 
   homeRoute(): string {
     return this.auth.isAuthenticated() ? '/app/contents' : '/';
@@ -137,6 +166,14 @@ export class PublicNavbarComponent {
 
   closeMenu(): void {
     this.menuOpen.set(false);
+  }
+
+  toggleNotifications(): void {
+    this.notificationsOpen.update((open) => !open);
+  }
+
+  closeNotifications(): void {
+    this.notificationsOpen.set(false);
   }
 }
 

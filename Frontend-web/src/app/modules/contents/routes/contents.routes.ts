@@ -25,7 +25,7 @@ interface HomeContent {
     <section class="-m-6 min-h-dvh bg-[#f7f8f8] text-[#2c2729]">
       <app-public-navbar />
 
-      <main class="mx-auto max-w-[1224px] px-4 pb-14 pt-5 sm:px-6 lg:px-4">
+      <main class="fluid-container pb-14 pt-5">
         <div class="mb-9">
           <h1 class="font-display text-[32px] font-extrabold leading-tight text-[#8a4055]">Explorar Conteúdos</h1>
           <label class="mt-7 flex h-[58px] max-w-[772px] items-center gap-3 rounded-[8px] border border-[#f0ecee] bg-white px-5 text-[#7f777b] shadow-[0_1px_2px_rgba(22,19,21,0.02)]">
@@ -66,7 +66,7 @@ interface HomeContent {
           </section>
         }
 
-        <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:gap-8">
           @for (content of filteredContents(); track content.id) {
             <article
               class="group overflow-hidden bg-white shadow-[0_1px_2px_rgba(22,19,21,0.03)]"

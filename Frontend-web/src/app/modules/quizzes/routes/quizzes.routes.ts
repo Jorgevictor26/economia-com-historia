@@ -13,7 +13,7 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
     <section class="-m-6 min-h-dvh bg-[#f7f8f8] text-[#2c2729]">
       <app-public-navbar />
 
-      <main class="mx-auto max-w-7xl px-5 pb-16 pt-8 lg:px-10">
+      <main class="fluid-container pb-16 pt-8">
         <section class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div>
             <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#735c00]">Avaliações Académicas</p>
@@ -48,7 +48,7 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
           </aside>
         </section>
 
-        <section class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <section class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:gap-8">
           @for (quiz of quizService.quizzes(); track quiz.id) {
             <article class="grid min-h-[330px] rounded-[8px] border border-[#ded7da] bg-white p-6 shadow-[0_1px_2px_rgba(22,19,21,0.03)]">
               <div>

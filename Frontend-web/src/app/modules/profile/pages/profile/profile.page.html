@@ -1,124 +1,111 @@
-<section class="profile-shell -m-6 min-h-dvh bg-[#f6f6f7] text-[#2b2628]">
-  <button class="sidebar-backdrop" [class.is-open]="sidebarOpen()" type="button" aria-label="Fechar menu" (click)="closeSidebar()"></button>
+<section class="profile-page -m-6 min-h-dvh bg-[#f7f8f8] text-[#191c1d]">
+  <app-public-navbar />
 
-  <aside class="sidebar" [class.is-open]="sidebarOpen()">
-    <div class="brand">
-      <img src="/auth-logo.png" alt="Economia com História" />
-      <span>Economia com História</span>
-    </div>
+  <main class="fluid-container profile-main py-8 lg:py-12">
+    <section class="profile-editor">
+      <aside class="profile-sidebar" aria-label="Menu de perfil">
+        <div class="profile-identity">
+          <div class="profile-initials" aria-hidden="true">{{ initials() }}</div>
+          <h2>{{ dashboard.user.name }}</h2>
+          <p>{{ dashboard.user.accessLevel }}</p>
+        </div>
 
-    <nav class="sidebar-nav" aria-label="Navegação do perfil">
-      <p>PLATAFORMA</p>
-      @for (item of platformItems; track item.label) {
-        <a [routerLink]="item.route" [class.active]="item.active">
-          <span class="nav-icon" [attr.data-icon]="item.icon"></span>
-          {{ item.label }}
-        </a>
-      }
+        <nav class="profile-menu">
+          @for (item of profileMenu; track item.label) {
+            <a [routerLink]="item.route" [class.active]="item.active">{{ item.label }}</a>
+          }
+        </nav>
 
-      <p>ADMINISTRAÇÃO</p>
-      @for (item of administrationItems; track item.label) {
-        <a [routerLink]="item.route" [class.active]="item.active">
-          <span class="nav-icon" [attr.data-icon]="item.icon"></span>
-          {{ item.label }}
-        </a>
-      }
+        <div class="profile-sidebar-note">
+          <span>{{ dashboard.user.badge }}</span>
+          <strong>{{ dashboard.ranking.points }} XP</strong>
+          <p>Ranking academico #{{ dashboard.ranking.currentPosition }} entre {{ dashboard.ranking.totalStudents }} estudantes.</p>
+        </div>
+      </aside>
 
-      <p>INFRAESTRUTURA</p>
-      @for (item of infrastructureItems; track item.label) {
-        <a [routerLink]="item.route" [class.active]="item.active">
-          <span class="nav-icon" [attr.data-icon]="item.icon"></span>
-          {{ item.label }}
-        </a>
-      }
-    </nav>
+      <section class="profile-form-panel">
+        @if (isPhotoSection) {
+          <header class="profile-form-header">
+            <h1>Foto</h1>
+            <span>Adicione uma bela foto sua para o seu perfil.</span>
+          </header>
 
-    <footer class="sidebar-footer">
-      <div>
-        <span>Nível de Acesso</span>
-        <strong>{{ accessLevel() }}</strong>
-      </div>
-      <button type="button" class="certificate-button">Ver Certificados</button>
-      <a routerLink="/app/profile" class="support-link">
-        <span class="nav-icon" data-icon="help_outline"></span>
-        Suporte
-      </a>
-      <a routerLink="/auth/login" class="logout-link" (click)="auth.logout()">
-        <span class="nav-icon" data-icon="logout"></span>
-        Sair
-      </a>
-    </footer>
-  </aside>
+          <form class="profile-form photo-form" (submit)="$event.preventDefault()">
+            <section class="photo-upload" aria-labelledby="photo-preview">
+              <h2 id="photo-preview">Visualizacao da imagem</h2>
+              <div class="photo-preview-box">
+                <img [src]="dashboard.user.avatarUrl" [alt]="dashboard.user.name" />
+              </div>
+            </section>
 
-  <div class="workspace">
-    <header class="topbar">
-      <button class="menu-button" type="button" aria-label="Abrir menu lateral" (click)="toggleSidebar()">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
+            <section class="photo-upload" aria-labelledby="photo-upload-title">
+              <h2 id="photo-upload-title">Adicionar/alterar imagem</h2>
+              <div class="upload-row">
+                <span>Nenhum arquivo selecionado</span>
+                <button type="button">Fazer upload de imagem</button>
+              </div>
+            </section>
 
-      <label class="search">
-        <span class="nav-icon" data-icon="search"></span>
-        <input type="search" placeholder="Pesquisar..." [value]="searchTerm()" (input)="updateSearch($event)" />
-        @if (searchTerm()) {
-          <section class="profile-search-dropdown">
-            @if (searchResults().length) {
-              @for (result of searchResults(); track result.label) {
-                <a [routerLink]="result.route" (click)="searchTerm.set('')">
-                  <strong>{{ result.label }}</strong>
-                  <span>{{ result.detail }}</span>
-                </a>
-              }
-            } @else {
-              <p>Nenhum resultado encontrado.</p>
-            }
-          </section>
+            <div class="form-actions">
+              <button type="submit">Salvar</button>
+            </div>
+          </form>
+        } @else {
+          <header class="profile-form-header">
+            <h1>Perfil</h1>
+            <span>Adicione informacoes sobre si e personalize como aparece na comunidade Economia com Historia.</span>
+          </header>
+
+          <form class="profile-form" (submit)="$event.preventDefault()">
+            <section class="form-block" aria-labelledby="basic-data">
+              <h2 id="basic-data">Dados basicos:</h2>
+              <div class="field-stack">
+                <label>
+                  <span class="sr-only">Nome completo</span>
+                  <input type="text" [value]="dashboard.user.name" aria-label="Nome completo" />
+                </label>
+
+                <label>
+                  <span class="sr-only">E-mail</span>
+                  <input type="email" [value]="dashboard.user.email" aria-label="E-mail" />
+                </label>
+              </div>
+            </section>
+
+            <section class="form-block" aria-labelledby="bio-data">
+              <h2 id="bio-data">Biografia</h2>
+              <div class="bio-editor">
+                <div class="editor-toolbar" aria-hidden="true">
+                  <strong>B</strong>
+                  <i>I</i>
+                </div>
+                <textarea rows="6" placeholder="Biografia">{{ dashboard.user.description }}</textarea>
+              </div>
+              <p class="field-help">Use este espaco para resumir os seus interesses em economia, historia de Angola, investigacao ou ensino.</p>
+            </section>
+
+            <section class="form-block" aria-labelledby="profile-context">
+              <h2 id="profile-context">Preferencias academicas</h2>
+              <label>
+                <span class="sr-only">Idioma principal</span>
+                <select>
+                  @for (language of languages; track language) {
+                    <option>{{ language }}</option>
+                  }
+                </select>
+              </label>
+            </section>
+
+            <div class="form-actions">
+              <button type="submit">Salvar perfil</button>
+              <a routerLink="/app/contents">Voltar aos conteudos</a>
+            </div>
+          </form>
         }
-      </label>
-
-      <div class="topbar-actions">
-        <button type="button" class="notification-button" aria-label="Notificações" (click)="toggleNotifications()">
-          <span class="nav-icon" data-icon="notifications"></span>
-        </button>
-        @if (notificationsOpen()) {
-          <button type="button" class="notification-scrim" aria-label="Fechar notificações" (click)="closeNotifications()"></button>
-          <section class="notification-dropdown">
-            <header>
-              <strong>Notificações</strong>
-              <span>{{ notifications.length }} novas</span>
-            </header>
-            @for (notification of notifications; track notification.title) {
-              <article>
-                <strong>{{ notification.title }}</strong>
-                <p>{{ notification.text }}</p>
-                <span>{{ notification.time }}</span>
-              </article>
-            }
-          </section>
-        }
-        <a routerLink="/app/profile" class="profile-avatar-link" aria-label="Abrir perfil">
-          <img [src]="dashboard().user.avatarUrl" [alt]="dashboard().user.name" />
-        </a>
-      </div>
-    </header>
-
-    <main class="profile-content">
-      <h1>Perfil</h1>
-
-      <app-profile-header [user]="dashboard().user" />
-
-      <section class="insight-grid">
-        <app-academic-ranking [ranking]="dashboard().ranking" />
-        <app-progress-domains [domains]="dashboard().domains" />
       </section>
+    </section>
+  </main>
 
-      <app-achievements [achievements]="dashboard().achievements" />
-
-      <section class="bottom-grid">
-        <app-learning-progress [learning]="dashboard().learning" />
-        <app-statistics-card [stats]="dashboard().stats" />
-      </section>
-    </main>
-  </div>
+  <app-public-footer />
+  <app-back-to-top />
 </section>

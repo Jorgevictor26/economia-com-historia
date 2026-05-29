@@ -19,7 +19,7 @@ interface FavoriteItem {
   template: `
     <section class="-m-6 min-h-dvh bg-[#f7f8f8] text-[#2c2729]">
       <header class="sticky top-0 z-30 border-b border-[#e5e0e2] bg-white">
-        <div class="mx-auto grid h-[48px] max-w-7xl grid-cols-[minmax(180px,1fr)_auto_minmax(180px,1fr)] items-center px-6">
+        <div class="fluid-container grid min-h-[48px] grid-cols-[minmax(180px,1fr)_auto_minmax(180px,1fr)] items-center">
           <a routerLink="/app/contents" class="flex min-w-max items-center gap-2 text-[#8a4055]">
             <img src="/auth-logo.png" alt="Economia com História" class="h-[20px] w-auto" />
             <span class="font-display text-[13px] font-extrabold leading-none">Economia com História</span>
@@ -44,7 +44,7 @@ interface FavoriteItem {
         </div>
       </header>
 
-      <main class="mx-auto min-h-[760px] max-w-7xl px-6 pb-20 pt-12">
+      <main class="fluid-container min-h-[760px] pb-20 pt-12">
         <section class="max-w-[720px]">
           <h1 class="font-display text-[30px] font-extrabold leading-tight text-bordeaux">Itens Guardados</h1>
           <p class="mt-4 max-w-[560px] text-[12px] leading-6 text-[#6f686b]">
@@ -70,7 +70,7 @@ interface FavoriteItem {
           }
         </div>
 
-        <div class="mt-12 grid max-w-[1185px] gap-7 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="mt-12 grid gap-7 sm:grid-cols-2 lg:grid-cols-3 2xl:gap-8">
           @for (item of favorites; track item.title) {
             <article class="overflow-hidden border border-[#e4dde0] bg-white shadow-[0_1px_2px_rgba(22,19,21,0.03)]">
               <div

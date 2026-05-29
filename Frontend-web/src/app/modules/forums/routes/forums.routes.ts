@@ -13,7 +13,7 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
     <section class="-m-6 min-h-dvh bg-[#f7f8f8] text-[#2c2729]">
       <app-public-navbar />
 
-      <main class="mx-auto grid max-w-[1224px] gap-12 px-6 pb-14 pt-8 lg:grid-cols-[minmax(0,820px)_310px] lg:px-4">
+      <main class="fluid-container grid gap-12 pb-14 pt-8 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
         <section>
           <div class="mb-2 flex items-center gap-3">
             <span class="rounded-[4px] bg-[#d4af37] px-3 py-1 text-[9px] font-extrabold uppercase tracking-[0.08em] text-[#5c1e2f]">Tópico em Destaque</span>

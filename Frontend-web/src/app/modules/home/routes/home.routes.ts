@@ -22,7 +22,7 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
           <div class="absolute inset-0 bg-[linear-gradient(90deg,#f8f9fa_0%,rgba(248,249,250,0.9)_38%,rgba(248,249,250,0.36)_72%,transparent_100%)]"></div>
         </div>
 
-        <div class="relative z-10 mx-auto w-full max-w-[1500px] px-5 py-16 lg:px-10 2xl:px-14">
+        <div class="fluid-container relative z-10 py-16">
           <div class="max-w-[720px]">
             <p class="mb-5 text-[12px] font-bold uppercase tracking-[0.16em] text-[#735c00]">Economia com História: Angola</p>
             <h1 class="font-display text-[38px] font-extrabold leading-[1.04] text-[#40081a] sm:text-[48px] lg:text-[60px]">
@@ -43,8 +43,8 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
         </div>
       </section>
 
-      <section class="mx-auto max-w-[1500px] px-5 py-20 lg:px-10 2xl:px-14">
-        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+      <section class="fluid-container py-20">
+        <div class="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
           @for (pillar of pillars; track pillar.title) {
             <article class="landing-card group overflow-hidden rounded-[8px] border border-[#d8c1c4]/60 bg-white transition duration-300 hover:-translate-y-2 hover:shadow-xl">
               <div class="relative h-48 overflow-hidden bg-white">
@@ -63,7 +63,7 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
       </section>
 
       <section class="bg-white py-20">
-        <div class="mx-auto max-w-[1500px] px-5 lg:px-10 2xl:px-14">
+        <div class="fluid-container">
           <div class="mb-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 class="font-display text-[30px] font-semibold text-[#40081a]">Podcasts Académicos</h2>
@@ -95,7 +95,7 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
       </section>
 
       <section class="bg-white py-20">
-        <div class="mx-auto max-w-[900px] px-5 text-center">
+        <div class="fluid-container-narrow text-center">
           <h2 class="font-display text-[28px] font-semibold text-[#40081a] sm:text-[34px]">Rigor Académico e Preservação</h2>
           <p class="mt-7 text-[17px] leading-8 text-[#5e5e5f]">
             A nossa plataforma dedica-se à sistematização do conhecimento histórico-económico de Angola. Com curadoria de especialistas e académicos,
@@ -103,7 +103,7 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
           </p>
         </div>
 
-        <div class="mx-auto mt-12 grid max-w-[1320px] gap-4 px-5 sm:grid-cols-2 lg:grid-cols-3 lg:px-10 2xl:px-14">
+        <div class="fluid-container mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           @for (point of institutionalPoints; track point.title) {
             <article class="rounded-[8px] border border-[#d8c1c4]/55 bg-[#f8f9fa] p-5 text-left">
               <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#735c00]">{{ point.label }}</span>
@@ -115,7 +115,7 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
       </section>
 
       <section class="overflow-hidden bg-[#5c1e2f] py-20 text-[#d98496]">
-        <div class="mx-auto flex max-w-[1500px] flex-col items-center gap-16 px-5 lg:flex-row lg:px-10 2xl:px-14">
+        <div class="fluid-container flex flex-col items-center gap-16 lg:flex-row">
           <div class="space-y-8 lg:w-1/2">
             <span class="text-[12px] font-bold uppercase tracking-[0.18em] text-[#ffe088]">Gamificação Académica</span>
             <h2 class="font-display text-[38px] font-extrabold leading-tight text-white sm:text-[48px]">Domine o Conhecimento em Minutos</h2>
@@ -158,7 +158,7 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
       </section>
 
       <section class="bg-[#f3f4f5] px-5 py-20 lg:px-10">
-        <div class="mx-auto max-w-[1120px]">
+        <div class="fluid-container-narrow">
           <h2 class="text-center font-display text-[30px] font-extrabold text-[#40081a] sm:text-[34px]">Perguntas Frequentes</h2>
           <div class="mt-12 overflow-hidden rounded-[4px] border border-[#d8c1c4]/80 bg-white">
           @for (faq of faqs; track faq.question) {
@@ -175,7 +175,7 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
       </section>
 
       <section class="bg-[#e7e8e9] px-5 py-20 lg:px-10">
-        <div class="mx-auto flex max-w-[1500px] flex-col items-center justify-between gap-10 rounded-[16px] border border-[#d8c1c4]/70 bg-white p-8 md:flex-row md:p-12">
+        <div class="fluid-container flex flex-col items-center justify-between gap-10 rounded-[16px] border border-[#d8c1c4]/70 bg-white py-8 md:flex-row md:py-12">
           <div class="max-w-md">
             <h2 class="font-display text-[30px] font-semibold text-[#40081a]">A Crónica Semanal</h2>
             <p class="mt-4 text-[16px] leading-7 text-[#5e5e5f]">Receba os destaques históricos e análises económicas diretamente no seu e-mail.</p>

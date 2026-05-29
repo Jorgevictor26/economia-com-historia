@@ -5,7 +5,7 @@ import { NotificationService } from '../../../services/notification.service';
 @Component({
   selector: 'app-notifications-page',
   template: `
-    <section class="mx-auto max-w-3xl rounded-lg bg-white p-8 shadow-sm">
+    <section class="fluid-container-narrow rounded-lg bg-white py-8 shadow-sm">
       <h1 class="text-3xl font-extrabold text-bordeaux">Notificações</h1>
       @for (notification of notificationService.notifications(); track notification.id) {
         <article class="mt-4 border-t border-black/10 pt-4">

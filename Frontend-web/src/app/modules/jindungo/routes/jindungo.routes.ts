@@ -13,7 +13,7 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
       <app-public-navbar />
 
       <main>
-        <section class="mx-auto max-w-[720px] px-6 pb-12 pt-6 text-center">
+        <section class="fluid-container-narrow pb-12 pt-6 text-center">
           <p class="mx-auto mb-3 inline-flex h-4 items-center justify-center bg-[#d4af37] px-2 text-[7px] font-extrabold uppercase tracking-[0.12em] text-[#5c1e2f]">Premium Editorial</p>
           <h1 class="font-display mx-auto max-w-[390px] text-[28px] font-extrabold leading-[1.04] text-[#8a1538]">
             Desbloqueie a Profundidade da Economia Angolana
@@ -27,7 +27,7 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
           <p class="mt-6 text-[9px] text-[#8a1538]">♙</p>
           <p class="mt-1 text-[7px] text-[#b3aaae]">Junte-se a nossa comunidade académica.</p>
 
-          <div class="mx-auto mt-12 grid max-w-[820px] gap-4 text-left md:grid-cols-3">
+          <div class="mx-auto mt-12 grid max-w-[1120px] gap-4 text-left md:grid-cols-3 2xl:gap-6">
             <article class="min-h-[172px] border border-[#d8b7c1] bg-white p-7">
               <span class="mb-5 grid size-8 place-items-center bg-[#f9dbe4] text-[17px] text-[#8a1538]">▤</span>
               <h2 class="font-display text-[15px] font-extrabold text-[#8a1538]">Análises Exclusivas</h2>
@@ -53,11 +53,11 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
         </section>
 
         <section class="bg-[#f2f3f3] px-6 py-16">
-          <div class="mx-auto max-w-[820px] text-center">
+          <div class="fluid-container-narrow text-center">
             <h2 class="font-display text-[22px] font-extrabold text-[#5c1e2f]">Edições Recentes</h2>
             <p class="mt-3 text-[10px] text-[#6f686b]">Veja o que espera por si nos textos com Jindungo.</p>
 
-            <div class="mx-auto mt-12 grid max-w-[610px] gap-5 md:grid-cols-3">
+            <div class="mx-auto mt-12 grid max-w-[1120px] gap-5 md:grid-cols-3 2xl:gap-7">
               @for (edition of editions; track edition.title) {
                 <article class="relative overflow-hidden bg-white text-left shadow-[0_1px_2px_rgba(22,19,21,0.04)]">
                   <div class="relative h-[142px] overflow-hidden">

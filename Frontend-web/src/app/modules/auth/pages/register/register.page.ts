@@ -137,7 +137,7 @@ export class RegisterPage {
   private finishRegistration(): void {
     const { fullName, email } = this.form.getRawValue();
     this.auth.registerStudent(fullName, email, this.photoPreviewUrl(), this.bioForm.controls.biography.value.trim());
-    void this.router.navigateByUrl('/app/contents');
+    void this.router.navigateByUrl('/app/home');
   }
 
   private pulseStep(): void {

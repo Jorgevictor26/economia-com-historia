@@ -38,7 +38,7 @@ export class LoginComponent {
     this.isLoading.set(true);
     await this.authService.login(this.form.getRawValue());
     this.isLoading.set(false);
-    await this.router.navigateByUrl('/app/contents');
+    await this.router.navigateByUrl('/app/home');
   }
 
   private isInvalid(controlName: 'email' | 'password'): boolean {

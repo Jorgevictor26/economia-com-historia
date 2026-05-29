@@ -48,38 +48,38 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
           </aside>
         </section>
 
-        <section class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:gap-8">
+        <section class="mt-8 grid justify-items-center gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:gap-5">
           @for (quiz of quizService.quizzes(); track quiz.id) {
-            <article class="grid min-h-[330px] rounded-[8px] border border-[#ded7da] bg-white p-6 shadow-[0_1px_2px_rgba(22,19,21,0.03)]">
+            <article class="grid h-[368px] w-full max-w-[311px] rounded-[8px] border border-[#ded7da] bg-white p-4 shadow-[0_1px_2px_rgba(22,19,21,0.03)]">
               <div>
                 <div class="flex flex-wrap items-center gap-2">
-                  <span class="rounded-[4px] bg-[#d4af37] px-3 py-1 text-[9px] font-extrabold uppercase tracking-[0.08em] text-[#5c1e2f]">{{ quiz.difficulty }}</span>
+                  <span class="rounded-[4px] bg-[#d4af37] px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.08em] text-[#5c1e2f]">{{ quiz.difficulty }}</span>
                   <span class="text-[11px] font-bold text-[#735c00]">{{ quiz.xp }} XP</span>
                   <span class="text-[11px] text-[#7a7276]">{{ quiz.estimatedMinutes }} min</span>
                 </div>
-                <h2 class="mt-4 font-display text-[23px] font-extrabold leading-tight text-[#5c1e2f]">{{ quiz.title }}</h2>
-                <p class="mt-3 text-[13px] leading-6 text-[#5f575b]">{{ quiz.summary }}</p>
+                <h2 class="mt-3 font-display text-[19px] font-extrabold leading-tight text-[#5c1e2f]">{{ quiz.title }}</h2>
+                <p class="mt-2 line-clamp-2 text-[12px] leading-5 text-[#5f575b]">{{ quiz.summary }}</p>
               </div>
 
-              <div class="mt-6 rounded-[8px] border border-[#ece8ea] bg-[#f7f8f8] p-4">
+              <div class="mt-4 rounded-[8px] border border-[#ece8ea] bg-[#f7f8f8] p-3">
                 <p class="text-[10px] font-bold uppercase tracking-[0.12em] text-[#8a8587]">Conteúdo relacionado</p>
-                <a [routerLink]="quiz.relatedContent.route" class="mt-2 block font-display text-[16px] font-bold leading-snug text-[#40081a] hover:underline">
+                <a [routerLink]="quiz.relatedContent.route" class="mt-1 block font-display text-[14px] font-bold leading-snug text-[#40081a] hover:underline">
                   {{ quiz.relatedContent.title }}
                 </a>
                 <p class="mt-1 text-[11px] text-[#735c00]">{{ quiz.relatedContent.category }}</p>
               </div>
 
-              <div class="mt-auto flex flex-wrap gap-3 pt-6">
-                <a [routerLink]="quiz.relatedContent.route" class="inline-flex h-10 items-center justify-center rounded-[8px] border border-[#d8c1c4] px-4 text-[12px] font-bold text-[#5c1e2f]">
+              <div class="mt-auto flex flex-wrap gap-2 pt-4">
+                <a [routerLink]="quiz.relatedContent.route" class="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#d8c1c4] px-3 text-[12px] font-bold text-[#5c1e2f]">
                   Ler conteúdo
                 </a>
 
                 @if (auth.isAuthenticated()) {
-                  <a [routerLink]="[quiz.id, 'play']" class="inline-flex h-10 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[12px] font-bold text-white">
+                  <a [routerLink]="[quiz.id, 'play']" class="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-4 text-[12px] font-bold text-white">
                     Fazer quiz
                   </a>
                 } @else {
-                  <button type="button" class="inline-flex h-10 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[12px] font-bold text-white" (click)="auth.requireLoginFor('fazer quiz')">
+                  <button type="button" class="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-4 text-[12px] font-bold text-white" (click)="auth.requireLoginFor('fazer quiz')">
                     Fazer quiz
                   </button>
                 }
@@ -126,7 +126,7 @@ export class QuizzesPage {
       <main class="-m-6 grid min-h-dvh place-items-center bg-[#f7f8f8] px-5">
         <section class="rounded-[8px] border border-[#d8c1c4] bg-white p-7 text-center">
           <h1 class="font-display text-[24px] font-extrabold text-[#5c1e2f]">Quiz não encontrado</h1>
-          <a routerLink="/app/quizzes" class="mt-5 inline-flex h-10 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[12px] font-bold text-white">Ver quizzes</a>
+          <a routerLink="/app/quizzes" class="mt-5 inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-4 text-[12px] font-bold text-white">Ver quizzes</a>
         </section>
       </main>
     } @else {

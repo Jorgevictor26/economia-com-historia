@@ -25,6 +25,7 @@ export const routes: Routes = [
       { path: 'forums', canActivate: [authGuard], data: { loginOperation: 'aceder aos fóruns' }, loadChildren: () => import('./modules/forums/routes/forums.routes').then((m) => m.FORUMS_ROUTES) },
       { path: 'quizzes', loadChildren: () => import('./modules/quizzes/routes/quizzes.routes').then((m) => m.QUIZZES_ROUTES) },
       { path: 'podcasts', loadChildren: () => import('./modules/podcasts/routes/podcasts.routes').then((m) => m.PODCASTS_ROUTES) },
+      { path: 'map', loadChildren: () => import('./modules/map/routes/map.routes').then((m) => m.MAP_ROUTES) },
       { path: 'jindungo', loadChildren: () => import('./modules/jindungo/routes/jindungo.routes').then((m) => m.JINDUNGO_ROUTES) },
       { path: 'favorites', canActivate: [authGuard], data: { loginOperation: 'ver favoritos' }, loadChildren: () => import('./modules/favorites/routes/favorites.routes').then((m) => m.FAVORITES_ROUTES) },
       { path: 'subscriptions', canActivate: [authGuard], data: { loginOperation: 'subscrever ao Jindungo' }, loadChildren: () => import('./modules/subscriptions/routes/subscriptions.routes').then((m) => m.SUBSCRIPTIONS_ROUTES) },

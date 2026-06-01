@@ -5,7 +5,7 @@ import { Category } from '../../../models/category.model';
 import { ContentTypeOption } from '../../../models/content-type.model';
 import { AuthStateService } from '../../../services/auth-state.service';
 import { CategoryService } from '../../../services/category.service';
-import { BackendContent, ContentService } from '../../../services/content.service';
+import { BackendContent, ContentPagination, ContentService } from '../../../services/content.service';
 import { ContentTypeService } from '../../../services/content-type.service';
 import { BackToTopComponent } from '../../../shared/back-to-top/back-to-top.component';
 import { PublicFooterComponent } from '../../../shared/public-footer/public-footer.component';
@@ -22,6 +22,7 @@ interface HomeContent {
   authorInitials: string;
   imageUrl?: string;
   premium?: boolean;
+  searchText?: string;
 }
 
 interface ContentDetail {
@@ -34,6 +35,7 @@ interface ContentDetail {
   body: string;
   author: string;
   authorInitials: string;
+  authorBio?: string;
   imageUrl?: string;
   premium: boolean;
 }
@@ -189,10 +191,17 @@ interface ContentDetail {
         </div>
 
         <div class="mt-16 text-center">
-          <p class="mb-4 text-[10px] font-bold uppercase tracking-[0.22em] text-[#8a8587]">A mostrar 9 de 142 artigos</p>
-          <button type="button" class="h-[50px] border border-[#5c1e2f] bg-white px-10 text-[12px] font-extrabold text-[#5c1e2f] transition hover:bg-[#5c1e2f] hover:text-white">
-            Ver Mais Conteúdos
-          </button>
+          <p class="mb-4 text-[10px] font-bold uppercase tracking-[0.22em] text-[#8a8587]">{{ contentCountMessage() }}</p>
+          @if (hasMoreContents()) {
+            <button
+              type="button"
+              class="h-[50px] border border-[#5c1e2f] bg-white px-10 text-[12px] font-extrabold text-[#5c1e2f] transition hover:bg-[#5c1e2f] hover:text-white"
+              [disabled]="isLoadingContents()"
+              (click)="loadMoreContents()"
+            >
+              {{ isLoadingContents() ? 'A carregar...' : 'Ver Mais Conteúdos' }}
+            </button>
+          }
         </div>
       </main>
 
@@ -206,6 +215,7 @@ export class ContentListPage implements OnInit {
   private readonly categoryService = inject(CategoryService);
   private readonly contentService = inject(ContentService);
   private readonly contentTypeService = inject(ContentTypeService);
+  private loadRequestId = 0;
   private readonly fallbackCategories: Category[] = [
     { id: 1, name: 'História' },
     { id: 2, name: 'Economia' },
@@ -219,11 +229,28 @@ export class ContentListPage implements OnInit {
   readonly categories = signal<Category[]>(this.fallbackCategories);
   readonly contentTypes = signal<ContentTypeOption[]>(this.fallbackContentTypes);
   readonly contents = signal<HomeContent[]>(this.getFallbackContents());
+  readonly pagination = signal<ContentPagination>({
+    currentPage: 1,
+    lastPage: 1,
+    perPage: this.getFallbackContents().length,
+    total: this.getFallbackContents().length,
+    from: 1,
+    to: this.getFallbackContents().length,
+  });
+  readonly isLoadingContents = signal(false);
   readonly categoryFilters = computed(() => ['Todos', ...this.categories().map((category) => category.name)]);
   readonly contentTypeFilters = computed(() => ['Todos os formatos', ...this.contentTypes().map((contentType) => contentType.name)]);
   readonly selectedCategoryFilter = signal('Todos');
   readonly selectedContentTypeFilter = signal('Todos os formatos');
   readonly searchTerm = signal('');
+  readonly hasMoreContents = computed(() => this.pagination().currentPage < this.pagination().lastPage);
+  readonly contentCountMessage = computed(() => {
+    const total = this.pagination().total;
+    const shown = this.contents().length;
+    const label = total === 1 ? 'conteúdo' : 'conteúdos';
+
+    return `A mostrar ${shown} de ${total} ${label}`;
+  });
   readonly filteredContents = computed(() => {
     const categoryFilter = this.selectedCategoryFilter();
     const contentTypeFilter = this.selectedContentTypeFilter();
@@ -244,7 +271,7 @@ export class ContentListPage implements OnInit {
     }
 
     return results.filter((content) =>
-      [content.title, content.excerpt, content.author, content.category, content.contentType, content.meta]
+      [content.title, content.excerpt, content.author, content.category, content.contentType, content.meta, content.searchText ?? '']
         .map((value) => this.normalizeText(value))
         .some((value) => value.includes(query)),
     );
@@ -271,15 +298,7 @@ export class ContentListPage implements OnInit {
       this.contentTypes.set(this.fallbackContentTypes);
     }
 
-    try {
-      const contents = await this.contentService.getAll();
-
-      if (contents.length > 0) {
-        this.contents.set(contents.map((content) => this.toHomeContent(content)));
-      }
-    } catch {
-      this.contents.set(this.getFallbackContents());
-    }
+    await this.loadContents(1, true);
   }
 
   requireLogin(event: Event, operation: string): void {
@@ -290,14 +309,25 @@ export class ContentListPage implements OnInit {
 
   selectCategoryFilter(filter: string): void {
     this.selectedCategoryFilter.set(filter);
+    void this.loadContents(1, true);
   }
 
   selectContentTypeFilter(filter: string): void {
     this.selectedContentTypeFilter.set(filter);
+    void this.loadContents(1, true);
   }
 
   updateSearch(event: Event): void {
     this.searchTerm.set((event.target as HTMLInputElement).value);
+    void this.loadContents(1, true);
+  }
+
+  loadMoreContents(): void {
+    if (!this.hasMoreContents() || this.isLoadingContents()) {
+      return;
+    }
+
+    void this.loadContents(this.pagination().currentPage + 1, false);
   }
 
   private normalizeText(value: string): string {
@@ -317,14 +347,77 @@ export class ContentListPage implements OnInit {
       id: String(content.id),
       category: content.category?.name ?? 'Sem categoria',
       contentType,
-      meta: this.buildMeta(content.created_at, contentType),
+      meta: this.buildMeta(content.updated_at ?? content.created_at, contentType),
       title: content.title,
       excerpt: content.summary || this.toExcerpt(content.content),
       author: authorName,
       authorInitials: this.getInitials(authorName),
       imageUrl: content.image || undefined,
       premium,
+      searchText: content.content || '',
     };
+  }
+
+  private async loadContents(page: number, replace: boolean): Promise<void> {
+    const requestId = ++this.loadRequestId;
+
+    this.isLoadingContents.set(true);
+
+    try {
+      const response = await this.contentService.getAll({
+        page,
+        search: this.searchTerm().trim(),
+        categoryId: this.selectedCategoryId(),
+        contentTypeId: this.selectedContentTypeId(),
+      });
+
+      if (requestId !== this.loadRequestId) {
+        return;
+      }
+
+      const mappedContents = response.data.map((content) => this.toHomeContent(content));
+
+      this.contents.set(replace ? mappedContents : [...this.contents(), ...mappedContents]);
+      this.pagination.set(response.pagination);
+    } catch {
+      if (replace) {
+        const fallbackContents = this.getFallbackContents();
+
+        this.contents.set(fallbackContents);
+        this.pagination.set({
+          currentPage: 1,
+          lastPage: 1,
+          perPage: fallbackContents.length,
+          total: fallbackContents.length,
+          from: fallbackContents.length > 0 ? 1 : 0,
+          to: fallbackContents.length,
+        });
+      }
+    } finally {
+      if (requestId === this.loadRequestId) {
+        this.isLoadingContents.set(false);
+      }
+    }
+  }
+
+  private selectedCategoryId(): number | string | undefined {
+    const filter = this.selectedCategoryFilter();
+
+    if (filter === 'Todos') {
+      return undefined;
+    }
+
+    return this.categories().find((category) => category.name === filter)?.id;
+  }
+
+  private selectedContentTypeId(): number | string | undefined {
+    const filter = this.selectedContentTypeFilter();
+
+    if (filter === 'Todos os formatos') {
+      return undefined;
+    }
+
+    return this.contentTypes().find((contentType) => contentType.name === filter)?.id;
   }
 
   private buildMeta(createdAt: string | null | undefined, contentType: string): string {
@@ -484,9 +577,11 @@ export class ContentListPage implements OnInit {
                 {{ detail()?.authorInitials || 'EH' }}
               </div>
               <h2 class="font-display mt-5 text-[13px] font-medium text-[#5c1e2f]">{{ detail()?.author || 'Equipa editorial' }}</h2>
-              <p class="mx-auto mt-2 max-w-[138px] text-[9px] leading-[1.35] text-[#5f575b]">
-                Autor deste conteúdo na plataforma Economia com História.
-              </p>
+              @if (detail()?.authorBio) {
+                <p class="mx-auto mt-2 max-w-[138px] text-[9px] leading-[1.35] text-[#5f575b]">
+                  {{ detail()?.authorBio }}
+                </p>
+              }
               <div class="mt-5 flex justify-center gap-4 text-[#5f575b]">
                 <span class="text-[24px] leading-none">⌘</span>
                 <span class="text-[24px] leading-none">♧</span>
@@ -708,12 +803,13 @@ export class ContentDetailPage {
       id: String(content.id),
       category: content.category?.name ?? 'Sem categoria',
       contentType,
-      meta: this.buildMeta(content.created_at, contentType),
+      meta: this.buildMeta(content.updated_at ?? content.created_at, contentType),
       title: content.title,
       summary: content.summary || this.toExcerpt(content.content),
       body: content.content || '<p>Conteúdo indisponível.</p>',
       author: authorName,
       authorInitials: this.getInitials(authorName),
+      authorBio: content.author?.bio || content.user?.bio || undefined,
       imageUrl: content.image || undefined,
       premium: contentTypeSlug === 'jindungo',
     };

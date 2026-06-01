@@ -189,18 +189,18 @@
             <span>Adicione informações sobre si e personalize como aparece na comunidade Economia com História.</span>
           </header>
 
-          <form class="profile-form" (submit)="$event.preventDefault()">
+          <form class="profile-form" (submit)="$event.preventDefault(); saveProfile(profileNameInput.value, profileEmailInput.value, profileBioInput.value)">
             <section class="form-block" aria-labelledby="basic-data">
               <h2 id="basic-data">Dados básicos:</h2>
               <div class="field-stack">
                 <label>
                   <span class="sr-only">Nome completo</span>
-                  <input type="text" [value]="profileName()" aria-label="Nome completo" />
+                  <input #profileNameInput type="text" [value]="profileName()" aria-label="Nome completo" autocomplete="name" />
                 </label>
 
                 <label>
                   <span class="sr-only">E-mail</span>
-                  <input type="email" [value]="profileEmail()" aria-label="E-mail" />
+                  <input #profileEmailInput type="email" [value]="profileEmail()" aria-label="E-mail" autocomplete="email" />
                 </label>
               </div>
             </section>
@@ -212,7 +212,7 @@
                   <strong>B</strong>
                   <i>I</i>
                 </div>
-                <textarea rows="6" placeholder="Sem biografia">{{ profileDescription() }}</textarea>
+                <textarea #profileBioInput rows="6" placeholder="Sem biografia">{{ profileDescription() }}</textarea>
               </div>
               <p class="field-help">Use este espaço para resumir os seus interesses em economia, história de Angola, investigação ou ensino.</p>
             </section>
@@ -230,9 +230,19 @@
             </section>
 
             <div class="form-actions">
-              <button type="submit">Salvar perfil</button>
+              <button type="submit" [disabled]="isSavingProfile()">
+                {{ isSavingProfile() ? 'A salvar...' : 'Salvar perfil' }}
+              </button>
               <a routerLink="/app/contents">Voltar aos conteúdos</a>
             </div>
+
+            @if (profileSaveMessage()) {
+              <p class="field-help text-[#2f6f46]">{{ profileSaveMessage() }}</p>
+            }
+
+            @if (profileSaveError()) {
+              <p class="field-help text-[#9b1c31]">{{ profileSaveError() }}</p>
+            }
           </form>
         }
       </section>

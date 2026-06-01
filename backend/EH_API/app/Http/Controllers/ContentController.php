@@ -24,6 +24,7 @@ class ContentController extends Controller
                 'category_id',
                 'content_type_id',
                 'type',
+                'search',
             ]))
         );
     }

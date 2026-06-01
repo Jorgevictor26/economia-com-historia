@@ -12,6 +12,7 @@ use App\Http\Controllers\ContentController;
 use App\Http\Controllers\ContentTypeController;
 use App\Http\Controllers\Api\V1\ReactionController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\UserController;
 
 Route::prefix('v1')->group(function () {
     Route::post('/register', RegisterController::class);
@@ -23,6 +24,8 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', LogoutController::class);
+        Route::get('/profile', [UserController::class, 'me']);
+        Route::put('/profile', [UserController::class, 'updateProfile']);
 
         // CONTENTS
         Route::post('/contents', [ContentController::class, 'store']);

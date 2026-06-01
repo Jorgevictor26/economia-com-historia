@@ -53,6 +53,10 @@ export class AuthStateService {
     this.setUser(user);
   }
 
+  updateAuthenticatedUser(user: User): void {
+    this.setUser(user);
+  }
+
   canAccessForum(roomId: string, visibility: 'public' | 'private'): boolean {
     const user = this.userSignal();
     if (!user) {

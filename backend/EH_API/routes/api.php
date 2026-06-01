@@ -17,21 +17,21 @@ Route::prefix('v1')->group(function () {
     Route::post('/register', RegisterController::class);
     Route::post('/login', LoginController::class);
     Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/content-types', [ContentTypeController::class, 'index']);
+    Route::get('/contents', [ContentController::class, 'index']);
+    Route::get('/contents/{id}', [ContentController::class, 'show']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', LogoutController::class);
 
         // CONTENTS
-        Route::get('/contents', [ContentController::class, 'index']);
         Route::post('/contents', [ContentController::class, 'store']);
-        Route::get('/contents/{id}', [ContentController::class, 'show']);
 
         // CATEGORIES
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::get('/categories/{id}', [CategoryController::class, 'show']);
 
         // CONTENT TYPES
-        Route::get('/content-types', [ContentTypeController::class, 'index']);
         Route::post('/content-types', [ContentTypeController::class, 'store']);
         Route::get('/content-types/{id}', [ContentTypeController::class, 'show']);
 

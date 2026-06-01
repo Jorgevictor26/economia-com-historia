@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Comment;
+use App\Models\CommentReply;
 
 class CommentRepository
 {
@@ -17,5 +18,10 @@ class CommentRepository
             ->where('content_id', $contentId)
             ->latest()
             ->get();
+    }
+
+    public function createReply(array $data): CommentReply
+    {
+        return CommentReply::create($data);
     }
 }

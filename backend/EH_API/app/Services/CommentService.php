@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\DTOs\Comment\CreateCommentDTO;
-use App\DTOs\Comment\CreateReplyCommentDTO;
+use App\DTOs\Comment\ReplyCommentDTO;
 use App\Repositories\CommentRepository;
 
 class CommentService
@@ -26,9 +26,9 @@ class CommentService
         return $this->repository->getByContent($contentId);
     }
 
-    public function createReply(CreateReplyCommentDTO $dto)
+    public function createReply(ReplyCommentDTO $dto)
     {
-        return $this->repository->create([
+        return $this->repository->createReply([
             'user_id' => $dto->userId,
             'comment_id' => $dto->commentId,
             'reply' => $dto->reply

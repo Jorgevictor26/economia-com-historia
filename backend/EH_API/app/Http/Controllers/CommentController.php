@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Services\CommentService;
 
 use App\DTOs\Comment\CreateCommentDTO;
-use App\DTOs\Comment\CreateReplyCommentDTO;
+use App\DTOs\Comment\ReplyCommentDTO;
 
 class CommentController extends Controller
 {
@@ -45,16 +45,15 @@ class CommentController extends Controller
         );
     }
 
-    public function replyToComment(Request $request)
+    public function replyToComment(Request $request, int $commentId)
     {
         $request->validate([
-            'comment_id' => 'required|exists:comments,id',
             'reply' => 'required|string|min:1'
         ]);
 
-        $dto = new CreateReplyCommentDTO(
-            Auth::id(),
-            $request->comment_id,
+        $dto = new ReplyCommentDTO(
+            $request->user()->id,
+            $commentId,
             $request->reply
         );
 

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\Notification\StoreNotificationRequest;
+use Illuminate\Http\Request;
 
 use App\Services\NotificationService;
 use App\DTOs\Notification\CreateNotificationDTO;
@@ -16,10 +16,12 @@ class NotificationController extends Controller
 
     public function store(StoreNotificationRequest $request)
     {
+        $data = $request->validated();
+
         $dto = new CreateNotificationDTO(
-            Auth::id(),
-            $request->title,
-            $request->message
+            $request->user()->id,
+            $data['title'],
+            $data['message']
         );
 
         $notification = $this->service->create($dto);
@@ -30,11 +32,11 @@ class NotificationController extends Controller
         ], 201);
     }
 
-    public function index()
+    public function index(Request $request)
     {
         return response()->json(
             $this->service->getByUser(
-                Auth::id()
+                $request->user()->id
             )
         );
     }

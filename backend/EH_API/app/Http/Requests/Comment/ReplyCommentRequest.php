@@ -14,7 +14,6 @@ class ReplyCommentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'comment_id' => 'required|exists:comments,id',
             'reply' => 'required|string|min:1'
         ];
     }

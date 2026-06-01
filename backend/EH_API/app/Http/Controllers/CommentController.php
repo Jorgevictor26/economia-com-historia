@@ -10,6 +10,7 @@ use App\Services\CommentService;
 
 use App\DTOs\Comment\CreateCommentDTO;
 use App\DTOs\Comment\ReplyCommentDTO;
+use App\Http\Requests\Comment\ReplyCommentRequest;
 
 class CommentController extends Controller
 {
@@ -45,12 +46,8 @@ class CommentController extends Controller
         );
     }
 
-    public function replyToComment(Request $request, int $commentId)
+    public function replyToComment(ReplyCommentRequest $request, int $commentId)
     {
-        $request->validate([
-            'reply' => 'required|string|min:1'
-        ]);
-
         $dto = new ReplyCommentDTO(
             $request->user()->id,
             $commentId,

@@ -16,6 +16,7 @@ class ContentService
         return $this->repository->create([
             'user_id' => $dto->user_id,
             'category_id' => $dto->category_id,
+            'content_type_id' => $dto->content_type_id,
             'title' => $dto->title,
             'summary' => $dto->summary,
             'content' => $dto->content,
@@ -25,9 +26,9 @@ class ContentService
         ]);
     }
 
-    public function getAll()
+    public function getAll(array $filters = [])
     {
-        return $this->repository->all();
+        return $this->repository->all($filters);
     }
 
     public function findById(int $id)

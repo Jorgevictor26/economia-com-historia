@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthStateService } from '../../../../services/auth-state.service';
 import { AngolaEconomicMapComponent } from '../../../../shared/angola-economic-map/angola-economic-map.component';
@@ -38,6 +38,9 @@ export class ProfilePage {
   readonly isPhotoSection = this.section === 'photo';
   readonly isSecuritySection = this.section === 'security';
   readonly isNotificationPreferencesSection = this.section === 'notification-preferences';
+  readonly isSavingProfile = signal(false);
+  readonly profileSaveMessage = signal('');
+  readonly profileSaveError = signal('');
 
   readonly profileMenu = [
     { label: 'Perfil', icon: 'person', route: '/app/profile', active: !this.section },
@@ -88,5 +91,34 @@ export class ProfilePage {
       .map((name) => name[0])
       .join('')
       .toUpperCase();
+  }
+
+  async saveProfile(name: string, email: string, biography: string): Promise<void> {
+    const normalizedName = name.trim();
+    const normalizedEmail = email.trim();
+    const normalizedBiography = biography.trim();
+
+    this.profileSaveMessage.set('');
+    this.profileSaveError.set('');
+
+    if (!normalizedName || !normalizedEmail) {
+      this.profileSaveError.set('Preencha o nome e o e-mail antes de salvar.');
+      return;
+    }
+
+    this.isSavingProfile.set(true);
+
+    try {
+      await this.profileService.updateProfile({
+        name: normalizedName,
+        email: normalizedEmail,
+        bio: normalizedBiography || null,
+      });
+      this.profileSaveMessage.set('Perfil atualizado com sucesso.');
+    } catch {
+      this.profileSaveError.set('Não foi possível atualizar o perfil. Verifique os dados e tente novamente.');
+    } finally {
+      this.isSavingProfile.set(false);
+    }
   }
 }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\DTOs\User\CreateUserDTO;
+use App\DTOs\User\UpdateUserDTO;
 use App\Models\User;
 use App\Repositories\UserRepository;
 
@@ -15,5 +16,10 @@ class UserService
     public function create(CreateUserDTO $dto): User
     {
         return $this->users->create($dto);
+    }
+
+    public function update(User $user, UpdateUserDTO $dto): User
+    {
+        return $this->users->update($user, $dto);
     }
 }

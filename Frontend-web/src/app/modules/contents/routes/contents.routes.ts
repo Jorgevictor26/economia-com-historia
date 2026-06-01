@@ -1,7 +1,12 @@
-﻿import { Component, computed, inject, signal } from '@angular/core';
+﻿import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink, Routes } from '@angular/router';
 import { adminGuard } from '../../../core/guards/admin.guard';
+import { Category } from '../../../models/category.model';
+import { ContentTypeOption } from '../../../models/content-type.model';
 import { AuthStateService } from '../../../services/auth-state.service';
+import { CategoryService } from '../../../services/category.service';
+import { BackendContent, ContentPagination, ContentService } from '../../../services/content.service';
+import { ContentTypeService } from '../../../services/content-type.service';
 import { BackToTopComponent } from '../../../shared/back-to-top/back-to-top.component';
 import { PublicFooterComponent } from '../../../shared/public-footer/public-footer.component';
 import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navbar.component';
@@ -9,6 +14,7 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
 interface HomeContent {
   id: string;
   category: string;
+  contentType: string;
   meta: string;
   title: string;
   excerpt: string;
@@ -16,6 +22,22 @@ interface HomeContent {
   authorInitials: string;
   imageUrl?: string;
   premium?: boolean;
+  searchText?: string;
+}
+
+interface ContentDetail {
+  id: string;
+  category: string;
+  contentType: string;
+  meta: string;
+  title: string;
+  summary: string;
+  body: string;
+  author: string;
+  authorInitials: string;
+  authorBio?: string;
+  imageUrl?: string;
+  premium: boolean;
 }
 
 @Component({
@@ -41,18 +63,37 @@ interface HomeContent {
         </div>
 
         <div class="mb-5 flex flex-wrap items-center gap-3">
-          @for (filter of filters; track filter) {
+          @for (filter of categoryFilters(); track filter) {
             <button
               type="button"
               class="content-filter-button h-11 min-w-[96px] rounded-[8px] border px-5 text-[12px] font-semibold transition"
-              [class.is-selected]="filter === selectedFilter()"
-              [class.border-[#8a4055]]="filter === selectedFilter()"
-              [class.bg-[#8a4055]]="filter === selectedFilter()"
-              [class.text-white]="filter === selectedFilter()"
-              [class.border-[#d8cbd0]]="filter !== selectedFilter()"
-              [class.bg-white]="filter !== selectedFilter()"
-              [class.text-[#5f575b]]="filter !== selectedFilter()"
-              (click)="selectFilter(filter)"
+              [class.is-selected]="filter === selectedCategoryFilter()"
+              [class.border-[#8a4055]]="filter === selectedCategoryFilter()"
+              [class.bg-[#8a4055]]="filter === selectedCategoryFilter()"
+              [class.text-white]="filter === selectedCategoryFilter()"
+              [class.border-[#d8cbd0]]="filter !== selectedCategoryFilter()"
+              [class.bg-white]="filter !== selectedCategoryFilter()"
+              [class.text-[#5f575b]]="filter !== selectedCategoryFilter()"
+              (click)="selectCategoryFilter(filter)"
+            >
+              {{ filter }}
+            </button>
+          }
+        </div>
+
+        <div class="mb-8 flex flex-wrap items-center gap-3">
+          @for (filter of contentTypeFilters(); track filter) {
+            <button
+              type="button"
+              class="content-filter-button h-10 min-w-[86px] rounded-[8px] border px-4 text-[11px] font-semibold transition"
+              [class.is-selected]="filter === selectedContentTypeFilter()"
+              [class.border-[#5c1e2f]]="filter === selectedContentTypeFilter()"
+              [class.bg-[#5c1e2f]]="filter === selectedContentTypeFilter()"
+              [class.text-white]="filter === selectedContentTypeFilter()"
+              [class.border-[#d8cbd0]]="filter !== selectedContentTypeFilter()"
+              [class.bg-white]="filter !== selectedContentTypeFilter()"
+              [class.text-[#5f575b]]="filter !== selectedContentTypeFilter()"
+              (click)="selectContentTypeFilter(filter)"
             >
               {{ filter }}
             </button>
@@ -150,10 +191,17 @@ interface HomeContent {
         </div>
 
         <div class="mt-16 text-center">
-          <p class="mb-4 text-[10px] font-bold uppercase tracking-[0.22em] text-[#8a8587]">A mostrar 9 de 142 artigos</p>
-          <button type="button" class="h-[50px] border border-[#5c1e2f] bg-white px-10 text-[12px] font-extrabold text-[#5c1e2f] transition hover:bg-[#5c1e2f] hover:text-white">
-            Ver Mais Conteúdos
-          </button>
+          <p class="mb-4 text-[10px] font-bold uppercase tracking-[0.22em] text-[#8a8587]">{{ contentCountMessage() }}</p>
+          @if (hasMoreContents()) {
+            <button
+              type="button"
+              class="h-[50px] border border-[#5c1e2f] bg-white px-10 text-[12px] font-extrabold text-[#5c1e2f] transition hover:bg-[#5c1e2f] hover:text-white"
+              [disabled]="isLoadingContents()"
+              (click)="loadMoreContents()"
+            >
+              {{ isLoadingContents() ? 'A carregar...' : 'Ver Mais Conteúdos' }}
+            </button>
+          }
         </div>
       </main>
 
@@ -162,21 +210,60 @@ interface HomeContent {
     </section>
   `,
 })
-export class ContentListPage {
+export class ContentListPage implements OnInit {
   readonly auth = inject(AuthStateService);
-  readonly filters = ['Todos', 'História', 'Economia', 'Podcasts', 'Jindungo'];
-  readonly selectedFilter = signal('Todos');
+  private readonly categoryService = inject(CategoryService);
+  private readonly contentService = inject(ContentService);
+  private readonly contentTypeService = inject(ContentTypeService);
+  private loadRequestId = 0;
+  private readonly fallbackCategories: Category[] = [
+    { id: 1, name: 'História' },
+    { id: 2, name: 'Economia' },
+  ];
+  private readonly fallbackContentTypes: ContentTypeOption[] = [
+    { id: 1, name: 'Texto', slug: 'texto' },
+    { id: 2, name: 'Video', slug: 'video' },
+    { id: 3, name: 'Jindungo', slug: 'jindungo' },
+  ];
+
+  readonly categories = signal<Category[]>(this.fallbackCategories);
+  readonly contentTypes = signal<ContentTypeOption[]>(this.fallbackContentTypes);
+  readonly contents = signal<HomeContent[]>(this.getFallbackContents());
+  readonly pagination = signal<ContentPagination>({
+    currentPage: 1,
+    lastPage: 1,
+    perPage: this.getFallbackContents().length,
+    total: this.getFallbackContents().length,
+    from: 1,
+    to: this.getFallbackContents().length,
+  });
+  readonly isLoadingContents = signal(false);
+  readonly categoryFilters = computed(() => ['Todos', ...this.categories().map((category) => category.name)]);
+  readonly contentTypeFilters = computed(() => ['Todos os formatos', ...this.contentTypes().map((contentType) => contentType.name)]);
+  readonly selectedCategoryFilter = signal('Todos');
+  readonly selectedContentTypeFilter = signal('Todos os formatos');
   readonly searchTerm = signal('');
+  readonly hasMoreContents = computed(() => this.pagination().currentPage < this.pagination().lastPage);
+  readonly contentCountMessage = computed(() => {
+    const total = this.pagination().total;
+    const shown = this.contents().length;
+    const label = total === 1 ? 'conteúdo' : 'conteúdos';
+
+    return `A mostrar ${shown} de ${total} ${label}`;
+  });
   readonly filteredContents = computed(() => {
-    const filter = this.selectedFilter();
+    const categoryFilter = this.selectedCategoryFilter();
+    const contentTypeFilter = this.selectedContentTypeFilter();
     const query = this.normalizeText(this.searchTerm());
 
-    let results = this.contents;
+    let results = this.contents();
 
-    if (filter === 'Jindungo') {
-      results = results.filter((content) => content.premium);
-    } else if (filter !== 'Todos') {
-      results = results.filter((content) => content.category.includes(filter));
+    if (categoryFilter !== 'Todos') {
+      results = results.filter((content) => content.category.includes(categoryFilter));
+    }
+
+    if (contentTypeFilter !== 'Todos os formatos') {
+      results = results.filter((content) => content.contentType === contentTypeFilter);
     }
 
     if (!query) {
@@ -184,11 +271,35 @@ export class ContentListPage {
     }
 
     return results.filter((content) =>
-      [content.title, content.excerpt, content.author, content.category, content.meta]
+      [content.title, content.excerpt, content.author, content.category, content.contentType, content.meta, content.searchText ?? '']
         .map((value) => this.normalizeText(value))
         .some((value) => value.includes(query)),
     );
   });
+
+  async ngOnInit(): Promise<void> {
+    try {
+      const categories = await this.categoryService.getAll();
+
+      if (categories.length > 0) {
+        this.categories.set(categories);
+      }
+    } catch {
+      this.categories.set(this.fallbackCategories);
+    }
+
+    try {
+      const contentTypes = await this.contentTypeService.getAll();
+
+      if (contentTypes.length > 0) {
+        this.contentTypes.set(contentTypes);
+      }
+    } catch {
+      this.contentTypes.set(this.fallbackContentTypes);
+    }
+
+    await this.loadContents(1, true);
+  }
 
   requireLogin(event: Event, operation: string): void {
     event.preventDefault();
@@ -196,12 +307,27 @@ export class ContentListPage {
     this.auth.requireLoginFor(operation);
   }
 
-  selectFilter(filter: string): void {
-    this.selectedFilter.set(filter);
+  selectCategoryFilter(filter: string): void {
+    this.selectedCategoryFilter.set(filter);
+    void this.loadContents(1, true);
+  }
+
+  selectContentTypeFilter(filter: string): void {
+    this.selectedContentTypeFilter.set(filter);
+    void this.loadContents(1, true);
   }
 
   updateSearch(event: Event): void {
     this.searchTerm.set((event.target as HTMLInputElement).value);
+    void this.loadContents(1, true);
+  }
+
+  loadMoreContents(): void {
+    if (!this.hasMoreContents() || this.isLoadingContents()) {
+      return;
+    }
+
+    void this.loadContents(this.pagination().currentPage + 1, false);
   }
 
   private normalizeText(value: string): string {
@@ -211,10 +337,123 @@ export class ContentListPage {
       .replace(/[\u0300-\u036f]/g, '');
   }
 
-  readonly contents: HomeContent[] = [
+  private toHomeContent(content: BackendContent): HomeContent {
+    const contentType = content.content_type?.name ?? 'Texto';
+    const contentTypeSlug = content.content_type?.slug ?? this.normalizeText(contentType);
+    const premium = contentTypeSlug === 'jindungo';
+    const authorName = content.author?.name ?? content.user?.name ?? 'Equipa editorial';
+
+    return {
+      id: String(content.id),
+      category: content.category?.name ?? 'Sem categoria',
+      contentType,
+      meta: this.buildMeta(content.updated_at ?? content.created_at, contentType),
+      title: content.title,
+      excerpt: content.summary || this.toExcerpt(content.content),
+      author: authorName,
+      authorInitials: this.getInitials(authorName),
+      imageUrl: content.image || undefined,
+      premium,
+      searchText: content.content || '',
+    };
+  }
+
+  private async loadContents(page: number, replace: boolean): Promise<void> {
+    const requestId = ++this.loadRequestId;
+
+    this.isLoadingContents.set(true);
+
+    try {
+      const response = await this.contentService.getAll({
+        page,
+        search: this.searchTerm().trim(),
+        categoryId: this.selectedCategoryId(),
+        contentTypeId: this.selectedContentTypeId(),
+      });
+
+      if (requestId !== this.loadRequestId) {
+        return;
+      }
+
+      const mappedContents = response.data.map((content) => this.toHomeContent(content));
+
+      this.contents.set(replace ? mappedContents : [...this.contents(), ...mappedContents]);
+      this.pagination.set(response.pagination);
+    } catch {
+      if (replace) {
+        const fallbackContents = this.getFallbackContents();
+
+        this.contents.set(fallbackContents);
+        this.pagination.set({
+          currentPage: 1,
+          lastPage: 1,
+          perPage: fallbackContents.length,
+          total: fallbackContents.length,
+          from: fallbackContents.length > 0 ? 1 : 0,
+          to: fallbackContents.length,
+        });
+      }
+    } finally {
+      if (requestId === this.loadRequestId) {
+        this.isLoadingContents.set(false);
+      }
+    }
+  }
+
+  private selectedCategoryId(): number | string | undefined {
+    const filter = this.selectedCategoryFilter();
+
+    if (filter === 'Todos') {
+      return undefined;
+    }
+
+    return this.categories().find((category) => category.name === filter)?.id;
+  }
+
+  private selectedContentTypeId(): number | string | undefined {
+    const filter = this.selectedContentTypeFilter();
+
+    if (filter === 'Todos os formatos') {
+      return undefined;
+    }
+
+    return this.contentTypes().find((contentType) => contentType.name === filter)?.id;
+  }
+
+  private buildMeta(createdAt: string | null | undefined, contentType: string): string {
+    const date = createdAt ? new Date(createdAt) : null;
+    const formattedDate =
+      date && !Number.isNaN(date.getTime())
+        ? new Intl.DateTimeFormat('pt-AO', { day: '2-digit', month: 'short', year: 'numeric' }).format(date)
+        : 'Sem data';
+
+    return `${formattedDate} - ${contentType}`;
+  }
+
+  private getInitials(name: string): string {
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase();
+  }
+
+  private toExcerpt(value: string | null | undefined): string {
+    if (!value) {
+      return 'Conteúdo disponível na biblioteca Economia com História.';
+    }
+
+    return value.replace(/<[^>]*>/g, '').slice(0, 180);
+  }
+
+  private getFallbackContents(): HomeContent[] {
+    return [
     {
       id: 'rotas-comerciais',
       category: 'História',
+      contentType: 'Texto',
       meta: '12 Out 2024 - 15 min leitura',
       title: 'As Rotas Comerciais do Reino do Kongo',
       excerpt:
@@ -225,7 +464,8 @@ export class ContentListPage {
     },
     {
       id: 'imposto-reservas',
-      category: '# Jindungo',
+      category: 'Economia',
+      contentType: 'Jindungo',
       meta: '08 Out 2024 - Conteúdo exclusivo',
       title: 'O Impacto das Reservas Internacionais no Kwanza',
       excerpt:
@@ -238,6 +478,7 @@ export class ContentListPage {
     {
       id: 'caso-agro',
       category: 'Economia',
+      contentType: 'Texto',
       meta: '05 Out 2024 - 10 min leitura',
       title: 'Diversificação Económica: O Caso da Agro-Indústria',
       excerpt:
@@ -249,6 +490,7 @@ export class ContentListPage {
     {
       id: 'heranca-imperio',
       category: 'Podcast',
+      contentType: 'Video',
       meta: '01 Out 2024 - 45 min áudio',
       title: 'Ep. 24: A Herança do Império Lunda',
       excerpt:
@@ -259,7 +501,8 @@ export class ContentListPage {
     },
     {
       id: 'diamantes-luanda-sul',
-      category: '# Jindungo',
+      category: 'Economia',
+      contentType: 'Jindungo',
       meta: '28 Set 2024 - Relatório mensal',
       title: 'Análise do Mercado de Diamantes na Lunda Sul',
       excerpt:
@@ -272,6 +515,7 @@ export class ContentListPage {
     {
       id: 'nzinga-diplomacia',
       category: 'História',
+      contentType: 'Texto',
       meta: '25 Set 2024 - 20 min leitura',
       title: 'A Rainha Nzinga e a Diplomacia com os Holandeses',
       excerpt:
@@ -283,6 +527,7 @@ export class ContentListPage {
     {
       id: 'evolucao-comercio-kongo',
       category: 'História',
+      contentType: 'Texto',
       meta: '22 Set 2024 - 10 min leitura',
       title: 'A Evolução do Comércio no Reino do Kongo',
       excerpt:
@@ -292,7 +537,8 @@ export class ContentListPage {
     },
     {
       id: 'politica-monetaria-angola',
-      category: '# Jindungo',
+      category: 'Economia',
+      contentType: 'Jindungo',
       meta: '15 Set 2024 - Relatório especial',
       title: 'Análise da Política Monetária de Angola',
       excerpt:
@@ -304,6 +550,7 @@ export class ContentListPage {
     {
       id: 'petroleo-estrutura-social',
       category: 'Economia',
+      contentType: 'Texto',
       meta: '10 Set 2024 - 25 min leitura',
       title: 'O Impacto do Petróleo na Estrutura Social',
       excerpt:
@@ -311,7 +558,8 @@ export class ContentListPage {
       author: 'Dra. Sofia Bento',
       authorInitials: 'SB',
     },
-  ];
+    ];
+  }
 }
 
 @Component({
@@ -325,15 +573,15 @@ export class ContentListPage {
         <aside class="hidden lg:block">
           <div class="sticky top-[82px]">
             <section class="border border-[#ded7da] bg-white px-6 py-6 text-center">
-              <img
-                src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=180&q=80&sat=-100"
-                alt="Dr. Manuel Kinuani"
-                class="mx-auto size-[70px] rounded-[8px] object-cover grayscale"
-              />
-              <h2 class="font-display mt-5 text-[13px] font-medium text-[#5c1e2f]">Dr. Manuel Kinuani</h2>
-              <p class="mx-auto mt-2 max-w-[138px] text-[9px] leading-[1.35] text-[#5f575b]">
-                Doutor em História Económica e especialista em civilizações do vale do Congo.
-              </p>
+              <div class="mx-auto grid size-[70px] place-items-center rounded-[8px] bg-[#f5dce4] font-display text-[20px] font-extrabold text-[#8a4055]">
+                {{ detail()?.authorInitials || 'EH' }}
+              </div>
+              <h2 class="font-display mt-5 text-[13px] font-medium text-[#5c1e2f]">{{ detail()?.author || 'Equipa editorial' }}</h2>
+              @if (detail()?.authorBio) {
+                <p class="mx-auto mt-2 max-w-[138px] text-[9px] leading-[1.35] text-[#5f575b]">
+                  {{ detail()?.authorBio }}
+                </p>
+              }
               <div class="mt-5 flex justify-center gap-4 text-[#5f575b]">
                 <span class="text-[24px] leading-none">⌘</span>
                 <span class="text-[24px] leading-none">♧</span>
@@ -343,7 +591,7 @@ export class ContentListPage {
             <section class="mt-7 border-t border-[#ded7da] pt-6">
               <h3 class="mb-5 text-[11px] font-medium uppercase tracking-[0.18em] text-[#8a8587]">Métricas</h3>
               <div class="grid gap-4 text-[11px] text-[#5f575b]">
-                <p class="flex items-center gap-3"><span class="text-[18px]">▷</span>12 min de leitura</p>
+                <p class="flex items-center gap-3"><span class="text-[18px]">▷</span>{{ detail()?.contentType || 'Texto' }}</p>
                 <p class="flex items-center gap-3"><span class="text-[18px]">⊙</span>4.2k visualizações</p>
               </div>
             </section>
@@ -352,60 +600,42 @@ export class ContentListPage {
 
         <article class="px-0 pb-12 pt-0">
           <div class="mb-4 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#8c6f36]">
-            Série: Economias Pré-Coloniais
+            {{ detail()?.category || 'Conteúdo' }} - {{ detail()?.meta || 'A carregar...' }}
           </div>
 
           <h1 class="font-display max-w-[540px] text-[34px] font-extrabold leading-[1.08] text-[#5c1e2f]">
-            As Rotas Comerciais do Reino do Kongo
+            {{ title() }}
           </h1>
 
           <p class="mt-6 max-w-[510px] border-l-4 border-[#d4af37] pl-7 font-display text-[14px] italic leading-7 text-[#81787c]">
-            Uma análise profunda sobre as complexas redes de trocas de tecidos de ráfia, sal e zimbo que estruturaram o poder económico centralizado em M'banza Kongo.
+            {{ detail()?.summary || 'A carregar o resumo do conteúdo...' }}
           </p>
 
           <div class="hidden">
-            <span>Por <strong class="text-[#5c1e2f]">Dr. Ricardo Mbaxi</strong></span>
+            <span>Por <strong class="text-[#5c1e2f]">{{ detail()?.author || 'Equipa editorial' }}</strong></span>
             <span class="flex items-center gap-4">♡ 66 □ 12 ↗ ⚑</span>
           </div>
 
+          @if (detail()?.imageUrl) {
           <figure class="mt-7">
             <img
-              src="https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1200&q=80"
-              alt="Salão histórico com colunas e iluminação dourada"
+              [src]="detail()?.imageUrl"
+              [alt]="detail()?.title || 'Imagem do conteúdo'"
               class="h-[310px] w-full object-cover"
             />
             <figcaption class="mt-2 text-center text-[10px] text-[#8a8587]">
-              Representação visual das estruturas comerciais e diplomáticas do Kongo.
+              Imagem associada ao conteúdo.
             </figcaption>
           </figure>
+          }
 
-          <div class="mt-8 space-y-6 text-[16px] leading-8 text-[#2f292c]">
-            <p>
-              Durante séculos, o Reino do Kongo ocupou uma posição estratégica nas redes de comércio da África Central. A sua economia articulava rotas terrestres, mercados locais, relações diplomáticas e corredores atlânticos que ligavam comunidades produtoras, intermediários e centros políticos.
-            </p>
-            <p>
-              A circulação de tecidos, metais, sal, marfim e produtos agrícolas não era apenas uma actividade económica. Era também uma linguagem de poder, onde alianças, tributos e autoridade se expressavam por meio do controlo das rotas e da capacidade de negociar com diferentes povos.
-            </p>
-
-            <h2 class="font-display pt-6 text-[28px] font-extrabold leading-tight text-[#5c1e2f]">A Geopolítica do Zimbo</h2>
-            <p>
-              Diferente das economias europeias da época, a gestão monetária do Kongo era centralizada com um rigor surpreendente. O ManiKongo exercia um controlo directo sobre a "casa da moeda", garantindo que a inflação não erodisse o valor do trabalho e da produção agrícola. Este sistema permitia o financiamento de uma burocracia complexa e de um exército permanente.
-            </p>
-            <p>
-              As rotas transversais ligavam M'banza Kongo aos centros produtores de cobre no leste e às indústrias têxteis de ráfia no norte. O tecido de ráfia, conhecido como <em>lubongo</em>, servia não só como vestuário mas como uma segunda unidade de valor, aceite em transacções inter-regionais.
-            </p>
-
-            <div class="my-8 bg-[#f4f4f4] px-8 py-7">
-              <h3 class="font-display text-[15px] font-medium text-[#5c1e2f]">Nota do Historiador</h3>
-              <p class="mt-4 text-[14px] leading-7 text-[#6f686b]">
-                "O rigor com que as alfândegas eram geridas nos portos fluviais demonstra um estado que compreendia perfeitamente a balança comercial. O Kongo não era um receptáculo de trocas, mas um regulador ativo delas."
-              </p>
+          @if (isLoading()) {
+            <div class="mt-8 space-y-4 text-[14px] leading-7 text-[#6f686b]">
+              <p>A carregar o conteúdo...</p>
             </div>
-
-            <p>
-              No entanto, a chegada das potências europeias alterou drasticamente esta dinâmica. A introdução de produtos manufacturados estrangeiros e a pressão pelo tráfico transatlântico começaram a desestabilizar os pilares da economia tradicional, levando a uma eventual fragmentação das rotas que antes nutriam o coração do reino.
-            </p>
-          </div>
+          } @else {
+            <div class="mt-8 space-y-6 text-[16px] leading-8 text-[#2f292c]" [innerHTML]="detail()?.body"></div>
+          }
 
           <section class="mt-9 border-t border-[#eee7ea] pt-5">
             @if (isPremiumContent() && !auth.canReadJindungo()) {
@@ -535,14 +765,89 @@ export class ContentListPage {
 })
 export class ContentDetailPage {
   private readonly route = inject(ActivatedRoute);
+  private readonly contentService = inject(ContentService);
   readonly auth = inject(AuthStateService);
-  readonly title = this.route.snapshot.params['id'] === 'create' ? 'Criar conteúdo' : 'Conteúdo editorial';
-  readonly isPremiumContent = computed(() => ['imposto-reservas', 'diamantes-luanda-sul', 'politica-monetaria-angola'].includes(this.route.snapshot.params['id']));
+  readonly detail = signal<ContentDetail | null>(null);
+  readonly isLoading = signal(true);
+  readonly title = computed(() => this.detail()?.title ?? (this.route.snapshot.params['id'] === 'create' ? 'Criar conteúdo' : 'Conteúdo editorial'));
+  readonly isPremiumContent = computed(() => this.detail()?.premium ?? ['imposto-reservas', 'diamantes-luanda-sul', 'politica-monetaria-angola'].includes(this.route.snapshot.params['id']));
+
+  async ngOnInit(): Promise<void> {
+    const id = this.route.snapshot.params['id'];
+
+    if (!id || id === 'create') {
+      this.isLoading.set(false);
+      return;
+    }
+
+    try {
+      const content = await this.contentService.getById(id);
+      this.detail.set(this.toContentDetail(content));
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
 
   requireLogin(event: Event, operation: string): void {
     event.preventDefault();
     event.stopPropagation();
     this.auth.requireLoginFor(operation);
+  }
+
+  private toContentDetail(content: BackendContent): ContentDetail {
+    const contentType = content.content_type?.name ?? 'Texto';
+    const contentTypeSlug = content.content_type?.slug ?? this.normalizeText(contentType);
+    const authorName = content.author?.name ?? content.user?.name ?? 'Equipa editorial';
+
+    return {
+      id: String(content.id),
+      category: content.category?.name ?? 'Sem categoria',
+      contentType,
+      meta: this.buildMeta(content.updated_at ?? content.created_at, contentType),
+      title: content.title,
+      summary: content.summary || this.toExcerpt(content.content),
+      body: content.content || '<p>Conteúdo indisponível.</p>',
+      author: authorName,
+      authorInitials: this.getInitials(authorName),
+      authorBio: content.author?.bio || content.user?.bio || undefined,
+      imageUrl: content.image || undefined,
+      premium: contentTypeSlug === 'jindungo',
+    };
+  }
+
+  private buildMeta(createdAt: string | null | undefined, contentType: string): string {
+    const date = createdAt ? new Date(createdAt) : null;
+    const formattedDate =
+      date && !Number.isNaN(date.getTime())
+        ? new Intl.DateTimeFormat('pt-AO', { day: '2-digit', month: 'short', year: 'numeric' }).format(date)
+        : 'Sem data';
+
+    return `${formattedDate} - ${contentType}`;
+  }
+
+  private normalizeText(value: string): string {
+    return value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  private getInitials(name: string): string {
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase();
+  }
+
+  private toExcerpt(value: string | null | undefined): string {
+    if (!value) {
+      return 'Conteúdo disponível na biblioteca Economia com História.';
+    }
+
+    return value.replace(/<[^>]*>/g, '').slice(0, 180);
   }
 }
 
@@ -552,7 +857,3 @@ export const CONTENTS_ROUTES: Routes = [
   { path: ':id', component: ContentDetailPage },
   { path: ':id/edit', canActivate: [adminGuard], component: ContentDetailPage },
 ];
-
-
-
-

@@ -16,6 +16,7 @@ use App\Http\Controllers\NotificationController;
 Route::prefix('v1')->group(function () {
     Route::post('/register', RegisterController::class);
     Route::post('/login', LoginController::class);
+    Route::get('/categories', [CategoryController::class, 'index']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', LogoutController::class);
@@ -26,7 +27,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/contents/{id}', [ContentController::class, 'show']);
 
         // CATEGORIES
-        Route::get('/categories', [CategoryController::class, 'index']);
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::get('/categories/{id}', [CategoryController::class, 'show']);
 

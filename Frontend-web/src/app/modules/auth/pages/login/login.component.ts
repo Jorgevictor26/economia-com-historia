@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthSidePanelComponent } from '../../components/auth-side-panel/auth-side-panel.component';
@@ -17,10 +18,11 @@ export class LoginComponent {
 
   readonly isLoading = signal(false);
   readonly submitted = signal(false);
+  readonly errorMessage = signal('');
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
     rememberMe: [false],
   });
 
@@ -36,9 +38,33 @@ export class LoginComponent {
     }
 
     this.isLoading.set(true);
-    await this.authService.login(this.form.getRawValue());
-    this.isLoading.set(false);
-    await this.router.navigateByUrl('/app/home');
+    this.errorMessage.set('');
+
+    try {
+      await this.authService.login(this.form.getRawValue());
+      await this.router.navigateByUrl('/app/home');
+    } catch (error) {
+      this.errorMessage.set(this.extractErrorMessage(error));
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  private extractErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      const validationErrors = error.error?.errors;
+      const firstError = validationErrors ? Object.values(validationErrors)[0] : null;
+
+      if (Array.isArray(firstError) && firstError[0]) {
+        return String(firstError[0]);
+      }
+
+      if (error.error?.message) {
+        return String(error.error.message);
+      }
+    }
+
+    return 'Não foi possível entrar. Verifique se a API está ativa e tente novamente.';
   }
 
   private isInvalid(controlName: 'email' | 'password'): boolean {

@@ -73,7 +73,7 @@
               autocomplete="new-password"
             />
             @if (passwordInvalid()) {
-              <span class="auth-error">A palavra-passe deve ter pelo menos 6 caracteres.</span>
+              <span class="auth-error">A palavra-passe deve ter pelo menos 8 caracteres.</span>
             }
           </label>
 
@@ -153,7 +153,7 @@
 
           <div class="onboarding-actions">
             <button type="button" class="secondary-action" (click)="skipPhoto()">Pular</button>
-            <button type="button" class="primary-action" (click)="advanceFromPhoto()">Avançar</button>
+            <button type="button" class="primary-action" (click)="advanceFromPhoto()" [disabled]="isLoading()">Avançar</button>
           </div>
         </section>
       } @else {
@@ -184,8 +184,14 @@
             }
 
             <div class="onboarding-actions">
-              <button type="button" class="secondary-action" (click)="skipBiography()">Pular</button>
-              <button type="submit" class="primary-action">Avançar</button>
+              <button type="button" class="secondary-action" (click)="skipBiography()" [disabled]="isLoading()">Pular</button>
+              <button type="submit" class="primary-action" [disabled]="isLoading()">
+                @if (isLoading()) {
+                  A finalizar
+                } @else {
+                  Avançar
+                }
+              </button>
             </div>
           </form>
         </section>

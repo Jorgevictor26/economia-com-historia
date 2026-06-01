@@ -4,11 +4,14 @@ import { User, UserRole } from '../models/user.model';
 @Injectable({ providedIn: 'root' })
 export class AuthStateService {
   private readonly storageKey = 'economia-com-historia.user';
+  private readonly tokenStorageKey = 'economia-com-historia.token';
   private readonly userSignal = signal<User | null>(this.readStoredUser());
+  private readonly tokenSignal = signal<string | null>(this.readStoredToken());
   private readonly loginPromptSignal = signal<{ operation: string } | null>(null);
   private readonly loginPromptClosingSignal = signal(false);
 
   readonly user = this.userSignal.asReadonly();
+  readonly token = this.tokenSignal.asReadonly();
   readonly loginPrompt = this.loginPromptSignal.asReadonly();
   readonly loginPromptClosing = this.loginPromptClosingSignal.asReadonly();
   readonly isAuthenticated = computed(() => Boolean(this.userSignal()));
@@ -45,6 +48,11 @@ export class AuthStateService {
     });
   }
 
+  setAuthenticatedUser(user: User, token: string): void {
+    this.setToken(token);
+    this.setUser(user);
+  }
+
   canAccessForum(roomId: string, visibility: 'public' | 'private'): boolean {
     const user = this.userSignal();
     if (!user) {
@@ -55,6 +63,7 @@ export class AuthStateService {
   }
 
   logout(): void {
+    this.setToken(null);
     this.setUser(null);
   }
 
@@ -96,6 +105,20 @@ export class AuthStateService {
     }
   }
 
+  private setToken(token: string | null): void {
+    this.tokenSignal.set(token);
+
+    try {
+      if (token) {
+        window.localStorage.setItem(this.tokenStorageKey, token);
+      } else {
+        window.localStorage.removeItem(this.tokenStorageKey);
+      }
+    } catch {
+      // Storage can be unavailable in restricted browser contexts.
+    }
+  }
+
   private readStoredUser(): User | null {
     try {
       const storedUser = window.localStorage.getItem(this.storageKey);
@@ -104,6 +127,14 @@ export class AuthStateService {
       }
 
       return JSON.parse(storedUser) as User;
+    } catch {
+      return null;
+    }
+  }
+
+  private readStoredToken(): string | null {
+    try {
+      return window.localStorage.getItem(this.tokenStorageKey);
     } catch {
       return null;
     }

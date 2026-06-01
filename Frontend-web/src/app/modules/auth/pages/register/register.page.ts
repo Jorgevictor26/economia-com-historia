@@ -1,8 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthStateService } from '../../../../services/auth-state.service';
 import { AuthSidePanelComponent } from '../../components/auth-side-panel/auth-side-panel.component';
+import { AuthService, RegisterPayload } from '../../services/auth.service';
 
 type RegisterStep = 'account' | 'photo' | 'bio';
 
@@ -14,7 +15,7 @@ type RegisterStep = 'account' | 'photo' | 'bio';
 })
 export class RegisterPage {
   private readonly fb = inject(FormBuilder);
-  private readonly auth = inject(AuthStateService);
+  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
   readonly isLoading = signal(false);
@@ -30,7 +31,7 @@ export class RegisterPage {
   readonly form = this.fb.nonNullable.group({
     fullName: ['', [Validators.required, Validators.minLength(3)]],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
     confirmPassword: ['', [Validators.required]],
     acceptedTerms: [false, [Validators.requiredTrue]],
   });
@@ -72,10 +73,8 @@ export class RegisterPage {
     }
 
     this.isLoading.set(true);
-    this.feedbackMessage.set('A preparar os próximos passos do perfil...');
-    await new Promise((resolve) => setTimeout(resolve, 700));
+    this.feedbackMessage.set('Dados validados. Agora pode personalizar o seu perfil.');
     this.isLoading.set(false);
-    this.feedbackMessage.set('Conta criada. Agora pode personalizar o seu perfil.');
     this.pulseStep();
     this.step.set('photo');
   }
@@ -125,19 +124,43 @@ export class RegisterPage {
     }
 
     this.feedbackMessage.set('Biografia guardada. A finalizar a criação da conta...');
-    this.finishRegistration();
+    void this.finishRegistration();
   }
 
   skipBiography(): void {
     this.bioForm.reset({ biography: '' });
     this.feedbackMessage.set('Biografia ignorada. O perfil ficará sem biografia por agora.');
-    this.finishRegistration();
+    void this.finishRegistration();
   }
 
-  private finishRegistration(): void {
-    const { fullName, email } = this.form.getRawValue();
-    this.auth.registerStudent(fullName, email, this.photoPreviewUrl(), this.bioForm.controls.biography.value.trim());
-    void this.router.navigateByUrl('/app/home');
+  private async finishRegistration(): Promise<void> {
+    const { fullName, email, password, confirmPassword } = this.form.getRawValue();
+    const biography = this.bioForm.controls.biography.value.trim();
+    const payload: RegisterPayload = {
+      name: fullName,
+      email,
+      password,
+      password_confirmation: confirmPassword,
+    };
+
+    if (this.selectedPhotoName()) {
+      payload.photo = this.selectedPhotoName();
+    }
+
+    if (biography) {
+      payload.bio = biography;
+    }
+
+    this.isLoading.set(true);
+
+    try {
+      await this.authService.register(payload);
+      await this.router.navigateByUrl('/app/home');
+    } catch (error) {
+      this.feedbackMessage.set(this.extractErrorMessage(error));
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
   private pulseStep(): void {
@@ -153,5 +176,22 @@ export class RegisterPage {
   private isInvalid(controlName: keyof typeof this.form.controls): boolean {
     const control = this.form.controls[controlName];
     return control.invalid && (control.touched || this.submitted());
+  }
+
+  private extractErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      const validationErrors = error.error?.errors;
+      const firstError = validationErrors ? Object.values(validationErrors)[0] : null;
+
+      if (Array.isArray(firstError) && firstError[0]) {
+        return String(firstError[0]);
+      }
+
+      if (error.error?.message) {
+        return String(error.error.message);
+      }
+    }
+
+    return 'Não foi possível criar a conta. Verifique se a API está ativa e tente novamente.';
   }
 }

@@ -68,6 +68,12 @@
       </p>
 
       <form class="grid gap-5" aria-label="Entrar na plataforma" [formGroup]="form" (ngSubmit)="submit()">
+        @if (errorMessage()) {
+          <p class="rounded-[7px] border border-[#f2b8b5] bg-[#fff5f5] px-4 py-3 text-[11px] font-medium text-[#b42318]">
+            {{ errorMessage() }}
+          </p>
+        }
+
         <label class="grid gap-2 font-sans text-[12px] font-medium text-[#555]">
           Endereço de e-mail
           <input
@@ -103,7 +109,7 @@
             autocomplete="current-password"
           />
           @if (passwordInvalid()) {
-            <span class="text-[10px] font-medium text-[#b42318]">A palavra-passe deve ter pelo menos 6 caracteres.</span>
+            <span class="text-[10px] font-medium text-[#b42318]">A palavra-passe deve ter pelo menos 8 caracteres.</span>
           }
         </label>
 

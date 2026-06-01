@@ -1,41 +1,105 @@
 import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { LoginForm } from '../models/login-form.model';
 import { AuthStateService } from '../../../services/auth-state.service';
-import { UserRole } from '../../../models/user.model';
+import { User, UserRole } from '../../../models/user.model';
+import { ApiResponse } from '../../../interfaces/api-response.interface';
+
+interface BackendUser {
+  id: number | string;
+  name: string;
+  email: string;
+  photo?: string | null;
+  bio?: string | null;
+  roles?: Array<{ name: string }>;
+}
+
+interface AuthPayload {
+  user: BackendUser;
+  token: string;
+  token_type: 'Bearer' | string;
+}
+
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  photo?: string;
+  bio?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly http = inject(HttpClient);
   private readonly authState = inject(AuthStateService);
 
-  login(payload: LoginForm): Promise<void> {
-    return new Promise((resolve) => {
-      console.info('Login pronto para integrar com API REST', payload);
-      setTimeout(() => {
-        this.authState.loginAs(this.resolveDemoRole(payload.email), payload.email);
-        resolve();
-      }, 700);
-    });
+  async login(payload: LoginForm): Promise<void> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<AuthPayload>>('/login', {
+        email: payload.email,
+        password: payload.password,
+      }),
+    );
+
+    this.storeAuthPayload(response.data);
   }
 
-  private resolveDemoRole(email: string): UserRole {
-    const normalizedEmail = email.toLowerCase();
+  async register(payload: RegisterPayload): Promise<void> {
+    const response = await firstValueFrom(this.http.post<ApiResponse<AuthPayload>>('/register', payload));
+    this.storeAuthPayload(response.data);
+  }
 
-    if (normalizedEmail.includes('super')) {
+  async logout(): Promise<void> {
+    try {
+      await firstValueFrom(this.http.post<ApiResponse<null>>('/logout', null));
+    } finally {
+      this.authState.logout();
+    }
+  }
+
+  private storeAuthPayload(payload: AuthPayload): void {
+    this.authState.setAuthenticatedUser(this.toUser(payload.user), payload.token);
+  }
+
+  private toUser(user: BackendUser): User {
+    return {
+      id: String(user.id),
+      name: user.name,
+      email: user.email,
+      role: this.resolveRole(user.roles),
+      avatarUrl: user.photo || undefined,
+      biography: user.bio || undefined,
+      hasPremiumAccess: this.hasPremiumAccess(user.roles),
+      invitedForumIds: [],
+      streakDays: 0,
+    };
+  }
+
+  private resolveRole(roles: BackendUser['roles'] = []): UserRole {
+    const roleNames = roles.map((role) => role.name.toLowerCase());
+
+    if (roleNames.includes('super-admin')) {
       return 'super-admin';
     }
 
-    if (normalizedEmail.includes('moderador')) {
+    if (roleNames.includes('moderator') || roleNames.includes('moderador')) {
       return 'moderator';
     }
 
-    if (normalizedEmail.includes('escritor')) {
+    if (roleNames.includes('writer') || roleNames.includes('escritor')) {
       return 'writer';
     }
 
-    if (normalizedEmail.includes('admin')) {
+    if (roleNames.includes('admin')) {
       return 'admin';
     }
 
     return 'student';
+  }
+
+  private hasPremiumAccess(roles: BackendUser['roles'] = []): boolean {
+    return this.resolveRole(roles) !== 'student';
   }
 }

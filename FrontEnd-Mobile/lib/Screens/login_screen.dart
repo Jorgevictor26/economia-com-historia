@@ -4,6 +4,7 @@ import '../widgets/auth_widgets.dart';
 import '../theme/app_colors.dart';
 import 'criar_conta_screen.dart';
 import 'esqueceu_senha_screen.dart';
+import 'package:economica_com_historia/shared/main_navigation_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -39,8 +40,18 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2)); // TODO: auth real
-    if (mounted) setState(() => _isLoading = false);
+
+    await Future.delayed(const Duration(seconds: 2)); // TODO: autenticação real
+
+    if (!mounted) return;
+
+    setState(() => _isLoading = false);
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+      (route) => false,
+    );
   }
 
   @override

@@ -1,10 +1,70 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
+# =========================
+# Sistema Operacional
+# =========================
 .DS_Store
-.atom/
+Thumbs.db
+desktop.ini
+
+# =========================
+# Logs e arquivos temporários
+# =========================
+*.log
+*.tmp
+*.temp
+*.swp
+*.pyc
+
+# =========================
+# VS Code
+# =========================
+.vscode/
+
+# =========================
+# IntelliJ / Android Studio
+# =========================
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# =========================
+# Flutter / Dart
+# =========================
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub/
+.pub-cache/
+build/
+coverage/
+
+# =========================
+# Flutter dentro da pasta FrontEnd-Mobile
+# =========================
+FrontEnd-Mobile/.dart_tool/
+FrontEnd-Mobile/.flutter-plugins
+FrontEnd-Mobile/.flutter-plugins-dependencies
+FrontEnd-Mobile/.idea/
+FrontEnd-Mobile/build/
+
+# =========================
+# Android
+# =========================
+**/android/.gradle/
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# =========================
+# iOS
+# =========================
+**/ios/Flutter/.last_build_id
+**/ios/Pods/
+
+# =========================
+# MacOS / Linux / Windows
+# =========================
 .build/
 .buildlog/
 .history
@@ -12,34 +72,14 @@
 .swiftpm/
 migrate_working_dir/
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
+# =========================
+# Cobertura e documentação
+# =========================
+coverage/
 **/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-/coverage/
 
-# Symbolication related
+# =========================
+# Obfuscação Flutter
+# =========================
 app.*.symbols
-
-# Obfuscation related
 app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release

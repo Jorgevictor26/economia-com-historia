@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:economica_com_historia/screens/onboarding_screen.dart';
-import 'package:economica_com_historia/screens/home_screen.dart';
+import 'package:economica_com_historia/shared/main_navigation_screen.dart';
 import '../theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -66,10 +66,9 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     if (onboardingConcluido) {
-      // Usuário já viu o onboarding — vai direto para o Home
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
         (route) => false,
       );
     } else {

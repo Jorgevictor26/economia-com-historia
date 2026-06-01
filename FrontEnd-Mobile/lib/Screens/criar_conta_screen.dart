@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import '../theme/app_colors.dart';
 import '../widgets/auth_widgets.dart';
+import 'package:economica_com_historia/shared/main_navigation_screen.dart';
 
 class CriarContaScreen extends StatefulWidget {
   const CriarContaScreen({super.key});
@@ -203,7 +204,18 @@ class _CriarContaScreenState extends State<CriarContaScreen> {
                       height: 52,
 
                       child: ElevatedButton(
-                        onPressed: _aceitouTermos ? () {} : null,
+                        onPressed: _aceitouTermos
+                            ? () {
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const MainNavigationScreen(),
+                                  ),
+                                  (route) => false,
+                                );
+                              }
+                            : null,
 
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,

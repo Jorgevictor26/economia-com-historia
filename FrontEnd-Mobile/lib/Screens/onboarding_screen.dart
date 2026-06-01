@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:economica_com_historia/shared/main_navigation_screen.dart';
 import '../widgets/onboarding_page.dart';
 import '../widgets/dot_indicator.dart';
 import 'criar_conta_screen.dart';

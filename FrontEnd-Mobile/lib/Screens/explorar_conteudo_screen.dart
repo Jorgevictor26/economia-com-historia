@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:economica_com_historia/theme/app_colors.dart';
+import 'package:economica_com_historia/widgets/app_bar_principal.dart';
+import 'package:economica_com_historia/Screens/texto_jindungo_screen.dart';
 
 class ExplorarConteudoScreen extends StatefulWidget {
   const ExplorarConteudoScreen({super.key});
@@ -16,70 +18,83 @@ class _ExplorarConteudoScreenState extends State<ExplorarConteudoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(child: _AppBar()),
-            SliverToBoxAdapter(
-              child: _FiltrosRow(
-                filtros: _filtros,
-                selecionado: _filtroSelecionado,
-                onSelect: (i) => setState(() => _filtroSelecionado = i),
-              ),
+      appBar: const AppBarPrincipal(
+        titulo: 'Explorar Conteúdo',
+        mostrarFavoritos: true,
+      ), // ← SUBSTITUIU _AppBar()
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: _FiltrosRow(
+              filtros: _filtros,
+              selecionado: _filtroSelecionado,
+              onSelect: (i) => setState(() => _filtroSelecionado = i),
             ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  const SizedBox(height: 24),
-                  _SectionHeader(
-                    titulo: 'Em Alta',
-                    acaoLabel: 'Ver tudo',
-                    onAcao: () {},
-                  ),
-                  const SizedBox(height: 12),
-                  _TrendingItem(
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                const SizedBox(height: 24),
+                _SectionHeader(
+                  titulo: 'Em Alta',
+                  acaoLabel: 'Ver tudo',
+                  onAcao: () {},
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const TextoJindungoScreen(),
+                      ),
+                    );
+                  },
+                  child: const _TrendingItem(
                     categoria: 'ECONOMIA • 8 MIN',
                     titulo:
                         'O Impacto do Comércio Transatlântico na Moeda Nacional',
-                    imagemAsset: '/images/Impacto_do_comercio.png',
+                    imagemAsset: 'assets/images/Impacto_do_comercio.png',
                     isPodcast: false,
                   ),
-                  const Divider(color: Color(0xFFEEE8E9), height: 1),
-                  _TrendingItem(
-                    categoria: 'HISTÓRIA • 12 MIN',
-                    titulo:
-                        'Crónicas do Reino do Kongo: Estrutura Social e Política',
-                    imagemAsset: '/images/Cronicas_do_Reino_do_Congo.png',
-                    isPodcast: false,
+                ),
+
+                const Divider(color: Color(0xFFEEE8E9), height: 1),
+                _TrendingItem(
+                  categoria: 'HISTÓRIA • 12 MIN',
+                  titulo:
+                      'Crónicas do Reino do Kongo: Estrutura Social e Política',
+                  imagemAsset: 'assets/images/Cronicas_do_Reino_do_Congo.png',
+                  isPodcast: false,
+                ),
+                const Divider(color: Color(0xFFEEE8E9), height: 1),
+                _TrendingItem(
+                  categoria: 'PODCAST • EPISÓDIO 42',
+                  titulo:
+                      'Debate: O Futuro da Diversificação Económica em Angola',
+                  imagemAsset:
+                      'assets/images/Debate_Diversificacao_Economica.png',
+                  isPodcast: true,
+                ),
+                const SizedBox(height: 28),
+                const Text(
+                  'Recomendado para ti',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textDark,
                   ),
-                  const Divider(color: Color(0xFFEEE8E9), height: 1),
-                  _TrendingItem(
-                    categoria: 'PODCAST • EPISÓDIO 42',
-                    titulo:
-                        'Debate: O Futuro da Diversificação Económica em Angola',
-                    imagemAsset: '',
-                    isPodcast: true,
-                  ),
-                  const SizedBox(height: 28),
-                  const Text(
-                    'Recomendado para ti',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  _RecomendadoCard(),
-                  const SizedBox(height: 14),
-                  _GuiaCard(),
-                  const SizedBox(height: 32),
-                ]),
-              ),
+                ),
+                const SizedBox(height: 14),
+                _RecomendadoCard(),
+                const SizedBox(height: 14),
+                _GuiaCard(),
+                const SizedBox(height: 32),
+              ]),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -336,7 +351,7 @@ class _RecomendadoCard extends StatelessWidget {
                   top: Radius.circular(16),
                 ),
                 child: Image.asset(
-                  '/images/Fundamentos_Micro_Economia.png',
+                  'assets/images/Fundamentos_Micro_Economia.png',
                   width: double.infinity,
                   height: 160,
                   fit: BoxFit.cover,
@@ -452,7 +467,7 @@ class _GuiaCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Image.asset(
-              '/images/Logo.png',
+              'assets/images/Logo.png',
               width: 22,
               height: 22,
               color: AppColors.primary,

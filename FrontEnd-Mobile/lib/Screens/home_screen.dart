@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
-
+import 'package:economica_com_historia/widgets/app_bar_principal.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 // MODELS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -77,88 +77,86 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // ── AppBar ───────────────────────────────────────────────────
-            SliverToBoxAdapter(child: _HomeAppBar()),
+      appBar: const AppBarPrincipal(
+        titulo: 'Home',
+        mostrarFavoritos: true,
+      ), // ← SUBSTITUIU o _HomeAppBar()
+      body: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                const SizedBox(height: 20),
 
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  const SizedBox(height: 20),
+                // ── Saudação ─────────────────────────────────────────
+                _GreetingSection(),
 
-                  // ── Saudação ─────────────────────────────────────────
-                  _GreetingSection(),
+                const SizedBox(height: 20),
 
-                  const SizedBox(height: 20),
+                // ── Progresso semanal ────────────────────────────────
+                _WeeklyProgressCard(),
 
-                  // ── Progresso semanal ────────────────────────────────
-                  _WeeklyProgressCard(),
+                const SizedBox(height: 28),
 
-                  const SizedBox(height: 28),
+                // ── Continuar a Estudar ──────────────────────────────
+                _SectionHeader(
+                  title: 'Continuar a Estudar',
+                  actionLabel: 'Ver tudo',
+                  onAction: () {},
+                ),
+                const SizedBox(height: 14),
+                _ModulosRow(modulos: _modulos),
 
-                  // ── Continuar a Estudar ──────────────────────────────
-                  _SectionHeader(
-                    title: 'Continuar a Estudar',
-                    actionLabel: 'Ver tudo',
-                    onAction: () {},
+                const SizedBox(height: 28),
+
+                // ── Explorar Conteúdo ────────────────────────────────
+                const Text(
+                  'Explorar Conteúdo',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textDark,
                   ),
-                  const SizedBox(height: 14),
-                  _ModulosRow(modulos: _modulos),
+                ),
+                const SizedBox(height: 12),
+                _FiltrosRow(filtros: _filtros),
 
-                  const SizedBox(height: 28),
+                const SizedBox(height: 28),
 
-                  // ── Explorar Conteúdo ────────────────────────────────
-                  const Text(
-                    'Explorar Conteúdo',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textDark,
-                    ),
+                // ── Destaques do Dia ─────────────────────────────────
+                const Text(
+                  'Destaques do Dia',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textDark,
                   ),
-                  const SizedBox(height: 12),
-                  _FiltrosRow(filtros: _filtros),
+                ),
+                const SizedBox(height: 14),
+                _DestaqueCard(),
 
-                  const SizedBox(height: 28),
+                const SizedBox(height: 28),
 
-                  // ── Destaques do Dia ─────────────────────────────────
-                  const Text(
-                    'Destaques do Dia',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  _DestaqueCard(),
+                // ── Comunidade ───────────────────────────────────────
+                _SectionHeader(
+                  title: 'Comunidade',
+                  actionLabel: 'Fóruns que segues',
+                  onAction: () {},
+                  actionIsLabel: true,
+                ),
+                const SizedBox(height: 14),
+                ..._forumPosts.map((post) => _ForumPostTile(post: post)),
 
-                  const SizedBox(height: 28),
-
-                  // ── Comunidade ───────────────────────────────────────
-                  _SectionHeader(
-                    title: 'Comunidade',
-                    actionLabel: 'Fóruns que segues',
-                    onAction: () {},
-                    actionIsLabel: true,
-                  ),
-                  const SizedBox(height: 14),
-                  ..._forumPosts.map((post) => _ForumPostTile(post: post)),
-
-                  const SizedBox(height: 32),
-                ]),
-              ),
+                const SizedBox(height: 32),
+              ]),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // APP BAR
 // ─────────────────────────────────────────────────────────────────────────────
@@ -170,26 +168,6 @@ class _HomeAppBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       child: Row(
         children: [
-          // Botão voltar
-          GestureDetector(
-            onTap: () => Navigator.maybePop(context),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.borderSoft,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.chevron_left_rounded,
-                color: AppColors.textDark,
-                size: 22,
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 12),
-
           const Text(
             'Home',
             style: TextStyle(
@@ -201,7 +179,6 @@ class _HomeAppBar extends StatelessWidget {
 
           const Spacer(),
 
-          // Notificações
           IconButton(
             onPressed: () {},
             icon: const Icon(
@@ -211,7 +188,6 @@ class _HomeAppBar extends StatelessWidget {
             ),
           ),
 
-          // Pesquisa
           IconButton(
             onPressed: () {},
             icon: const Icon(
@@ -257,11 +233,11 @@ class _GreetingSection extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // CARD DE PROGRESSO SEMANAL
 // ─────────────────────────────────────────────────────────────────────────────
-
 class _WeeklyProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -271,18 +247,21 @@ class _WeeklyProgressCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Linha superior: meta + percentagem
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
-              Text(
-                'Meta semanal: 12h',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
+              Flexible(
+                child: Text(
+                  'Meta semanal: 12h',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textDark,
+                  ),
                 ),
               ),
+              SizedBox(width: 8),
               Text(
                 '75% concluído',
                 style: TextStyle(
@@ -296,7 +275,6 @@ class _WeeklyProgressCard extends StatelessWidget {
 
           const SizedBox(height: 10),
 
-          // Barra de progresso
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
@@ -311,7 +289,6 @@ class _WeeklyProgressCard extends StatelessWidget {
 
           const SizedBox(height: 8),
 
-          // Hint motivacional
           Row(
             children: const [
               Icon(
@@ -320,9 +297,13 @@ class _WeeklyProgressCard extends StatelessWidget {
                 color: AppColors.textLight,
               ),
               SizedBox(width: 4),
-              Text(
-                'Estás a estudar 15% mais do que na semana passada.',
-                style: TextStyle(fontSize: 11.5, color: AppColors.textLight),
+              Flexible(
+                child: Text(
+                  'Estás a estudar 15% mais do que na semana passada.',
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  style: TextStyle(fontSize: 11.5, color: AppColors.textLight),
+                ),
               ),
             ],
           ),
@@ -394,18 +375,17 @@ class _SectionHeader extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // ROW DE MÓDULOS (scroll horizontal)
 // ─────────────────────────────────────────────────────────────────────────────
-
 class _ModulosRow extends StatelessWidget {
   final List<ModuloItem> modulos;
-
   const _ModulosRow({required this.modulos});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 200,
+      height: 185,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
+        clipBehavior: Clip.none,
         itemCount: modulos.length,
         separatorBuilder: (_, __) => const SizedBox(width: 14),
         itemBuilder: (context, index) => _ModuloCard(item: modulos[index]),
@@ -416,13 +396,11 @@ class _ModulosRow extends StatelessWidget {
 
 class _ModuloCard extends StatelessWidget {
   final ModuloItem item;
-
   const _ModuloCard({required this.item});
 
   @override
   Widget build(BuildContext context) {
-    // largura responsiva: ~42% da tela
-    final cardWidth = (MediaQuery.of(context).size.width - 40 - 14) / 2;
+    final cardWidth = (MediaQuery.of(context).size.width - 54) / 2;
 
     return GestureDetector(
       onTap: () {},
@@ -430,8 +408,9 @@ class _ModuloCard extends StatelessWidget {
         width: cardWidth,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Imagem com badge de progresso
+            // Imagem com badge
             SizedBox(
               height: 105,
               child: Stack(
@@ -439,10 +418,12 @@ class _ModuloCard extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: Image.asset(
-                      item.imagemAsset,
+                      'assets/${item.imagemAsset}',
                       width: double.infinity,
+                      height: 105,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
+                        height: 105,
                         decoration: BoxDecoration(
                           color: AppColors.borderSoft,
                           borderRadius: BorderRadius.circular(12),
@@ -456,7 +437,6 @@ class _ModuloCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Badge módulo + progresso
                   Positioned(
                     bottom: 0,
                     left: 0,
@@ -483,13 +463,16 @@ class _ModuloCard extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            item.modulo,
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white70,
-                              letterSpacing: 0.4,
+                          Flexible(
+                            child: Text(
+                              item.modulo,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white70,
+                                letterSpacing: 0.4,
+                              ),
                             ),
                           ),
                           Text(
@@ -508,9 +491,8 @@ class _ModuloCard extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
 
-            // Barra de progresso
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
@@ -525,13 +507,12 @@ class _ModuloCard extends StatelessWidget {
 
             const SizedBox(height: 6),
 
-            // Título do módulo
             Text(
               item.titulo,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 12.5,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textDark,
                 height: 1.35,
@@ -543,7 +524,6 @@ class _ModuloCard extends StatelessWidget {
     );
   }
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // FILTROS (chips de conteúdo)
 // ─────────────────────────────────────────────────────────────────────────────

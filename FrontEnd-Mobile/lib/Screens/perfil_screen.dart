@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:economica_com_historia/theme/app_colors.dart';
 import 'package:economica_com_historia/Screens/editar_perfil_screen.dart';
+import 'package:economica_com_historia/widgets/app_bar_principal.dart';
+import 'package:economica_com_historia/screens/login_screen.dart';
 
 class PerfilScreen extends StatelessWidget {
   const PerfilScreen({super.key});
@@ -22,7 +24,7 @@ class PerfilScreen extends StatelessWidget {
 
   static const _conquistas = [
     _Conquista(
-      label: 'Primeira\nLição',
+      label: 'Primeira Lição',
       icone: Icons.star_outline_rounded,
       desbloqueada: true,
     ),
@@ -47,133 +49,90 @@ class PerfilScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(child: _AppBar()),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  const SizedBox(height: 8),
-                  _CabecalhoPerfil(),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: SizedBox(
-                      height: 44,
-                      width: 160,
-                      child: ElevatedButton.icon(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const EditarPerfilScreen(),
-                          ),
+      appBar: const AppBarPrincipal(
+        mostrarFavoritos: true,
+        titulo: 'Perfil',
+        mostrarVoltar: false,
+        mostrarNotificacoes: true,
+        mostrarPesquisa: true,
+      ),
+      body: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                const SizedBox(height: 8),
+                _CabecalhoPerfil(),
+                const SizedBox(height: 16),
+                Center(
+                  child: SizedBox(
+                    height: 44,
+                    width: 160,
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const EditarPerfilScreen(),
                         ),
-                        icon: const Icon(Icons.edit_outlined, size: 16),
-                        label: const Text('Editar Perfil'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                          textStyle: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      ),
+                      icon: const Icon(Icons.edit_outlined, size: 16),
+                      label: const Text('Editar Perfil'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  _EstatisticasCard(),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Progresso dos Cursos',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    ),
+                ),
+                const SizedBox(height: 20),
+                _EstatisticasCard(),
+                const SizedBox(height: 24),
+                const Text(
+                  'Progresso dos Cursos',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Acompanha os teus módulos ativos',
-                    style: TextStyle(fontSize: 12, color: AppColors.textMedium),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Acompanha os teus módulos ativos',
+                  style: TextStyle(fontSize: 12, color: AppColors.textMedium),
+                ),
+                const SizedBox(height: 14),
+                ..._cursos.map((c) => _CursoCard(curso: c)),
+                const SizedBox(height: 24),
+                const Text(
+                  'Conquistas',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
                   ),
-                  const SizedBox(height: 14),
-                  ..._cursos.map((c) => _CursoCard(curso: c)),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Conquistas',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: _conquistas
-                        .map((c) => _ConquistaItem(conquista: c))
-                        .toList(),
-                  ),
-                  const SizedBox(height: 32),
-                ]),
-              ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: _conquistas
+                      .map((c) => _ConquistaItem(conquista: c))
+                      .toList(),
+                ),
+                const SizedBox(height: 32),
+                // ── Logout ───────────────────────────────────────────────
+                _LogoutButton(),
+                const SizedBox(height: 32),
+              ]),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AppBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.maybePop(context),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: const Color(0x4DD8C1C4),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.chevron_left_rounded,
-                color: AppColors.textDark,
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Text(
-            'Perfil',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
-            ),
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: AppColors.textDark,
-            ),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.search_rounded, color: AppColors.textDark),
           ),
         ],
       ),
@@ -453,6 +412,92 @@ class _ConquistaItem extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _LogoutButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Text(
+              'Terminar Sessão',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark,
+              ),
+            ),
+            content: const Text(
+              'Tens a certeza que queres sair da tua conta?',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.textMedium,
+                height: 1.5,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  'Cancelar',
+                  style: TextStyle(
+                    color: AppColors.textMedium,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx); // fecha o dialog
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                },
+                child: const Text(
+                  'Sair',
+                  style: TextStyle(
+                    color: Color(0xFFB00020),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFEEE8E9)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.logout_rounded, size: 18, color: Color(0xFFB00020)),
+            SizedBox(width: 8),
+            Text(
+              'Terminar Sessão',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFFB00020),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

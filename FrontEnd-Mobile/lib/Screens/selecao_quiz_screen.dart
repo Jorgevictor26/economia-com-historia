@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:economica_com_historia/theme/app_colors.dart';
 import 'package:economica_com_historia/Screens/praticar_quiz_screen.dart';
+import 'package:economica_com_historia/widgets/app_bar_principal.dart';
 
 class SelecaoQuizScreen extends StatelessWidget {
   const SelecaoQuizScreen({super.key});
@@ -45,53 +46,54 @@ class SelecaoQuizScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F5F5),
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(child: _AppBar()),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  const SizedBox(height: 12),
-                  const Text(
-                    'O Desafio do\nConhecimento',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primary,
-                      height: 1.2,
-                    ),
+      appBar: const AppBarPrincipal(
+        titulo: 'Quiz',
+        mostrarFavoritos: true,
+      ), // ← SUBSTITUIU _AppBar()
+      body: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                const SizedBox(height: 12),
+                const Text(
+                  'O Desafio do\nConhecimento',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primary,
+                    height: 1.2,
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Teste o seu domínio sobre a evolução económica de Angola e do mundo através de quizzes estruturados por especialistas.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textMedium,
-                      height: 1.5,
-                    ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Teste o seu domínio sobre a evolução económica de Angola e do mundo através de quizzes estruturados por especialistas.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textMedium,
+                    height: 1.5,
                   ),
-                  const SizedBox(height: 32),
-                  _SecaoQuiz(
-                    titulo: 'Ciclos Coloniais',
-                    quizzes: _ciclosColoniais,
-                  ),
-                  const SizedBox(height: 28),
-                  _SecaoQuiz(
-                    titulo: 'História Monetária',
-                    quizzes: _historiaMonetaria,
-                  ),
-                  const SizedBox(height: 28),
-                  _CitacaoCard(),
-                  const SizedBox(height: 36),
-                ]),
-              ),
+                ),
+                const SizedBox(height: 32),
+                _SecaoQuiz(
+                  titulo: 'Ciclos Coloniais',
+                  quizzes: _ciclosColoniais,
+                ),
+                const SizedBox(height: 28),
+                _SecaoQuiz(
+                  titulo: 'História Monetária',
+                  quizzes: _historiaMonetaria,
+                ),
+                const SizedBox(height: 28),
+                _CitacaoCard(),
+                const SizedBox(height: 36),
+              ]),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -1,6 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    
     <application
-        android:label="economica_com_historia"
+        android:label="Economica com historia"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

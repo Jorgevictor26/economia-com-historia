@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:economica_com_historia/theme/app_colors.dart';
+import 'package:economica_com_historia/widgets/app_bar_principal.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class EditarPerfilScreen extends StatefulWidget {
   const EditarPerfilScreen({super.key});
@@ -9,6 +12,70 @@ class EditarPerfilScreen extends StatefulWidget {
 }
 
 class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
+  File? _imagemSelecionada;
+  final _picker = ImagePicker();
+
+  Future<void> _selecionarImagem() async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFD8C1C4),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(
+                Icons.camera_alt_rounded,
+                color: AppColors.primary,
+              ),
+              title: const Text('Tirar Foto'),
+              onTap: () async {
+                Navigator.pop(context);
+                final foto = await _picker.pickImage(
+                  source: ImageSource.camera,
+                  imageQuality: 85,
+                );
+                if (foto != null) {
+                  setState(() => _imagemSelecionada = File(foto.path));
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(
+                Icons.photo_library_rounded,
+                color: AppColors.primary,
+              ),
+              title: const Text('Escolher da Galeria'),
+              onTap: () async {
+                Navigator.pop(context);
+                final foto = await _picker.pickImage(
+                  source: ImageSource.gallery,
+                  imageQuality: 85,
+                );
+                if (foto != null) {
+                  setState(() => _imagemSelecionada = File(foto.path));
+                }
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
   final _nomeController = TextEditingController(text: 'Estudante Académico');
   final _bioController = TextEditingController(
     text:
@@ -30,113 +97,115 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
+      appBar: const AppBarPrincipal(
+        // ← SUBSTITUIU _AppBar()
+        titulo: 'Editar Perfil',
+        mostrarVoltar: true,
+        mostrarNotificacoes: false,
+        mostrarPesquisa: false,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _AppBar(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+              const SizedBox(height: 16),
+              Center(
+                child: _FotoPerfil(
+                  imagem: _imagemSelecionada,
+                  onTap: _selecionarImagem,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Nome Completo',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _CampoTexto(controller: _nomeController, maxLines: 1),
+              const SizedBox(height: 16),
+              const Text(
+                'Biografia',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _CampoTexto(controller: _bioController, maxLines: 4),
+              const SizedBox(height: 28),
+              Row(
+                children: const [
+                  Icon(
+                    Icons.shield_outlined,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Privacidade',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFEEE8E9)),
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 16),
-                    Center(child: _FotoPerfil()),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Nome Completo',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
-                      ),
+                    _ToggleItem(
+                      titulo: 'Perfil Público',
+                      descricao:
+                          'Permitir que outros estudantes vejam o seu progresso.',
+                      valor: _perfilPublico,
+                      onChanged: (v) => setState(() => _perfilPublico = v),
+                      mostrarDivisor: true,
                     ),
-                    const SizedBox(height: 8),
-                    _CampoTexto(controller: _nomeController, maxLines: 1),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Biografia',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
-                      ),
+                    _ToggleItem(
+                      titulo: 'Mostrar Localização',
+                      descricao:
+                          'Exibir Luanda, Angola no seu cartão de perfil.',
+                      valor: _mostrarLocalizacao,
+                      onChanged: (v) => setState(() => _mostrarLocalizacao = v),
+                      mostrarDivisor: true,
                     ),
-                    const SizedBox(height: 8),
-                    _CampoTexto(controller: _bioController, maxLines: 4),
-                    const SizedBox(height: 28),
-                    Row(
-                      children: const [
-                        Icon(
-                          Icons.shield_outlined,
-                          color: AppColors.primary,
-                          size: 20,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Privacidade',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
+                    _ToggleItem(
+                      titulo: 'Mensagens Diretas',
+                      descricao:
+                          'Apenas utilizadores de Nível 4 ou superior podem contactar.',
+                      valor: _mensagensDiretas,
+                      onChanged: (v) => setState(() => _mensagensDiretas = v),
+                      mostrarDivisor: false,
                     ),
-                    const SizedBox(height: 16),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFFEEE8E9)),
-                      ),
-                      child: Column(
-                        children: [
-                          _ToggleItem(
-                            titulo: 'Perfil Público',
-                            descricao:
-                                'Permitir que outros estudantes vejam o seu progresso.',
-                            valor: _perfilPublico,
-                            onChanged: (v) =>
-                                setState(() => _perfilPublico = v),
-                            mostrarDivisor: true,
-                          ),
-                          _ToggleItem(
-                            titulo: 'Mostrar Localização',
-                            descricao:
-                                'Exibir Luanda, Angola no seu cartão de perfil.',
-                            valor: _mostrarLocalizacao,
-                            onChanged: (v) =>
-                                setState(() => _mostrarLocalizacao = v),
-                            mostrarDivisor: true,
-                          ),
-                          _ToggleItem(
-                            titulo: 'Mensagens Diretas',
-                            descricao:
-                                'Apenas utilizadores de Nível 4 ou superior podem contactar.',
-                            valor: _mensagensDiretas,
-                            onChanged: (v) =>
-                                setState(() => _mensagensDiretas = v),
-                            mostrarDivisor: false,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _ItemAcao(
-                      icone: Icons.lock_outline_rounded,
-                      label: 'Alterar Palavra-passe',
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 8),
-                    _ItemAcao(
-                      icone: Icons.notifications_none_rounded,
-                      label: 'Preferências de Notificação',
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 32),
                   ],
                 ),
               ),
+              const SizedBox(height: 16),
+              _ItemAcao(
+                icone: Icons.lock_outline_rounded,
+                label: 'Alterar Palavra-passe',
+                onTap: () {},
+              ),
+              const SizedBox(height: 8),
+              _ItemAcao(
+                icone: Icons.notifications_none_rounded,
+                label: 'Preferências de Notificação',
+                onTap: () {},
+              ),
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -145,116 +214,76 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
   }
 }
 
-class _AppBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.maybePop(context),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: const Color(0x4DD8C1C4),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.chevron_left_rounded,
-                color: AppColors.textDark,
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Text(
-            'Perfil',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
-            ),
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: AppColors.textDark,
-            ),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.search_rounded, color: AppColors.textDark),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _FotoPerfil extends StatelessWidget {
+  final File? imagem;
+  final VoidCallback onTap;
+
+  const _FotoPerfil({required this.onTap, this.imagem});
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Stack(
-          children: [
-            Container(
-              width: 90,
-              height: 90,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary, width: 2),
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Stack(
+            children: [
+              Container(
+                width: 90,
+                height: 90,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.primary, width: 2),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: imagem != null
+                      ? Image.file(imagem!, fit: BoxFit.cover)
+                      : Image.asset(
+                          'assets/images/Imagem_perfil.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: const Color(0xFFEEE8E9),
+                            child: const Icon(
+                              Icons.person_rounded,
+                              size: 40,
+                              color: AppColors.textLight,
+                            ),
+                          ),
+                        ),
+                ),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Image.asset(
-                  '/images/Imagem_perfil.png',
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: const Color(0xFFEEE8E9),
-                    child: const Icon(
-                      Icons.person_rounded,
-                      size: 40,
-                      color: AppColors.textLight,
-                    ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.camera_alt_rounded,
+                    color: Colors.white,
+                    size: 15,
                   ),
                 ),
               ),
-            ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.camera_alt_rounded,
-                  color: Colors.white,
-                  size: 15,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'FOTO DE PERFIL',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textLight,
-            letterSpacing: 0.8,
+            ],
           ),
-        ),
-      ],
+          const SizedBox(height: 8),
+          const Text(
+            'FOTO DE PERFIL',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textLight,
+              letterSpacing: 0.8,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

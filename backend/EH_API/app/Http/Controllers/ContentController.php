@@ -17,10 +17,14 @@ class ContentController extends Controller
         private ContentService $service
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
         return response()->json(
-            $this->service->getAll()
+            $this->service->getAll($request->only([
+                'category_id',
+                'content_type_id',
+                'type',
+            ]))
         );
     }
 
@@ -28,6 +32,8 @@ class ContentController extends Controller
     {
         $request->validate([
             'title' => 'required|max:255',
+            'category_id' => 'nullable|exists:categories,id',
+            'content_type_id' => 'required|exists:content_types,id',
             'content' => 'required',
             'visibility' => 'required|in:public,private,followers'
         ]);
@@ -35,6 +41,7 @@ class ContentController extends Controller
         $dto = new CreateContentDTO(
             Auth::id(),
             $request->category_id,
+            $request->content_type_id,
             $request->title,
             $request->summary,
             $request->content,

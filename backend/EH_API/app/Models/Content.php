@@ -12,6 +12,7 @@ class Content extends Model
     protected $fillable = [
         'user_id',
         'category_id',
+        'content_type_id',
         'title',
         'summary',
         'content',
@@ -25,10 +26,21 @@ class Content extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function author()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);
     }
+
+    public function contentType()
+    {
+        return $this->belongsTo(ContentType::class);
+    }
+
     public function reactions()
     {
         return $this->hasMany(Reaction::class);

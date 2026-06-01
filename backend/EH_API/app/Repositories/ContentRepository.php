@@ -11,13 +11,19 @@ class ContentRepository
         return Content::create($data);
     }
 
-    public function all()
+    public function all(array $filters = [])
     {
-        return Content::latest()->paginate(10);
+        return Content::query()
+            ->with(['author', 'category', 'contentType'])
+            ->when($filters['category_id'] ?? null, fn ($query, $categoryId) => $query->where('category_id', $categoryId))
+            ->when($filters['content_type_id'] ?? null, fn ($query, $contentTypeId) => $query->where('content_type_id', $contentTypeId))
+            ->when($filters['type'] ?? null, fn ($query, $type) => $query->whereHas('contentType', fn ($typeQuery) => $typeQuery->where('slug', $type)))
+            ->latest()
+            ->paginate(10);
     }
 
     public function findById(int $id): ?Content
     {
-        return Content::find($id);
+        return Content::with(['author', 'category', 'contentType'])->find($id);
     }
 }

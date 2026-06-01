@@ -6,11 +6,12 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContentController;
-use App\Http\Controllers\Api\V1\CategoryController;
-use App\Http\Controllers\Api\V1\CommentController;
+use App\Http\Controllers\ContentTypeController;
 use App\Http\Controllers\Api\V1\ReactionController;
-use App\Http\Controllers\Api\V1\NotificationController;
+use App\Http\Controllers\NotificationController;
 
 Route::prefix('v1')->group(function () {
     Route::post('/register', RegisterController::class);
@@ -28,6 +29,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/categories', [CategoryController::class, 'index']);
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::get('/categories/{id}', [CategoryController::class, 'show']);
+
+        // CONTENT TYPES
+        Route::get('/content-types', [ContentTypeController::class, 'index']);
+        Route::post('/content-types', [ContentTypeController::class, 'store']);
+        Route::get('/content-types/{id}', [ContentTypeController::class, 'show']);
 
         // COMMENTS
         Route::post('/comments', [CommentController::class, 'store']);

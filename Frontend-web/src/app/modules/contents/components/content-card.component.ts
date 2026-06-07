@@ -1,0 +1,84 @@
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { ContentListItem } from '../models/content-list-item.model';
+
+@Component({
+  selector: 'app-content-card',
+  imports: [RouterLink],
+  template: `
+    <article class="group flex h-full min-h-[472px] flex-col overflow-hidden rounded-[8px] border border-[#d8c1c4]/55 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+      <a [routerLink]="['/app/contents', content.id]" class="flex h-full flex-col">
+        <div class="relative h-56 overflow-hidden bg-[#eee9eb]">
+          @if (content.imageUrl) {
+            <img
+              [src]="content.imageUrl"
+              [alt]="content.title"
+              class="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+              [class.brightness-[0.55]]="content.premium && !canReadPremium"
+            />
+          } @else {
+            <div class="grid h-full place-items-center bg-[#f3f4f5]">
+              <span class="font-display text-[42px] font-extrabold text-[#d8c1c4]">{{ content.authorInitials }}</span>
+            </div>
+          }
+
+          <div class="absolute left-4 top-4 flex flex-wrap gap-2">
+            <span class="rounded-[4px] bg-[#40081a]/92 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-white backdrop-blur-sm">
+              {{ content.premium ? 'Jindungo' : content.category }}
+            </span>
+            <span class="rounded-[4px] bg-white/92 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#5c1e2f] backdrop-blur-sm">
+              {{ content.contentType }}
+            </span>
+          </div>
+
+          @if (content.premium && !canReadPremium) {
+            <div class="absolute inset-0 grid place-items-center bg-[#40081a]/16">
+              <div class="grid size-[58px] place-items-center rounded-[8px] bg-white/95 shadow-lg">
+                <img src="/assets/icons/lock.png" alt="Bloqueado" class="h-7 w-7 object-contain" />
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="flex flex-1 flex-col p-6">
+          <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#735c00]">{{ content.meta }}</p>
+          <h2 class="mt-3 line-clamp-2 font-display text-[22px] font-semibold leading-7 text-[#40081a]">{{ content.title }}</h2>
+          <p class="mt-3 line-clamp-3 min-h-[72px] text-[15px] leading-6 text-[#534345]">{{ content.excerpt }}</p>
+
+          <div class="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-[#f0ecee] pt-5">
+            <span class="flex items-center gap-2 text-[11px] font-extrabold text-[#4b4447]">
+              <span class="grid size-7 place-items-center rounded-full bg-[#f5dce4] text-[9px] text-[#8a4055]">{{ content.authorInitials }}</span>
+              {{ content.author }}
+            </span>
+
+            <span class="flex items-center gap-3 text-[12px] text-[#6f686b]">
+              <button type="button" class="content-action" aria-label="Gostar" (click)="gatedAction.emit({ event: $event, operation: 'gostar' })">
+                <img src="/assets/icons/like.png" alt="" />
+                <span>12</span>
+              </button>
+              <button type="button" class="content-action" aria-label="Comentar" (click)="gatedAction.emit({ event: $event, operation: 'comentar' })">
+                <img src="/assets/icons/comment.png" alt="" />
+                <span>5</span>
+              </button>
+              <button type="button" class="content-action" aria-label="Partilhar" (click)="gatedAction.emit({ event: $event, operation: 'partilhar' })">
+                <img src="/assets/icons/share.png" alt="" />
+              </button>
+            </span>
+          </div>
+
+          @if (content.premium && !canReadPremium) {
+            <button type="button" class="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[8px] bg-[#ffd9df] px-5 text-[13px] font-bold text-[#743141] transition hover:bg-[#40081a] hover:text-white" (click)="gatedAction.emit({ event: $event, operation: 'subscrever ao Jindungo' })">
+              <img src="/assets/icons/lock.png" alt="" class="h-4 w-4" />
+              Desbloquear com Jindungo
+            </button>
+          }
+        </div>
+      </a>
+    </article>
+  `,
+})
+export class ContentCardComponent {
+  @Input({ required: true }) content!: ContentListItem;
+  @Input() canReadPremium = false;
+  @Output() gatedAction = new EventEmitter<{ event: Event; operation: string }>();
+}

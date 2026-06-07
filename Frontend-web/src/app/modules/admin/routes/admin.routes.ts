@@ -1,5 +1,13 @@
 import { Component, computed, signal } from '@angular/core';
 import { RouterLink, Routes } from '@angular/router';
+import { AdminConsoleShellComponent } from '../components/admin-console-shell.component';
+import { AdminEditorialSectionComponent } from '../components/admin-editorial-section.component';
+import { AdminArticleCreatePage as AdminArticleCreateStandalonePage } from '../pages/admin-article-create.page';
+import { AdminForumCreatePage } from '../pages/admin-forum-create.page';
+import { AdminJindungoCreatePage } from '../pages/admin-jindungo-create.page';
+import { AdminPodcastCreatePage } from '../pages/admin-podcast-create.page';
+import { AdminQuizCreatePage as AdminQuizCreateStandalonePage } from '../pages/admin-quiz-create.page';
+import { AdminVideoCreatePage } from '../pages/admin-video-create.page';
 
 interface AdminMetric {
   label: string;
@@ -310,184 +318,265 @@ export class AdminPage {
 
 @Component({
   selector: 'app-admin-article-create-page',
-  imports: [RouterLink],
+  imports: [RouterLink, AdminConsoleShellComponent, AdminEditorialSectionComponent],
   template: `
-    <section class="-m-6 grid min-h-dvh grid-cols-[220px_minmax(0,1fr)] bg-white text-[#2c2729]">
-      <aside class="flex min-h-dvh flex-col border-r border-[#e7e2e4] bg-[#f3f4f5]">
-        <a routerLink="/admin" class="flex h-[70px] items-center gap-2 px-5 text-[#8a4055]">
-          <img src="/auth-logo.png" alt="Economia com História" class="h-[25px] w-auto" />
-          <span class="font-display text-[13px] font-extrabold">Economia com História</span>
-        </a>
+    <app-admin-console-shell activeItem="contents">
+      <main class="grid gap-0 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <section class="min-w-0">
+          <header class="border-b border-[#e3d4d8] px-8 py-7 text-center">
+            <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#735c00]">Criação de conteúdo</p>
+            <h1 class="mt-2 font-display text-[30px] font-extrabold text-[#5c1e2f]">Novo artigo académico</h1>
+            <p class="mx-auto mt-2 max-w-[620px] text-[14px] leading-6 text-[#534345]">
+              Publique conteúdos históricos e económicos com metadados editoriais, imagem de capa e controlo de visibilidade.
+            </p>
+          </header>
 
-        <nav class="mt-4 grid gap-7 px-0">
-          <div>
-            <p class="px-5 text-[10px] font-medium uppercase tracking-[0.18em] text-[#8a8587]">Plataforma</p>
-            <div class="mt-3 grid">
-              <a routerLink="/admin" class="flex h-11 items-center gap-3 px-5 text-[12px] font-medium text-[#534c50] hover:bg-white hover:text-[#9b4056]">
-                <span class="grid size-5 place-items-center text-[14px]">▦</span>
-                Painel Global
-              </a>
-            </div>
-          </div>
-
-          <div>
-            <p class="px-5 text-[10px] font-medium uppercase tracking-[0.18em] text-[#8a8587]">Administração</p>
-            <div class="mt-3 grid gap-1">
-              <a routerLink="/admin/quiz" class="flex h-10 items-center gap-3 px-5 text-[12px] font-medium text-[#534c50] hover:bg-white hover:text-[#9b4056]">
-                <span class="grid size-5 place-items-center text-[14px]">◷</span>
-                Gestão de Quiz
-              </a>
-              <a routerLink="/admin/contents/create" class="flex h-10 items-center gap-3 border-r-2 border-[#9b4056] bg-[#f7edef] px-5 text-[12px] font-bold text-[#9b4056]">
-                <span class="grid size-5 place-items-center text-[14px]">◉</span>
-                Conteúdos
-              </a>
-            </div>
-          </div>
-
-          <div>
-            <p class="px-5 text-[10px] font-medium uppercase tracking-[0.18em] text-[#8a8587]">Infraestrutura</p>
-            <div class="mt-3 grid gap-1">
-              <a routerLink="/admin/settings" class="flex h-10 items-center gap-3 px-5 text-[12px] font-medium text-[#534c50] hover:bg-white hover:text-[#9b4056]">
-                <span class="grid size-5 place-items-center text-[14px]">⚙</span>
-                Configurações
-              </a>
-            </div>
-          </div>
-        </nav>
-
-        <div class="mt-auto flex items-center gap-3 border-t border-[#e7e2e4] px-5 py-5">
-          <span class="grid size-10 shrink-0 place-items-center rounded-md bg-[#9b4056] text-[13px] font-extrabold text-white">CT</span>
-          <div>
-            <p class="text-[12px] font-extrabold text-[#2c2729]">Carlos Tchipia</p>
-            <p class="text-[10px] text-[#8a8587]">Administrador</p>
-          </div>
-        </div>
-      </aside>
-
-      <div class="min-w-0">
-        <header class="flex h-[70px] items-center gap-5 border-b border-[#e7e2e4] bg-[#f3f4f5] px-12">
-          <button type="button" aria-label="Abrir navegação" class="grid size-8 place-items-center text-[28px] text-[#9b4056]">≡</button>
-          <label class="flex h-10 w-[340px] items-center gap-3 rounded-lg bg-white px-4 text-[#8a8587]">
-            <span class="text-[16px]">⌕</span>
-            <input type="search" placeholder="Pesquisar..." class="w-full bg-transparent text-[12px] text-[#2c2729] outline-none placeholder:text-[#9a9497]" />
-          </label>
-
-          <div class="ml-auto flex items-center gap-8">
-            <button type="button" aria-label="Notificações" class="text-[20px] text-[#4e474a]">♧</button>
-            <img
-              src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80"
-              alt="Carlos Tchipia"
-              class="size-9 rounded-full object-cover"
-            />
-          </div>
-        </header>
-
-        <main class="grid max-w-[960px] gap-8 px-9 py-6 lg:grid-cols-[minmax(0,620px)_260px]">
-          <section>
-            <h1 class="font-display text-[25px] font-extrabold leading-none text-[#9b4056]">Artigo</h1>
-
-            <form class="mt-9 grid gap-4">
+          <form class="grid gap-0" (submit)="$event.preventDefault()">
+            <app-admin-editorial-section title="Dados principais" icon="&#9635;" [bordered]="true">
               <label class="grid gap-2">
-                <span class="text-[9px] font-semibold text-[#6f686b]">Título do Artigo</span>
-                <input
-                  type="text"
-                  placeholder="Ex: A Evolução do Comércio no Reino do Congo"
-                  class="h-[58px] border border-[#d9c5cb] bg-white px-3 font-display text-[22px] font-extrabold text-[#5c1e2f] outline-none placeholder:text-[#e7cfd5]"
-                />
+                <span class="text-[12px] font-semibold text-[#6f686b]">Título do artigo</span>
+                <input type="text" placeholder="Ex: A Evolução do Comércio no Reino do Kongo" class="h-12 border border-[#b8aeb2] px-4 text-[15px] text-[#2c2729] outline-none" />
               </label>
 
               <label class="grid gap-2">
-                <span class="text-[9px] font-semibold text-[#6f686b]">Subtítulo ou Resumo Acadêmico</span>
-                <input
-                  type="text"
-                  placeholder="Uma análise rigorosa sobre as rotas comerciais pré-coloniais..."
-                  class="h-[56px] border border-[#d9c5cb] bg-white px-3 text-[12px] text-[#2c2729] outline-none placeholder:text-[#e1cbd1]"
-                />
+                <span class="text-[12px] font-semibold text-[#6f686b]">Resumo académico</span>
+                <textarea placeholder="Sintetize o objetivo, o contexto histórico e os conceitos económicos abordados..." class="min-h-[130px] resize-y border border-[#b8aeb2] px-4 py-3 text-[14px] leading-6 text-[#2c2729] outline-none"></textarea>
               </label>
 
-              <div class="mt-5 overflow-hidden border border-[#e4dde0] bg-white">
-                <div class="flex h-12 items-center gap-5 bg-[#f0f1f2] px-5 text-[14px] font-bold text-[#1f1a1c]">
-                  <button type="button">B</button>
-                  <button type="button" class="italic">I</button>
-                  <button type="button">≡</button>
-                  <button type="button">99</button>
-                  <button type="button">↔</button>
-                  <button type="button">▣</button>
-                  <button type="button">Σ</button>
-                  <button type="button">▥</button>
-                  <span class="ml-auto rounded bg-[#e6d5da] px-3 py-1 text-[11px] font-bold text-[#7d3449]">Reversões</span>
-                </div>
-                <textarea
-                  placeholder="Comece a escrever o seu tratado académico aqui..."
-                  class="min-h-[410px] w-full resize-none px-7 py-8 text-[13px] leading-7 text-[#2c2729] outline-none placeholder:text-[#e5e0e2]"
-                ></textarea>
-              </div>
-            </form>
-          </section>
-
-          <aside class="grid content-start gap-5 pt-12">
-            <section class="rounded-md border border-[#e1dddf] bg-[#f0f1f2] p-5">
-              <h2 class="font-display text-[18px] font-extrabold text-bordeaux">Configurações</h2>
-              <label class="mt-5 grid gap-2">
-                <span class="text-[10px] font-semibold text-[#6f686b]">Categoria Principal</span>
-                <select class="h-10 border border-[#d6cfd2] bg-white px-3 text-[12px] text-[#2c2729] outline-none">
-                  <option>História Económica</option>
-                </select>
-              </label>
-
-              <label class="mt-4 grid gap-2">
-                <span class="text-[10px] font-semibold text-[#6f686b]">Etiquetas (Tags)</span>
-                <div class="flex gap-2">
-                  <span class="rounded bg-white px-2 py-1 text-[9px] text-[#6f686b]">Angola X</span>
-                  <span class="rounded bg-white px-2 py-1 text-[9px] text-[#6f686b]">Moeda X</span>
-                </div>
-                <input type="text" placeholder="Adicionar tag..." class="h-10 border border-[#d6cfd2] bg-white px-3 text-[12px] outline-none placeholder:text-[#aaa4a7]" />
-              </label>
-
-              <div class="mt-6 grid gap-4 text-[12px] font-semibold text-[#2c2729]">
-                <label class="flex items-center justify-between">
-                  Conteúdo Premium
-                  <input type="checkbox" checked class="accent-bordeaux" />
+              <div class="grid gap-4 md:grid-cols-3">
+                <label class="grid gap-2">
+                  <span class="text-[12px] font-semibold text-[#6f686b]">Categoria</span>
+                  <select class="h-11 border border-[#b8aeb2] bg-white px-3 text-[14px] outline-none">
+                    <option>Economia</option>
+                    <option>História</option>
+                    <option>Textos com Jindungo</option>
+                  </select>
                 </label>
-                <label class="flex items-center justify-between">
-                  Permitir Comentários
-                  <input type="checkbox" checked class="accent-bordeaux" />
+                <label class="grid gap-2">
+                  <span class="text-[12px] font-semibold text-[#6f686b]">Tipo</span>
+                  <select class="h-11 border border-[#b8aeb2] bg-white px-3 text-[14px] outline-none">
+                    <option>Artigo</option>
+                    <option>Ensaio</option>
+                    <option>Estudo de caso</option>
+                  </select>
+                </label>
+                <label class="grid gap-2">
+                  <span class="text-[12px] font-semibold text-[#6f686b]">Tempo de leitura</span>
+                  <input type="text" value="12 min" class="h-11 border border-[#b8aeb2] px-3 text-[14px] outline-none" />
                 </label>
               </div>
-            </section>
+            </app-admin-editorial-section>
 
-            <section class="rounded-md border border-[#e1dddf] bg-[#f0f1f2] p-5">
-              <div class="flex items-center justify-between">
-                <h2 class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#8a8587]">Pré-visualização SEO</h2>
-                <span class="text-[#6f686b]">⊙</span>
+            <app-admin-editorial-section title="Corpo editorial" icon="&#9998;">
+              <div class="border border-[#b8aeb2] bg-white">
+                <div class="flex min-h-11 items-center gap-4 border-b border-[#d8cfd3] px-4 text-[13px] text-[#5c1e2f]">
+                  <strong>B</strong><i>I</i><span>Lista</span><span>Citação</span>
+                </div>
+                <textarea placeholder="Escreva o conteúdo aqui..." class="min-h-[280px] w-full resize-y border-0 px-4 py-4 text-[15px] leading-7 text-[#2c2729] outline-none"></textarea>
               </div>
-              <article class="mt-5 rounded-sm bg-white p-4 shadow-sm">
-                <h3 class="text-[13px] font-bold leading-5 text-[#1a4caa]">Título do Artigo | Economia com História: Angola</h3>
-                <p class="mt-2 text-[10px] leading-4 text-[#1b8f43]">economiahistoria.ao/artigos/evolucao-comercio-congo</p>
-                <p class="mt-2 text-[10px] leading-4 text-[#4f474a]">
-                  Descubra como as redes comerciais do antigo Reino do Congo moldaram a economia da região...
-                </p>
-              </article>
-              <p class="mt-4 text-[9px] leading-4 text-[#8a8587]">A meta-descrição é gerada automaticamente a partir do subtítulo, a menos que seja editada manualmente.</p>
-            </section>
+            </app-admin-editorial-section>
+          </form>
+        </section>
 
-            <button type="button" class="grid h-[140px] place-items-center rounded-md border border-dashed border-[#c9c2c5] bg-[#eceeef] text-center">
+        <aside class="grid content-start border-l border-[#e3d4d8] bg-[#fbfaf7] max-lg:border-l-0 max-lg:border-t">
+          <section class="border-b border-[#e3d4d8] px-6 py-6">
+            <h2 class="text-[12px] font-bold uppercase tracking-[0.16em] text-[#5c1e2f]">Imagem de capa</h2>
+            <button type="button" class="mt-4 grid min-h-[170px] w-full place-items-center border border-dashed border-[#b8aeb2] bg-white text-center">
               <span>
-                <span class="mx-auto mb-2 grid size-8 place-items-center text-[22px] text-[#5f575b]">⇪</span>
-                <strong class="block text-[11px] text-[#6f686b]">Carregar Imagem de Capa</strong>
-                <small class="mt-1 block text-[9px] text-[#c9a9b2]">PNG, JPG até 5MB</small>
+                <span class="mx-auto grid size-12 place-items-center text-[28px] text-[#8a4055]">⇪</span>
+                <strong class="mt-2 block text-[13px] text-[#5c1e2f]">Carregar imagem</strong>
+                <small class="mt-1 block text-[11px] text-[#8a8587]">PNG ou JPG até 5MB</small>
               </span>
             </button>
-          </aside>
-        </main>
-      </div>
-    </section>
+          </section>
+
+          <section class="border-b border-[#e3d4d8] px-6 py-6">
+            <h2 class="text-[12px] font-bold uppercase tracking-[0.16em] text-[#5c1e2f]">Publicação</h2>
+            <div class="mt-4 grid gap-3 text-[13px] text-[#2c2729]">
+              <label class="flex items-center justify-between gap-4">Público <input type="radio" name="visibility" checked class="accent-bordeaux" /></label>
+              <label class="flex items-center justify-between gap-4">Jindungo <input type="radio" name="visibility" class="accent-bordeaux" /></label>
+              <label class="flex items-center justify-between gap-4">Privado <input type="radio" name="visibility" class="accent-bordeaux" /></label>
+            </div>
+          </section>
+
+          <section class="grid gap-3 px-6 py-6">
+            <button type="button" class="h-11 bg-[#5c1e2f] px-4 text-[13px] font-extrabold text-white">Publicar conteúdo</button>
+            <button type="button" class="h-11 border border-[#5c1e2f] bg-white px-4 text-[13px] font-extrabold text-[#5c1e2f]">Guardar rascunho</button>
+            <a routerLink="/admin" class="inline-flex h-10 items-center justify-center text-[13px] font-bold text-[#6f686b]">Cancelar</a>
+          </section>
+        </aside>
+      </main>
+    </app-admin-console-shell>
   `,
 })
 export class AdminArticleCreatePage {}
+@Component({
+  selector: 'app-admin-quiz-create-page',
+  imports: [AdminConsoleShellComponent, AdminEditorialSectionComponent],
+  template: `
+    <app-admin-console-shell activeItem="quiz">
+      <main class="grid gap-0 xl:grid-cols-[minmax(0,1fr)_330px]">
+        <section class="min-w-0">
+          <header class="border-b border-[#e3d4d8] px-8 py-7 text-center">
+            <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#735c00]">Avaliações da plataforma</p>
+            <h1 class="mt-2 font-display text-[30px] font-extrabold text-[#5c1e2f]">Geração de quiz</h1>
+            <p class="mx-auto mt-2 max-w-[680px] text-[14px] leading-6 text-[#534345]">
+              Crie avaliações ligadas aos conteúdos publicados, com revisão editorial antes da publicação.
+            </p>
+          </header>
+
+          <section class="grid gap-0 lg:grid-cols-[minmax(0,1fr)_290px]">
+            <div class="min-w-0">
+              <app-admin-editorial-section title="Conteúdo relacionado" icon="&#9635;" [bordered]="true">
+                <div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
+                  <label class="grid gap-2">
+                    <span class="text-[12px] font-semibold text-[#6f686b]">Selecionar conteúdo</span>
+                    <select class="h-11 border border-[#b8aeb2] bg-white px-3 text-[14px] outline-none">
+                      <option>A política monetária de Angola</option>
+                      <option>Rotas comerciais do Reino do Kongo</option>
+                      <option>O Caminho de Ferro de Benguela</option>
+                    </select>
+                  </label>
+                  <label class="grid gap-2">
+                    <span class="text-[12px] font-semibold text-[#6f686b]">Categoria</span>
+                    <select class="h-11 border border-[#b8aeb2] bg-white px-3 text-[14px] outline-none">
+                      <option>Economia</option>
+                      <option>História</option>
+                      <option>Jindungo</option>
+                    </select>
+                  </label>
+                </div>
+
+                <article class="border border-[#eadfe2] bg-[#fbf7f8] p-4">
+                  <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8c6f36]">Resumo extraído</p>
+                  <h3 class="mt-1 font-display text-[18px] font-extrabold leading-tight text-[#40081a]">Moeda, inflação e memória social</h3>
+                  <p class="mt-2 text-[13px] leading-6 text-[#5f575b]">
+                    Base sugerida para perguntas sobre instrumentos monetários, ciclos de preço e impacto social no quotidiano angolano.
+                  </p>
+                </article>
+              </app-admin-editorial-section>
+
+              <app-admin-editorial-section title="Modo de criação" icon="&#9881;" [bordered]="true">
+                <div class="flex w-fit items-center gap-2 border border-[#e3d4d8] bg-[#f7edef] p-1">
+                  <button type="button" class="h-10 px-5 text-[13px] font-extrabold" [class.bg-[#5c1e2f]]="mode() === 'ia'" [class.text-white]="mode() === 'ia'" [class.text-[#8a4055]]="mode() !== 'ia'" (click)="mode.set('ia')">Gerar com IA</button>
+                  <button type="button" class="h-10 px-5 text-[13px] font-extrabold" [class.bg-[#5c1e2f]]="mode() === 'manual'" [class.text-white]="mode() === 'manual'" [class.text-[#8a4055]]="mode() !== 'manual'" (click)="mode.set('manual')">Criar manualmente</button>
+                </div>
+
+                @if (mode() === 'ia') {
+                  <textarea class="min-h-[180px] resize-y border border-[#b8aeb2] px-4 py-3 text-[14px] leading-6 text-[#2c2729] outline-none" placeholder="Ex: Gerar perguntas sobre causas da inflação, papel do banco central e efeitos no consumo familiar."></textarea>
+                  <button type="button" class="h-11 w-fit bg-[#d4af37] px-5 text-[13px] font-extrabold text-[#5c1e2f]">Gerar rascunho</button>
+                } @else {
+                  <div class="grid gap-4">
+                    <input type="text" placeholder="Escreva a pergunta..." class="h-12 border border-[#b8aeb2] px-4 text-[14px] outline-none" />
+                    <div class="grid gap-3 md:grid-cols-2">
+                      @for (option of ['A', 'B', 'C', 'D']; track option) {
+                        <label class="flex min-h-12 items-center gap-3 border border-[#e3d4d8] px-4 text-[13px] text-[#5f575b]">
+                          <input type="radio" name="correctOption" class="accent-bordeaux" />
+                          Opção {{ option }}
+                        </label>
+                      }
+                    </div>
+                    <button type="button" class="h-11 w-fit bg-[#d4af37] px-5 text-[13px] font-extrabold text-[#5c1e2f]">Adicionar pergunta</button>
+                  </div>
+                }
+              </app-admin-editorial-section>
+
+              <app-admin-editorial-section title="Pré-visualização das perguntas" icon="&#9636;">
+                @for (question of previewQuestions; track question.title) {
+                  <article class="border border-[#eadfe2] bg-[#fbf7f8] p-4">
+                    <div class="flex items-start justify-between gap-4">
+                      <div>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8c6f36]">{{ question.kind }}</p>
+                        <h3 class="mt-1 text-[14px] font-extrabold leading-5 text-[#2c2729]">{{ question.title }}</h3>
+                      </div>
+                      <span class="bg-white px-2 py-1 text-[10px] font-bold text-[#8a4055]">{{ question.status }}</span>
+                    </div>
+                  </article>
+                }
+              </app-admin-editorial-section>
+            </div>
+
+            <aside class="border-l border-[#e3d4d8] bg-[#fbfaf7] p-6 max-lg:border-l-0 max-lg:border-t">
+              <h2 class="font-display text-[18px] font-extrabold text-[#5c1e2f]">Parâmetros</h2>
+              <div class="mt-5 grid gap-4">
+                <label class="grid gap-2"><span class="text-[12px] font-semibold text-[#6f686b]">Perguntas</span><input type="number" value="8" min="3" max="20" class="h-11 border border-[#b8aeb2] px-3 text-[14px] outline-none" /></label>
+                <label class="grid gap-2"><span class="text-[12px] font-semibold text-[#6f686b]">Dificuldade</span><select class="h-11 border border-[#b8aeb2] bg-white px-3 text-[14px] outline-none"><option>Médio</option><option>Básico</option><option>Avançado</option></select></label>
+                <label class="grid gap-2"><span class="text-[12px] font-semibold text-[#6f686b]">XP total</span><input type="number" value="120" class="h-11 border border-[#b8aeb2] px-3 text-[14px] outline-none" /></label>
+                <label class="grid gap-2"><span class="text-[12px] font-semibold text-[#6f686b]">Tempo estimado</span><input type="text" value="10 minutos" class="h-11 border border-[#b8aeb2] px-3 text-[14px] outline-none" /></label>
+              </div>
+            </aside>
+          </section>
+        </section>
+
+        <aside class="grid content-start border-l border-[#e3d4d8] bg-[#fbfaf7] max-xl:border-l-0 max-xl:border-t">
+          <section class="border-b border-[#e3d4d8] px-6 py-6">
+            <h2 class="font-display text-[18px] font-extrabold text-[#5c1e2f]">Publicação</h2>
+            <div class="mt-5 grid gap-4 text-[13px] font-semibold text-[#2c2729]">
+              <label class="flex items-center justify-between gap-4">Visível para estudantes <input type="checkbox" class="accent-bordeaux" /></label>
+              <label class="flex items-center justify-between gap-4">Exigir login <input type="checkbox" checked class="accent-bordeaux" /></label>
+              <label class="flex items-center justify-between gap-4">Entrar no ranking <input type="checkbox" checked class="accent-bordeaux" /></label>
+            </div>
+            <div class="mt-6 grid gap-3">
+              <button type="button" class="h-11 bg-[#5c1e2f] px-4 text-[13px] font-extrabold text-white">Publicar quiz</button>
+              <button type="button" class="h-11 border border-[#5c1e2f] bg-white px-4 text-[13px] font-extrabold text-[#5c1e2f]">Guardar rascunho</button>
+            </div>
+          </section>
+
+          <section class="border-b border-[#e3d4d8] px-6 py-6">
+            <h2 class="text-[12px] font-bold uppercase tracking-[0.16em] text-[#5c1e2f]">Estado</h2>
+            <strong class="mt-3 block font-display text-[25px] font-extrabold text-[#9b4056]">Rascunho</strong>
+            <div class="mt-4 grid gap-3 text-[12px] text-[#5f575b]">
+              @for (rule of qualityRules; track rule) {
+                <p class="flex items-center gap-2"><span class="grid size-5 place-items-center rounded-full bg-white text-[10px] font-bold text-[#8c6f36]">✓</span>{{ rule }}</p>
+              }
+            </div>
+          </section>
+
+          <section class="px-6 py-6">
+            <h2 class="font-display text-[17px] font-extrabold text-[#5c1e2f]">Fila editorial</h2>
+            <div class="mt-4 grid gap-3">
+              @for (item of editorialQueue; track item.title) {
+                <article class="border-b border-[#eee6e8] pb-3 last:border-b-0 last:pb-0">
+                  <h3 class="text-[13px] font-extrabold text-[#2c2729]">{{ item.title }}</h3>
+                  <p class="mt-1 text-[11px] text-[#8a8587]">{{ item.meta }} · {{ item.count }}</p>
+                </article>
+              }
+            </div>
+          </section>
+        </aside>
+      </main>
+    </app-admin-console-shell>
+  `,
+})
+export class AdminQuizCreatePage{
+  readonly mode = signal<'ia' | 'manual'>('ia');
+  readonly qualityRules = ['Ligado a um conteudo', 'Sem perguntas opinativas', 'Revisao obrigatoria'];
+  readonly previewQuestions = [
+    { kind: 'Multipla escolha', title: 'Qual instrumento ajuda a controlar a liquidez na economia?', status: 'IA' },
+    { kind: 'Aplicacao', title: 'Como a inflacao altera o poder de compra das familias?', status: 'Revisar' },
+  ];
+  readonly editorialQueue = [
+    { title: 'Kongo e comercio', meta: 'Historia - 6 perguntas', count: '82%' },
+    { title: 'Reservas cambiais', meta: 'Economia - 10 perguntas', count: '64%' },
+    { title: 'Petroleo e soberania', meta: 'Jindungo - 8 perguntas', count: '41%' },
+  ];
+}
 
 export const ADMIN_ROUTES: Routes = [
-  { path: 'contents/create', component: AdminArticleCreatePage },
+  { path: 'quiz', component: AdminQuizCreateStandalonePage },
+  { path: 'quizzes', component: AdminQuizCreateStandalonePage },
+  { path: 'podcast/create', component: AdminPodcastCreatePage },
+  { path: 'podcasts/create', component: AdminPodcastCreatePage },
+  { path: 'jindungo/create', component: AdminJindungoCreatePage },
+  { path: 'jindungos/create', component: AdminJindungoCreatePage },
+  { path: 'contents/jindungo/create', component: AdminJindungoCreatePage },
+  { path: 'video/create', component: AdminVideoCreatePage },
+  { path: 'videos/create', component: AdminVideoCreatePage },
+  { path: 'contents/video/create', component: AdminVideoCreatePage },
+  { path: 'forum/create', component: AdminForumCreatePage },
+  { path: 'forums/create', component: AdminForumCreatePage },
+  { path: 'contents/forum/create', component: AdminForumCreatePage },
+  { path: 'contents/create', component: AdminArticleCreateStandalonePage },
   { path: '', component: AdminPage },
   { path: ':section', component: AdminPage },
 ];

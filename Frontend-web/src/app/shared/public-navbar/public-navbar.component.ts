@@ -75,7 +75,7 @@ import { NotificationService } from '../../services/notification.service';
                     class="size-[34px] rounded-full object-cover ring-1 ring-[#5c1e2f]/10"
                   />
                 } @else {
-                  <span class="grid size-[34px] place-items-center rounded-full bg-[#161315] font-display text-[12px] font-extrabold text-white ring-1 ring-[#5c1e2f]/10">
+                  <span class="grid size-[34px] place-items-center rounded-full bg-[#5c1e2f] font-display text-[12px] font-extrabold text-white ring-1 ring-[#5c1e2f]/10">
                     {{ userInitials() }}
                   </span>
                 }

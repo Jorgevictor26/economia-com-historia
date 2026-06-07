@@ -10,20 +10,8 @@ import { ContentTypeService } from '../../../services/content-type.service';
 import { BackToTopComponent } from '../../../shared/back-to-top/back-to-top.component';
 import { PublicFooterComponent } from '../../../shared/public-footer/public-footer.component';
 import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navbar.component';
-
-interface HomeContent {
-  id: string;
-  category: string;
-  contentType: string;
-  meta: string;
-  title: string;
-  excerpt: string;
-  author: string;
-  authorInitials: string;
-  imageUrl?: string;
-  premium?: boolean;
-  searchText?: string;
-}
+import { ContentCardComponent } from '../components/content-card.component';
+import { ContentListItem } from '../models/content-list-item.model';
 
 interface ContentDetail {
   id: string;
@@ -42,63 +30,98 @@ interface ContentDetail {
 
 @Component({
   selector: 'app-content-list-page',
-  imports: [RouterLink, PublicNavbarComponent, PublicFooterComponent, BackToTopComponent],
+  imports: [PublicNavbarComponent, PublicFooterComponent, BackToTopComponent, ContentCardComponent],
   template: `
     <section class="-m-6 min-h-dvh bg-[#f7f8f8] text-[#2c2729]">
       <app-public-navbar />
 
-      <main class="fluid-container pb-14 pt-5">
-        <div class="mb-9">
-          <h1 class="font-display text-[32px] font-extrabold leading-tight text-[#8a4055]">Explorar Conteúdos</h1>
-          <label class="mt-7 flex h-[58px] max-w-[772px] items-center gap-3 rounded-[8px] border border-[#f0ecee] bg-white px-5 text-[#7f777b] shadow-[0_1px_2px_rgba(22,19,21,0.02)]">
-            <span class="relative size-4 rounded-full border-2 border-current after:absolute after:-bottom-1 after:-right-1 after:h-2 after:w-0.5 after:rotate-[-45deg] after:bg-current"></span>
+      <main class="fluid-container pb-14 pt-6">
+        <section class="mb-8 rounded-[8px] border border-[#d8c1c4]/55 bg-white p-6 shadow-[0_10px_30px_rgba(64,8,26,0.05)]">
+          <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_310px] lg:items-end">
+            <div>
+              <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#735c00]">Biblioteca editorial</p>
+              <h1 class="mt-3 font-display text-[34px] font-extrabold leading-tight text-[#40081a]">Explorar Conteúdos</h1>
+              <p class="mt-3 max-w-[690px] text-[15px] leading-7 text-[#534345]">
+                Encontre artigos, podcasts, vídeos e textos com Jindungo por tema, formato ou palavra-chave.
+              </p>
+            </div>
+
+            <div class="rounded-[8px] bg-[#f8f9fa] p-4">
+              <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a8587]">Resultado atual</p>
+              <strong class="mt-2 block font-display text-[26px] font-extrabold text-[#8a4055]">{{ filteredContents().length }}</strong>
+              <span class="text-[12px] text-[#6f686b]">{{ filteredContents().length === 1 ? 'conteúdo encontrado' : 'conteúdos encontrados' }}</span>
+            </div>
+          </div>
+
+          <label class="mt-7 flex min-h-[54px] items-center gap-3 rounded-[8px] border border-[#e6d7dc] bg-[#f8f9fa] px-5 text-[#7f777b]">
+            <span class="relative size-4 shrink-0 rounded-full border-2 border-current after:absolute after:-bottom-1 after:-right-1 after:h-2 after:w-0.5 after:rotate-[-45deg] after:bg-current"></span>
             <input
-              class="w-full bg-transparent text-[13px] text-[#3b3437] outline-none placeholder:text-[#8e878b]"
+              class="w-full bg-transparent text-[14px] text-[#3b3437] outline-none placeholder:text-[#8e878b]"
               type="search"
               placeholder="Pesquisar por autores, períodos históricos ou temas económicos..."
               [value]="searchTerm()"
               (input)="updateSearch($event)"
             />
           </label>
-        </div>
+        </section>
 
-        <div class="mb-5 flex flex-wrap items-center gap-3">
-          @for (filter of categoryFilters(); track filter) {
-            <button
-              type="button"
-              class="content-filter-button h-11 min-w-[96px] rounded-[8px] border px-5 text-[12px] font-semibold transition"
-              [class.is-selected]="filter === selectedCategoryFilter()"
-              [class.border-[#8a4055]]="filter === selectedCategoryFilter()"
-              [class.bg-[#8a4055]]="filter === selectedCategoryFilter()"
-              [class.text-white]="filter === selectedCategoryFilter()"
-              [class.border-[#d8cbd0]]="filter !== selectedCategoryFilter()"
-              [class.bg-white]="filter !== selectedCategoryFilter()"
-              [class.text-[#5f575b]]="filter !== selectedCategoryFilter()"
-              (click)="selectCategoryFilter(filter)"
-            >
-              {{ filter }}
-            </button>
-          }
-        </div>
+        <section class="mb-8 rounded-[8px] border border-[#d8c1c4]/55 bg-white p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#f0ecee] pb-4">
+            <div>
+              <h2 class="font-display text-[20px] font-semibold text-[#40081a]">Filtros</h2>
+              <p class="mt-1 text-[12px] text-[#6f686b]">Combine categoria, formato e pesquisa para refinar a biblioteca.</p>
+            </div>
+            @if (activeFilterCount() > 0) {
+              <button type="button" class="h-9 rounded-[8px] border border-[#d8c1c4] px-4 text-[12px] font-bold text-[#5c1e2f] transition hover:bg-[#fff6f8]" (click)="clearFilters()">
+                Limpar filtros
+              </button>
+            }
+          </div>
 
-        <div class="mb-8 flex flex-wrap items-center gap-3">
-          @for (filter of contentTypeFilters(); track filter) {
-            <button
-              type="button"
-              class="content-filter-button h-10 min-w-[86px] rounded-[8px] border px-4 text-[11px] font-semibold transition"
-              [class.is-selected]="filter === selectedContentTypeFilter()"
-              [class.border-[#5c1e2f]]="filter === selectedContentTypeFilter()"
-              [class.bg-[#5c1e2f]]="filter === selectedContentTypeFilter()"
-              [class.text-white]="filter === selectedContentTypeFilter()"
-              [class.border-[#d8cbd0]]="filter !== selectedContentTypeFilter()"
-              [class.bg-white]="filter !== selectedContentTypeFilter()"
-              [class.text-[#5f575b]]="filter !== selectedContentTypeFilter()"
-              (click)="selectContentTypeFilter(filter)"
-            >
-              {{ filter }}
-            </button>
-          }
-        </div>
+          <div class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <div>
+              <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#735c00]">Categorias</p>
+              <div class="flex flex-wrap gap-2">
+                @for (filter of categoryFilters(); track filter) {
+                  <button
+                    type="button"
+                    class="min-h-10 rounded-[999px] border px-4 text-[12px] font-bold transition"
+                    [class.border-[#40081a]]="filter === selectedCategoryFilter()"
+                    [class.bg-[#40081a]]="filter === selectedCategoryFilter()"
+                    [class.text-white]="filter === selectedCategoryFilter()"
+                    [class.border-[#d8cbd0]]="filter !== selectedCategoryFilter()"
+                    [class.bg-[#f8f9fa]]="filter !== selectedCategoryFilter()"
+                    [class.text-[#5f575b]]="filter !== selectedCategoryFilter()"
+                    (click)="selectCategoryFilter(filter)"
+                  >
+                    {{ filter }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div>
+              <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#735c00]">Formatos</p>
+              <div class="flex flex-wrap gap-2">
+                @for (filter of contentTypeFilters(); track filter) {
+                  <button
+                    type="button"
+                    class="min-h-10 rounded-[999px] border px-4 text-[12px] font-bold transition"
+                    [class.border-[#8a4055]]="filter === selectedContentTypeFilter()"
+                    [class.bg-[#ffd9df]]="filter === selectedContentTypeFilter()"
+                    [class.text-[#40081a]]="filter === selectedContentTypeFilter()"
+                    [class.border-[#d8cbd0]]="filter !== selectedContentTypeFilter()"
+                    [class.bg-[#f8f9fa]]="filter !== selectedContentTypeFilter()"
+                    [class.text-[#5f575b]]="filter !== selectedContentTypeFilter()"
+                    (click)="selectContentTypeFilter(filter)"
+                  >
+                    {{ filter }}
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        </section>
 
         @if (filteredContents().length === 0) {
           <section class="rounded-[8px] border border-[#e3d4d8] bg-white px-6 py-12 text-center">
@@ -107,86 +130,13 @@ interface ContentDetail {
           </section>
         }
 
-        <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:gap-8">
+        <div class="grid items-stretch gap-8 md:grid-cols-2 xl:grid-cols-3">
           @for (content of filteredContents(); track content.id) {
-            <article
-              class="group overflow-hidden bg-white shadow-[0_1px_2px_rgba(22,19,21,0.03)]"
-              [class.border]="!content.premium"
-              [class.border-[#ded7da]]="!content.premium"
-              [class.jindungo-card]="content.premium"
-            >
-              <a [routerLink]="content.id" class="block">
-                <div class="relative h-[216px] overflow-hidden bg-[#eee9eb]" [class.h-[170px]]="content.premium">
-                  @if (content.imageUrl) {
-                    <img
-                      [src]="content.imageUrl"
-                      [alt]="content.title"
-                      class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                      [class.brightness-[0.55]]="content.premium && !auth.canReadJindungo()"
-                    />
-                  }
-                  <span
-                    class="absolute left-4 top-4 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.08em]"
-                    [class.bg-[#5c1e2f]]="!content.premium"
-                    [class.text-white]="!content.premium"
-                    [class.bg-[#7d263c]]="content.premium"
-                    [class.text-[#d4af37]]="content.premium"
-                  >
-                    {{ content.premium ? 'Jindungo' : content.category }}
-                  </span>
-
-                  @if (content.premium && !auth.canReadJindungo()) {
-                    <div class="absolute inset-0 grid place-items-center">
-                      <div class="grid size-[58px] place-items-center rounded-[8px] bg-white/95 shadow-lg">
-                        <img src="/assets/icons/lock.png" alt="Bloqueado" class="h-7 w-7 object-contain" />
-                      </div>
-                    </div>
-                  }
-                </div>
-
-                <div class="grid min-h-[270px] gap-3 p-6" [class.min-h-[278px]]="content.premium">
-                  <p class="text-[10px] font-bold uppercase tracking-[0.04em] text-[#6f686b]">{{ content.meta }}</p>
-                  <h2 class="font-display text-[21px] font-extrabold leading-[1.16] text-[#5c1e2f]">{{ content.title }}</h2>
-                  <p class="line-clamp-3 text-[13px] leading-6 text-[#6f686b]">{{ content.excerpt }}</p>
-
-                  <div
-                    class="mt-auto flex flex-wrap items-center justify-between gap-3 pt-3"
-                    [class.border-t]="!content.premium"
-                    [class.border-[#f0ecee]]="!content.premium"
-                  >
-                    @if (!content.premium) {
-                      <span class="flex items-center gap-2 text-[10px] font-extrabold text-[#4b4447]">
-                      <span class="grid size-6 place-items-center rounded-full bg-[#f5dce4] text-[8px] text-[#8a4055]">{{ content.authorInitials }}</span>
-                      {{ content.author }}
-                      </span>
-                    }
-                    <span class="flex flex-wrap items-center gap-3 text-[12px] text-[#6f686b]">
-                      <button type="button" class="content-action" aria-label="Gostar" (click)="requireLogin($event, 'gostar')">
-                        <img src="/assets/icons/like.png" alt="" />
-                        <span>12</span>
-                      </button>
-                      <button type="button" class="content-action" aria-label="Comentar" (click)="requireLogin($event, 'comentar')">
-                        <img src="/assets/icons/comment.png" alt="" />
-                        <span>5</span>
-                      </button>
-                      <button type="button" class="content-action" aria-label="Partilhar" (click)="requireLogin($event, 'partilhar')">
-                        <img src="/assets/icons/share.png" alt="" />
-                      </button>
-                      <button type="button" class="content-action" aria-label="Denunciar" (click)="requireLogin($event, 'denunciar')">
-                        <img src="/assets/icons/report.png" alt="" />
-                      </button>
-                    </span>
-                  </div>
-
-                  @if (content.premium && !auth.canReadJindungo()) {
-                    <button type="button" class="jindungo-unlock-button" (click)="!auth.isAuthenticated() && requireLogin($event, 'subscrever ao Jindungo')">
-                      <img src="/assets/icons/lock.png" alt="" />
-                      {{ auth.isAuthenticated() ? 'Desbloquear com Jindungo' : 'Desbloquear com Jindungo' }}
-                    </button>
-                  }
-                </div>
-              </a>
-            </article>
+            <app-content-card
+              [content]="content"
+              [canReadPremium]="auth.canReadJindungo()"
+              (gatedAction)="requireLogin($event.event, $event.operation)"
+            />
           }
         </div>
 
@@ -222,13 +172,14 @@ export class ContentListPage implements OnInit {
   ];
   private readonly fallbackContentTypes: ContentTypeOption[] = [
     { id: 1, name: 'Texto', slug: 'texto' },
-    { id: 2, name: 'Video', slug: 'video' },
-    { id: 3, name: 'Jindungo', slug: 'jindungo' },
+    { id: 2, name: 'Podcast', slug: 'podcast' },
+    { id: 3, name: 'Video', slug: 'video' },
+    { id: 4, name: 'Jindungo', slug: 'jindungo' },
   ];
 
   readonly categories = signal<Category[]>(this.fallbackCategories);
   readonly contentTypes = signal<ContentTypeOption[]>(this.fallbackContentTypes);
-  readonly contents = signal<HomeContent[]>(this.getFallbackContents());
+  readonly contents = signal<ContentListItem[]>(this.getFallbackContents());
   readonly pagination = signal<ContentPagination>({
     currentPage: 1,
     lastPage: 1,
@@ -244,6 +195,23 @@ export class ContentListPage implements OnInit {
   readonly selectedContentTypeFilter = signal('Todos os formatos');
   readonly searchTerm = signal('');
   readonly hasMoreContents = computed(() => this.pagination().currentPage < this.pagination().lastPage);
+  readonly activeFilterCount = computed(() => {
+    let total = 0;
+
+    if (this.selectedCategoryFilter() !== 'Todos') {
+      total += 1;
+    }
+
+    if (this.selectedContentTypeFilter() !== 'Todos os formatos') {
+      total += 1;
+    }
+
+    if (this.searchTerm().trim()) {
+      total += 1;
+    }
+
+    return total;
+  });
   readonly contentCountMessage = computed(() => {
     const total = this.pagination().total;
     const shown = this.contents().length;
@@ -259,11 +227,13 @@ export class ContentListPage implements OnInit {
     let results = this.contents();
 
     if (categoryFilter !== 'Todos') {
-      results = results.filter((content) => content.category.includes(categoryFilter));
+      const normalizedCategory = this.normalizeText(categoryFilter);
+      results = results.filter((content) => this.normalizeText(content.category).includes(normalizedCategory));
     }
 
     if (contentTypeFilter !== 'Todos os formatos') {
-      results = results.filter((content) => content.contentType === contentTypeFilter);
+      const normalizedContentType = this.normalizeText(contentTypeFilter);
+      results = results.filter((content) => this.normalizeText(content.contentType) === normalizedContentType);
     }
 
     if (!query) {
@@ -322,6 +292,13 @@ export class ContentListPage implements OnInit {
     void this.loadContents(1, true);
   }
 
+  clearFilters(): void {
+    this.selectedCategoryFilter.set('Todos');
+    this.selectedContentTypeFilter.set('Todos os formatos');
+    this.searchTerm.set('');
+    void this.loadContents(1, true);
+  }
+
   loadMoreContents(): void {
     if (!this.hasMoreContents() || this.isLoadingContents()) {
       return;
@@ -337,7 +314,7 @@ export class ContentListPage implements OnInit {
       .replace(/[\u0300-\u036f]/g, '');
   }
 
-  private toHomeContent(content: BackendContent): HomeContent {
+  private toHomeContent(content: BackendContent): ContentListItem {
     const contentType = content.content_type?.name ?? 'Texto';
     const contentTypeSlug = content.content_type?.slug ?? this.normalizeText(contentType);
     const premium = contentTypeSlug === 'jindungo';
@@ -448,7 +425,7 @@ export class ContentListPage implements OnInit {
     return value.replace(/<[^>]*>/g, '').slice(0, 180);
   }
 
-  private getFallbackContents(): HomeContent[] {
+  private getFallbackContents(): ContentListItem[] {
     return [
     {
       id: 'rotas-comerciais',
@@ -490,7 +467,7 @@ export class ContentListPage implements OnInit {
     {
       id: 'heranca-imperio',
       category: 'Podcast',
-      contentType: 'Video',
+      contentType: 'Podcast',
       meta: '01 Out 2024 - 45 min áudio',
       title: 'Ep. 24: A Herança do Império Lunda',
       excerpt:

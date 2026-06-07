@@ -13,79 +13,115 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
     <section class="-m-6 min-h-dvh bg-[#f7f8f8] text-[#2c2729]">
       <app-public-navbar />
 
-      <main class="fluid-container pb-16 pt-8">
-        <section class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div>
-            <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#735c00]">Avaliações Académicas</p>
-            <h1 class="mt-3 font-display text-[34px] font-extrabold leading-tight text-[#40081a]">Quiz</h1>
-            <p class="mt-4 max-w-[620px] text-[15px] leading-7 text-[#5e5e5f]">
-              Veja todos os quizzes disponíveis, leia o conteúdo relacionado e teste o seu domínio quando estiver autenticado.
+      <main class="w-full px-5 pb-12 pt-7">
+        <section class="grid overflow-hidden rounded-[8px] border border-[#ded7da] bg-white shadow-[0_1px_4px_rgba(22,19,21,0.04)] lg:grid-cols-[minmax(0,1fr)_minmax(420px,42vw)]">
+          <div class="flex min-h-[430px] flex-col justify-center px-8 py-8 md:px-12">
+            <span class="w-fit rounded-[4px] bg-[#d4af37] px-3 py-1 text-[9px] font-extrabold uppercase tracking-[0.08em] text-[#5c1e2f]">
+              Destaque da semana
+            </span>
+            <h2 class="mt-5 max-w-[520px] font-display text-[32px] font-extrabold leading-[1.04] text-[#5c1e2f] md:text-[38px]">
+              A Economia do Café em Angola: Do Império à Independência
+            </h2>
+            <p class="mt-5 max-w-[520px] text-[13px] leading-6 text-[#5f575b]">
+              Explore as raízes estruturais da produção cafeeira e seu impacto na formação da infraestrutura logística angolana durante o século XX.
             </p>
+            <div class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-[#6f686b]">
+              <span class="inline-flex items-center gap-2"><span class="text-[#5c1e2f]">▣</span>Nível Académico</span>
+              <span class="inline-flex items-center gap-2"><span class="text-[#5c1e2f]">◷</span>25 Minutos</span>
+              <span class="inline-flex items-center gap-2"><span class="text-[#5c1e2f]">▤</span>15 Questões</span>
+            </div>
+            <div class="mt-8">
+              @if (auth.isAuthenticated()) {
+                <a [routerLink]="[featuredQuiz().id, 'play']" class="inline-flex h-11 items-center justify-center rounded-[2px] bg-[#5c1e2f] px-7 text-[12px] font-extrabold text-white transition hover:bg-[#40081a]">
+                  Começar Avaliação →
+                </a>
+              } @else {
+                <button type="button" class="inline-flex h-11 items-center justify-center rounded-[2px] bg-[#5c1e2f] px-7 text-[12px] font-extrabold text-white transition hover:bg-[#40081a]" (click)="auth.requireLoginFor('fazer quiz')">
+                  Começar Avaliação →
+                </button>
+              }
+            </div>
           </div>
 
-          <aside class="rounded-[8px] border border-[#d8c1c4]/60 bg-white p-5">
-            <div class="flex items-center justify-between gap-4">
-              <div>
-                <h2 class="font-display text-[20px] font-bold text-[#40081a]">Ranking</h2>
-                <p class="mt-1 text-[12px] text-[#6f686b]">Melhores pontuações da semana</p>
-              </div>
-              <span class="grid size-10 place-items-center rounded-[100%] bg-[#5c1e2f] text-[14px] font-bold text-white">#</span>
-            </div>
-            <ol class="mt-5 grid gap-3">
-              @for (row of ranking; track row.position) {
-                <li class="flex items-center justify-between gap-3 rounded-[8px] bg-[#f7f8f8] px-4 py-3">
-                  <span class="flex min-w-0 items-center gap-3">
-                    <strong class="grid size-7 place-items-center rounded-[100%] bg-[#f1d8df] text-[11px] text-[#5c1e2f]">{{ row.position }}</strong>
-                    <span class="min-w-0">
-                      <span class="block truncate text-[13px] font-bold text-[#2c2729]">{{ row.name }}</span>
-                      <span class="text-[11px] text-[#7a7276]">{{ row.streak }} dias de sequência</span>
-                    </span>
-                  </span>
-                  <strong class="text-[12px] text-[#735c00]">{{ row.xp }} XP</strong>
-                </li>
-              }
-            </ol>
-          </aside>
+          <figure class="min-h-[320px] bg-[#d7d2c5] p-3 lg:min-h-[430px]">
+            <img
+              src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1200&q=80"
+              alt="Plantação de café"
+              class="h-full w-full object-cover"
+            />
+          </figure>
         </section>
 
-        <section class="mt-8 grid justify-items-center gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:gap-5">
-          @for (quiz of quizService.quizzes(); track quiz.id) {
-            <article class="grid h-[368px] w-full max-w-[311px] rounded-[8px] border border-[#ded7da] bg-white p-4 shadow-[0_1px_2px_rgba(22,19,21,0.03)]">
-              <div>
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="rounded-[4px] bg-[#d4af37] px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.08em] text-[#5c1e2f]">{{ quiz.difficulty }}</span>
-                  <span class="text-[11px] font-bold text-[#735c00]">{{ quiz.xp }} XP</span>
-                  <span class="text-[11px] text-[#7a7276]">{{ quiz.estimatedMinutes }} min</span>
+        <section class="mt-8">
+          <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 class="font-display text-[22px] font-extrabold text-[#40081a]">Avaliações Académicas</h2>
+              <p class="mt-1 text-[12px] text-[#6f686b]">Teste os seus conhecimentos com rigor a nossas metodologias.</p>
+            </div>
+
+            <label class="relative w-full md:w-[300px]">
+              <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-[#8a8587]">⌕</span>
+              <input
+                type="search"
+                class="h-9 w-full rounded-[2px] border border-[#ded7da] bg-white pl-9 pr-3 text-[11px] text-[#2c2729] outline-none transition placeholder:text-[#8a8587] focus:border-[#8a4055] focus:ring-2 focus:ring-[#f1d8df]"
+                placeholder="Procurar temas ou tópicos..."
+                [value]="searchTerm()"
+                (input)="searchTerm.set($any($event.target).value)"
+              />
+            </label>
+          </div>
+
+          <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            @for (quiz of filteredQuizzes(); track quiz.title) {
+              <article class="flex min-h-[292px] flex-col rounded-[2px] border border-[#ded7da] bg-white shadow-[0_1px_2px_rgba(22,19,21,0.03)] transition hover:-translate-y-0.5 hover:shadow-lg">
+                <div class="border-t-4 border-[#d4af37] px-6 pb-5 pt-4" [class.border-[#2a9d8f]]="quiz.accent === 'green'" [class.border-[#8a4055]]="quiz.accent === 'wine'">
+                  <div class="flex items-start justify-between gap-4">
+                    <span class="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#735c00]">{{ quiz.area }}</span>
+                    <span class="text-[12px] text-[#6f686b]">{{ quiz.level }}</span>
+                  </div>
+
+                  <div class="mt-4 grid size-10 place-items-center rounded-[4px] bg-[#f7edef] text-[18px] text-[#5c1e2f]">{{ quiz.icon }}</div>
+
+                  <h3 class="mt-4 min-h-[54px] font-display text-[21px] font-extrabold leading-tight text-[#40081a]">{{ quiz.title }}</h3>
+                  <p class="mt-3 line-clamp-2 min-h-[48px] text-[13px] leading-6 text-[#5f575b]">{{ quiz.summary }}</p>
+
+                  <div class="mt-4">
+                    <div class="h-2 overflow-hidden rounded-full bg-[#ece8ea]">
+                      <span class="block h-full rounded-full bg-[#2a9d8f]" [style.width.%]="quiz.progress"></span>
+                    </div>
+                    <div class="mt-2 flex justify-between text-[11px] text-[#8a8587]">
+                      <span>Progresso Atual</span>
+                      <span>{{ quiz.progress }}%</span>
+                    </div>
+                  </div>
                 </div>
-                <h2 class="mt-3 font-display text-[19px] font-extrabold leading-tight text-[#5c1e2f]">{{ quiz.title }}</h2>
-                <p class="mt-2 line-clamp-2 text-[12px] leading-5 text-[#5f575b]">{{ quiz.summary }}</p>
-              </div>
 
-              <div class="mt-4 rounded-[8px] border border-[#ece8ea] bg-[#f7f8f8] p-3">
-                <p class="text-[10px] font-bold uppercase tracking-[0.12em] text-[#8a8587]">Conteúdo relacionado</p>
-                <a [routerLink]="quiz.relatedContent.route" class="mt-1 block font-display text-[14px] font-bold leading-snug text-[#40081a] hover:underline">
-                  {{ quiz.relatedContent.title }}
-                </a>
-                <p class="mt-1 text-[11px] text-[#735c00]">{{ quiz.relatedContent.category }}</p>
-              </div>
+                <div class="mt-auto flex items-center justify-between gap-3 border-t border-[#f0ecee] px-6 py-4">
+                  <span class="text-[12px] text-[#6f686b]">▦ {{ quiz.questions }} Perguntas</span>
 
-              <div class="mt-auto flex flex-wrap gap-2 pt-4">
-                <a [routerLink]="quiz.relatedContent.route" class="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#d8c1c4] px-3 text-[12px] font-bold text-[#5c1e2f]">
-                  Ler conteúdo
-                </a>
+                  @if (auth.isAuthenticated()) {
+                    <a [routerLink]="[quiz.quizId, 'play']" class="text-[12px] font-extrabold text-[#5c1e2f] hover:underline">{{ quiz.action }} →</a>
+                  } @else {
+                    <button type="button" class="text-[12px] font-extrabold text-[#5c1e2f] hover:underline" (click)="auth.requireLoginFor('fazer quiz')">{{ quiz.action }} →</button>
+                  }
+                </div>
+              </article>
+            } @empty {
+              <article class="rounded-[8px] border border-dashed border-[#ded7da] bg-white p-8 text-center md:col-span-2 xl:col-span-3">
+                <h3 class="font-display text-[18px] font-extrabold text-[#40081a]">Nenhum quiz encontrado</h3>
+                <p class="mt-2 text-[13px] text-[#6f686b]">Experimente procurar por outro tema ou dificuldade.</p>
+              </article>
+            }
 
-                @if (auth.isAuthenticated()) {
-                  <a [routerLink]="[quiz.id, 'play']" class="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-4 text-[12px] font-bold text-white">
-                    Fazer quiz
-                  </a>
-                } @else {
-                  <button type="button" class="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-4 text-[12px] font-bold text-white" (click)="auth.requireLoginFor('fazer quiz')">
-                    Fazer quiz
-                  </button>
-                }
+            <article class="grid min-h-[292px] place-items-center rounded-[2px] border border-dashed border-[#cfc7cb] bg-white p-6 text-center">
+              <div>
+                <div class="mx-auto grid size-12 place-items-center text-[34px] text-[#c8c2c5]">⌂</div>
+                <h3 class="mt-3 font-display text-[18px] font-extrabold text-[#c8c2c5]">Novas Avaliações</h3>
+                <p class="mt-1 text-[13px] leading-5 text-[#b0aaad]">Disponíveis em Breve</p>
+                <p class="mt-1 text-[12px] text-[#c8c2c5]">Próximos temas: A Era do Petróleo</p>
               </div>
             </article>
-          }
+          </div>
         </section>
       </main>
 
@@ -97,15 +133,87 @@ import { PublicNavbarComponent } from '../../../shared/public-navbar/public-navb
 export class QuizzesPage {
   readonly quizService = inject(QuizService);
   readonly auth = inject(AuthStateService);
+  readonly searchTerm = signal('');
 
-  readonly ranking = [
-    { position: 1, name: 'Marta Ribeiro', xp: 2480, streak: 18 },
-    { position: 2, name: 'João Santos', xp: 2310, streak: 15 },
-    { position: 3, name: 'Ana Paula', xp: 2195, streak: 12 },
-    { position: 4, name: 'Carlos Bumba', xp: 1980, streak: 9 },
+  readonly quizCards = [
+    {
+      quizId: 'reino-kongo',
+      area: 'História Imperial',
+      level: 'Intermédio',
+      icon: '♜',
+      title: 'O Reino do Congo e a Diplomacia Europeia',
+      summary: 'Analise duas instituições diplomáticas entre a corte do Manicongo e as potências europeias.',
+      progress: 40,
+      questions: 12,
+      action: 'Continuar',
+      accent: 'green',
+    },
+    {
+      quizId: 'angola-mercados',
+      area: 'Macroeconomia',
+      level: 'Avançado',
+      icon: '▣',
+      title: 'Políticas Monetárias no Pós-Independência',
+      summary: 'Estude sobre a transição cambial e a estabilização do Kwanza nos primeiros anos.',
+      progress: 0,
+      questions: 20,
+      action: 'Iniciar',
+      accent: 'wine',
+    },
+    {
+      quizId: 'cafe-dende',
+      area: 'Sociedade & Economia',
+      level: 'Iniciante',
+      icon: '♟',
+      title: 'Demografia e Mercados Locais',
+      summary: 'Como os movimentos migratórios internos moldaram o comércio informal e as redes de troca.',
+      progress: 100,
+      questions: 0,
+      action: 'Rever',
+      accent: 'green',
+    },
+    {
+      quizId: 'cafe-dende',
+      area: 'História Económica',
+      level: 'Intermédio',
+      icon: '✦',
+      title: 'O Caminho de Ferro de Benguela',
+      summary: 'O impacto do CFB na estrutura mineira do Katanga e no desenvolvimento regional do Lobito.',
+      progress: 15,
+      questions: 18,
+      action: 'Continuar',
+      accent: 'green',
+    },
+    {
+      quizId: 'reino-kongo',
+      area: 'Instituições',
+      level: 'Avançado',
+      icon: '▥',
+      title: 'Arquitetura das Instituições Coloniais',
+      summary: 'Exame crítico sobre a formação do aparelho administrativo e seu legado na governança.',
+      progress: 0,
+      questions: 25,
+      action: 'Iniciar',
+      accent: 'wine',
+    },
   ];
-}
 
+  readonly featuredQuiz = computed(() => this.quizService.quizzes()[1] ?? this.quizService.quizzes()[0]);
+  readonly filteredQuizzes = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+
+    if (!term) {
+      return this.quizCards;
+    }
+
+    return this.quizCards.filter((quiz) =>
+      [quiz.title, quiz.summary, quiz.area, quiz.level]
+        .join(' ')
+        .toLowerCase()
+        .includes(term),
+    );
+  });
+}
 @Component({
   selector: 'app-quiz-play-page',
   imports: [RouterLink],

@@ -89,7 +89,7 @@ export class ContentService {
     {
       id: '3',
       title: 'Textos com Jindungo: petroleo e soberania',
-      excerpt: 'Analise premium com contexto, dados e perguntas para debate.',
+      excerpt: 'Análise premium com contexto, dados e perguntas para debate.',
       type: 'jindungo',
       status: 'published',
       author: 'Jindungo Lab',

@@ -1,0 +1,92 @@
+    <section class="admin-map" aria-label="Mapa administrativo economico-histórico de Angola">
+      <aside class="panel">
+        <div class="search">
+          <span>{{ selectedArea().name }}</span>
+          <span class="material-symbols-outlined" aria-hidden="true">search</span>
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </div>
+
+        <div class="panel-body">
+          <p>{{ selectedArea().level }} / Angola</p>
+          <h2>{{ selectedArea().name }}</h2>
+
+          <div class="actions">
+            @for (action of actions; track action.label) {
+              <button type="button">
+                <span class="material-symbols-outlined" aria-hidden="true">{{ action.icon }}</span>
+                {{ action.label }}
+              </button>
+            }
+          </div>
+
+          <section>
+            <h3>Interesse economico</h3>
+            <p>{{ selectedArea().economy }}</p>
+          </section>
+
+          <section>
+            <h3>Interesse histórico</h3>
+            <p>{{ selectedArea().history }}</p>
+          </section>
+
+          <section>
+            <h3>Informacoes sobre o local</h3>
+            <p>{{ selectedArea().localInfo }}</p>
+          </section>
+
+          <section>
+            <h3>{{ nextLevelTitle() }}</h3>
+            <div class="list">
+              @for (area of childAreas(); track area.id) {
+                <button type="button" (click)="selectArea(area.id)">
+                  <strong>{{ area.name }}</strong>
+                  <span>{{ area.level }}</span>
+                </button>
+              }
+            </div>
+          </section>
+        </div>
+      </aside>
+
+      <div class="map-board">
+        <svg viewBox="0 0 1000 1160" role="img" aria-label="Mapa administrativo de Angola por províncias">
+          <g [attr.transform]="mapTransform()">
+            @for (province of provinces; track province.id) {
+              <polygon
+                class="province"
+                [class.active]="isInSelectedPath(province.id)"
+                [attr.points]="province.points"
+                (click)="selectArea(province.id)"
+              />
+            }
+
+            @for (province of provinces; track province.id) {
+              <text class="province-label" [attr.x]="province.x" [attr.y]="province.y" (click)="selectArea(province.id)">
+                {{ province.name }}
+              </text>
+            }
+
+            @for (area of visibleSubAreas(); track area.id) {
+              <g class="sub-area" [class.active]="selectedArea().id === area.id" (click)="selectArea(area.id)">
+                <circle [attr.cx]="area.x" [attr.cy]="area.y" [attr.r]="area.level === 'Avenida' ? 6 : 9" />
+                <text [attr.x]="area.x + 14" [attr.y]="area.y + 5">{{ area.name }}</text>
+              </g>
+            }
+          </g>
+        </svg>
+
+        <div class="zoom-control" aria-label="Controlos do mapa">
+          <button type="button" (click)="zoomIn()" aria-label="Aumentar zoom">
+            <span class="material-symbols-outlined" aria-hidden="true">add</span>
+          </button>
+          <button type="button" (click)="zoomOut()" aria-label="Reduzir zoom">
+            <span class="material-symbols-outlined" aria-hidden="true">remove</span>
+          </button>
+          <button type="button" (click)="resetMap()" aria-label="Ver Angola">
+            <span class="material-symbols-outlined" aria-hidden="true">public</span>
+          </button>
+        </div>
+
+        <div class="zoom-level">{{ zoomDescription() }}</div>
+      </div>
+    </section>

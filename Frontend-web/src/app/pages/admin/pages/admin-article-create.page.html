@@ -1,0 +1,195 @@
+<app-admin-console-shell activeItem="contents">
+  <main class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_350px]">
+    <section class="min-w-0 rounded-[8px] border border-[#ece7ea] bg-white px-8 py-6 shadow-[0_18px_45px_rgba(27,22,30,0.05)] max-md:px-5">
+      <header class="flex flex-wrap items-start justify-between gap-6">
+        <div>  
+          <h1 class="mt-2 font-display text-[28px] font-extrabold leading-tight text-[#4a1425]">Novo artigo</h1>
+        </div>
+        <ol class="flex flex-wrap gap-2 text-[11px] font-bold text-[#8a8587]">
+          @for (step of steps; track step.value) {
+            <li
+              class="inline-flex h-9 items-center gap-2 rounded-[999px] border px-3"
+              [class.border-[#8a1238]]="currentStep() === step.value"
+              [class.bg-[#f7edef]]="currentStep() === step.value"
+              [class.text-[#8a1238]]="currentStep() === step.value"
+              [class.border-[#eadfe3]]="currentStep() !== step.value"
+              [class.bg-white]="currentStep() !== step.value"
+            >
+              <span class="grid size-5 place-items-center rounded-full border border-current text-[10px]">{{ step.value }}</span>
+              {{ step.title }}
+            </li>
+          }
+        </ol>
+      </header>
+
+      <form class="mt-7 grid gap-5" (submit)="$event.preventDefault()">
+        @if (currentStep() === 1) {
+          <section class="rounded-[8px] border border-[#e5dde2] bg-white p-5">
+            <h2 class="flex items-center gap-3 text-[18px] font-extrabold text-[#8a1238]">
+              <span class="material-symbols-outlined" aria-hidden="true">article</span>
+              Dados principais
+            </h2>
+
+            <label class="mt-6 grid gap-2">
+              <span class="text-[13px] font-bold text-[#554d57]">Título do artigo <b class="text-[#c43f58]">*</b></span>
+              <input type="text" placeholder="Ex: A Evolução do Comércio no Reino do Kongo" maxlength="100" [value]="title()" (input)="setTitle($event)" class="h-12 rounded-[8px] border border-[#ded8dd] bg-white px-4 text-[14px] text-[#2c2729] outline-none placeholder:text-[#9a949d] focus:border-[#9b1640]" />
+              <span class="-mt-1 text-right text-[12px] text-[#89828b]">{{ title().length }}/100</span>
+            </label>
+
+            <label class="mt-4 grid gap-2">
+              <span class="text-[13px] font-bold text-[#554d57]">Resumo académico <b class="text-[#c43f58]">*</b></span>
+              <textarea placeholder="Síntese do objetivo, contexto histórico e conceitos económicos abordados..." maxlength="500" [value]="summary()" (input)="setSummary($event)" class="min-h-[120px] resize-y rounded-[8px] border border-[#ded8dd] bg-white px-4 py-3 text-[14px] leading-6 text-[#2c2729] outline-none placeholder:text-[#9a949d] focus:border-[#9b1640]"></textarea>
+              <span class="-mt-1 text-right text-[12px] text-[#89828b]">{{ summary().length }}/500</span>
+            </label>
+
+            <label class="mt-4 grid max-w-[360px] gap-2">
+              <span class="text-[13px] font-bold text-[#554d57]">Categoria <b class="text-[#c43f58]">*</b></span>
+              <select [value]="category()" (change)="setCategory($event)" class="h-11 rounded-[8px] border border-[#ded8dd] bg-white px-3 text-[13px] text-[#8a828b] outline-none focus:border-[#9b1640]">
+                <option>Selecione uma categoria</option>
+                <option>Economia</option>
+                <option>História</option>
+                <option>Textos com Jindungo</option>
+              </select>
+            </label>
+          </section>
+        }
+
+        @if (currentStep() === 2) {
+          <section class="rounded-[8px] border border-[#e5dde2] bg-white p-5">
+            <h2 class="flex items-center gap-3 text-[18px] font-extrabold text-[#8a1238]">
+              <span class="material-symbols-outlined" aria-hidden="true">edit_square</span>
+              Conteúdo do artigo
+            </h2>
+
+            <div class="mt-5 overflow-hidden rounded-[8px] border border-[#ded8dd] bg-white">
+              <div class="flex min-h-11 flex-wrap items-center gap-4 border-b border-[#ebe5e8] px-4 text-[14px] text-[#4f4852]">
+                <select aria-label="Estilo de texto" class="h-8 bg-transparent text-[13px] outline-none">
+                  <option>Normal</option>
+                  <option>Título</option>
+                  <option>Citação</option>
+                </select>
+                <button type="button" class="grid size-7 place-items-center font-extrabold" aria-label="Negrito">B</button>
+                <button type="button" class="grid size-7 place-items-center italic" aria-label="Itálico">I</button>
+                <button type="button" class="grid size-7 place-items-center underline" aria-label="Sublinhado">U</button>
+                <button type="button" class="grid size-7 place-items-center" aria-label="Lista"><span class="material-symbols-outlined">format_list_bulleted</span></button>
+                <button type="button" class="grid size-7 place-items-center" aria-label="Alinhar"><span class="material-symbols-outlined">format_align_left</span></button>
+                <button type="button" class="grid size-7 place-items-center" aria-label="Link"><span class="material-symbols-outlined">link</span></button>
+                <button type="button" class="grid size-7 place-items-center" aria-label="Imagem"><span class="material-symbols-outlined">image</span></button>
+                <button type="button" class="grid size-7 place-items-center" aria-label="Citação">&rdquo;</button>
+              </div>
+              <textarea [value]="body()" (input)="setBody($event)" class="min-h-[340px] w-full resize-y border-0 px-4 py-4 text-[15px] leading-7 text-[#2c2729] outline-none" placeholder="Escreva o conteúdo aqui..."></textarea>
+            </div>
+          </section>
+        }
+
+        @if (currentStep() === 3) {
+          <section class="rounded-[8px] border border-[#e5dde2] bg-white p-5">
+            <h2 class="text-[18px] font-extrabold text-[#8a1238]">Capa do artigo</h2>
+            <p class="mt-2 text-[13px] leading-6 text-[#69616a]">Escolha a imagem que será apresentada na listagem e na abertura do artigo.</p>
+
+            <input #coverInput type="file" accept="image/png,image/jpeg,image/jpg" class="hidden" (change)="onCoverSelected($event)" />
+
+            <button type="button" (click)="coverInput.click()" class="mt-5 min-h-[300px] w-full overflow-hidden rounded-[8px] border border-dashed border-[#cfc7ce] bg-white">
+              @if (coverPreview()) {
+                <img [src]="coverPreview()!" alt="Capa selecionada" class="h-[300px] w-full object-cover" />
+              } @else {
+                <div class="grid min-h-[300px] place-items-center text-center">
+                  <span>
+                    <span class="material-symbols-outlined mx-auto grid size-12 place-items-center text-[34px] text-[#85808a]" aria-hidden="true">cloud_upload</span>
+                    <small class="mt-3 block text-[13px] font-semibold text-[#817982]">Arraste ou clique para carregar</small>
+                    <small class="mt-1 block text-[12px] text-[#958e97]">PNG, JPG até 5MB</small>
+                    <small class="mt-1 block text-[12px] text-[#958e97]">Recomendado: 16:9</small>
+                  </span>
+                </div>
+              }
+            </button>
+          </section>
+        }
+
+        @if (currentStep() === 4) {
+          <section class="rounded-[8px] border border-[#e5dde2] bg-white p-5">
+            <h2 class="text-[18px] font-extrabold text-[#8a1238]">Acesso ao artigo</h2>
+            <p class="mt-2 text-[13px] leading-6 text-[#69616a]">Defina se o artigo fica disponível para todos os leitores ou reservado.</p>
+
+            <div class="mt-5 grid gap-4 md:grid-cols-2">
+              <label class="flex min-h-[120px] cursor-pointer items-start gap-4 rounded-[8px] border p-5" [class.border-[#8a1238]]="visibility() === 'publico'" [class.bg-[#fff8fa]]="visibility() === 'publico'" [class.border-[#eadfe3]]="visibility() !== 'publico'">
+                <input type="radio" name="visibility" [checked]="visibility() === 'publico'" (change)="visibility.set('publico')" class="mt-1 size-4 accent-bordeaux" />
+                <span>
+                  <strong class="flex items-center gap-2 text-[15px] text-[#4a1425]"><span class="material-symbols-outlined" aria-hidden="true">public</span> Público</strong>
+                  <small class="mt-2 block text-[12px] leading-5 text-[#69616a]">Todos os visitantes podem ler o artigo depois da publicação.</small>
+                </span>
+              </label>
+
+              <label class="flex min-h-[120px] cursor-pointer items-start gap-4 rounded-[8px] border p-5" [class.border-[#8a1238]]="visibility() === 'privado'" [class.bg-[#fff8fa]]="visibility() === 'privado'" [class.border-[#eadfe3]]="visibility() !== 'privado'">
+                <input type="radio" name="visibility" [checked]="visibility() === 'privado'" (change)="visibility.set('privado')" class="mt-1 size-4 accent-bordeaux" />
+                <span>
+                  <strong class="flex items-center gap-2 text-[15px] text-[#4a1425]"><span class="material-symbols-outlined" aria-hidden="true">lock</span> Privado</strong>
+                  <small class="mt-2 block text-[12px] leading-5 text-[#69616a]">Apenas a equipa editorial poderá consultar o artigo.</small>
+                </span>
+              </label>
+            </div>
+          </section>
+        }
+
+        @if (currentStep() === 5) {
+          <section class="rounded-[8px] border border-[#f3ddbf] bg-[#fff5e8] p-6 text-[#6f3d12]">
+            <h2 class="flex items-center gap-2 text-[18px] font-extrabold">
+              <span class="material-symbols-outlined" aria-hidden="true">lightbulb</span>
+              Antes de publicar
+            </h2>
+            <p class="mt-3 text-[13px] leading-6 text-[#68451e]">Revise o seu conteúdo antes de publicar para garantir a melhor qualidade.</p>
+
+            <div class="mt-5 rounded-[8px] border border-[#eadfe3] bg-white p-5 text-[#534345]">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <h3 class="font-display text-[22px] font-extrabold text-[#4a1425]">{{ previewTitle() }}</h3>
+                <span class="rounded-[999px] bg-[#fbfaf7] px-3 py-1 text-[11px] font-extrabold uppercase text-[#735c00]">{{ visibility() === 'publico' ? 'Público' : 'Privado' }}</span>
+              </div>
+              <p class="mt-3 text-[13px] leading-6 text-[#69616a]">{{ previewSummary() }}</p>
+              <div class="mt-4 flex flex-wrap gap-2">
+                <span class="rounded-[999px] bg-[#f7edef] px-3 py-1 text-[11px] font-bold text-[#8a1238]">{{ categoryLabel() }}</span>
+                <span class="rounded-[999px] bg-[#f7edef] px-3 py-1 text-[11px] font-bold text-[#8a1238]">{{ coverUploaded() ? 'Capa definida' : 'Sem capa' }}</span>
+                <span class="rounded-[999px] bg-[#f7edef] px-3 py-1 text-[11px] font-bold text-[#8a1238]">{{ status() }}</span>
+              </div>
+            </div>
+
+            @if (showPreview()) {
+              <article class="mt-5 rounded-[8px] border border-[#eadfe3] bg-white p-5 text-[#534345]">
+                <h3 class="font-display text-[24px] font-extrabold text-[#4a1425]">{{ previewTitle() }}</h3>
+                <p class="mt-3 text-[13px] leading-6">{{ previewSummary() }}</p>
+                <p class="mt-4 whitespace-pre-line text-[14px] leading-7">{{ body() || 'O conteúdo do artigo aparecerá aqui.' }}</p>
+              </article>
+            }
+
+            <div class="mt-5 grid gap-3 sm:grid-cols-3">
+              <button type="button" (click)="togglePreview()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#9b1640] bg-white px-4 text-[14px] font-extrabold text-[#9b1640]">
+                <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+                {{ showPreview() ? 'Ocultar preview' : 'Pré-visualizar' }}
+              </button>
+              <button type="button" (click)="saveDraft()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#9b1640] bg-white px-4 text-[14px] font-extrabold text-[#9b1640]">
+                <span class="material-symbols-outlined" aria-hidden="true">save</span>
+                Guardar rascunho
+              </button>
+              <button type="button" (click)="publish()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] bg-[#8a1238] px-4 text-[14px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.22)]">
+                <span class="material-symbols-outlined" aria-hidden="true">publish</span>
+                Publicar artigo
+              </button>
+            </div>
+          </section>
+        }
+
+        <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-[#efe8eb] pt-5">
+          <button type="button" (click)="previousStep()" [disabled]="currentStep() === 1" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#d8cfd3] bg-white px-5 text-[13px] font-extrabold text-[#6f686b] disabled:cursor-not-allowed disabled:opacity-45">
+            Anterior
+          </button>
+
+          @if (currentStep() < steps.length) {
+            <button type="button" (click)="nextStep()" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#8a1238] px-6 text-[13px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.18)]">
+              Seguinte
+            </button>
+          }
+        </footer>
+      </form>
+    </section>
+
+  </main>
+</app-admin-console-shell>

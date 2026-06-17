@@ -1,0 +1,147 @@
+<main class="grid min-h-dvh bg-[#d8dade] text-[#4d5054] lg:grid-cols-2">
+  <app-auth-side-panel />
+  <section
+    class="hidden"
+    aria-label="Economia com História Angola"
+  >
+    <img
+      src="https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?auto=format&fit=crop&w=1300&q=80"
+      alt="Documento histórico em ambiente académico"
+      class="absolute inset-0 h-full w-full scale-105 object-cover opacity-[0.24] blur-[1px] grayscale transition duration-700"
+    />
+    <div class="absolute inset-0 bg-[#5C1E2F]/88"></div>
+    <div class="absolute inset-0 bg-[linear-gradient(135deg,rgba(28,7,15,0.68)_0%,rgba(92,30,47,0.72)_52%,rgba(34,9,18,0.82)_100%)]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(255,255,255,0.12)_0%,rgba(92,30,47,0.04)_31%,rgba(20,5,11,0.62)_100%)]"></div>
+
+    <svg class="absolute inset-x-0 top-[22%] h-[42%] w-full text-white/10" viewBox="0 0 900 310" fill="none" aria-hidden="true">
+      <path d="M0 185C62 162 93 210 152 178C212 146 237 92 303 112C369 132 375 209 445 188C515 166 528 87 605 107C682 127 696 193 761 172C827 151 844 113 900 128" stroke="currentColor" stroke-width="2" />
+      <path d="M0 222H900M0 260H900M0 144H900" stroke="currentColor" stroke-width="1" />
+      <path d="M82 250V196M126 250V167M170 250V213M214 250V130M258 250V184M704 250V154M748 250V120M792 250V180M836 250V145" stroke="currentColor" stroke-width="8" />
+    </svg>
+
+    <svg class="absolute left-1/2 top-1/2 h-[300px] w-[260px] -translate-x-1/2 -translate-y-[58%] text-white/18 drop-shadow-2xl" viewBox="0 0 240 300" fill="none" aria-hidden="true">
+      <path
+        d="M106 11L135 28L147 55L171 70L166 94L188 118L181 145L198 172L174 190L177 220L148 231L133 271L99 252L78 269L56 244L63 211L43 190L50 162L34 136L49 111L43 82L70 65L82 35L106 11Z"
+        fill="currentColor"
+      />
+      <path
+        d="M106 11L135 28L147 55L171 70L166 94L188 118L181 145L198 172L174 190L177 220L148 231L133 271L99 252L78 269L56 244L63 211L43 190L50 162L34 136L49 111L43 82L70 65L82 35L106 11Z"
+        stroke="white"
+        stroke-opacity=".35"
+        stroke-width="2"
+      />
+    </svg>
+
+    <div class="absolute left-0 right-0 top-[33%] h-px bg-white/10"></div>
+    <div class="absolute left-0 right-0 bottom-[26%] h-px bg-white/8"></div>
+
+    <div class="relative z-10 flex max-w-[430px] animate-[fadeIn_.7s_ease-out] flex-col items-center px-8 text-center">
+      <p class="font-display mb-3 text-[10px] font-bold uppercase tracking-[0.32em] text-[#D4AF37]">Angola</p>
+      <h1 class="font-display max-w-[370px] text-[38px] font-extrabold leading-[1.02] tracking-normal text-white">
+        Economia com História
+      </h1>
+      <p class="mt-11 max-w-[365px] font-sans text-[13px] font-normal leading-6 text-white/82">
+        A excelência académica e o rigor histórico unidos para transformar a compreensão económica do nosso país.
+      </p>
+    </div>
+
+    <div class="absolute bottom-16 left-1/2 flex -translate-x-1/2 items-center gap-4 text-white/40">
+      <span class="h-px w-11 bg-white/25"></span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M4 21h16M5 10h14M7 10v8M11 10v8M15 10v8M19 10v8M3 8l9-5 9 5H3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <span class="h-px w-11 bg-white/25"></span>
+    </div>
+  </section>
+
+  <section class="flex min-h-dvh items-center justify-center bg-[#ffffff] px-6 py-10 sm:px-10">
+    <div class="w-full max-w-[420px] animate-[fadeUp_.55s_ease-out]">
+      <header class="mb-10 text-center">
+        <img src="/auth-logo.png" alt="Economia com História" class="mx-auto mb-7 h-[54px] w-auto" />
+        <h2 class="font-display text-[21px] font-semibold leading-[1.45] tracking-[0.10em] text-[#8A4055]">
+          Bem-vindo à<br />Economia com História
+        </h2>
+      </header>
+
+      <p class="mb-8 text-center font-sans text-[12px] font-normal text-[#777]">
+        Introduza as suas credenciais para aceder à plataforma.
+      </p>
+
+      <form class="grid gap-5" aria-label="Entrar na plataforma" [formGroup]="form" (ngSubmit)="submit()">
+        @if (errorMessage()) {
+          <p class="rounded-[7px] border border-[#f2b8b5] bg-[#fff5f5] px-4 py-3 text-[11px] font-medium text-[#b42318]">
+            {{ errorMessage() }}
+          </p>
+        }
+
+        <label class="grid gap-2 font-sans text-[12px] font-medium text-[#555]">
+          Endereço de e-mail
+          <input
+            formControlName="email"
+            class="h-[46px] rounded-[7px] border bg-white px-4 font-sans text-[12px] font-normal text-[#333] outline-none transition duration-200 placeholder:text-[#c8c8c8] focus:border-[#5C1E2F] focus:ring-4 focus:ring-[#5C1E2F]/10"
+            [class.border-[#d9d9d9]]="!emailInvalid()"
+            [class.border-[#b42318]]="emailInvalid()"
+            [class.bg-[#fffafa]]="emailInvalid()"
+            type="email"
+            placeholder="exemplo@email.co"
+            autocomplete="email"
+          />
+          @if (emailInvalid()) {
+            <span class="text-[10px] font-medium text-[#b42318]">Insira um e-mail válido.</span>
+          }
+        </label>
+
+        <label class="grid gap-2 font-sans text-[12px] font-medium text-[#555]">
+          <span class="flex items-center justify-between gap-3">
+            Palavra-passe
+            <a routerLink="/auth/forgot-password" class="text-[9px] font-semibold text-[#8A3047] transition hover:text-[#5C1E2F] hover:underline">
+              Esqueci a palavra-passe
+            </a>
+          </span>
+          <input
+            formControlName="password"
+            class="h-[46px] rounded-[7px] border bg-white px-4 font-sans text-[12px] font-normal text-[#333] outline-none transition duration-200 placeholder:text-[#c8c8c8] focus:border-[#5C1E2F] focus:ring-4 focus:ring-[#5C1E2F]/10"
+            [class.border-[#d9d9d9]]="!passwordInvalid()"
+            [class.border-[#b42318]]="passwordInvalid()"
+            [class.bg-[#fffafa]]="passwordInvalid()"
+            type="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+          />
+          @if (passwordInvalid()) {
+            <span class="text-[10px] font-medium text-[#b42318]">A palavra-passe deve ter pelo menos 8 caracteres.</span>
+          }
+        </label>
+
+        <label class="-mt-1 flex items-center gap-2 font-sans text-[11px] font-normal text-[#777]">
+          <input
+            formControlName="rememberMe"
+            type="checkbox"
+            class="size-3.5 rounded-[2px] border-[#d7c6cc] text-[#5C1E2F] transition focus:ring-2 focus:ring-[#5C1E2F]/20"
+          />
+          Lembrar-me
+        </label>
+
+        <button
+          type="submit"
+          class="mt-5 inline-flex h-[52px] items-center justify-center rounded-[7px] bg-[#5C1E2F] font-sans text-[12px] font-semibold text-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:bg-[#4d1727] hover:shadow-lg hover:shadow-[#5C1E2F]/18 focus:outline-none focus:ring-4 focus:ring-[#5C1E2F]/20 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-80"
+          [disabled]="isLoading()"
+        >
+          @if (isLoading()) {
+            <span class="mr-2 size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+            A entrar
+          } @else {
+            Entrar
+          }
+        </button>
+      </form>
+
+      <div class="my-10 h-px bg-[#e4e4e4]"></div>
+
+      <p class="text-center font-sans text-[11px] font-normal text-[#777]">
+        Ainda não tem uma conta?
+        <a routerLink="/auth/register" class="font-semibold text-[#7A2038] transition hover:text-[#5C1E2F] hover:underline">Criar conta</a>
+      </p>
+    </div>
+  </section>
+</main>

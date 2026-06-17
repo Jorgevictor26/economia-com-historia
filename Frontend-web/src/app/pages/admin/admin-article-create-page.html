@@ -1,0 +1,87 @@
+    <app-admin-console-shell activeItem="contents">
+      <main class="grid gap-0 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <section class="min-w-0">
+          <header class="border-b border-[#e3d4d8] px-8 py-7 text-center">
+            <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#735c00]">Criação de conteúdo</p>
+            <h1 class="mt-2 font-display text-[30px] font-extrabold text-[#5c1e2f]">Novo artigo académico</h1>
+            <p class="mx-auto mt-2 max-w-[620px] text-[14px] leading-6 text-[#534345]">
+              Publique conteúdos históricos e económicos com metadados editoriais, imagem de capa e controlo de visibilidade.
+            </p>
+          </header>
+
+          <form class="grid gap-0" (submit)="$event.preventDefault()">
+            <app-admin-editorial-section title="Dados principaís" icon="&#9635;" [bordered]="true">
+              <label class="grid gap-2">
+                <span class="text-[12px] font-semibold text-[#6f686b]">Título do artigo</span>
+                <input type="text" placeholder="Ex: A Evolução do Comércio no Reino do Kongo" class="h-12 border border-[#b8aeb2] px-4 text-[15px] text-[#2c2729] outline-none" />
+              </label>
+
+              <label class="grid gap-2">
+                <span class="text-[12px] font-semibold text-[#6f686b]">Resumo académico</span>
+                <textarea placeholder="Sintetize o objetivo, o contexto histórico e os conceitos económicos abordados..." class="min-h-[130px] resize-y border border-[#b8aeb2] px-4 py-3 text-[14px] leading-6 text-[#2c2729] outline-none"></textarea>
+              </label>
+
+              <div class="grid gap-4 md:grid-cols-3">
+                <label class="grid gap-2">
+                  <span class="text-[12px] font-semibold text-[#6f686b]">Categoria</span>
+                  <select class="h-11 border border-[#b8aeb2] bg-white px-3 text-[14px] outline-none">
+                    <option>Economia</option>
+                    <option>História</option>
+                    <option>Textos com Jindungo</option>
+                  </select>
+                </label>
+                <label class="grid gap-2">
+                  <span class="text-[12px] font-semibold text-[#6f686b]">Tipo</span>
+                  <select class="h-11 border border-[#b8aeb2] bg-white px-3 text-[14px] outline-none">
+                    <option>Artigo</option>
+                    <option>Ensaio</option>
+                    <option>Estudo de caso</option>
+                  </select>
+                </label>
+                <label class="grid gap-2">
+                  <span class="text-[12px] font-semibold text-[#6f686b]">Tempo de leitura</span>
+                  <input type="text" value="12 min" class="h-11 border border-[#b8aeb2] px-3 text-[14px] outline-none" />
+                </label>
+              </div>
+            </app-admin-editorial-section>
+
+            <app-admin-editorial-section title="Corpo editorial" icon="&#9998;">
+              <div class="border border-[#b8aeb2] bg-white">
+                <div class="flex min-h-11 items-center gap-4 border-b border-[#d8cfd3] px-4 text-[13px] text-[#5c1e2f]">
+                  <strong>B</strong><i>I</i><span>Lista</span><span>Citação</span>
+                </div>
+                <textarea placeholder="Escreva o conteúdo aqui..." class="min-h-[280px] w-full resize-y border-0 px-4 py-4 text-[15px] leading-7 text-[#2c2729] outline-none"></textarea>
+              </div>
+            </app-admin-editorial-section>
+          </form>
+        </section>
+
+        <aside class="grid content-start border-l border-[#e3d4d8] bg-[#fbfaf7] max-lg:border-l-0 max-lg:border-t">
+          <section class="border-b border-[#e3d4d8] px-6 py-6">
+            <h2 class="text-[12px] font-bold uppercase tracking-[0.16em] text-[#5c1e2f]">Imagem de capa</h2>
+            <button type="button" class="mt-4 grid min-h-[170px] w-full place-items-center border border-dashed border-[#b8aeb2] bg-white text-center">
+              <span>
+                <span class="mx-auto grid size-12 place-items-center text-[28px] text-[#8a4055]">⇪</span>
+                <strong class="mt-2 block text-[13px] text-[#5c1e2f]">Carregar imagem</strong>
+                <small class="mt-1 block text-[11px] text-[#8a8587]">PNG ou JPG até 5MB</small>
+              </span>
+            </button>
+          </section>
+
+          <section class="border-b border-[#e3d4d8] px-6 py-6">
+            <h2 class="text-[12px] font-bold uppercase tracking-[0.16em] text-[#5c1e2f]">Publicação</h2>
+            <div class="mt-4 grid gap-3 text-[13px] text-[#2c2729]">
+              <label class="flex items-center justify-between gap-4">Público <input type="radio" name="visibility" checked class="accent-bordeaux" /></label>
+              <label class="flex items-center justify-between gap-4">Jindungo <input type="radio" name="visibility" class="accent-bordeaux" /></label>
+              <label class="flex items-center justify-between gap-4">Privado <input type="radio" name="visibility" class="accent-bordeaux" /></label>
+            </div>
+          </section>
+
+          <section class="grid gap-3 px-6 py-6">
+            <button type="button" class="h-11 bg-[#5c1e2f] px-4 text-[13px] font-extrabold text-white">Publicar conteúdo</button>
+            <button type="button" class="h-11 border border-[#5c1e2f] bg-white px-4 text-[13px] font-extrabold text-[#5c1e2f]">Guardar rascunho</button>
+            <a routerLink="/admin" class="inline-flex h-10 items-center justify-center text-[13px] font-bold text-[#6f686b]">Cancelar</a>
+          </section>
+        </aside>
+      </main>
+    </app-admin-console-shell>

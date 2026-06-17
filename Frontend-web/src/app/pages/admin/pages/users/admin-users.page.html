@@ -1,0 +1,27 @@
+<app-admin-console-shell activeItem="users">
+  <section class="grid gap-8">
+    <header class="rounded-[22px] bg-[#f8f2ef] p-8 text-[#5c1e2f] shadow-sm">
+      <p class="text-[10px] uppercase tracking-[0.24em] text-[#8a8587]">Utilizadores</p>
+      <h1 class="mt-4 text-[34px] font-extrabold">Gestão de Utilizadores</h1>
+      <p class="mt-3 max-w-2xl text-[14px] leading-7 text-[#534345]">
+        Analise perfis, revise assinaturas e administre o acesso dos membros à plataforma.
+      </p>
+    </header>
+
+    <div class="grid gap-4">
+      @for (user of users; track user.email) {
+        <article class="rounded-[22px] border border-[#e8dde0] bg-white p-6 shadow-sm">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-[13px] font-semibold text-[#2c2729]">{{ user.name }}</p>
+              <p class="text-[12px] text-[#7a7276]">{{ user.email }} · {{ user.role }}</p>
+            </div>
+            <span class="rounded-full bg-[#f3edea] px-3 py-1 text-[12px] font-semibold text-[#9b4056]">
+              {{ user.status }}
+            </span>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+</app-admin-console-shell>

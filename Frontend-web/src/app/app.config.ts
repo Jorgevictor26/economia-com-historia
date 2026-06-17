@@ -1,9 +1,9 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+﻿import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { apiPrefixInterceptor } from './core/interceptors/api-prefix.interceptor';
+import { apiPrefixInterceptor } from './services/api-prefix.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -12,3 +12,4 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([apiPrefixInterceptor])),
   ],
 };
+

@@ -1,0 +1,201 @@
+<main class="grid min-h-dvh bg-[#d8dade] text-[#4d5054] lg:grid-cols-2">
+  <app-auth-side-panel />
+
+  <section class="flex min-h-dvh items-center justify-center bg-[#ffffff] px-6 py-10 sm:px-10">
+    <div class="w-full max-w-[430px] animate-[fadeUp_.55s_ease-out]">
+      <div class="step-progress" [class.is-pulsing]="completionPulse()" aria-hidden="true">
+        <span [class.is-active]="step() === 'account'" [class.is-complete]="step() !== 'account'"></span>
+        <span [class.is-active]="step() === 'photo'" [class.is-complete]="step() === 'bio'"></span>
+        <span [class.is-active]="step() === 'bio'"></span>
+      </div>
+
+      @if (feedbackMessage()) {
+        <p class="feedback-banner">{{ feedbackMessage() }}</p>
+      }
+
+      @if (step() === 'account') {
+        <header class="step-panel mb-8 text-center">
+          <img src="/auth-logo.png" alt="Economia com História" class="mx-auto mb-7 h-[54px] w-auto" />
+          <h2 class="font-display text-[21px] font-semibold leading-[1.45] tracking-[0.10em] text-[#8A4055]">
+            Bem-vindo à<br />Economia com História
+          </h2>
+        </header>
+
+        <p class="mb-7 text-center font-sans text-[12px] font-normal leading-5 text-[#777]">
+          Preencha os seus dados para iniciar a sua jornada académica.
+        </p>
+
+        <form class="step-panel grid gap-5" aria-label="Criar conta na plataforma" [formGroup]="form" (ngSubmit)="submit()">
+          <label class="grid gap-2 font-sans text-[12px] font-medium text-[#555]">
+            Nome completo
+            <input
+              formControlName="fullName"
+              class="auth-input"
+              [class.border-[#d9d9d9]]="!fullNameInvalid()"
+              [class.border-[#b42318]]="fullNameInvalid()"
+              [class.bg-[#fffafa]]="fullNameInvalid()"
+              type="text"
+              placeholder="Ex: Manuel dos Santos"
+              autocomplete="name"
+            />
+            @if (fullNameInvalid()) {
+              <span class="auth-error">Insira o seu nome completo.</span>
+            }
+          </label>
+
+          <label class="grid gap-2 font-sans text-[12px] font-medium text-[#555]">
+            Endereço de e-mail
+            <input
+              formControlName="email"
+              class="auth-input"
+              [class.border-[#d9d9d9]]="!emailInvalid()"
+              [class.border-[#b42318]]="emailInvalid()"
+              [class.bg-[#fffafa]]="emailInvalid()"
+              type="email"
+              placeholder="nome@exemplo.com"
+              autocomplete="email"
+            />
+            @if (emailInvalid()) {
+              <span class="auth-error">Insira um e-mail válido.</span>
+            }
+          </label>
+
+          <label class="grid gap-2 font-sans text-[12px] font-medium text-[#555]">
+            Palavra-passe
+            <input
+              formControlName="password"
+              class="auth-input"
+              [class.border-[#d9d9d9]]="!passwordInvalid()"
+              [class.border-[#b42318]]="passwordInvalid()"
+              [class.bg-[#fffafa]]="passwordInvalid()"
+              type="password"
+              placeholder="••••••••"
+              autocomplete="new-password"
+            />
+            @if (passwordInvalid()) {
+              <span class="auth-error">A palavra-passe deve ter pelo menos 8 caracteres.</span>
+            }
+          </label>
+
+          <label class="grid gap-2 font-sans text-[12px] font-medium text-[#555]">
+            Confirmar palavra-passe
+            <input
+              formControlName="confirmPassword"
+              class="auth-input"
+              [class.border-[#d9d9d9]]="!confirmPasswordInvalid()"
+              [class.border-[#b42318]]="confirmPasswordInvalid()"
+              [class.bg-[#fffafa]]="confirmPasswordInvalid()"
+              type="password"
+              placeholder="••••••••"
+              autocomplete="new-password"
+            />
+            @if (confirmPasswordInvalid()) {
+              <span class="auth-error">As palavras-passe não coincidem.</span>
+            }
+          </label>
+
+          <label class="-mt-1 flex items-center gap-2 font-sans text-[10px] font-normal text-[#777]">
+            <input
+              formControlName="acceptedTerms"
+              type="checkbox"
+              class="size-3.5 rounded-[2px] border-[#d7c6cc] text-[#5C1E2F] transition focus:ring-2 focus:ring-[#5C1E2F]/20"
+            />
+            <span>
+              Aceito os
+              <a href="#" class="font-semibold text-[#7A2038] transition hover:text-[#5C1E2F] hover:underline">Termos e Condições</a>
+              e a
+              <a href="#" class="font-semibold text-[#7A2038] transition hover:text-[#5C1E2F] hover:underline">Política de Privacidade</a>.
+            </span>
+          </label>
+          @if (termsInvalid()) {
+            <span class="-mt-4 text-[10px] font-medium text-[#b42318]">Aceite os termos para continuar.</span>
+          }
+
+          <button
+            type="submit"
+            class="mt-2 inline-flex h-[52px] items-center justify-center rounded-[7px] bg-[#5C1E2F] font-sans text-[12px] font-semibold text-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:bg-[#4d1727] hover:shadow-lg hover:shadow-[#5C1E2F]/18 focus:outline-none focus:ring-4 focus:ring-[#5C1E2F]/20 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-80"
+            [disabled]="isLoading()"
+          >
+            @if (isLoading()) {
+              <span class="mr-2 size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+              A criar conta
+            } @else {
+              Criar conta
+            }
+          </button>
+        </form>
+
+        <p class="mt-11 text-center font-sans text-[11px] font-normal text-[#777]">
+          Já tem uma conta?
+          <a routerLink="/auth/login" class="font-semibold text-[#7A2038] transition hover:text-[#5C1E2F] hover:underline">Entrar</a>
+        </p>
+      } @else if (step() === 'photo') {
+        <section class="onboarding-card step-panel" aria-labelledby="profile-photo-title">
+          <div class="step-avatar" aria-hidden="true">
+            @if (photoPreviewUrl()) {
+              <img [src]="photoPreviewUrl()" alt="" />
+            } @else {
+              <span>{{ initials() || 'EH' }}</span>
+            }
+          </div>
+
+          <h3 id="profile-photo-title">Adicione uma foto ao seu perfil</h3>
+          <p>A foto ajuda outros estudantes a reconhecerem a sua presença na comunidade.</p>
+
+          <label class="upload-control">
+            <span>{{ selectedPhotoName() || 'Nenhum arquivo selecionado' }}</span>
+            <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
+            <strong>Escolher foto</strong>
+          </label>
+          @if (photoInvalid()) {
+            <span class="auth-error">Escolha uma foto para avançar.</span>
+          }
+
+          <div class="onboarding-actions">
+            <button type="button" class="secondary-action" (click)="skipPhoto()">Pular</button>
+            <button type="button" class="primary-action" (click)="advanceFromPhoto()" [disabled]="isLoading()">Avançar</button>
+          </div>
+        </section>
+      } @else {
+        <section class="onboarding-card step-panel" aria-labelledby="profile-bio-title">
+          <div class="step-avatar" aria-hidden="true">
+            @if (photoPreviewUrl()) {
+              <img [src]="photoPreviewUrl()" alt="" />
+            } @else {
+              <span>{{ initials() || 'EH' }}</span>
+            }
+          </div>
+
+          <h3 id="profile-bio-title">Escreva uma biografia</h3>
+          <p>Conte brevemente os seus interesses em economia, história ou investigação.</p>
+
+          <form class="grid gap-4" [formGroup]="bioForm" (ngSubmit)="advanceFromBio()">
+            <label class="grid gap-2 font-sans text-[12px] font-medium text-[#555]">
+              Biografia
+              <textarea
+                formControlName="biography"
+                class="auth-textarea"
+                rows="5"
+                placeholder="Escreva pelo menos 20 caracteres."
+              ></textarea>
+            </label>
+            @if (biographyInvalid()) {
+              <span class="auth-error">Escreva uma biografia para avançar.</span>
+            }
+
+            <div class="onboarding-actions">
+              <button type="button" class="secondary-action" (click)="skipBiography()" [disabled]="isLoading()">Pular</button>
+              <button type="submit" class="primary-action" [disabled]="isLoading()">
+                @if (isLoading()) {
+                  A finalizar
+                } @else {
+                  Avançar
+                }
+              </button>
+            </div>
+          </form>
+        </section>
+      }
+    </div>
+  </section>
+</main>

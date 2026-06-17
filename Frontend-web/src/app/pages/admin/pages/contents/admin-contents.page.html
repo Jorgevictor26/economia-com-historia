@@ -1,0 +1,49 @@
+<app-admin-console-shell activeItem="contents">
+  <section class="grid gap-8">
+    <header class="rounded-[22px] bg-[#f8f2ef] p-8 text-[#5c1e2f] shadow-sm">
+      <p class="text-[10px] uppercase tracking-[0.24em] text-[#8a8587]">Conteúdos</p>
+      <h1 class="mt-4 text-[34px] font-extrabold">Administração de Conteúdo</h1>
+      <p class="mt-3 max-w-2xl text-[14px] leading-7 text-[#534345]">
+        Gerencie todas as publicações, crie novos artigos e organize conteúdos multimédia para a plataforma.
+      </p>
+    </header>
+
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <a routerLink="/admin/contents/create" class="rounded-[18px] border border-[#e8dde0] bg-white p-6 text-start shadow-sm hover:border-[#9b4056]">
+        <p class="text-[12px] uppercase tracking-[0.24em] text-[#8a8587]">Artigos</p>
+        <h2 class="mt-4 text-[20px] font-bold text-[#2c2729]">Criar artigo académico</h2>
+        <p class="mt-3 text-[13px] text-[#6f686b]">
+          Defina título, resumo, categoria e metadados editoriais para publicação.
+        </p>
+      </a>
+      <a routerLink="/admin/video/create" class="rounded-[18px] border border-[#e8dde0] bg-white p-6 text-start shadow-sm hover:border-[#9b4056]">
+        <p class="text-[12px] uppercase tracking-[0.24em] text-[#8a8587]">Vídeos</p>
+        <h2 class="mt-4 text-[20px] font-bold text-[#2c2729]">Adicionar vídeo histórico</h2>
+        <p class="mt-3 text-[13px] text-[#6f686b]">
+          Publique aulas e documentários com uma visualização de edição rápida.
+        </p>
+      </a>
+      <a routerLink="/admin/podcast/create" class="rounded-[18px] border border-[#e8dde0] bg-white p-6 text-start shadow-sm hover:border-[#9b4056]">
+        <p class="text-[12px] uppercase tracking-[0.24em] text-[#8a8587]">Podcasts</p>
+        <h2 class="mt-4 text-[20px] font-bold text-[#2c2729]">Criar episódio</h2>
+        <p class="mt-3 text-[13px] text-[#6f686b]">
+          Agende e publique episódios para a rádio académica da plataforma.
+        </p>
+      </a>
+      <a routerLink="/admin/forum/create" class="rounded-[18px] border border-[#e8dde0] bg-white p-6 text-start shadow-sm hover:border-[#9b4056]">
+        <p class="text-[12px] uppercase tracking-[0.24em] text-[#8a8587]">Fóruns</p>
+        <h2 class="mt-4 text-[20px] font-bold text-[#2c2729]">Novo debate</h2>
+        <p class="mt-3 text-[13px] text-[#6f686b]">
+          Lance um novo tópico para discussão entre estudantes e professores.
+        </p>
+      </a>
+      <a routerLink="/admin/jindungo/create" class="rounded-[18px] border border-[#e8dde0] bg-white p-6 text-start shadow-sm hover:border-[#9b4056]">
+        <p class="text-[12px] uppercase tracking-[0.24em] text-[#8a8587]">Jindungo</p>
+        <h2 class="mt-4 text-[20px] font-bold text-[#2c2729]">Publicar texto Jindungo</h2>
+        <p class="mt-3 text-[13px] text-[#6f686b]">
+          Crie conteúdo cultural relacionado à economia e história local.
+        </p>
+      </a>
+    </div>
+  </section>
+</app-admin-console-shell>

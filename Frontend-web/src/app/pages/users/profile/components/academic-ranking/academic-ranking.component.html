@@ -1,0 +1,19 @@
+<article class="ranking-card">
+  <header>
+    <span>🏆 Posição Académica</span>
+    <strong>#{{ ranking().currentPosition }}</strong>
+    <small>de {{ ranking().totalStudents }} alunos</small>
+  </header>
+
+  <table>
+    <tbody>
+      @for (row of ranking().rows; track row.position) {
+        <tr [class.current]="row.isCurrentUser">
+          <td>{{ row.position }}.</td>
+          <td>{{ row.name }}</td>
+          <td>{{ row.points | number }} pts</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</article>

@@ -1,0 +1,254 @@
+<section class="profile-page -m-6 min-h-dvh bg-[#f7f8f8] text-[#191c1d]">
+  <app-public-navbar />
+
+  <main class="fluid-container profile-main py-8 lg:py-12">
+    <section class="profile-editor">
+      <aside class="profile-sidebar" aria-label="Menu de perfil">
+        <div class="profile-identity">
+          <div class="profile-initials" aria-hidden="true">{{ initials() }}</div>
+          <h2>{{ profileName() }}</h2>
+          <p>{{ dashboard.user.accessLevel }}</p>
+        </div>
+
+        <nav class="profile-menu">
+          @for (item of profileMenu; track item.label) {
+            <a [routerLink]="item.route" [class.active]="item.active">
+              <span class="profile-menu-icon" aria-hidden="true">{{ item.icon }}</span>
+              {{ item.label }}
+            </a>
+          }
+          <a routerLink="/auth/login" class="profile-menu-logout" (click)="auth.logout()">
+            <span class="profile-menu-icon" aria-hidden="true">logout</span>
+            Sair
+          </a>
+        </nav>
+
+        <div class="profile-sidebar-note">
+          <span>{{ dashboard.user.badge }}</span>
+          <strong>{{ dashboard.ranking.points }} XP</strong>
+          <p>Ranking #{{ dashboard.ranking.currentPosition }} entre {{ dashboard.ranking.totalStudents }} utilizadores.</p>
+        </div>
+      </aside>
+
+      <section class="profile-form-panel">
+        @if (isLearningSection) {
+          <header class="profile-form-header">
+            <h1>Meu aprendizado</h1>
+            <span>Continue os seus módulos e acompanhe o avanço por domínio.</span>
+          </header>
+
+          <section class="profile-section-grid">
+            <app-learning-progress [learning]="dashboard.learning" />
+            <app-progress-domains [domains]="dashboard.domains" />
+          </section>
+        } @else if (isAchievementsSection) {
+          <header class="profile-form-header">
+            <h1>Minhas conquistas</h1>
+            <span>Veja medalhas, certificados e marcos conquistados na plataforma.</span>
+          </header>
+
+          <section class="profile-section-grid">
+            <app-achievements [achievements]="dashboard.achievements" [rankingAchievements]="dashboard.rankingAchievements" />
+          </section>
+        } @else if (isHistorySection) {
+          <header class="profile-form-header">
+            <h1>Histórico</h1>
+            <span>Retome conteúdos, quizzes e materiais consultados recentemente.</span>
+          </header>
+
+          <section class="profile-history-list">
+            @for (item of historyItems; track item.title) {
+              <a [routerLink]="item.route">
+                <span class="profile-menu-icon" aria-hidden="true">history</span>
+                <strong>{{ item.title }}</strong>
+                <small>{{ item.detail }}</small>
+              </a>
+            }
+          </section>
+
+          <section class="grid gap-4 px-5 pb-6 sm:px-8 lg:px-16" aria-label="Mapa economico-histórico de Angola">
+            <app-angola-economic-map />
+          </section>
+        } @else if (isSupportSection) {
+          <header class="profile-form-header">
+            <h1>Suporte</h1>
+            <span>Encontre ajuda para a sua conta, aprendizagem e acesso aos conteúdos.</span>
+          </header>
+
+          <section class="profile-support-panel">
+            <a routerLink="/app/forums">
+              <span class="profile-menu-icon" aria-hidden="true">forum</span>
+              <strong>Abrir fórum de suporte</strong>
+              <small>Faça perguntas e acompanhe respostas da comunidade.</small>
+            </a>
+            <a routerLink="/app/notifications">
+              <span class="profile-menu-icon" aria-hidden="true">notifications</span>
+              <strong>Ver notificações</strong>
+              <small>Consulte avisos importantes sobre a sua conta.</small>
+            </a>
+          </section>
+        } @else if (isSecuritySection) {
+          <header class="profile-form-header">
+            <h1>Conta</h1>
+            <span>Edite as suas configurações de conta e altere a sua palavra-passe aqui.</span>
+          </header>
+
+          <form class="account-form" (submit)="$event.preventDefault()">
+            <section class="account-section" aria-labelledby="account-email-title">
+              <label class="account-field">
+                <span id="account-email-title">E-mail:</span>
+                <div class="account-email-row">
+                  <input type="email" [value]="'Seu endereço de e-mail é ' + profileEmail()" readonly />
+                  <button type="button" aria-label="Editar e-mail">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 20h9" />
+                      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
+                    </svg>
+                  </button>
+                </div>
+              </label>
+            </section>
+
+            <section class="account-section" aria-labelledby="account-password-title">
+              <h2 id="account-password-title">Alterar palavra-passe</h2>
+              <div class="field-stack">
+                <label class="account-field">
+                  <span>Nova palavra-passe</span>
+                  <input type="password" placeholder="Digite a nova palavra-passe" autocomplete="new-password" />
+                </label>
+
+                <label class="account-field">
+                  <span>Confirmar nova palavra-passe</span>
+                  <input type="password" placeholder="Confirme a nova palavra-passe" autocomplete="new-password" />
+                </label>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit">Alterar a palavra-passe</button>
+              </div>
+            </section>
+          </form>
+        } @else if (isNotificationPreferencesSection) {
+          <header class="profile-form-header">
+            <h1>Preferências de notificação</h1>
+            <span>Escolha como deseja receber novidades, resumos e alertas da plataforma.</span>
+          </header>
+
+          <section class="notification-preferences-panel" aria-labelledby="notification-preferences-title">
+            <div class="notification-preferences-card">
+              <label class="notification-preference-row">
+                <span>
+                  <strong>Resumo Semanal de Economia</strong>
+                  <small>Receba as análises históricas mais importantes da semana.</small>
+                </span>
+                <input type="checkbox" checked />
+              </label>
+
+              <label class="notification-preference-row">
+                <span>
+                  <strong>Alertas de Novos Conteúdos</strong>
+                  <small>Notificações imediatas sobre novos módulos e conteúdos.</small>
+                </span>
+                <input type="checkbox" />
+              </label>
+            </div>
+          </section>
+        } @else if (isPhotoSection) {
+          <header class="profile-form-header">
+            <h1>Foto</h1>
+            <span>Adicione uma foto sua para o seu perfil.</span>
+          </header>
+
+          <form class="profile-form photo-form" (submit)="$event.preventDefault()">
+            <section class="photo-upload" aria-labelledby="photo-preview">
+              <h2 id="photo-preview">Visualização da imagem</h2>
+              <div class="photo-preview-box">
+                @if (profileAvatarUrl()) {
+                  <img [src]="profileAvatarUrl()" [alt]="profileName()" />
+                } @else {
+                  <span class="photo-preview-initials">{{ initials() }}</span>
+                }
+              </div>
+            </section>
+
+            <section class="photo-upload" aria-labelledby="photo-upload-title">
+              <h2 id="photo-upload-title">Adicionar/alterar imagem</h2>
+              <div class="upload-row">
+                <span>Nenhum arquivo selecionado</span>
+                <button type="button">Fazer upload de imagem</button>
+              </div>
+            </section>
+
+            <div class="form-actions">
+              <button type="submit">Salvar</button>
+            </div>
+          </form>
+        } @else {
+          <header class="profile-form-header">
+            <h1>Perfil</h1>
+            <span>Adicione informações sobre si e personalize como aparece na comunidade Economia com História.</span>
+          </header>
+
+          <form class="profile-form" (submit)="$event.preventDefault(); saveProfile(profileNameInput.value, profileEmailInput.value, profileBioInput.value)">
+            <section class="form-block" aria-labelledby="basic-data">
+              <h2 id="basic-data">Dados básicos:</h2>
+              <div class="field-stack">
+                <label>
+                  <span class="sr-only">Nome completo</span>
+                  <input #profileNameInput type="text" [value]="profileName()" aria-label="Nome completo" autocomplete="name" />
+                </label>
+
+                <label>
+                  <span class="sr-only">E-mail</span>
+                  <input #profileEmailInput type="email" [value]="profileEmail()" aria-label="E-mail" autocomplete="email" />
+                </label>
+              </div>
+            </section>
+
+            <section class="form-block" aria-labelledby="bio-data">
+              <h2 id="bio-data">Biografia</h2>
+              <div class="bio-editor">
+                <div class="editor-toolbar" aria-hidden="true">
+                  <strong>B</strong>
+                  <i>I</i>
+                </div>
+                <textarea #profileBioInput rows="6" placeholder="Sem biografia">{{ profileDescription() }}</textarea>
+              </div>
+              <p class="field-help">Use este espaço para resumir os seus interesses em economia, história de Angola, investigação ou ensino.</p>
+            </section>
+
+            <section class="form-block" aria-labelledby="profile-context">
+              <h2 id="profile-context">Preferências de Idioma</h2>
+              <label>
+                <span class="sr-only">Idioma principal</span>
+                <select>
+                  @for (language of languages; track language) {
+                    <option>{{ language }}</option>
+                  }
+                </select>
+              </label>
+            </section>
+
+            <div class="form-actions">
+              <button type="submit" [disabled]="isSavingProfile()">
+                {{ isSavingProfile() ? 'A salvar...' : 'Salvar perfil' }}
+              </button>
+              <a routerLink="/app/contents">Voltar aos conteúdos</a>
+            </div>
+
+            @if (profileSaveMessage()) {
+              <p class="field-help text-[#2f6f46]">{{ profileSaveMessage() }}</p>
+            }
+
+            @if (profileSaveError()) {
+              <p class="field-help text-[#9b1c31]">{{ profileSaveError() }}</p>
+            }
+          </form>
+        }
+      </section>
+    </section>
+  </main>
+
+  <app-public-footer />
+  <app-back-to-top />
+</section>

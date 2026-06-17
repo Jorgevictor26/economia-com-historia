@@ -6,9 +6,9 @@ export class SubscriptionService {
   readonly plans = signal<SubscriptionPlan[]>([
     {
       id: 'base',
-      name: 'Academico',
-      description: 'Acesso aberto aos conteudos publicos da plataforma.',
-      features: ['Conteudos abertos', 'Quizzes essenciais', 'Foruns publicos'],
+      name: 'Académico',
+      description: 'Acesso aberto aos conteúdos públicos da plataforma.',
+      features: ['Conteúdos abertos', 'Quizzes essenciais', 'Fóruns públicos'],
     },
     {
       id: 'jindungo',
@@ -30,7 +30,7 @@ export class SubscriptionService {
     },
     {
       id: 'diamantes-luanda-sul',
-      title: 'Analise do Mercado de Diamantes na Lunda Sul',
+      title: 'Análise do Mercado de Diamantes na Lunda Sul',
       excerpt: 'Cadeia de valor, concessoes mineiras e impacto economico regional.',
       subscribedAt: '28 Set 2024',
       readingMinutes: 18,
@@ -38,7 +38,7 @@ export class SubscriptionService {
     },
     {
       id: 'politica-monetaria-angola',
-      title: 'Analise da Politica Monetaria de Angola',
+      title: 'Análise da Política Monetaria de Angola',
       excerpt: 'Taxas de juro, inflacao e mecanismos recentes de regulacao monetaria.',
       subscribedAt: '15 Set 2024',
       readingMinutes: 16,

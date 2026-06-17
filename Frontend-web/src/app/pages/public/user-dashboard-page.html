@@ -1,0 +1,11 @@
+    <section class="mx-auto max-w-6xl">
+      <h1 class="text-3xl font-extrabold text-bordeaux">Dashboard do utilizador</h1>
+      <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        @for (item of ['Conteúdos recentes', 'Quizzes', 'Fóruns', 'Podcasts', 'Textos com Jindungo']; track item) {
+          <article class="rounded-lg bg-white p-5 shadow-sm">
+            <h2 class="font-bold text-bordeaux">{{ item }}</h2>
+            <p class="mt-2 text-sm text-black/60">Secção preparada para integração REST.</p>
+          </article>
+        }
+      </div>
+    </section>

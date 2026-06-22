@@ -1505,7 +1505,7 @@
     min-width: 50px;
     place-items: center;
     border-radius: 100%;
-    background: #5c1e2f;
+    background: #40081a;
     color: #fff;
     font-size: 24px;
     line-height: 1;
@@ -1526,7 +1526,7 @@
   }
 
   .back-to-top-button:hover {
-    background: #40081a;
+    background: #5c1e2f;
   }
 
   footer > .mx-auto {

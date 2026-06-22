@@ -11,12 +11,6 @@
                 Encontre artigos, podcasts, vídeos e textos com Jindungo por tema, formato ou palavra-chave.
               </p>
             </div>
-
-            <div class="rounded-[8px] bg-[#f8f9fa] p-4">
-              <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a8587]">Resultado atual</p>
-              <strong class="mt-2 block font-display text-[26px] font-extrabold text-[#8a4055]">{{ filteredContents().length }}</strong>
-              <span class="text-[12px] text-[#6f686b]">{{ filteredContents().length === 1 ? 'conteúdo encontrado' : 'conteúdos encontrados' }}</span>
-            </div>
           </div>
 
           <label class="mt-7 flex min-h-[54px] items-center gap-3 rounded-[8px] border border-[#e6d7dc] bg-[#f8f9fa] px-5 text-[#7f777b]">
@@ -31,71 +25,12 @@
           </label>
         </section>
 
-        <section class="mb-8 rounded-[8px] border border-[#d8c1c4]/55 bg-white p-5">
-          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#f0ecee] pb-4">
-            <div>
-              <h2 class="font-display text-[20px] font-semibold text-[#40081a]">Filtros</h2>
-              <p class="mt-1 text-[12px] text-[#6f686b]">Combine categoria, formato e pesquisa para refinar a biblioteca.</p>
-            </div>
-            @if (activeFilterCount() > 0) {
-              <button type="button" class="h-9 rounded-[8px] border border-[#d8c1c4] px-4 text-[12px] font-bold text-[#5c1e2f] transition hover:bg-[#fff6f8]" (click)="clearFilters()">
-                Limpar filtros
-              </button>
-            }
-          </div>
-
-          <div class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <div>
-              <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#735c00]">Categorias</p>
-              <div class="flex flex-wrap gap-2">
-                @for (filter of categoryFilters(); track filter) {
-                  <button
-                    type="button"
-                    class="min-h-10 rounded-[999px] border px-4 text-[12px] font-bold transition"
-                    [class.border-[#40081a]]="filter === selectedCategoryFilter()"
-                    [class.bg-[#40081a]]="filter === selectedCategoryFilter()"
-                    [class.text-white]="filter === selectedCategoryFilter()"
-                    [class.border-[#d8cbd0]]="filter !== selectedCategoryFilter()"
-                    [class.bg-[#f8f9fa]]="filter !== selectedCategoryFilter()"
-                    [class.text-[#5f575b]]="filter !== selectedCategoryFilter()"
-                    (click)="selectCategoryFilter(filter)"
-                  >
-                    {{ filter }}
-                  </button>
-                }
-              </div>
-            </div>
-
-            <div>
-              <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#735c00]">Formatos</p>
-              <div class="flex flex-wrap gap-2">
-                @for (filter of contentTypeFilters(); track filter) {
-                  <button
-                    type="button"
-                    class="min-h-10 rounded-[999px] border px-4 text-[12px] font-bold transition"
-                    [class.border-[#8a4055]]="filter === selectedContentTypeFilter()"
-                    [class.bg-[#ffd9df]]="filter === selectedContentTypeFilter()"
-                    [class.text-[#40081a]]="filter === selectedContentTypeFilter()"
-                    [class.border-[#d8cbd0]]="filter !== selectedContentTypeFilter()"
-                    [class.bg-[#f8f9fa]]="filter !== selectedContentTypeFilter()"
-                    [class.text-[#5f575b]]="filter !== selectedContentTypeFilter()"
-                    (click)="selectContentTypeFilter(filter)"
-                  >
-                    {{ filter }}
-                  </button>
-                }
-              </div>
-            </div>
-          </div>
-        </section>
-
         @if (filteredContents().length === 0) {
           <section class="rounded-[8px] border border-[#e3d4d8] bg-white px-6 py-12 text-center">
             <h2 class="font-display text-[22px] font-extrabold text-[#5c1e2f]">Conteúdo não encontrado</h2>
             <p class="mx-auto mt-3 max-w-[460px] text-[13px] leading-6 text-[#6f686b]">Não encontramos conteúdos para a pesquisa ou filtro aplicado.</p>
           </section>
         }
-
         <div class="grid items-stretch gap-8 md:grid-cols-2 xl:grid-cols-3">
           @for (content of filteredContents(); track content.id) {
             <app-content-card

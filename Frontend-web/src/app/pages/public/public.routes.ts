@@ -32,14 +32,14 @@ export class LandingPage implements AfterViewInit, OnDestroy {
     {
       title: 'Jindungo',
       text: 'Acesso a conteúdos exclusivos, relatórios detalhados e insights para subscritores.',
-      action: 'Assinar',
+      action: 'Explorar',
       route: '/app/subscriptions',
       image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80',
     },
     {
       title: 'Podcasts',
       text: 'Entrevistas e debates narrados por vozes experientes.',
-      action: 'Ouvir',
+      action: 'Explorar',
       route: '/app/contents',
       image: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&w=900&q=80',
     },

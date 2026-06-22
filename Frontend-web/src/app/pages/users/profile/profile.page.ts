@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthStateService } from '../../../services/auth-state.service';
 import { AngolaEconomicMapComponent } from '../../shared/angola-economic-map/angola-economic-map.component';
@@ -25,7 +25,7 @@ import { ProfileService } from '../../../services/profile.service';
   templateUrl: './profile.page.html',
   styleUrl: './profile.page.scss',
 })
-export class ProfilePage {
+export class ProfilePage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly profileService = inject(ProfileService);
   readonly auth = inject(AuthStateService);
@@ -39,6 +39,7 @@ export class ProfilePage {
   readonly isSecuritySection = this.section === 'security';
   readonly isNotificationPreferencesSection = this.section === 'notification-preferences';
   readonly isSavingProfile = signal(false);
+  readonly isLoadingProfile = signal(false);
   readonly profileSaveMessage = signal('');
   readonly profileSaveError = signal('');
 
@@ -83,6 +84,22 @@ export class ProfilePage {
     return authenticatedUser ? (authenticatedUser.biography ?? '') : this.dashboard.user.description;
   });
 
+  async ngOnInit(): Promise<void> {
+    if (!this.auth.isAuthenticated()) {
+      return;
+    }
+
+    this.isLoadingProfile.set(true);
+
+    try {
+      await this.profileService.loadProfile();
+    } catch {
+      this.profileSaveError.set('Não foi possível carregar os dados atualizados do perfil.');
+    } finally {
+      this.isLoadingProfile.set(false);
+    }
+  }
+
   initials(): string {
     return this.profileName()
       .split(' ')
@@ -122,7 +139,6 @@ export class ProfilePage {
     }
   }
 }
-
 
 
 

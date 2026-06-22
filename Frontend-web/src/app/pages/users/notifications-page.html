@@ -1,9 +1,20 @@
     <section class="fluid-container-narrow rounded-lg bg-white py-8 shadow-sm">
       <h1 class="text-3xl font-extrabold text-bordeaux">Notificações</h1>
-      @for (notification of notificationService.notifications(); track notification.id) {
+      @if (notificationService.isLoading()) {
+        <p class="mt-4 text-sm text-black/60">A carregar notificações...</p>
+      } @else if (notificationService.notifications().length) {
+        @for (notification of notificationService.notifications(); track notification.id) {
         <article class="mt-4 border-t border-black/10 pt-4">
           <h2 class="font-bold text-bordeaux">{{ notification.title }}</h2>
           <p class="text-sm text-black/60">{{ notification.description }}</p>
+          @if (!notification.read) {
+            <button type="button" class="mt-2 text-xs font-bold text-bordeaux" (click)="notificationService.markAsRead(notification.id)">
+              Marcar como lida
+            </button>
+          }
         </article>
+        }
+      } @else {
+        <p class="mt-4 text-sm text-black/60">Sem notificações por agora.</p>
       }
     </section>

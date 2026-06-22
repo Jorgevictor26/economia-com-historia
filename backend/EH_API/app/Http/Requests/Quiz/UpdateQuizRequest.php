@@ -4,7 +4,7 @@ namespace App\Http\Requests\Quiz;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreQuizRequest extends FormRequest
+class UpdateQuizRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,7 +14,7 @@ class StoreQuizRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'time_limit' => ['nullable', 'integer', 'min:1'],
         ];

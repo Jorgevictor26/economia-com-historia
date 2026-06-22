@@ -5,8 +5,10 @@ import { Category } from '../../../models/category.model';
 import { ContentTypeOption } from '../../../models/content-type.model';
 import { AuthStateService } from '../../../services/auth-state.service';
 import { CategoryService } from '../../../services/category.service';
+import { BackendComment, CommentService } from '../../../services/comment.service';
 import { BackendContent, ContentPagination, ContentService } from '../../../services/content.service';
 import { ContentTypeService } from '../../../services/content-type.service';
+import { ReactionService } from '../../../services/reaction.service';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
 import { PublicFooterComponent } from '../../shared/public-footer/public-footer.component';
 import { PublicNavbarComponent } from '../../shared/public-navbar/public-navbar.component';
@@ -26,6 +28,23 @@ interface ContentDetail {
   authorBio?: string;
   imageUrl?: string;
   premium: boolean;
+}
+
+interface CommentView {
+  id: string;
+  author: string;
+  authorInitials: string;
+  text: string;
+  createdAt?: string | null;
+  replies: CommentReplyView[];
+}
+
+interface CommentReplyView {
+  id: string;
+  author: string;
+  authorInitials: string;
+  text: string;
+  createdAt?: string | null;
 }
 
 @Component({
@@ -419,10 +438,19 @@ export class ContentListPage implements OnInit {
 })
 export class ContentDetailPage {
   private readonly route = inject(ActivatedRoute);
+  private readonly commentService = inject(CommentService);
   private readonly contentService = inject(ContentService);
+  private readonly reactionService = inject(ReactionService);
   readonly auth = inject(AuthStateService);
   readonly detail = signal<ContentDetail | null>(null);
+  readonly comments = signal<CommentView[]>([]);
+  readonly reactionCount = signal(0);
   readonly isLoading = signal(true);
+  readonly isLoadingComments = signal(false);
+  readonly isSavingComment = signal(false);
+  readonly isSavingReaction = signal(false);
+  readonly commentError = signal('');
+  readonly commentSuccess = signal('');
   readonly title = computed(() => this.detail()?.title ?? (this.route.snapshot.params['id'] === 'create' ? 'Criar conteúdo' : 'Conteúdo editorial'));
   readonly isPremiumContent = computed(() => this.detail()?.premium ?? ['imposto-reservas', 'diamantes-luanda-sul', 'politica-monetaria-angola'].includes(this.route.snapshot.params['id']));
 
@@ -437,6 +465,10 @@ export class ContentDetailPage {
     try {
       const content = await this.contentService.getById(id);
       this.detail.set(this.toContentDetail(content));
+      await Promise.all([
+        this.loadComments(String(content.id)),
+        this.loadReactionCount(String(content.id)),
+      ]);
     } finally {
       this.isLoading.set(false);
     }
@@ -446,6 +478,123 @@ export class ContentDetailPage {
     event.preventDefault();
     event.stopPropagation();
     this.auth.requireLoginFor(operation);
+  }
+
+  async react(event: Event): Promise<void> {
+    if (!this.auth.isAuthenticated()) {
+      this.requireLogin(event, 'reagir');
+      return;
+    }
+
+    const contentId = this.detail()?.id;
+
+    if (!contentId || this.isSavingReaction()) {
+      return;
+    }
+
+    this.isSavingReaction.set(true);
+
+    try {
+      await this.reactionService.create(contentId, 'like');
+      await this.loadReactionCount(contentId);
+    } finally {
+      this.isSavingReaction.set(false);
+    }
+  }
+
+  async submitComment(value: string): Promise<void> {
+    const contentId = this.detail()?.id;
+    const comment = value.trim();
+
+    this.commentError.set('');
+    this.commentSuccess.set('');
+
+    if (!contentId || !comment) {
+      this.commentError.set('Escreva um comentário antes de publicar.');
+      return;
+    }
+
+    this.isSavingComment.set(true);
+
+    try {
+      await this.commentService.create(contentId, comment);
+      await this.loadComments(contentId);
+      this.commentSuccess.set('Comentário publicado com sucesso.');
+    } catch {
+      this.commentError.set('Não foi possível publicar o comentário.');
+    } finally {
+      this.isSavingComment.set(false);
+    }
+  }
+
+  async submitReply(commentId: string, value: string): Promise<void> {
+    const contentId = this.detail()?.id;
+    const reply = value.trim();
+
+    this.commentError.set('');
+    this.commentSuccess.set('');
+
+    if (!contentId || !reply) {
+      this.commentError.set('Escreva uma resposta antes de publicar.');
+      return;
+    }
+
+    try {
+      await this.commentService.reply(commentId, reply);
+      await this.loadComments(contentId);
+      this.commentSuccess.set('Resposta publicada com sucesso.');
+    } catch {
+      this.commentError.set('Não foi possível publicar a resposta.');
+    }
+  }
+
+  private async loadComments(contentId: string): Promise<void> {
+    this.isLoadingComments.set(true);
+
+    try {
+      const comments = await this.commentService.getByContent(contentId);
+      this.comments.set(comments.map((comment) => this.toCommentView(comment)));
+    } finally {
+      this.isLoadingComments.set(false);
+    }
+  }
+
+  private async loadReactionCount(contentId: string): Promise<void> {
+    const counts = await this.reactionService.getCountByType(contentId);
+    this.reactionCount.set(counts.reduce((total, item) => total + Number(item.count || 0), 0));
+  }
+
+  private toCommentView(comment: BackendComment): CommentView {
+    const authorName = comment.user?.name ?? 'Utilizador';
+
+    return {
+      id: String(comment.id),
+      author: authorName,
+      authorInitials: this.getInitials(authorName),
+      text: comment.comment,
+      createdAt: comment.created_at,
+      replies: (comment.replies ?? []).map((reply) => {
+        const replyAuthor = reply.user?.name ?? 'Utilizador';
+
+        return {
+          id: String(reply.id),
+          author: replyAuthor,
+          authorInitials: this.getInitials(replyAuthor),
+          text: reply.reply,
+          createdAt: reply.created_at,
+        };
+      }),
+    };
+  }
+
+  formatDate(value: string | null | undefined): string {
+    const date = value ? new Date(value) : null;
+
+    if (!date || Number.isNaN(date.getTime())) {
+      return 'Agora';
+    }
+
+    return new Intl.DateTimeFormat('pt-AO', { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
   }
 
   private toContentDetail(content: BackendContent): ContentDetail {
@@ -511,7 +660,6 @@ export const CONTENTS_ROUTES: Routes = [
   { path: ':id', component: ContentDetailPage },
   { path: ':id/edit', canActivate: [adminGuard], component: ContentDetailPage },
 ];
-
 
 
 

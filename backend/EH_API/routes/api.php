@@ -12,6 +12,8 @@ use App\Http\Controllers\ContentController;
 use App\Http\Controllers\ContentTypeController;
 use App\Http\Controllers\Api\V1\ReactionController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\QuizController;
 use App\Http\Controllers\UserController;
 
 Route::prefix('v1')->group(function () {
@@ -21,6 +23,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/content-types', [ContentTypeController::class, 'index']);
     Route::get('/contents', [ContentController::class, 'index']);
     Route::get('/contents/{id}', [ContentController::class, 'show']);
+    Route::get('/quizzes', [QuizController::class, 'index']);
+    Route::get('/quizzes/{id}', [QuizController::class, 'show']);
+    Route::get('/quizzes/{id}/questions', [QuestionController::class, 'index']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', LogoutController::class);
@@ -52,5 +57,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/notifications', [NotificationController::class, 'store']);
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+
+        // QUIZZES
+        Route::post('/quizzes', [QuizController::class, 'store']);
+        Route::put('/quizzes/{id}', [QuizController::class, 'update']);
+        Route::delete('/quizzes/{id}', [QuizController::class, 'destroy']);
+        Route::post('/quizzes/{id}/questions', [QuestionController::class, 'store']);
     });
 });

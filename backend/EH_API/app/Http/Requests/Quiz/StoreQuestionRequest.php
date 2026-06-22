@@ -13,6 +13,14 @@ class StoreQuestionRequest extends FormRequest
 
     public function rules(): array
     {
-        return [];
+        return [
+            'question' => ['required', 'string'],
+            'option_a' => ['required', 'string', 'max:255'],
+            'option_b' => ['required', 'string', 'max:255'],
+            'option_c' => ['required', 'string', 'max:255'],
+            'option_d' => ['required', 'string', 'max:255'],
+            'correct_option' => ['required', 'in:a,b,c,d'],
+            'explanation' => ['nullable', 'string'],
+        ];
     }
 }

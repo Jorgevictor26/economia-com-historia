@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { NotificationService } from '../../services/notification.service';
 
@@ -6,9 +6,12 @@ import { NotificationService } from '../../services/notification.service';
   selector: 'app-notifications-page',
   templateUrl: './notifications-page.html'
 })
-export class NotificationsPage {
+export class NotificationsPage implements OnInit {
   readonly notificationService = inject(NotificationService);
+
+  ngOnInit(): void {
+    void this.notificationService.loadNotifications();
+  }
 }
 
 export const NOTIFICATIONS_ROUTES: Routes = [{ path: '', component: NotificationsPage }];
-

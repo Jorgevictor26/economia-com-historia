@@ -14,7 +14,7 @@ class CommentRepository
 
     public function getByContent(int $contentId)
     {
-        return Comment::with('user')
+        return Comment::with(['user', 'replies.user'])
             ->where('content_id', $contentId)
             ->latest()
             ->get();

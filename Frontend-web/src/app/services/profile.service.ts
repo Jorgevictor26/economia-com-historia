@@ -26,6 +26,17 @@ export class ProfileService {
   private readonly http = inject(HttpClient);
   private readonly authState = inject(AuthStateService);
 
+  async loadProfile(): Promise<User> {
+    const response = await firstValueFrom(this.http.get<ApiResponse<BackendUser>>('/profile'));
+    const user = this.toUser(response.data);
+
+    if (this.authState.token()) {
+      this.authState.updateAuthenticatedUser(user);
+    }
+
+    return user;
+  }
+
   async updateProfile(payload: UpdateProfilePayload): Promise<User> {
     const response = await firstValueFrom(this.http.put<ApiResponse<BackendUser>>('/profile', payload));
     const user = this.toUser(response.data);
@@ -38,97 +49,33 @@ export class ProfileService {
   getDashboard(): ProfileDashboard {
     return {
       user: {
-        name: 'Lisandro Acsátimo',
-        email: 'lisandro.acsatimo@economiahistoria.ao',
-        avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=320&q=80',
+        name: this.authState.user()?.name ?? 'Utilizador',
+        email: this.authState.user()?.email ?? '',
+        avatarUrl: this.authState.user()?.avatarUrl ?? '',
         accessLevel: 'Utilizador Comum',
-        badge: 'Nível 44',
-        description:
-          'Dedicado ao estudo das estruturas macroeconómicas de Luanda e ao seu impacto histórico no desenvolvimento da África Austral.',
+        badge: 'Nível 1',
+        description: this.authState.user()?.biography ?? '',
       },
       ranking: {
-        currentPosition: 12,
-        totalStudents: 1450,
-        points: 2795,
-        rows: [
-          { position: 11, name: 'S. Gonçalves', points: 2840 },
-          { position: 12, name: 'Tu (Utilizador)', points: 2795, isCurrentUser: true },
-          { position: 13, name: 'M. Neto', points: 2710 },
-        ],
+        currentPosition: 0,
+        totalStudents: 0,
+        points: 0,
+        rows: [],
       },
-      domains: [
-        {
-          title: 'DOMÍNIO: HISTÓRIA DE ANGOLA',
-          percent: 75,
-          completedTopics: 18,
-          pendingTopics: 6,
-          color: '#5C1E2F',
-        },
-        {
-          title: 'DOMÍNIO: ECONOMIA APLICADA',
-          percent: 50,
-          completedTopics: 12,
-          pendingTopics: 12,
-          color: '#D4AF37',
-        },
-      ],
-      achievements: [
-        { icon: 'graduation', name: 'Mestre Colonial', description: 'Rotas marítimas', unlocked: true },
-        { icon: 'trend', name: 'Analista Júnior', description: '10 casos práticos', unlocked: true },
-        { icon: 'archive', name: 'Arquivista', description: '50 documentos', unlocked: true },
-        { icon: 'mentor', name: 'Mentor Sênior', description: 'Fórum activo', unlocked: true },
-        { icon: 'medal', name: 'Doutorado', description: 'Bloqueado', unlocked: false },
-        { icon: 'wallet', name: 'Investidor', description: 'Bloqueado', unlocked: false },
-      ],
-      rankingAchievements: [
-        {
-          position: 5,
-          previousPosition: 9,
-          quizTitle: 'Quiz: Inflacao, moeda e memoria social',
-          quizTopic: 'Economia aplicada',
-          score: 92,
-          earnedXp: 180,
-          achievedAt: '12 Mai 2026',
-        },
-        {
-          position: 3,
-          previousPosition: 6,
-          quizTitle: 'Quiz: Rotas comerciais do Reino do Kongo',
-          quizTopic: 'História de Angola',
-          score: 96,
-          earnedXp: 220,
-          achievedAt: '18 Mai 2026',
-        },
-        {
-          position: 4,
-          previousPosition: 8,
-          quizTitle: 'Quiz: Política monetaria de Angola',
-          quizTopic: 'Macroeconomia',
-          score: 89,
-          earnedXp: 160,
-          achievedAt: '24 Mai 2026',
-        },
-        {
-          position: 2,
-          previousPosition: 4,
-          quizTitle: 'Quiz: Petróleo e soberania económica',
-          quizTopic: 'Textos com Jindungo',
-          score: 98,
-          earnedXp: 260,
-          achievedAt: '27 Mai 2026',
-        },
-      ],
+      domains: [],
+      achievements: [],
+      rankingAchievements: [],
       learning: {
-        title: 'MÓDULO AVANÇADO',
-        subtitle: 'A Evolução do Kwanza no Contexto Regional',
-        imageUrl: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?auto=format&fit=crop&w=640&q=80',
-        progress: 64,
+        title: 'Sem módulo em progresso',
+        subtitle: 'Comece por explorar os conteúdos disponíveis.',
+        imageUrl: '',
+        progress: 0,
       },
       stats: {
-        studyHours: 124,
-        completedCourses: 8,
-        forumPosts: 42,
-        completedQuizzes: 31,
+        studyHours: 0,
+        completedCourses: 0,
+        forumPosts: 0,
+        completedQuizzes: 0,
       },
     };
   }
@@ -177,6 +124,5 @@ export class ProfileService {
     return Boolean(role && role !== 'student');
   }
 }
-
 
 

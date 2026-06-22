@@ -4,7 +4,30 @@ namespace App\DTOs\Quiz;
 
 readonly class UpdateQuizDTO
 {
-    public function __construct(public array $data = [])
+    public function __construct(
+        public ?string $title = null,
+        public ?string $description = null,
+        public ?int $timeLimit = null,
+    ) {
+    }
+
+    public static function fromArray(array $data): self
     {
+        return new self(
+            title: $data['title'] ?? null,
+            description: $data['description'] ?? null,
+            timeLimit: array_key_exists('time_limit', $data) && $data['time_limit'] !== null
+                ? (int) $data['time_limit']
+                : null,
+        );
+    }
+
+    public function toArray(): array
+    {
+        return array_filter([
+            'title' => $this->title,
+            'description' => $this->description,
+            'time_limit' => $this->timeLimit,
+        ], fn (mixed $value): bool => $value !== null);
     }
 }

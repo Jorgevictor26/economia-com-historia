@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DTOs\User\UpdateUserDTO;
 use App\Http\Requests\User\UpdateUserRequest;
+use Illuminate\Http\Request;
 use App\Services\UserService;
 
 class UserController extends Controller
@@ -12,7 +13,7 @@ class UserController extends Controller
     {
     }
 
-    public function me(UpdateUserRequest $request)
+    public function me(Request $request)
     {
         return response()->json([
             'data' => $request->user()->load('roles'),

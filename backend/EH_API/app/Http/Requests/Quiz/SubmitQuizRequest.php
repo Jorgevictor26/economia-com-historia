@@ -13,6 +13,11 @@ class SubmitQuizRequest extends FormRequest
 
     public function rules(): array
     {
-        return [];
+        return [
+            'started_at' => ['required', 'date', 'before_or_equal:now'],
+            'answers' => ['required', 'array', 'min:1'],
+            'answers.*.question_id' => ['required', 'integer', 'distinct', 'exists:questions,id'],
+            'answers.*.selected_option' => ['required', 'string', 'in:a,b,c,d'],
+        ];
     }
 }

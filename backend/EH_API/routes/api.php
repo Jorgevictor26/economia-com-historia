@@ -13,6 +13,7 @@ use App\Http\Controllers\ContentTypeController;
 use App\Http\Controllers\Api\V1\ReactionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\QuizAnswerController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\UserController;
 
@@ -31,6 +32,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', LogoutController::class);
         Route::get('/profile', [UserController::class, 'me']);
         Route::put('/profile', [UserController::class, 'updateProfile']);
+        Route::get('/my-results', [QuizAnswerController::class, 'myResults']);
 
         // CONTENTS
         Route::post('/contents', [ContentController::class, 'store']);
@@ -59,6 +61,9 @@ Route::prefix('v1')->group(function () {
         Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 
         // QUIZZES
+        Route::post('/quizzes/{id}/submit', [QuizAnswerController::class, 'submit']);
+        Route::get('/quizzes/{id}/result', [QuizAnswerController::class, 'result']);
+
         Route::middleware('role:Admin,SuperAdmin')->group(function () {
             Route::post('/quizzes', [QuizController::class, 'store']);
             Route::put('/quizzes/{id}', [QuizController::class, 'update']);

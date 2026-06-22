@@ -59,9 +59,11 @@ Route::prefix('v1')->group(function () {
         Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 
         // QUIZZES
-        Route::post('/quizzes', [QuizController::class, 'store']);
-        Route::put('/quizzes/{id}', [QuizController::class, 'update']);
-        Route::delete('/quizzes/{id}', [QuizController::class, 'destroy']);
-        Route::post('/quizzes/{id}/questions', [QuestionController::class, 'store']);
+        Route::middleware('role:Admin,SuperAdmin')->group(function () {
+            Route::post('/quizzes', [QuizController::class, 'store']);
+            Route::put('/quizzes/{id}', [QuizController::class, 'update']);
+            Route::delete('/quizzes/{id}', [QuizController::class, 'destroy']);
+            Route::post('/quizzes/{id}/questions', [QuestionController::class, 'store']);
+        });
     });
 });

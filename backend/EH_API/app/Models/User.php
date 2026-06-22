@@ -50,4 +50,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserRole::class, 'assigned_by');
     }
+
+    public function quizzes(): HasMany
+    {
+        return $this->hasMany(Quiz::class);
+    }
 }

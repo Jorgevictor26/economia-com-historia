@@ -36,9 +36,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/my-results', [QuizAnswerController::class, 'myResults']);
         Route::get('/my-reports', [ReportController::class, 'myReports']);
 
-        // CONTENTS
-        Route::post('/contents', [ContentController::class, 'store']);
-
         // CATEGORIES
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::get('/categories/{id}', [CategoryController::class, 'show']);
@@ -74,6 +71,12 @@ Route::prefix('v1')->group(function () {
             Route::get('/reports', [ReportController::class, 'index']);
             Route::patch('/reports/{id}/approve', [ReportController::class, 'approve']);
             Route::patch('/reports/{id}/reject', [ReportController::class, 'reject']);
+        });
+
+        Route::middleware('role:Admin,SuperAdmin,Writer')->group(function () {
+            Route::post('/contents', [ContentController::class, 'store']);
+            Route::put('/contents/{id}', [ContentController::class, 'update']);
+            Route::delete('/contents/{id}', [ContentController::class, 'destroy']);
 
             Route::post('/quizzes', [QuizController::class, 'store']);
             Route::put('/quizzes/{id}', [QuizController::class, 'update']);

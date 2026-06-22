@@ -75,4 +75,43 @@ class User extends Authenticatable
     {
         return $this->hasMany(Report::class, 'reviewed_by');
     }
+
+    public function normalizedRoleNames()
+    {
+        return $this->loadMissing('roles')
+            ->roles
+            ->pluck('name')
+            ->map(fn (string $role): string => self::normalizeRoleName($role));
+    }
+
+    public function hasRoleName(string $role): bool
+    {
+        return $this->normalizedRoleNames()
+            ->contains(self::normalizeRoleName($role));
+    }
+
+    public function hasAnyRoleName(array $roles): bool
+    {
+        $roles = collect($roles)
+            ->map(fn (string $role): string => self::normalizeRoleName($role));
+
+        return $this->normalizedRoleNames()
+            ->intersect($roles)
+            ->isNotEmpty();
+    }
+
+    public function isAdminOrSuperAdmin(): bool
+    {
+        return $this->hasAnyRoleName(['admin', 'superadmin']);
+    }
+
+    public function isWriter(): bool
+    {
+        return $this->hasRoleName('writer');
+    }
+
+    public static function normalizeRoleName(string $role): string
+    {
+        return strtolower(str_replace(['_', ' ', '-'], '', $role));
+    }
 }

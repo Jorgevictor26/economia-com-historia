@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\DTOs\Content\CreateContentDTO;
+use App\DTOs\Content\UpdateContentDTO;
+use App\Models\Content;
 use App\Repositories\ContentRepository;
 
 class ContentService
@@ -34,5 +36,15 @@ class ContentService
     public function findById(int $id)
     {
         return $this->repository->findById($id);
+    }
+
+    public function update(Content $content, UpdateContentDTO $dto): Content
+    {
+        return $this->repository->update($content, $dto->toArray());
+    }
+
+    public function delete(Content $content): bool
+    {
+        return $this->repository->delete($content);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DTOs\Question\CreateQuestionDTO;
 use App\Http\Requests\Quiz\StoreQuestionRequest;
+use App\Services\QuizService;
 use App\Services\QuestionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,7 +12,8 @@ use Illuminate\Http\Request;
 class QuestionController extends Controller
 {
     public function __construct(
-        private readonly QuestionService $questions
+        private readonly QuestionService $questions,
+        private readonly QuizService $quizzes
     ) {
     }
 
@@ -24,7 +26,15 @@ class QuestionController extends Controller
 
     public function store(StoreQuestionRequest $request, int $quizId): JsonResponse
     {
-        if (! $this->canManageQuizzes($request)) {
+        $quiz = $this->quizzes->findById($quizId);
+
+        if (! $quiz) {
+            return response()->json([
+                'message' => 'Quiz not found',
+            ], 404);
+        }
+
+        if (! $this->canManageQuiz($request, $quiz->user_id)) {
             return $this->forbiddenResponse();
         }
 
@@ -38,25 +48,22 @@ class QuestionController extends Controller
         ], 201);
     }
 
-    private function canManageQuizzes(Request $request): bool
+    private function canManageQuiz(Request $request, int $ownerId): bool
     {
-        $user = $request->user()?->loadMissing('roles');
+        $user = $request->user();
 
         if (! $user) {
             return false;
         }
 
-        return $user->roles
-            ->pluck('name')
-            ->map(fn (string $role): string => strtolower(str_replace(['_', ' '], '-', $role)))
-            ->intersect(['admin', 'superadmin', 'super-admin'])
-            ->isNotEmpty();
+        return $user->isAdminOrSuperAdmin()
+            || ($user->isWriter() && (int) $user->id === $ownerId);
     }
 
     private function forbiddenResponse(): JsonResponse
     {
         return response()->json([
-            'message' => 'Only Admin and SuperAdmin users can manage quizzes',
+            'message' => 'You are not allowed to manage this quiz',
         ], 403);
     }
 }

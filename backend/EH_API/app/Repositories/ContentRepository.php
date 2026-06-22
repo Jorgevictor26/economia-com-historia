@@ -38,6 +38,18 @@ class ContentRepository
         return Content::with(['author', 'category', 'contentType'])->find($id);
     }
 
+    public function update(Content $content, array $data): Content
+    {
+        $content->update($data);
+
+        return $content->fresh(['author', 'category', 'contentType']);
+    }
+
+    public function delete(Content $content): bool
+    {
+        return (bool) $content->delete();
+    }
+
     public function updateVisibility(Content $content, string $visibility): Content
     {
         $content->update([

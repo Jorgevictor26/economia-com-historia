@@ -24,7 +24,7 @@ class QuizController extends Controller
 
     public function store(StoreQuizRequest $request): JsonResponse
     {
-        if (! $this->canManageQuizzes($request)) {
+        if (! $this->canCreateQuiz($request)) {
             return $this->forbiddenResponse();
         }
 
@@ -53,16 +53,16 @@ class QuizController extends Controller
 
     public function update(UpdateQuizRequest $request, int $id): JsonResponse
     {
-        if (! $this->canManageQuizzes($request)) {
-            return $this->forbiddenResponse();
-        }
-
         $quiz = $this->quizzes->findById($id);
 
         if (! $quiz) {
             return response()->json([
                 'message' => 'Quiz not found',
             ], 404);
+        }
+
+        if (! $this->canManageQuiz($request, $quiz->user_id)) {
+            return $this->forbiddenResponse();
         }
 
         return response()->json([
@@ -76,16 +76,16 @@ class QuizController extends Controller
 
     public function destroy(Request $request, int $id): JsonResponse
     {
-        if (! $this->canManageQuizzes($request)) {
-            return $this->forbiddenResponse();
-        }
-
         $quiz = $this->quizzes->findById($id);
 
         if (! $quiz) {
             return response()->json([
                 'message' => 'Quiz not found',
             ], 404);
+        }
+
+        if (! $this->canManageQuiz($request, $quiz->user_id)) {
+            return $this->forbiddenResponse();
         }
 
         $this->quizzes->delete($quiz);
@@ -95,25 +95,33 @@ class QuizController extends Controller
         ]);
     }
 
-    private function canManageQuizzes(Request $request): bool
+    private function canCreateQuiz(Request $request): bool
     {
-        $user = $request->user()?->loadMissing('roles');
+        $user = $request->user();
 
         if (! $user) {
             return false;
         }
 
-        return $user->roles
-            ->pluck('name')
-            ->map(fn (string $role): string => strtolower(str_replace(['_', ' '], '-', $role)))
-            ->intersect(['admin', 'superadmin', 'super-admin'])
-            ->isNotEmpty();
+        return $user->isAdminOrSuperAdmin() || $user->isWriter();
+    }
+
+    private function canManageQuiz(Request $request, int $ownerId): bool
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        return $user->isAdminOrSuperAdmin()
+            || ($user->isWriter() && (int) $user->id === $ownerId);
     }
 
     private function forbiddenResponse(): JsonResponse
     {
         return response()->json([
-            'message' => 'Only Admin and SuperAdmin users can manage quizzes',
+            'message' => 'You are not allowed to manage this quiz',
         ], 403);
     }
 }

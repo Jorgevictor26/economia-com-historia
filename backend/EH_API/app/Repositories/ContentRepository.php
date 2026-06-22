@@ -37,4 +37,13 @@ class ContentRepository
     {
         return Content::with(['author', 'category', 'contentType'])->find($id);
     }
+
+    public function updateVisibility(Content $content, string $visibility): Content
+    {
+        $content->update([
+            'visibility' => $visibility,
+        ]);
+
+        return $content->fresh(['author', 'category', 'contentType']);
+    }
 }

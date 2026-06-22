@@ -29,7 +29,7 @@ class RoleMiddleware
 
         if (! $hasAllowedRole) {
             return response()->json([
-                'message' => 'Only Admin and SuperAdmin users can manage quizzes',
+                'message' => 'Only Admin and SuperAdmin users can access this resource',
             ], Response::HTTP_FORBIDDEN);
         }
 

@@ -65,4 +65,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(QuizResult::class);
     }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
+
+    public function reviewedReports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'reviewed_by');
+    }
 }

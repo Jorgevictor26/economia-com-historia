@@ -15,6 +15,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuizAnswerController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 
 Route::prefix('v1')->group(function () {
@@ -33,6 +34,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/profile', [UserController::class, 'me']);
         Route::put('/profile', [UserController::class, 'updateProfile']);
         Route::get('/my-results', [QuizAnswerController::class, 'myResults']);
+        Route::get('/my-reports', [ReportController::class, 'myReports']);
 
         // CONTENTS
         Route::post('/contents', [ContentController::class, 'store']);
@@ -54,7 +56,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/reactions', [ReactionController::class, 'store']);
         Route::get('/reactions/content/{contentId}', [ReactionController::class, 'getByContent']);
         Route::get('/reactions/content/{contentId}/count', [ReactionController::class, 'getCountByType']);
-        
+
+        // REPORTS
+        Route::post('/reports', [ReportController::class, 'store']);
+        Route::get('/reports/{id}', [ReportController::class, 'show']);
+
         // NOTIFICATIONS
         Route::post('/notifications', [NotificationController::class, 'store']);
         Route::get('/notifications', [NotificationController::class, 'index']);
@@ -65,6 +71,10 @@ Route::prefix('v1')->group(function () {
         Route::get('/quizzes/{id}/result', [QuizAnswerController::class, 'result']);
 
         Route::middleware('role:Admin,SuperAdmin')->group(function () {
+            Route::get('/reports', [ReportController::class, 'index']);
+            Route::patch('/reports/{id}/approve', [ReportController::class, 'approve']);
+            Route::patch('/reports/{id}/reject', [ReportController::class, 'reject']);
+
             Route::post('/quizzes', [QuizController::class, 'store']);
             Route::put('/quizzes/{id}', [QuizController::class, 'update']);
             Route::delete('/quizzes/{id}', [QuizController::class, 'destroy']);

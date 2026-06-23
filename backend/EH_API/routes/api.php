@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 
 use App\Http\Controllers\CategoryController;
@@ -26,6 +27,8 @@ use App\Http\Controllers\UserController;
 Route::prefix('v1')->group(function () {
     Route::post('/register', RegisterController::class);
     Route::post('/login', LoginController::class);
+    Route::post('/forgot-password', [PasswordResetController::class, 'forgot']);
+    Route::post('/reset-password', [PasswordResetController::class, 'reset']);
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::get('/content-types', [ContentTypeController::class, 'index']);
     Route::get('/contents', [ContentController::class, 'index']);

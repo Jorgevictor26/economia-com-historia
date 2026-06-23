@@ -10,6 +10,9 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\ContentTypeController;
+use App\Http\Controllers\ForumController;
+use App\Http\Controllers\ForumReplyController;
+use App\Http\Controllers\ForumTopicController;
 use App\Http\Controllers\Api\V1\ReactionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\QuestionController;
@@ -63,6 +66,19 @@ Route::prefix('v1')->group(function () {
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 
+        // FORUMS
+        Route::get('/forums', [ForumController::class, 'index']);
+        Route::get('/forums/{id}', [ForumController::class, 'show']);
+        Route::get('/forums/{forumId}/topics', [ForumTopicController::class, 'index']);
+        Route::post('/forums/{forumId}/topics', [ForumTopicController::class, 'store']);
+        Route::get('/topics/{id}', [ForumTopicController::class, 'show']);
+        Route::put('/topics/{id}', [ForumTopicController::class, 'update']);
+        Route::delete('/topics/{id}', [ForumTopicController::class, 'destroy']);
+        Route::get('/topics/{topicId}/replies', [ForumReplyController::class, 'index']);
+        Route::post('/topics/{topicId}/replies', [ForumReplyController::class, 'store']);
+        Route::put('/replies/{id}', [ForumReplyController::class, 'update']);
+        Route::delete('/replies/{id}', [ForumReplyController::class, 'destroy']);
+
         // QUIZZES
         Route::post('/quizzes/{id}/submit', [QuizAnswerController::class, 'submit']);
         Route::get('/quizzes/{id}/result', [QuizAnswerController::class, 'result']);
@@ -71,6 +87,10 @@ Route::prefix('v1')->group(function () {
             Route::get('/reports', [ReportController::class, 'index']);
             Route::patch('/reports/{id}/approve', [ReportController::class, 'approve']);
             Route::patch('/reports/{id}/reject', [ReportController::class, 'reject']);
+
+            Route::post('/forums', [ForumController::class, 'store']);
+            Route::put('/forums/{id}', [ForumController::class, 'update']);
+            Route::delete('/forums/{id}', [ForumController::class, 'destroy']);
         });
 
         Route::middleware('role:Admin,SuperAdmin,Writer')->group(function () {

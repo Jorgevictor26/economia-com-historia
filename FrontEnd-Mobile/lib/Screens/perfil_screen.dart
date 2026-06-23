@@ -293,7 +293,7 @@ class _CursoCard extends StatelessWidget {
               color: const Color(0xFFF0EAEA),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(curso.icone, color: AppColors.textLight, size: 22),
+            child: Icon(curso.icone, color: AppColors.primary, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -466,7 +466,7 @@ class _LogoutButton extends StatelessWidget {
                 child: const Text(
                   'Sair',
                   style: TextStyle(
-                    color: Color(0xFFB00020),
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -485,14 +485,14 @@ class _LogoutButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
-            Icon(Icons.logout_rounded, size: 18, color: Color(0xFFB00020)),
+            Icon(Icons.logout_rounded, size: 18, color: AppColors.primary),
             SizedBox(width: 8),
             Text(
               'Terminar Sessão',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFFB00020),
+                color: AppColors.primary,
               ),
             ),
           ],

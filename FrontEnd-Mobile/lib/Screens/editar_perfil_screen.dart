@@ -3,6 +3,7 @@ import 'package:economica_com_historia/theme/app_colors.dart';
 import 'package:economica_com_historia/widgets/app_bar_principal.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:economica_com_historia/screens/repor_palavra_passe.dart';
 
 class EditarPerfilScreen extends StatefulWidget {
   const EditarPerfilScreen({super.key});
@@ -197,7 +198,14 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
               _ItemAcao(
                 icone: Icons.lock_outline_rounded,
                 label: 'Alterar Palavra-passe',
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ReporPalavraPasseScreen(),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 8),
               _ItemAcao(
@@ -302,14 +310,20 @@ class _CampoTexto extends StatelessWidget {
       style: const TextStyle(fontSize: 14, color: AppColors.textDark),
       decoration: InputDecoration(
         filled: true,
-        fillColor: const Color(0xFFF7F3F4),
+        fillColor: Colors.white, // ← era Color(0xFFF7F3F4)
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFEEE8E9)),
+          borderSide: const BorderSide(
+            color: AppColors.textDark,
+            width: 1.2,
+          ), // ← borda preta
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFEEE8E9)),
+          borderSide: const BorderSide(
+            color: Color(0xFFEEE8E9),
+            width: 1.2,
+          ), // ← borda preta
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

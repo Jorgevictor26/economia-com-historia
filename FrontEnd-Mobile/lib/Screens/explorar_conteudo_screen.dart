@@ -462,10 +462,6 @@ class _GuiaCard extends StatelessWidget {
           Container(
             width: 44,
             height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFB5933A).withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10),
-            ),
             child: Image.asset(
               'assets/images/Logo.png',
               width: 22,

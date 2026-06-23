@@ -386,94 +386,94 @@ class _SalaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: sala.destaque
-              ? AppColors.primary.withOpacity(0.4)
-              : const Color(0xFFEEE8E9),
-          width: sala.destaque ? 1.5 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: sala.destaque
+                ? AppColors.primary.withOpacity(0.4)
+                : const Color(0xFFEEE8E9),
+            width: sala.destaque ? 1.5 : 1,
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        sala.titulo,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          sala.titulo,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
                         ),
                       ),
-                    ),
-                    if (sala.isPrivado) ...[
-                      const SizedBox(width: 6),
+                      if (sala.isPrivado) ...[
+                        const SizedBox(width: 6),
+                        const Icon(
+                          Icons.lock_outline_rounded,
+                          size: 15,
+                          color: AppColors.textLight,
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
                       const Icon(
-                        Icons.lock_outline_rounded,
-                        size: 15,
+                        Icons.people_outline_rounded,
+                        size: 13,
                         color: AppColors.textLight,
                       ),
+                      const SizedBox(width: 4),
+                      Text(
+                        sala.membros,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textMedium,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      const Icon(
+                        Icons.access_time_rounded,
+                        size: 13,
+                        color: AppColors.textLight,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        sala.tempo,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textMedium,
+                        ),
+                      ),
                     ],
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.people_outline_rounded,
-                      size: 13,
-                      color: AppColors.textLight,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      sala.membros,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textMedium,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    const Icon(
-                      Icons.access_time_rounded,
-                      size: 13,
-                      color: AppColors.textLight,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      sala.tempo,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textMedium,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          if (!sala.isPrivado) ...[
-            const SizedBox(width: 12),
-            GestureDetector(
-              onTap: onTap,
-              child: Container(
+            if (!sala.isPrivado) ...[
+              const SizedBox(width: 12),
+              Container(
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
@@ -486,9 +486,9 @@ class _SalaCard extends StatelessWidget {
                   size: 20,
                 ),
               ),
-            ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

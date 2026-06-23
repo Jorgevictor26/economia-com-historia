@@ -13,6 +13,15 @@ class UpdateContentRequest extends FormRequest
 
     public function rules(): array
     {
-        return [];
+        return [
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
+            'summary' => ['nullable', 'string'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'content_type_id' => ['sometimes', 'required', 'integer', 'exists:content_types,id'],
+            'content' => ['sometimes', 'required', 'string'],
+            'image' => ['nullable', 'string'],
+            'video' => ['nullable', 'string'],
+            'visibility' => ['sometimes', 'required', 'string', 'in:public,private,followers'],
+        ];
     }
 }

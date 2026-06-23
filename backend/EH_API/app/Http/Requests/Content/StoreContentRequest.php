@@ -13,6 +13,15 @@ class StoreContentRequest extends FormRequest
 
     public function rules(): array
     {
-        return [];
+        return [
+            'title' => ['required', 'string', 'max:255'],
+            'summary' => ['nullable', 'string'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'content_type_id' => ['required', 'integer', 'exists:content_types,id'],
+            'content' => ['required', 'string'],
+            'image' => ['nullable', 'string'],
+            'video' => ['nullable', 'string'],
+            'visibility' => ['required', 'string', 'in:public,private,followers'],
+        ];
     }
 }

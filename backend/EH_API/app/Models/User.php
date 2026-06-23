@@ -50,4 +50,83 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserRole::class, 'assigned_by');
     }
+
+    public function quizzes(): HasMany
+    {
+        return $this->hasMany(Quiz::class);
+    }
+
+    public function quizAnswers(): HasMany
+    {
+        return $this->hasMany(QuizAnswer::class);
+    }
+
+    public function quizResults(): HasMany
+    {
+        return $this->hasMany(QuizResult::class);
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
+
+    public function forumTopics(): HasMany
+    {
+        return $this->hasMany(ForumTopic::class);
+    }
+
+    public function forumReplies(): HasMany
+    {
+        return $this->hasMany(ForumReply::class);
+    }
+
+    public function savedContents(): HasMany
+    {
+        return $this->hasMany(SavedContent::class);
+    }
+
+    public function reviewedReports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'reviewed_by');
+    }
+
+    public function normalizedRoleNames()
+    {
+        return $this->loadMissing('roles')
+            ->roles
+            ->pluck('name')
+            ->map(fn (string $role): string => self::normalizeRoleName($role));
+    }
+
+    public function hasRoleName(string $role): bool
+    {
+        return $this->normalizedRoleNames()
+            ->contains(self::normalizeRoleName($role));
+    }
+
+    public function hasAnyRoleName(array $roles): bool
+    {
+        $roles = collect($roles)
+            ->map(fn (string $role): string => self::normalizeRoleName($role));
+
+        return $this->normalizedRoleNames()
+            ->intersect($roles)
+            ->isNotEmpty();
+    }
+
+    public function isAdminOrSuperAdmin(): bool
+    {
+        return $this->hasAnyRoleName(['admin', 'superadmin']);
+    }
+
+    public function isWriter(): bool
+    {
+        return $this->hasRoleName('writer');
+    }
+
+    public static function normalizeRoleName(string $role): string
+    {
+        return strtolower(str_replace(['_', ' ', '-'], '', $role));
+    }
 }

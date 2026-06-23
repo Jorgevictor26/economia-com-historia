@@ -1,4 +1,4 @@
-﻿import { Component, inject, signal } from '@angular/core';
+﻿import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthStateService } from '../../services/auth-state.service';
 import { NotificationService } from '../../services/notification.service';
@@ -159,11 +159,17 @@ import { NotificationService } from '../../services/notification.service';
       </aside>
   `,
 })
-export class PublicNavbarComponent {
+export class PublicNavbarComponent implements OnInit {
   readonly auth = inject(AuthStateService);
   readonly notificationService = inject(NotificationService);
   readonly menuOpen = signal(false);
   readonly notificationsOpen = signal(false);
+
+  ngOnInit(): void {
+    if (this.auth.isAuthenticated()) {
+      void this.notificationService.loadNotifications();
+    }
+  }
 
   homeRoute(): string {
     return this.auth.isAuthenticated() ? '/app/home' : '/';
@@ -199,6 +205,10 @@ export class PublicNavbarComponent {
 
   toggleNotifications(): void {
     this.notificationsOpen.update((open) => !open);
+
+    if (this.notificationsOpen()) {
+      void this.notificationService.loadNotifications();
+    }
   }
 
   closeNotifications(): void {
@@ -210,7 +220,7 @@ export class PublicNavbarComponent {
   }
 
   markAllNotificationsAsRead(): void {
-    this.notificationService.markAllAsRead();
+    void this.notificationService.markAllAsRead();
   }
 
   clearNotifications(): void {
@@ -227,4 +237,3 @@ export class PublicNavbarComponent {
       .toUpperCase();
   }
 }
-

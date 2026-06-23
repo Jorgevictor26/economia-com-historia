@@ -18,6 +18,10 @@ class Content extends Model
         'content',
         'image',
         'video',
+        'image_url',
+        'video_url',
+        'audio_url',
+        'document_url',
         'visibility'
     ];
 
@@ -44,5 +48,20 @@ class Content extends Model
     public function reactions()
     {
         return $this->hasMany(Reaction::class);
+    }
+
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
+    }
+
+    public function savedByUsers()
+    {
+        return $this->hasMany(SavedContent::class);
+    }
+
+    public function savedContents()
+    {
+        return $this->hasMany(SavedContent::class);
     }
 }

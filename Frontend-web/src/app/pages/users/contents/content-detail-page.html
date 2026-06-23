@@ -81,9 +81,9 @@
             }
             <div class="flex flex-wrap items-center justify-between gap-5 text-[12px] text-[#5f575b]">
               <div class="flex flex-wrap items-center gap-8">
-                <button type="button" class="content-action" (click)="requireLogin($event, 'reagir')">
+                <button type="button" class="content-action" [disabled]="isSavingReaction()" (click)="react($event)">
                   <img src="/assets/icons/like.png" alt="" />
-                  <span>Reagir</span>
+                  <span>{{ isSavingReaction() ? 'A reagir...' : 'Reações (' + reactionCount() + ')' }}</span>
                 </button>
                 <button type="button" class="content-action" (click)="requireLogin($event, 'comentar')">
                   <img src="/assets/icons/comment.png" alt="" />
@@ -102,56 +102,78 @@
               </div>
             </div>
 
-            <h2 class="mt-10 text-[14px] font-medium text-[#5c1e2f]">Comentários (12)</h2>
+            <h2 class="mt-10 text-[14px] font-medium text-[#5c1e2f]">Comentários ({{ comments().length }})</h2>
 
             @if (auth.isAuthenticated()) {
             <div class="mt-6 flex gap-4">
               <span class="size-9 rounded-[10px] bg-[#e7e7e7]"></span>
               <div class="min-w-0 flex-1">
-                <textarea class="h-[96px] w-full resize-none border border-[#d8d8d8] bg-[#fafafa] p-5 text-[13px] outline-none placeholder:text-[#b7b2b4] focus:border-[#8a4055]" placeholder="Partilhe a sua reflexão académica..."></textarea>
+                <textarea #commentInput class="h-[96px] w-full resize-none border border-[#d8d8d8] bg-[#fafafa] p-5 text-[13px] outline-none placeholder:text-[#b7b2b4] focus:border-[#8a4055]" placeholder="Partilhe a sua reflexão académica..."></textarea>
                 <div class="-mt-px text-right">
-                  <button type="button" class="h-10 bg-[#5c0b25] px-6 text-[12px] font-bold text-white">Publicar</button>
+                  <button type="button" class="h-10 bg-[#5c0b25] px-6 text-[12px] font-bold text-white" [disabled]="isSavingComment()" (click)="submitComment(commentInput.value); commentInput.value = ''">
+                    {{ isSavingComment() ? 'A publicar...' : 'Publicar' }}
+                  </button>
                 </div>
               </div>
             </div>
             }
 
-            <div class="mt-9 grid gap-7">
-              <div class="flex gap-4">
-                <span class="grid size-9 place-items-center rounded-[8px] bg-[#e7e7e7] text-[#777]">♙</span>
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-start justify-between gap-4">
-                    <p class="text-[13px] font-extrabold text-[#5c1e2f]">Dr. Alberto Cassule</p>
-                    <span class="text-[10px] text-[#777]">há 2 dias</span>
-                  </div>
-                  <p class="mt-1 text-[13px] leading-5 text-[#1f1a1c]">
-                    Excelente análise. É fundamental notar como o monopólio do zimbo permitiu ao estado Konguês uma soberania monetária que muitos estados europeus demoraram séculos a consolidar.
-                  </p>
-                  <div class="mt-3 flex gap-6 text-[10px] text-[#5f575b]">
-                    <button type="button" class="content-action" (click)="requireLogin($event, 'gostar')"><img src="/assets/icons/like.png" alt="" /><span>Gostar (14)</span></button>
-                    <button type="button" (click)="requireLogin($event, 'responder')">Responder</button>
-                    <button type="button" class="content-action" (click)="requireLogin($event, 'denunciar')"><img src="/assets/icons/report.png" alt="" /><span>Denunciar</span></button>
-                  </div>
+            @if (commentSuccess()) {
+              <p class="mt-4 text-[12px] font-medium text-[#2f6f46]">{{ commentSuccess() }}</p>
+            }
 
-                  <div class="mt-6 flex gap-4 border-l border-[#d8d8d8] pl-7">
-                    <span class="grid size-7 place-items-center rounded-[7px] bg-[#e7e7e7] text-[11px] text-[#777]">♙</span>
+            @if (commentError()) {
+              <p class="mt-4 text-[12px] font-medium text-[#9b1c31]">{{ commentError() }}</p>
+            }
+
+            <div class="mt-9 grid gap-7">
+              @if (isLoadingComments()) {
+                <p class="text-[13px] text-[#5f575b]">A carregar comentários...</p>
+              } @else if (comments().length) {
+                @for (comment of comments(); track comment.id) {
+                  <div class="flex gap-4">
+                    <span class="grid size-9 place-items-center rounded-[8px] bg-[#e7e7e7] text-[11px] font-bold text-[#777]">{{ comment.authorInitials }}</span>
                     <div class="min-w-0 flex-1">
                       <div class="flex items-start justify-between gap-4">
-                        <p class="text-[12px] font-medium text-[#5c1e2f]">Ana Paula Santos</p>
-                        <span class="text-[10px] text-[#777]">há 1 dia</span>
+                        <p class="text-[13px] font-extrabold text-[#5c1e2f]">{{ comment.author }}</p>
+                        <span class="text-[10px] text-[#777]">{{ formatDate(comment.createdAt) }}</span>
                       </div>
-                      <p class="mt-1 text-[12px] leading-5 text-[#1f1a1c]">
-                        Concordo plenamente. Seria interessante aprofundar a relação entre o zimbo e a ráfia nas trocas rituais.
-                      </p>
+                      <p class="mt-1 text-[13px] leading-5 text-[#1f1a1c]">{{ comment.text }}</p>
                       <div class="mt-3 flex gap-6 text-[10px] text-[#5f575b]">
-                        <button type="button" class="content-action" (click)="requireLogin($event, 'gostar')"><img src="/assets/icons/like.png" alt="" /><span>Gostar (3)</span></button>
-                        <button type="button" (click)="requireLogin($event, 'responder')">Responder</button>
+                        <button type="button" class="content-action" (click)="react($event)"><img src="/assets/icons/like.png" alt="" /><span>Gostar</span></button>
+                        <button type="button" (click)="!auth.isAuthenticated() && requireLogin($event, 'responder')">Responder</button>
                         <button type="button" class="content-action" (click)="requireLogin($event, 'denunciar')"><img src="/assets/icons/report.png" alt="" /><span>Denunciar</span></button>
                       </div>
+
+                      @if (auth.isAuthenticated()) {
+                        <div class="mt-4 flex gap-3">
+                          <input #replyInput type="text" class="min-h-9 min-w-0 flex-1 border border-[#d8d8d8] bg-[#fafafa] px-3 text-[12px] outline-none focus:border-[#8a4055]" placeholder="Responder a este comentário..." />
+                          <button type="button" class="bg-[#5c0b25] px-4 text-[11px] font-bold text-white" (click)="submitReply(comment.id, replyInput.value); replyInput.value = ''">Responder</button>
+                        </div>
+                      }
+
+                      @for (reply of comment.replies; track reply.id) {
+                        <div class="mt-6 flex gap-4 border-l border-[#d8d8d8] pl-7">
+                          <span class="grid size-7 place-items-center rounded-[7px] bg-[#e7e7e7] text-[9px] font-bold text-[#777]">{{ reply.authorInitials }}</span>
+                          <div class="min-w-0 flex-1">
+                            <div class="flex items-start justify-between gap-4">
+                              <p class="text-[12px] font-medium text-[#5c1e2f]">{{ reply.author }}</p>
+                              <span class="text-[10px] text-[#777]">{{ formatDate(reply.createdAt) }}</span>
+                            </div>
+                            <p class="mt-1 text-[12px] leading-5 text-[#1f1a1c]">{{ reply.text }}</p>
+                            <div class="mt-3 flex gap-6 text-[10px] text-[#5f575b]">
+                              <button type="button" class="content-action" (click)="react($event)"><img src="/assets/icons/like.png" alt="" /><span>Gostar</span></button>
+                              <button type="button" class="content-action" (click)="requireLogin($event, 'denunciar')"><img src="/assets/icons/report.png" alt="" /><span>Denunciar</span></button>
+                            </div>
+                          </div>
+                        </div>
+                      }
                     </div>
                   </div>
-                </div>
-              </div>
+                }
+              } @else {
+                <p class="text-[13px] text-[#5f575b]">Ainda não há comentários neste conteúdo.</p>
+              }
             </div>
 
             <section class="mt-12 border-t border-[#eee7ea] pt-8">

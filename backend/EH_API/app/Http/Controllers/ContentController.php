@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 
+use App\Http\Requests\Content\StoreContentRequest;
+use App\Http\Requests\Content\UpdateContentRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 use App\Services\ContentService;
 
 use App\DTOs\Content\CreateContentDTO;
+use App\DTOs\Content\UpdateContentDTO;
 
 class ContentController extends Controller
 {
@@ -29,26 +31,22 @@ class ContentController extends Controller
         );
     }
 
-    public function store(Request $request)
+    public function store(StoreContentRequest $request)
     {
-        $request->validate([
-            'title' => 'required|max:255',
-            'category_id' => 'nullable|exists:categories,id',
-            'content_type_id' => 'required|exists:content_types,id',
-            'content' => 'required',
-            'visibility' => 'required|in:public,private,followers'
-        ]);
+        if (! $this->canCreateContent($request)) {
+            return $this->forbiddenResponse();
+        }
 
         $dto = new CreateContentDTO(
-            Auth::id(),
-            $request->category_id,
-            $request->content_type_id,
-            $request->title,
-            $request->summary,
-            $request->content,
-            $request->image,
-            $request->video,
-            $request->visibility
+            $request->user()->id,
+            $request->validated('category_id'),
+            $request->validated('content_type_id'),
+            $request->validated('title'),
+            $request->validated('summary'),
+            $request->validated('content'),
+            $request->validated('image'),
+            $request->validated('video'),
+            $request->validated('visibility')
         );
 
         $content = $this->service->create($dto);
@@ -70,5 +68,75 @@ class ContentController extends Controller
         }
 
         return response()->json($content);
+    }
+
+    public function update(UpdateContentRequest $request, int $id)
+    {
+        $content = $this->service->findById($id);
+
+        if (! $content) {
+            return response()->json([
+                'message' => 'Content not found'
+            ], 404);
+        }
+
+        if (! $this->canManageContent($request, $content->user_id)) {
+            return $this->forbiddenResponse();
+        }
+
+        return response()->json([
+            'message' => 'Content updated successfully',
+            'data' => $this->service->update(
+                $content,
+                UpdateContentDTO::fromArray($request->validated())
+            ),
+        ]);
+    }
+
+    public function destroy(Request $request, int $id)
+    {
+        $content = $this->service->findById($id);
+
+        if (! $content) {
+            return response()->json([
+                'message' => 'Content not found'
+            ], 404);
+        }
+
+        if (! $this->canManageContent($request, $content->user_id)) {
+            return $this->forbiddenResponse();
+        }
+
+        $this->service->delete($content);
+
+        return response()->json([
+            'message' => 'Content deleted successfully',
+        ]);
+    }
+
+    private function canCreateContent(Request $request): bool
+    {
+        $user = $request->user();
+
+        return $user && ($user->isAdminOrSuperAdmin() || $user->isWriter());
+    }
+
+    private function canManageContent(Request $request, int $ownerId): bool
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        return $user->isAdminOrSuperAdmin()
+            || ($user->isWriter() && (int) $user->id === $ownerId);
+    }
+
+    private function forbiddenResponse()
+    {
+        return response()->json([
+            'message' => 'You are not allowed to manage this content',
+        ], 403);
     }
 }

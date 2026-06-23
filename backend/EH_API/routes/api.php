@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContentController;
+use App\Http\Controllers\ContentMediaController;
 use App\Http\Controllers\ContentTypeController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\ForumReplyController;
@@ -60,6 +61,14 @@ Route::prefix('v1')->group(function () {
         // REPORTS
         Route::post('/reports', [ReportController::class, 'store']);
         Route::get('/reports/{id}', [ReportController::class, 'show']);
+
+        // CONTENT MEDIA
+        Route::post('/contents/{id}/upload-image', [ContentMediaController::class, 'uploadImage']);
+        Route::post('/contents/{id}/upload-video', [ContentMediaController::class, 'uploadVideo']);
+        Route::post('/contents/{id}/upload-audio', [ContentMediaController::class, 'uploadAudio']);
+        Route::post('/contents/{id}/upload-document', [ContentMediaController::class, 'uploadDocument']);
+        Route::delete('/contents/{id}/media', [ContentMediaController::class, 'destroy'])
+            ->middleware('role:Admin,SuperAdmin');
 
         // NOTIFICATIONS
         Route::post('/notifications', [NotificationController::class, 'store']);

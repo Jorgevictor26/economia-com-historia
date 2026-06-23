@@ -18,6 +18,10 @@ class Content extends Model
         'content',
         'image',
         'video',
+        'image_url',
+        'video_url',
+        'audio_url',
+        'document_url',
         'visibility'
     ];
 

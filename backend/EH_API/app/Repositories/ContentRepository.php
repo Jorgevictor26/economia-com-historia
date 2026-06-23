@@ -58,4 +58,13 @@ class ContentRepository
 
         return $content->fresh(['author', 'category', 'contentType']);
     }
+
+    public function updateMedia(Content $content, string $column, ?string $url): Content
+    {
+        $content->update([
+            $column => $url,
+        ]);
+
+        return $content->fresh(['author', 'category', 'contentType']);
+    }
 }

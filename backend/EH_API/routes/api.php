@@ -20,6 +20,7 @@ use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuizAnswerController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SavedContentController;
 use App\Http\Controllers\UserController;
 
 Route::prefix('v1')->group(function () {
@@ -39,6 +40,8 @@ Route::prefix('v1')->group(function () {
         Route::put('/profile', [UserController::class, 'updateProfile']);
         Route::get('/my-results', [QuizAnswerController::class, 'myResults']);
         Route::get('/my-reports', [ReportController::class, 'myReports']);
+        Route::post('/saved-contents', [SavedContentController::class, 'store']);
+        Route::get('/my-saved-contents', [SavedContentController::class, 'mine']);
 
         // CATEGORIES
         Route::post('/categories', [CategoryController::class, 'store']);

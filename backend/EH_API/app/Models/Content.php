@@ -54,4 +54,14 @@ class Content extends Model
     {
         return $this->hasMany(Report::class);
     }
+
+    public function savedByUsers()
+    {
+        return $this->hasMany(SavedContent::class);
+    }
+
+    public function savedContents()
+    {
+        return $this->hasMany(SavedContent::class);
+    }
 }

@@ -81,6 +81,11 @@ class User extends Authenticatable
         return $this->hasMany(ForumReply::class);
     }
 
+    public function savedContents(): HasMany
+    {
+        return $this->hasMany(SavedContent::class);
+    }
+
     public function reviewedReports(): HasMany
     {
         return $this->hasMany(Report::class, 'reviewed_by');

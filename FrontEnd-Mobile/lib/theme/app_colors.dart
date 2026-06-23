@@ -11,7 +11,9 @@ class AppColors {
 
   static const cardBackground = Color(0xFFFFFFFF);
 
-  static const inputFill = Color(0x4D857275);
+  static const inputFill = Color(0XFFFFFFFF);
+
+  static const disabledBackground = Color(0x4D857275);
 
   static const textDark = Color(0xFF191C1D);
 

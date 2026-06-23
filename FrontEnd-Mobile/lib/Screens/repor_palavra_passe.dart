@@ -78,6 +78,9 @@ class _ReporPalavraPasseScreenState extends State<ReporPalavraPasseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final contentWidth = screenWidth > 480 ? 420.0 : screenWidth * 0.88;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -92,7 +95,7 @@ class _ReporPalavraPasseScreenState extends State<ReporPalavraPasseScreen> {
             ),
             child: IntrinsicHeight(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.center, // ← era stretch
                 children: [
                   const SizedBox(height: 48),
 
@@ -102,117 +105,127 @@ class _ReporPalavraPasseScreenState extends State<ReporPalavraPasseScreen> {
                   const SizedBox(height: 12),
 
                   // ── Texto descritivo ────────────────────────────────────
-                  const Text(
-                    'Defina uma nova palavra-passe para a sua conta.',
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textMedium,
-                      height: 1.55,
+                  SizedBox(
+                    width: contentWidth,
+                    child: const Text(
+                      'Defina uma nova palavra-passe para a sua conta.',
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textMedium,
+                        height: 1.55,
+                      ),
                     ),
                   ),
 
                   const SizedBox(height: 32),
 
-                  // ── Campo: Nova Palavra-passe ────────────────────────────
-                  const FieldLabel(label: 'NOVA PALAVRA-PASSE'),
-                  const SizedBox(height: 8),
-                  AppTextField(
-                    controller: _novaSenhaController,
-                    hintText: '••••••••',
-                    keyboardType: TextInputType.visiblePassword,
-                    obscureText: !_novaSenhaVisivel,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _novaSenhaVisivel
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: AppColors.textMedium,
-                        size: 20,
-                      ),
-                      onPressed: () => setState(
-                        () => _novaSenhaVisivel = !_novaSenhaVisivel,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-
-                  // ── Hint de validação ────────────────────────────────────
-                  const Text(
-                    'Mínimo de 8 caracteres (letras e números).',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textLight,
-                      height: 1.4,
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // ── Campo: Confirmar Palavra-passe ───────────────────────
-                  const FieldLabel(label: 'CONFIRMAR PALAVRA-PASSE'),
-                  const SizedBox(height: 8),
-                  AppTextField(
-                    controller: _confirmarSenhaController,
-                    hintText: '••••••••',
-                    keyboardType: TextInputType.visiblePassword,
-                    obscureText: !_confirmarSenhaVisivel,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _confirmarSenhaVisivel
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: AppColors.textMedium,
-                        size: 20,
-                      ),
-                      onPressed: () => setState(
-                        () => _confirmarSenhaVisivel = !_confirmarSenhaVisivel,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  // ── Botão principal: Enviar ──────────────────────────────
-                  FilledButton(
-                    onPressed: _isLoading ? null : _handleEnviar,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      disabledBackgroundColor: AppColors.primary.withOpacity(
-                        0.6,
-                      ),
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size.fromHeight(52),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.3,
-                        fontFamily: 'Poppins',
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                  // ── Campos + Botão dentro de um bloco com largura fixa ──
+                  SizedBox(
+                    width: contentWidth,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const FieldLabel(label: 'NOVA PALAVRA-PASSE'),
+                        const SizedBox(height: 8),
+                        AppTextField(
+                          controller: _novaSenhaController,
+                          hintText: '••••••••',
+                          keyboardType: TextInputType.visiblePassword,
+                          obscureText: !_novaSenhaVisivel,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _novaSenhaVisivel
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                              color: AppColors.textMedium,
+                              size: 20,
                             ),
-                          )
-                        : const Text('Enviar'),
+                            onPressed: () => setState(
+                              () => _novaSenhaVisivel = !_novaSenhaVisivel,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+
+                        const Text(
+                          'Mínimo de 8 caracteres (letras e números).',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textLight,
+                            height: 1.4,
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        const FieldLabel(label: 'CONFIRMAR PALAVRA-PASSE'),
+                        const SizedBox(height: 8),
+                        AppTextField(
+                          controller: _confirmarSenhaController,
+                          hintText: '••••••••',
+                          keyboardType: TextInputType.visiblePassword,
+                          obscureText: !_confirmarSenhaVisivel,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _confirmarSenhaVisivel
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                              color: AppColors.textMedium,
+                              size: 20,
+                            ),
+                            onPressed: () => setState(
+                              () => _confirmarSenhaVisivel =
+                                  !_confirmarSenhaVisivel,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        // ── Botão ──────────────────────────────────────────
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: FilledButton(
+                            onPressed: _isLoading ? null : _handleEnviar,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              disabledBackgroundColor: AppColors.primary
+                                  .withOpacity(0.6),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.3,
+                                fontFamily: 'Poppins',
+                              ),
+                            ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text('Enviar'),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // ── Link: Voltar ao Início de Sessão ─────────────────────
                   const Center(child: BackToLoginLink()),
 
                   const Spacer(),
 
-                  // ── Footer ───────────────────────────────────────────────
                   const FooterSection(),
                   const SizedBox(height: 24),
                 ],

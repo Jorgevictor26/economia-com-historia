@@ -11,19 +11,11 @@ class AuthHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
+        Image.asset(
+          'assets/images/Logo.png',
           width: 56,
           height: 56,
-          decoration: BoxDecoration(
-            color: AppColors.borderSoft,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Image.asset(
-            'assets/images/Logo.png',
-            width: 80,
-            height: 80,
-            color: AppColors.primary,
-          ),
+          color: AppColors.primary,
         ),
 
         const SizedBox(height: 20),
@@ -132,16 +124,32 @@ class BackToLoginLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: () {
-        Navigator.pop(context);
-      },
+    return Column(
+      children: [
+        // ── Linha separadora ──
+        Divider(color: AppColors.borderSoft, thickness: 1),
 
-      child: const Text(
-        'Voltar ao login',
+        const SizedBox(height: 4),
 
-        style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
-      ),
+        // ── Botão com seta ──
+        TextButton.icon(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: const Icon(
+            Icons.arrow_back,
+            color: AppColors.primary,
+            size: 18,
+          ),
+          label: const Text(
+            'Voltar ao Login',
+            style: TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -9,7 +9,7 @@ import { NotificationService } from '../../services/notification.service';
   template: `
     <header class="public-navbar sticky top-0 z-40 border-b border-[#ece7e4] bg-white">
       <div class="fluid-container flex min-h-[58px] flex-wrap items-center gap-4">
-        <a [routerLink]="homeRoute()" class="flex shrink-0 items-center gap-2 font-display text-[15px] font-extrabold text-[#8a4055]">
+        <a [routerLink]="homeRoute()" class="flex shrink-0 items-center gap-2 font-display text-[15px] font-extrabold text-[#40081a]">
           <img src="/auth-logo.png" alt="Economia com História" class="h-[24px] w-auto" />
           <span [class.hidden]="menuOpen()">Economia com História</span>
         </a>
@@ -117,7 +117,8 @@ import { NotificationService } from '../../services/notification.service';
         (click)="closeMenu()"
       ></button>
       <aside
-        class="fixed inset-y-0 left-0 z-[90] flex w-[min(300px,86vw)] flex-col overflow-y-auto bg-white p-5 shadow-2xl transition-transform duration-300 ease-out md:hidden"
+      class="fixed inset-y-0 left-0 z-[90] flex w-[min(300px,86vw)] flex-col overflow-y-auto bg-[#ffffff] p-5 shadow-2xl transition-transform duration-300 ease-out md:hidden translate-x-0"
+      
         [class.translate-x-0]="menuOpen()"
         [class.-translate-x-full]="!menuOpen()"
       >

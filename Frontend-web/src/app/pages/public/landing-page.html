@@ -24,7 +24,7 @@
               <a routerLink="/app/contents" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-[8px] bg-[#40081a] px-7 text-[13px] font-bold text-white shadow-lg shadow-[#40081a]/15 transition hover:-translate-y-0.5 hover:shadow-xl">
                 Explorar conteúdo 
               </a>
-              <a routerLink="/auth/register" class="inline-flex min-h-12 items-center justify-center rounded-[8px] border border-[#40081a] px-7 text-[13px] font-bold text-[#40081a] transition hover:bg-[#40081a] hover:text-white">
+              <a routerLink="/auth/register" class="inline-flex min-h-12 items-center justify-center rounded-[8px] border border-[#40081a] px-7 text-[13px] font-bold text-[#40081a] transition hover:bg-[#5c1e2f ] hover:text-white">
                 Criar conta
               </a>
             </div>
@@ -163,18 +163,7 @@
         </div>
       </section>
 
-      <section class="bg-[#e7e8e9] px-5 py-20 lg:px-10">
-        <div class="fluid-container flex flex-col items-center justify-between gap-10 rounded-[16px] border border-[#d8c1c4]/70 bg-white py-8 md:flex-row md:py-12">
-          <div class="max-w-md">
-            <h2 class="font-display text-[30px] font-semibold text-[#40081a]">A Crónica Semanal</h2>
-            <p class="mt-4 text-[16px] leading-7 text-[#5e5e5f]">Receba os destaques históricos e análises económicas diretamente no seu e-mail.</p>
-          </div>
-          <form class="flex w-full flex-col gap-4 sm:flex-row md:w-auto" (submit)="$event.preventDefault()">
-            <input class="min-h-12 min-w-0 rounded-[8px] border border-[#d8c1c4] bg-[#f8f9fa] px-5 text-[15px] outline-none focus:border-[#40081a] sm:min-w-[300px]" placeholder="O seu e-mail" type="email" />
-            <button class="min-h-12 rounded-[8px] bg-[#40081a] px-7 text-[13px] font-bold text-white transition hover:opacity-90" type="submit">Registar</button>
-          </form>
-        </div>
-      </section>
+              
 
       <app-public-footer />
       <app-back-to-top />

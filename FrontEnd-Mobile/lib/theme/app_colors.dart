@@ -5,6 +5,8 @@ class AppColors {
 
   static const primaryDark = Color(0xFF534345);
 
+  static const textBordeaux = Color(0xFF8A3F50);
+
   static const background = Color(0xFFFFFFFF);
 
   static const cardBackground = Color(0xFFFFFFFF);

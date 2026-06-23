@@ -34,6 +34,10 @@ class OnboardingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    final sw = screenWidth / 390;
+    final sh = screenHeight / 844;
 
     final bool pagina1 = data.textoNoTopo;
     final bool pagina3 = data.mostrarIcone;
@@ -56,7 +60,7 @@ class OnboardingPage extends StatelessWidget {
         // ───────────────── CONTENT ─────────────────
         SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: EdgeInsets.symmetric(horizontal: 24 * sw),
             child: Column(
               children: [
                 // =====================================================
@@ -69,8 +73,8 @@ class OnboardingPage extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       data.titulo,
-                      style: const TextStyle(
-                        fontSize: 42,
+                      style: TextStyle(
+                        fontSize: 42 * sw,
                         fontWeight: FontWeight.w800,
                         color: AppColors.primary,
                         height: 1.0,
@@ -78,18 +82,18 @@ class OnboardingPage extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 40),
+                  SizedBox(height: 40 * sh),
 
                   Align(
                     alignment: Alignment.centerLeft,
                     child: SizedBox(
-                      width: 220,
+                      width: 220 * sw,
                       child: Text(
                         data.subtitulo,
-                        style: const TextStyle(
-                          fontSize: 18,
+                        style: TextStyle(
+                          fontSize: 18 * sw,
                           fontWeight: FontWeight.w400,
-                          color: AppColors.primaryDark,
+                          color: AppColors.textBordeaux,
                           height: 1.35,
                         ),
                       ),
@@ -108,26 +112,29 @@ class OnboardingPage extends StatelessWidget {
                   Text(
                     data.titulo,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 26,
+                    style: TextStyle(
+                      fontSize: 26 * sw,
                       fontWeight: FontWeight.w800,
                       color: AppColors.primary,
                       height: 1.35,
                     ),
                   ),
 
-                  const SizedBox(height: 90),
+                  SizedBox(height: 90 * sh),
 
-                  SizedBox(
-                    width: 260,
-                    child: Text(
-                      data.subtitulo,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.primaryDark,
-                        height: 1.4,
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: SizedBox(
+                      width: 220 * sw,
+                      child: Text(
+                        data.subtitulo,
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          fontSize: 18 * sw,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.textBordeaux,
+                          height: 1.4,
+                        ),
                       ),
                     ),
                   ),
@@ -144,8 +151,8 @@ class OnboardingPage extends StatelessWidget {
                   Text(
                     data.tituloTopo ?? '',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 18,
+                    style: TextStyle(
+                      fontSize: 18 * sw,
                       fontWeight: FontWeight.w600,
                       color: AppColors.primary,
                     ),
@@ -155,8 +162,8 @@ class OnboardingPage extends StatelessWidget {
 
                   Image.asset(
                     'assets/images/Logo.png',
-                    width: 95,
-                    height: 95,
+                    width: 95 * sw,
+                    height: 95 * sw,
                     color: Colors.white,
                     colorBlendMode: BlendMode.srcIn,
                   ),
@@ -166,23 +173,23 @@ class OnboardingPage extends StatelessWidget {
                   Text(
                     data.titulo,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 28,
+                    style: TextStyle(
+                      fontSize: 28 * sw,
                       fontWeight: FontWeight.w800,
                       color: AppColors.primary,
                       height: 1.2,
                     ),
                   ),
 
-                  const SizedBox(height: 55),
+                  SizedBox(height: 55 * sh),
 
                   Text(
                     data.subtitulo,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 18,
+                    style: TextStyle(
+                      fontSize: 18 * sw,
                       fontWeight: FontWeight.w400,
-                      color: AppColors.primaryDark,
+                      color: AppColors.textBordeaux,
                     ),
                   ),
 
@@ -193,8 +200,8 @@ class OnboardingPage extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: SizedBox(
-                    width: pagina1 ? 185 : 160,
-                    height: 56,
+                    width: (pagina1 ? 185 : 160) * sw,
+                    height: 56 * sh,
                     child: ElevatedButton(
                       onPressed: onAvancar,
                       style: ElevatedButton.styleFrom(
@@ -209,8 +216,8 @@ class OnboardingPage extends StatelessWidget {
                         data.labelBotao,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 16,
+                        style: TextStyle(
+                          fontSize: 16 * sw,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -218,7 +225,7 @@ class OnboardingPage extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 95),
+                SizedBox(height: 95 * sh),
               ],
             ),
           ),

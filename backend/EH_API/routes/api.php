@@ -41,6 +41,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/my-results', [QuizAnswerController::class, 'myResults']);
         Route::get('/my-reports', [ReportController::class, 'myReports']);
         Route::post('/saved-contents', [SavedContentController::class, 'store']);
+        Route::delete('/saved-contents/{contentId}', [SavedContentController::class, 'destroy']);
         Route::get('/my-saved-contents', [SavedContentController::class, 'mine']);
 
         // CATEGORIES

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTOs\SavedContent\RemoveSavedContentDTO;
 use App\DTOs\SavedContent\SaveContentDTO;
 use App\Models\SavedContent;
 use App\Repositories\ContentRepository;
@@ -39,5 +40,24 @@ class SavedContentService
     public function getUserSavedContents(int $userId): LengthAwarePaginator
     {
         return $this->repository->getByUser($userId);
+    }
+
+    public function remove(RemoveSavedContentDTO $dto): bool
+    {
+        if (! $this->contents->findById($dto->contentId)) {
+            throw ValidationException::withMessages([
+                'content_id' => ['Content not found.'],
+            ]);
+        }
+
+        $savedContent = $this->repository->findByUserAndContent($dto->userId, $dto->contentId);
+
+        if (! $savedContent) {
+            throw ValidationException::withMessages([
+                'content_id' => ['This content is not saved by this user.'],
+            ]);
+        }
+
+        return $this->repository->delete($savedContent);
     }
 }

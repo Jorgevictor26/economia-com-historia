@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\DTOs\SavedContent\RemoveSavedContentDTO;
 use App\DTOs\SavedContent\SaveContentDTO;
+use App\Http\Requests\SavedContent\DestroySavedContentRequest;
 use App\Http\Requests\SavedContent\StoreSavedContentRequest;
 use App\Services\SavedContentService;
 use Illuminate\Http\JsonResponse;
@@ -40,5 +42,24 @@ class SavedContentController extends Controller
         return response()->json(
             $this->service->getUserSavedContents($request->user()->id)
         );
+    }
+
+    public function destroy(DestroySavedContentRequest $request, int $contentId): JsonResponse
+    {
+        try {
+            $this->service->remove(new RemoveSavedContentDTO(
+                $request->user()->id,
+                $contentId
+            ));
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'message' => 'Unable to remove saved content',
+                'errors' => $exception->errors(),
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Saved content removed successfully',
+        ]);
     }
 }

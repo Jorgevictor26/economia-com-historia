@@ -1,9 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { RouterLink, Routes } from '@angular/router';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicFooterComponent } from '../shared/public-footer/public-footer.component';
+import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
 interface FavoriteItem {
+  id: string;
   type: 'artigo' | 'podcast' | 'quiz' | 'forum';
   eyebrow: string;
   title: string;
@@ -15,14 +17,34 @@ interface FavoriteItem {
 
 @Component({
   selector: 'app-favorites-page',
-  imports: [RouterLink, PublicFooterComponent, BackToTopComponent],
+  imports: [RouterLink, PublicNavbarComponent, PublicFooterComponent, BackToTopComponent],
   templateUrl: './favorites-page.html'
 })
 export class FavoritesPage {
   readonly filters = ['Todos', 'Artigos', 'Podcasts', 'Quizzes', 'Fóruns'];
+  readonly selectedFilter = signal(this.filters[0]);
 
-  readonly favorites: FavoriteItem[] = [
+  readonly filteredFavorites = computed(() => {
+    const filter = this.selectedFilter();
+    const items = this.favorites();
+
+    if (filter === 'Todos') {
+      return items;
+    }
+
+    const typeByFilter: Record<string, FavoriteItem['type']> = {
+      Artigos: 'artigo',
+      Podcasts: 'podcast',
+      Quizzes: 'quiz',
+      Fóruns: 'forum',
+    };
+
+    return items.filter((item) => item.type === typeByFilter[filter]);
+  });
+
+  readonly favorites = signal<FavoriteItem[]>([
     {
+      id: 'economia-cafe',
       type: 'artigo',
       eyebrow: 'Artigo',
       title: 'A Economia do Café e o Impacto Social...',
@@ -32,6 +54,7 @@ export class FavoritesPage {
       visual: 'coffee',
     },
     {
+      id: 'ouro-negro',
       type: 'podcast',
       eyebrow: 'Podcast',
       title: 'Ep. 42: Ouro Negro e o Futuro...',
@@ -41,6 +64,7 @@ export class FavoritesPage {
       visual: 'podcast',
     },
     {
+      id: 'cronologia-independencia',
       type: 'quiz',
       eyebrow: 'Quiz',
       title: 'Desafio: Cronologia da Independência',
@@ -50,6 +74,7 @@ export class FavoritesPage {
       visual: 'map',
     },
     {
+      id: 'diversificacao-pos',
       type: 'forum',
       eyebrow: 'Fórum',
       title: 'Discussão: Diversificação Pós-...',
@@ -59,6 +84,7 @@ export class FavoritesPage {
       visual: 'forum',
     },
     {
+      id: 'mercados-informais',
       type: 'artigo',
       eyebrow: 'Artigo',
       title: 'Mercados Informais: O...',
@@ -67,7 +93,11 @@ export class FavoritesPage {
       action: 'Ler Agora',
       visual: 'stage',
     },
-  ];
+  ]);
+
+  removeFavorite(id: string): void {
+    this.favorites.update((items) => items.filter((item) => item.id !== id));
+  }
 
 }
 

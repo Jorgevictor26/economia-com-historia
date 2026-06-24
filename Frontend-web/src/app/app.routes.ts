@@ -36,6 +36,12 @@ const dashboardRoutes: DashboardRoute[] = [
     loadChildren: () => import('./pages/users/favorites.routes').then((m) => m.FAVORITES_ROUTES),
   },
   {
+    path: 'guardados',
+    canActivate: [authGuard],
+    loginOperation: 'ver guardados',
+    loadChildren: () => import('./pages/users/favorites.routes').then((m) => m.FAVORITES_ROUTES),
+  },
+  {
     path: 'subscriptions',
     canActivate: [authGuard],
     loginOperation: 'subscrever ao Jindungo',

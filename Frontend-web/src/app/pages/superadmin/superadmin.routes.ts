@@ -11,10 +11,10 @@ export class SuperAdminPage {}
 
 export const SUPER_ADMIN_ROUTES: Routes = [
   { path: 'quiz', component: AdminQuizCreatePage },
-  { path: 'quizzes', component: AdminQuizCreatePage },
+  { path: 'quizzes', redirectTo: 'quiz' },
   { path: 'contents/create', component: AdminArticleCreatePage },
   { path: 'podcast/create', component: AdminPodcastCreatePage },
-  { path: 'podcasts/create', component: AdminPodcastCreatePage },
+  { path: 'podcasts/create', redirectTo: 'podcast/create' },
   { path: '', pathMatch: 'full', redirectTo: 'users' },
   { path: ':section', component: SuperAdminPage },
 ];

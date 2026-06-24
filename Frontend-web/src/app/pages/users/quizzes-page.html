@@ -98,12 +98,28 @@
       <div class="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         @for (quiz of filteredQuizzes(); track quiz.title) {
         <article
-          class="flex min-h-[292px] flex-col rounded-[2px] border border-[#ded7da] bg-white shadow-[0_1px_2px_rgba(22,19,21,0.03)] transition hover:-translate-y-0.5 hover:shadow-lg">
-          <div class="px-6 pb-5 pt-4" [class.border-[#2a9d8f]]="quiz.accent === 'green'"
+          class="flex min-h-[292px] flex-col overflow-hidden rounded-[2px] border border-[#ded7da] bg-white shadow-[0_1px_2px_rgba(22,19,21,0.03)] transition hover:-translate-y-0.5 hover:shadow-lg">
+          @if (quiz.coverImage) {
+          <figure class="relative h-36 bg-[#ece8ea]">
+            <img
+              class="h-full w-full object-cover"
+              [src]="quiz.coverImage"
+              [alt]="quiz.coverAlt || quiz.title"
+              loading="lazy" />
+            <figcaption
+              class="absolute left-4 top-4 rounded-[4px] bg-white/90 px-2 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5c1e2f] shadow-sm">
+              {{ quiz.level }}
+            </figcaption>
+          </figure>
+          }
+
+          <div class="flex flex-1 flex-col px-6 pb-5 pt-4" [class.border-[#2a9d8f]]="quiz.accent === 'green'"
             [class.border-[#8a4055]]="quiz.accent === 'wine'">
             <div class="flex items-start justify-between gap-4">
               <span class="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#735c00]">{{ quiz.area }}</span>
+              @if (!quiz.coverImage) {
               <span class="text-[12px] text-[#6f686b]">{{ quiz.level }}</span>
+              }
             </div>
 
             <h3 class="mt-4 min-h-[54px] font-display text-[21px] font-extrabold leading-tight text-[#40081a]">{{

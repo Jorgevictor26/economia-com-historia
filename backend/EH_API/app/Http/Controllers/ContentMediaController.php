@@ -5,14 +5,10 @@ namespace App\Http\Controllers;
 use App\DTOs\Content\DeleteContentMediaDTO;
 use App\DTOs\Content\UploadContentMediaDTO;
 use App\Http\Requests\Content\DeleteContentMediaRequest;
-use App\Http\Requests\Content\UploadContentAudioRequest;
-use App\Http\Requests\Content\UploadContentDocumentRequest;
-use App\Http\Requests\Content\UploadContentImageRequest;
-use App\Http\Requests\Content\UploadContentVideoRequest;
+use App\Http\Requests\Content\UploadContentMediaRequest;
 use App\Services\ContentMediaService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\UploadedFile;
 
 class ContentMediaController extends Controller
 {
@@ -20,24 +16,27 @@ class ContentMediaController extends Controller
         private ContentMediaService $service
     ) {}
 
-    public function uploadImage(UploadContentImageRequest $request, int $id): JsonResponse
+    public function store(UploadContentMediaRequest $request, int $id): JsonResponse
     {
-        return $this->upload($id, $request->user()->id, 'image', $request->file('image'));
-    }
+        try {
+            $content = $this->service->upload(new UploadContentMediaDTO(
+                $id,
+                $request->user()->id,
+                $request->mediaType(),
+                $request->mediaFile()
+            ));
+        } catch (AuthorizationException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 403);
+        }
 
-    public function uploadVideo(UploadContentVideoRequest $request, int $id): JsonResponse
-    {
-        return $this->upload($id, $request->user()->id, 'video', $request->file('video'));
-    }
+        if (! $content) {
+            return response()->json(['message' => 'Content not found'], 404);
+        }
 
-    public function uploadAudio(UploadContentAudioRequest $request, int $id): JsonResponse
-    {
-        return $this->upload($id, $request->user()->id, 'audio', $request->file('audio'));
-    }
-
-    public function uploadDocument(UploadContentDocumentRequest $request, int $id): JsonResponse
-    {
-        return $this->upload($id, $request->user()->id, 'document', $request->file('document'));
+        return response()->json([
+            'message' => 'Content media uploaded successfully',
+            'data' => $content,
+        ], 201);
     }
 
     public function destroy(DeleteContentMediaRequest $request, int $id): JsonResponse
@@ -61,28 +60,5 @@ class ContentMediaController extends Controller
             'message' => 'Content media removed successfully',
             'data' => $content,
         ]);
-    }
-
-    private function upload(int $contentId, int $userId, string $mediaType, UploadedFile $file): JsonResponse
-    {
-        try {
-            $content = $this->service->upload(new UploadContentMediaDTO(
-                $contentId,
-                $userId,
-                $mediaType,
-                $file
-            ));
-        } catch (AuthorizationException $exception) {
-            return response()->json(['message' => $exception->getMessage()], 403);
-        }
-
-        if (! $content) {
-            return response()->json(['message' => 'Content not found'], 404);
-        }
-
-        return response()->json([
-            'message' => 'Content media uploaded successfully',
-            'data' => $content,
-        ], 201);
     }
 }

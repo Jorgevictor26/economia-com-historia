@@ -13,6 +13,7 @@ interface BackendUser {
   photo?: string | null;
   bio?: string | null;
   roles?: Array<{ name: string }>;
+  jindungo_subscription_expires_at?: string | null;
 }
 
 interface AuthPayload {
@@ -30,6 +31,17 @@ export interface RegisterPayload {
   bio?: string;
 }
 
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ResetPasswordPayload {
+  email: string;
+  token: string;
+  password: string;
+  password_confirmation: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -43,7 +55,7 @@ export class AuthService {
       }),
     );
 
-    this.storeAuthPayload(response.data);
+    this.storeAuthPayload(response.data, payload.rememberMe);
   }
 
   async register(payload: RegisterPayload): Promise<void> {
@@ -59,8 +71,20 @@ export class AuthService {
     }
   }
 
-  private storeAuthPayload(payload: AuthPayload): void {
-    this.authState.setAuthenticatedUser(this.toUser(payload.user), payload.token);
+  async forgotPassword(payload: ForgotPasswordPayload): Promise<string> {
+    const response = await firstValueFrom(this.http.post<ApiResponse<null>>('/forgot-password', payload));
+
+    return response.message;
+  }
+
+  async resetPassword(payload: ResetPasswordPayload): Promise<string> {
+    const response = await firstValueFrom(this.http.post<ApiResponse<null>>('/reset-password', payload));
+
+    return response.message;
+  }
+
+  private storeAuthPayload(payload: AuthPayload, remember = true): void {
+    this.authState.setAuthenticatedUser(this.toUser(payload.user), payload.token, remember);
   }
 
   private toUser(user: BackendUser): User {
@@ -71,7 +95,7 @@ export class AuthService {
       role: this.resolveRole(user.roles),
       avatarUrl: user.photo || undefined,
       biography: user.bio || undefined,
-      hasPremiumAccess: this.hasPremiumAccess(user.roles),
+      hasPremiumAccess: this.hasPremiumAccess(user),
       invitedForumIds: [],
       streakDays: 0,
     };
@@ -99,9 +123,8 @@ export class AuthService {
     return 'student';
   }
 
-  private hasPremiumAccess(roles: BackendUser['roles'] = []): boolean {
-    return this.resolveRole(roles) !== 'student';
+  private hasPremiumAccess(user: BackendUser): boolean {
+    return this.resolveRole(user.roles) !== 'student' || Boolean(user.jindungo_subscription_expires_at);
   }
 }
-
 

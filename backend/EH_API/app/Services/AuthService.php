@@ -84,6 +84,8 @@ class AuthService
 
     private function authPayload(User $user): array
     {
+        $user->loadMissing('roles');
+
         return [
             'user' => $user,
             'token' => $user->createToken('auth_token')->plainTextToken,

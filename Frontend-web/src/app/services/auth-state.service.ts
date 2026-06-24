@@ -5,6 +5,7 @@ import { User, UserRole } from '../models/user.model';
 export class AuthStateService {
   private readonly storageKey = 'economia-com-historia.user';
   private readonly tokenStorageKey = 'economia-com-historia.token';
+  private readonly rememberStorageKey = 'economia-com-historia.remember';
   private readonly userSignal = signal<User | null>(this.readStoredUser());
   private readonly tokenSignal = signal<string | null>(this.readStoredToken());
   private readonly loginPromptSignal = signal<{ operation: string } | null>(null);
@@ -48,13 +49,13 @@ export class AuthStateService {
     });
   }
 
-  setAuthenticatedUser(user: User, token: string): void {
-    this.setToken(token);
-    this.setUser(user);
+  setAuthenticatedUser(user: User, token: string, remember = true): void {
+    this.setToken(token, remember);
+    this.setUser(user, remember);
   }
 
   updateAuthenticatedUser(user: User): void {
-    this.setUser(user);
+    this.setUser(user, this.shouldRemember());
   }
 
   canAccessForum(roomId: string, visibility: 'public' | 'private'): boolean {
@@ -95,28 +96,33 @@ export class AuthStateService {
     }, 220);
   }
 
-  private setUser(user: User | null): void {
+  private setUser(user: User | null, remember = true): void {
     this.userSignal.set(user);
 
     try {
+      window.localStorage.removeItem(this.storageKey);
+      window.sessionStorage.removeItem(this.storageKey);
+
       if (user) {
-        window.localStorage.setItem(this.storageKey, JSON.stringify(user));
-      } else {
-        window.localStorage.removeItem(this.storageKey);
+        this.storage(remember).setItem(this.storageKey, JSON.stringify(user));
       }
     } catch {
       // Storage can be unavailable in restricted browser contexts.
     }
   }
 
-  private setToken(token: string | null): void {
+  private setToken(token: string | null, remember = true): void {
     this.tokenSignal.set(token);
 
     try {
+      window.localStorage.removeItem(this.tokenStorageKey);
+      window.sessionStorage.removeItem(this.tokenStorageKey);
+
       if (token) {
-        window.localStorage.setItem(this.tokenStorageKey, token);
+        this.storage(remember).setItem(this.tokenStorageKey, token);
+        window.localStorage.setItem(this.rememberStorageKey, String(remember));
       } else {
-        window.localStorage.removeItem(this.tokenStorageKey);
+        window.localStorage.removeItem(this.rememberStorageKey);
       }
     } catch {
       // Storage can be unavailable in restricted browser contexts.
@@ -125,7 +131,7 @@ export class AuthStateService {
 
   private readStoredUser(): User | null {
     try {
-      const storedUser = window.localStorage.getItem(this.storageKey);
+      const storedUser = window.localStorage.getItem(this.storageKey) ?? window.sessionStorage.getItem(this.storageKey);
       if (!storedUser) {
         return null;
       }
@@ -138,9 +144,21 @@ export class AuthStateService {
 
   private readStoredToken(): string | null {
     try {
-      return window.localStorage.getItem(this.tokenStorageKey);
+      return window.localStorage.getItem(this.tokenStorageKey) ?? window.sessionStorage.getItem(this.tokenStorageKey);
     } catch {
       return null;
     }
+  }
+
+  private shouldRemember(): boolean {
+    try {
+      return window.localStorage.getItem(this.rememberStorageKey) !== 'false';
+    } catch {
+      return true;
+    }
+  }
+
+  private storage(remember: boolean): Storage {
+    return remember ? window.localStorage : window.sessionStorage;
   }
 }

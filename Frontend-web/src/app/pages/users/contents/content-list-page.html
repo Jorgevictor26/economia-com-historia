@@ -1,58 +1,94 @@
-    <section class="-m-6 min-h-dvh bg-[#f7f8f8] text-[#2c2729]">
-      <app-public-navbar />
+<section class="-m-6 min-h-dvh bg-[#f7f8f8] text-[#2c2729]">
+  <app-public-navbar />
 
-      <main class="fluid-container pb-14 pt-6">
-        <section class="mb-8 rounded-[8px] border border-[#d8c1c4]/55 bg-white p-6 shadow-[0_10px_30px_rgba(64,8,26,0.05)]">
-          <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_310px] lg:items-end">
-            <div>
-              <h1 class="mt-3 font-display text-[34px] font-extrabold leading-tight text-[#40081a]">Explorar Conteúdos</h1>
-             
-            </div>
-          </div>
-
-          <label class="mt-7 flex min-h-[54px] items-center gap-3 rounded-[8px] border border-[#e6d7dc] bg-[#f8f9fa] px-5 text-[#7f777b]">
-            <span class="relative size-4 shrink-0 rounded-full border-2 border-current after:absolute after:-bottom-1 after:-right-1 after:h-2 after:w-0.5 after:rotate-[-45deg] after:bg-current"></span>
-            <input
-              class="w-full bg-transparent text-[14px] text-[#3b3437] outline-none placeholder:text-[#8e878b]"
-              type="search"
-              placeholder="Pesquisar por autores, períodos históricos ou temas económicos..."
-              [value]="searchTerm()"
-              (input)="updateSearch($event)"
-            />
-          </label>
-        </section>
-
-        @if (filteredContents().length === 0) {
-          <section class="rounded-[8px] border border-[#e3d4d8] bg-white px-6 py-12 text-center">
-            <h2 class="font-display text-[22px] font-extrabold text-[#5c1e2f]">Conteúdo não encontrado</h2>
-            <p class="mx-auto mt-3 max-w-[460px] text-[13px] leading-6 text-[#6f686b]">Não encontramos conteúdos para a pesquisa ou filtro aplicado.</p>
-          </section>
-        }
-        <div class="grid items-stretch gap-8 md:grid-cols-2 xl:grid-cols-3">
-          @for (content of filteredContents(); track content.id) {
-            <app-content-card
-              [content]="content"
-              [canReadPremium]="auth.canReadJindungo()"
-              (gatedAction)="requireLogin($event.event, $event.operation)"
-            />
-          }
+  <main class="fluid-container pb-14 pt-6">
+    <section class="mb-8">
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_310px] lg:items-end">
+        <div>
+          <h1 class="mt-3 font-display text-[34px] font-extrabold leading-tight text-[#40081a]">Explorar
+            Conte&uacute;dos</h1>
         </div>
+      </div>
 
-        <div class="mt-16 text-center">
-          <p class="mb-4 text-[10px] font-bold uppercase tracking-[0.22em] text-[#8a8587]">{{ contentCountMessage() }}</p>
-          @if (hasMoreContents()) {
-            <button
-              type="button"
-              class="h-[50px] border border-[#5c1e2f] bg-white px-10 text-[12px] font-extrabold text-[#5c1e2f] transition hover:bg-[#5c1e2f] hover:text-white"
-              [disabled]="isLoadingContents()"
-              (click)="loadMoreContents()"
-            >
-              {{ isLoadingContents() ? 'A carregar...' : 'Ver Mais Conteúdos' }}
-            </button>
-          }
-        </div>
-      </main>
+      <div
+        class="mt-7 grid gap-4 rounded-[12px] border border-[#ddd8da] bg-white p-3 md:grid-cols-[minmax(0,1.7fr)_minmax(190px,0.85fr)_minmax(190px,0.85fr)]">
+        <label class="flex min-h-[46px] items-center gap-3 rounded-[8px] bg-[#f1f1f3] px-4 text-[#89909d]">
+          <span
+            class="relative size-4 shrink-0 rounded-full border-2 border-current after:absolute after:-bottom-1 after:-right-1 after:h-2 after:w-0.5 after:rotate-[-45deg] after:bg-current"></span>
+          <input class="w-full bg-transparent text-[14px] text-[#3b3437] outline-none placeholder:text-[#7d8490]"
+            type="search" placeholder="Pesquisar conte&uacute;dos..." [value]="searchTerm()"
+            (input)="updateSearch($event)" />
+        </label>
 
-      <app-public-footer />
-      <app-back-to-top />
+        <label class="relative flex min-h-[46px] items-center rounded-[8px] bg-[#f1f1f3]">
+          <select
+            class="h-full w-full appearance-none rounded-[8px] bg-transparent px-4 pr-10 text-[13px] font-semibold text-[#121212] outline-none"
+            [value]="selectedCategoryFilter()" (change)="selectCategoryFilter($any($event.target).value)">
+            @for (filter of categoryFilters(); track filter) {
+            <option [value]="filter">{{ filter === 'Todos' ? 'Todas as categorias' : filter }}</option>
+            }
+          </select>
+          <span class="pointer-events-none absolute right-4 text-[#a0a5af]">⌄</span>
+        </label>
+
+        <label class="relative flex min-h-[46px] items-center rounded-[8px] bg-[#f1f1f3]">
+          <select
+            class="h-full w-full appearance-none rounded-[8px] bg-transparent px-4 pr-10 text-[13px] font-semibold text-[#121212] outline-none"
+            [value]="selectedContentTypeFilter()" (change)="selectContentTypeFilter($any($event.target).value)">
+            @for (filter of contentTypeFilters(); track filter) {
+            <option [value]="filter">{{ filter === 'Todos os formatos' ? 'Todos os tipos' : filter }}</option>
+            }
+          </select>
+          <span class="pointer-events-none absolute right-4 text-[#a0a5af]">⌄</span>
+        </label>
+      </div>
     </section>
+
+    @if (filteredContents().length === 0) {
+    <section class="rounded-[8px] border border-[#e3d4d8] bg-white px-6 py-12 text-center">
+      <h2 class="font-display text-[22px] font-extrabold text-[#5c1e2f]">Conte&uacute;do n&atilde;o encontrado</h2>
+      <p class="mx-auto mt-3 max-w-[460px] text-[13px] leading-6 text-[#6f686b]">N&atilde;o encontramos conte&uacute;dos
+        para a pesquisa ou filtro aplicado.</p>
+    </section>
+    }
+    <div class="grid items-stretch gap-8 md:grid-cols-2 xl:grid-cols-3">
+      @for (content of filteredContents(); track content.id) {
+      <app-content-card [content]="content" [canReadPremium]="auth.canReadJindungo()"
+        (gatedAction)="requireLogin($event.event, $event.operation)" />
+      }
+    </div>
+
+    <div class="mt-8 flex flex-col items-center gap-2">
+      <div
+        class="inline-grid min-h-[18px] overflow-hidden rounded-full border border-[#d8d3d6] bg-white shadow-[0_8px_18px_rgba(64,8,26,0.06)] sm:grid-cols-[120px_50px_120px]">
+        <!-- Botão anterior -->
+        <button type="button"
+          class="flex items-center justify-center gap-1 px-3 text-[13px] font-semibold text-[#40081a] transition hover:bg-[#fff6f8] disabled:cursor-not-allowed disabled:text-[#c7bdc1]"
+          [disabled]="!hasPreviousPage() || isLoadingContents()" (click)="goToPreviousPage()">
+          <span class="text-[16px] leading-none" aria-hidden="true">&larr;</span>
+          Anterior
+        </button>
+
+        <!-- Página atual -->
+        <div class="grid place-items-center border-x border-[#d8d3d6] px-2">
+          <span class="grid size-8 place-items-center rounded-[8px] bg-[#6b3344] text-[14px] font-bold text-white">
+            {{ pagination().currentPage }}
+          </span>
+        </div>
+
+        <!-- Botão próximo -->
+        <button type="button"
+          class="flex items-center justify-center gap-1 px-3 text-[13px] font-semibold text-[#40081a] transition hover:bg-[#fff6f8] disabled:cursor-not-allowed disabled:text-[#c7bdc1]"
+          [disabled]="!hasMoreContents() || isLoadingContents()" (click)="goToNextPage()">
+          Próximo
+          <span class="text-[16px] leading-none" aria-hidden="true">&rarr;</span>
+        </button>
+      </div>
+    </div>
+
+
+  </main>
+
+  <app-public-footer />
+  <app-back-to-top />
+</section>

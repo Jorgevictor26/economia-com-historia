@@ -6,7 +6,7 @@ import { PublicFooterComponent } from '../../../components/public-footer/public-
 import { PublicNavbarComponent } from '../../../components/public-navbar/public-navbar.component';
 
 interface DailyContent {
-  id: string; 
+  id: string;
   type: 'Artigo' | 'Video' | 'Podcast' | 'Quiz' | 'Jindungo' | 'Forum';
   title: string;
   summary: string;
@@ -74,27 +74,24 @@ interface DailyContent {
 
             <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               @for (item of recommendedContent; track item.id) {
-                <article
-                  class="group overflow-hidden rounded-[8px] border border-[#d8c1c4]/60 bg-white shadow-[0_1px_2px_rgba(22,19,21,0.03)] transition duration-300 hover:-translate-y-1.5 hover:shadow-xl"
-                  [style.height.px]="item.type === 'Quiz' ? 368 : null"
-                  [style.max-width.px]="item.type === 'Quiz' ? 311 : null"
-                >
-                  <a [routerLink]="item.route" class="block h-full">
-                    <div class="relative h-[190px] overflow-hidden bg-[#eee9eb]" [style.height.px]="item.type === 'Quiz' ? 150 : null">
-                      <img [src]="item.imageUrl" [alt]="item.title" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-                      <span class="absolute left-4 top-4 rounded-[4px] bg-[#40081a]/92 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.08em] text-white">{{ item.type }}</span>
-                      @if (item.premium) {
-                        <span class="absolute bottom-4 right-4 rounded-[4px] bg-[#d4af37] px-3 py-1 text-[11px] font-extrabold text-[#40081a]">Subscricao</span>
-                      }
-                    </div>
-                    <div class="grid min-h-[210px] content-start p-6" [class.min-h-0]="item.type === 'Quiz'" [class.p-5]="item.type === 'Quiz'" [style.height.px]="item.type === 'Quiz' ? 218 : null">
-                      <small class="text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#735c00]">{{ item.meta }}</small>
-                      <h3 class="mt-2 font-display text-[21px] font-extrabold leading-tight text-[#40081a]">{{ item.title }}</h3>
-                      <p class="mt-3 line-clamp-3 text-[13px] leading-6 text-[#5f575b]">{{ item.summary }}</p>
-                      <span class="mt-auto border-t border-[#f0ecee] pt-4 text-xs font-bold text-[#735c00]">Abrir</span>
-                    </div>
-                  </a>
-                </article>
+           <article
+            class="group overflow-hidden rounded-[8px] border border-[#d8c1c4]/60 bg-white shadow-[0_1px_2px_rgba(22,19,21,0.03)] transition duration-300 hover:-translate-y-1.5 hover:shadow-xl">
+            <a [routerLink]="item.route" class="block h-full">
+              <div class="relative h-[190px] overflow-hidden bg-[#eee9eb]">
+                <img [src]="item.imageUrl" [alt]="item.title"
+                    class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                <span class="absolute left-4 top-4 rounded-[4px] bg-[#40081a]/92 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.08em] text-white">
+                  {{ item.type }}
+                </span>
+              </div>
+              <div class="grid min-h-[210px] content-start p-6">
+                <small class="text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#735c00]">{{ item.meta }}</small>
+                <h3 class="mt-2 font-display text-[21px] font-extrabold leading-tight text-[#40081a]">{{ item.title }}</h3>
+                <p class="mt-3 line-clamp-3 text-[13px] leading-6 text-[#5f575b]">{{ item.summary }}</p>
+                <span class="mt-auto border-t border-[#f0ecee] pt-4 text-xs font-bold text-[#735c00]">Abrir</span>
+              </div>
+            </a>
+          </article>
               }
             </div>
           </div>

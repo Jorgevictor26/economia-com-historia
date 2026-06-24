@@ -5,59 +5,78 @@ import { RouterLink } from '@angular/router';
   selector: 'app-public-footer',
   imports: [RouterLink],
   template: `
-    <footer class="landing-footer border-t border-[#d8c1c4]/50 bg-white pt-10">
-      <div class="fluid-container">
-        <div class="grid gap-8 pb-10 sm:grid-cols-2 lg:grid-cols-[1.35fr_0.8fr_0.8fr_1fr]">
-          <div>
-            <h2 class="font-display text-[21px] font-bold text-[#40081a]">Economia com História: Angola</h2>
-            <p class="mt-4 max-w-sm text-[14px] leading-6 text-[#534345]">
-              Uma plataforma dedicada à preservação e disseminação do conhecimento histórico-económico angolano com rigor académico.
-            </p>
-            <div class="mt-5 flex flex-wrap gap-3">
-              @for (social of socialLinks; track social) {
-                <a href="#" class="grid size-9 place-items-center rounded-full bg-[#40081a]/5 text-[12px] font-bold text-[#40081a] transition hover:bg-[#40081a] hover:text-white" aria-label="Ligação social">{{ social[0].toUpperCase() }}</a>
-              }
-            </div>
-          </div>
-
-          <div>
-            <h3 class="text-[12px] font-bold uppercase tracking-[0.14em] text-[#40081a]">Plataforma</h3>
-            <ul class="mt-4 grid gap-3 text-[14px] text-[#5e5e5f]">
-              <li><a routerLink="/" class="hover:text-[#40081a]">Missão</a></li>
-              <li><a routerLink="/" class="hover:text-[#40081a]">Visão</a></li>
-              <li><a routerLink="/app/contents" class="hover:text-[#40081a]">Equipa Académica</a></li>
-              <li><a routerLink="/app/quizzes" class="hover:text-[#40081a]">Quizzes</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 class="text-[12px] font-bold uppercase tracking-[0.14em] text-[#40081a]">Suporte</h3>
-            <ul class="mt-4 grid gap-3 text-[14px] text-[#5e5e5f]">
-              <li><a routerLink="/" class="hover:text-[#40081a]">Contactos</a></li>
-              <li><a routerLink="/" class="hover:text-[#40081a]">FAQ</a></li>
-              <li><a routerLink="/" class="hover:text-[#40081a]">Termos de Uso</a></li>
-              <li><a routerLink="/" class="hover:text-[#40081a]">Privacidade</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 class="text-[12px] font-bold uppercase tracking-[0.14em] text-[#40081a]">Institucional</h3>
-            <p class="mt-4 text-[14px] italic leading-6 text-[#5e5e5f]">"Preservando o passado, construindo o futuro."</p>
-            <div class="mt-4 rounded-[8px] bg-[#5c1e2f]/10 p-3">
-              <p class="text-[12px] leading-5 text-[#40081a]">Projecto realizado em colaboração com instituições académicas nacionais.</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex flex-col items-start justify-between gap-3 border-t border-[#d8c1c4]/50 py-5 text-[12px] text-[#5e5e5f] sm:flex-row sm:items-center">
-          <p>© 2026 Economia com História: Angola. Todos os direitos reservados.</p>
-          <div class="flex flex-wrap gap-x-5 gap-y-2">
-            <a routerLink="/" class="hover:text-[#40081a]">Mapa do Site</a>
-            <a routerLink="/" class="hover:text-[#40081a]">Acessibilidade</a>
-          </div>
-        </div>
+ <footer class="landing-footer border-t border-[#d8c1c4]/50 bg-white pt-10">
+  <div class="fluid-container">
+    <div class="grid gap-8 pb-10 sm:grid-cols-2 lg:grid-cols-[1.35fr_0.8fr_0.8fr_1fr]">
+      <div>
+        <h2 class="font-display text-[21px] font-bold text-[#40081a]">Economia com História: Angola</h2>
+        <p class="mt-4 max-w-sm text-[14px] leading-6 text-[#534345]">
+          Uma plataforma dedicada à preservação e disseminação do conhecimento histórico-económico angolano com rigor académico.
+        </p>
+       
       </div>
-    </footer>
+
+      <div>
+        <h3 class="text-[12px] font-bold uppercase tracking-[0.14em] text-[#40081a]">Plataforma</h3>
+        <ul class="mt-4 grid gap-3 text-[14px] text-[#5e5e5f]">
+          <li><a routerLink="/" class="hover:text-[#40081a]">Missão</a></li>
+          <li><a routerLink="/" class="hover:text-[#40081a]">Visão</a></li>
+          <li><a routerLink="/app/contents" class="hover:text-[#40081a]">Equipa Académica</a></li>
+          <li><a routerLink="/app/quizzes" class="hover:text-[#40081a]">Quizzes</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="text-[12px] font-bold uppercase tracking-[0.14em] text-[#40081a]">Suporte</h3>
+        <ul class="mt-4 grid gap-3 text-[14px] text-[#5e5e5f]">
+          <li><a routerLink="/" class="hover:text-[#40081a]">FAQ</a></li>
+          <li><a routerLink="/" class="hover:text-[#40081a]">Termos de Uso</a></li>
+          <li><a routerLink="/" class="hover:text-[#40081a]">Privacidade</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="text-[12px] font-bold uppercase tracking-[0.14em] text-[#40081a]">Contacte-nos</h3>
+        <ul class="mt-4 grid gap-3 text-[14px] text-[#5e5e5f]">
+          <li>Endereço: aaaaaa</li>
+          <li>Telefone: <a href="tel:+244 xxxxxxxxx" class="hover:text-[#40081a]">+244 xxx-xxx-xxx</a></li>
+          <li>Email: <a href="mailto:xxxxxxxx@gmail.com" class="hover:text-[#40081a]">xxxxxxxx@gmail.com</a></li>
+        </ul>
+        <div class="mt-5 flex flex-wrap gap-3">
+    <a href="https://facebook.com" target="_blank" aria-label="Facebook"
+     class="grid size-9 place-items-center rounded-full bg-[#40081a]/5 text-[#40081a] transition hover:bg-[#6e1a35] hover:text-white">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
+      <path d="M22.675 0h-21.35C.597 0 0 .597 0 1.326v21.348C0 23.403.597 24 1.326 
+      24h11.495v-9.294H9.691v-3.622h3.13V8.413c0-3.1 1.893-4.788 
+      4.659-4.788 1.325 0 2.463.099 2.794.143v3.24l-1.918.001c-1.504 
+      0-1.796.715-1.796 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116C23.403 
+      24 24 23.403 24 22.674V1.326C24 .597 23.403 0 22.675 0z"/>
+    </svg>
+  </a>
+  <a href="https://linkedin.com" target="_blank" aria-label="LinkedIn"
+     class="grid size-9 place-items-center rounded-full bg-[#40081a]/5 text-[#40081a] transition hover:bg-[#6e1a35] hover:text-white">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 
+      0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.049c.476-.9 
+      1.637-1.852 3.37-1.852 3.601 0 4.263 2.37 4.263 5.455v6.288zM5.337 
+      7.433c-1.144 0-2.07-.927-2.07-2.07 0-1.144.926-2.07 
+      2.07-2.07s2.07.926 2.07 2.07c0 1.143-.926 2.07-2.07 
+      2.07zM6.814 20.452H3.861V9h2.953v11.452zM22.225 
+      0H1.771C.792 0 0 .771 0 1.771v20.452C0 23.229.792 
+      24 1.771 24h20.452C23.2 24 24 23.229 24 
+      22.225V1.771C24 .771 23.2 0 22.225 0z"/>
+    </svg>
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <div class="flex flex-col items-start justify-between gap-3 border-t border-[#d8c1c4]/50 py-5 text-[12px] text-[#5e5e5f] sm:flex-row sm:items-center">
+      <p>© 2026 Economia com História: Angola. Todos os direitos reservados.</p>
+    </div>
+  </div>
+</footer>
   `,
 })
 export class PublicFooterComponent {

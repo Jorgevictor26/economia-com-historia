@@ -53,6 +53,7 @@ interface CommentReplyView {
   templateUrl: './content-list-page.html'
 })
 export class ContentListPage implements OnInit {
+  private readonly route = inject(ActivatedRoute);
   readonly auth = inject(AuthStateService);
   private readonly categoryService = inject(CategoryService);
   private readonly contentService = inject(ContentService);
@@ -86,6 +87,7 @@ export class ContentListPage implements OnInit {
   readonly selectedCategoryFilter = signal('Todos');
   readonly selectedContentTypeFilter = signal('Todos os formatos');
   readonly searchTerm = signal('');
+  readonly hasPreviousPage = computed(() => this.pagination().currentPage > 1);
   readonly hasMoreContents = computed(() => this.pagination().currentPage < this.pagination().lastPage);
   readonly activeFilterCount = computed(() => {
     let total = 0;
@@ -160,6 +162,7 @@ export class ContentListPage implements OnInit {
       this.contentTypes.set(this.fallbackContentTypes);
     }
 
+    this.applyRouteFilters();
     await this.loadContents(1, true);
   }
 
@@ -199,11 +202,54 @@ export class ContentListPage implements OnInit {
     void this.loadContents(this.pagination().currentPage + 1, false);
   }
 
+  goToPreviousPage(): void {
+    if (!this.hasPreviousPage() || this.isLoadingContents()) {
+      return;
+    }
+
+    void this.loadContents(this.pagination().currentPage - 1, true);
+  }
+
+  goToNextPage(): void {
+    if (!this.hasMoreContents() || this.isLoadingContents()) {
+      return;
+    }
+
+    void this.loadContents(this.pagination().currentPage + 1, true);
+  }
+
   private normalizeText(value: string): string {
     return value
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  private applyRouteFilters(): void {
+    const params = this.route.snapshot.queryParamMap;
+    const category = params.get('categoria') ?? params.get('category');
+    const type = params.get('tipo') ?? params.get('type') ?? params.get('contentType');
+    const query = params.get('q') ?? params.get('search');
+
+    if (category) {
+      const normalizedCategory = this.normalizeText(category);
+      const matchingCategory = this.categories().find((item) => this.normalizeText(item.name) === normalizedCategory);
+
+      this.selectedCategoryFilter.set(matchingCategory?.name ?? category);
+    }
+
+    if (type) {
+      const normalizedType = this.normalizeText(type);
+      const matchingType = this.contentTypes().find((item) =>
+        this.normalizeText(item.name) === normalizedType || this.normalizeText(item.slug) === normalizedType,
+      );
+
+      this.selectedContentTypeFilter.set(matchingType?.name ?? type);
+    }
+
+    if (query) {
+      this.searchTerm.set(query);
+    }
   }
 
   private toHomeContent(content: BackendContent): ContentListItem {

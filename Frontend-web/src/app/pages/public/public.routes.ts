@@ -20,6 +20,7 @@ export class LandingPage implements AfterViewInit, OnDestroy {
       text: 'Investigação profunda desde as origens pré-coloniais até à modernidade.',
       action: 'Explorar',
       route: '/app/contents',
+      queryParams: { categoria: 'História' },
       image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=900&q=80',
     },
     {
@@ -27,13 +28,15 @@ export class LandingPage implements AfterViewInit, OnDestroy {
       text: 'Análise rigorosa de fluxos, mercados e políticas de desenvolvimento nacional.',
       action: 'Explorar',
       route: '/app/contents',
+      queryParams: { categoria: 'Economia' },
       image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80',
     },
     {
       title: 'Jindungo',
       text: 'Acesso a conteúdos exclusivos, relatórios detalhados e insights para subscritores.',
       action: 'Explorar',
-      route: '/app/subscriptions',
+      route: '/app/contents',
+      queryParams: { tipo: 'Jindungo' },
       image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80',
     },
     {
@@ -41,6 +44,7 @@ export class LandingPage implements AfterViewInit, OnDestroy {
       text: 'Entrevistas e debates narrados por vozes experientes.',
       action: 'Explorar',
       route: '/app/contents',
+      queryParams: { tipo: 'Podcast' },
       image: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&w=900&q=80',
     },
   ];

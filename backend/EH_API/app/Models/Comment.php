@@ -34,8 +34,8 @@ class Comment extends Model
         return $this->hasMany(CommentReply::class);
     }
 
-    public function reports()
+    public function commentReports()
     {
-        return $this->hasMany(Report::class);
+        return $this->hasMany(CommentReport::class);
     }
 }

@@ -2,46 +2,46 @@
 
 namespace App\Repositories;
 
-use App\Models\Report;
+use App\Models\CommentReport;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
-class ReportRepository
+class CommentReportRepository
 {
     public function all(array $filters = []): LengthAwarePaginator
     {
-        return Report::with(['user', 'comment', 'reviewer'])
+        return CommentReport::with(['user', 'comment', 'reviewer'])
             ->when($filters['search'] ?? null, fn ($query, string $search) => $this->applySearch($query, $search))
             ->latest()
             ->paginate(10);
     }
 
-    public function create(array $data): Report
+    public function create(array $data): CommentReport
     {
-        return Report::create($data)->load(['user', 'comment']);
+        return CommentReport::create($data)->load(['user', 'comment']);
     }
 
-    public function findById(int $id): ?Report
+    public function findById(int $id): ?CommentReport
     {
-        return Report::with(['user', 'comment', 'reviewer'])->find($id);
+        return CommentReport::with(['user', 'comment', 'reviewer'])->find($id);
     }
 
     public function existsForUserAndComment(int $userId, int $commentId): bool
     {
-        return Report::where('user_id', $userId)
+        return CommentReport::where('user_id', $userId)
             ->where('comment_id', $commentId)
             ->exists();
     }
 
-    public function findByIdForUser(int $id, int $userId): ?Report
+    public function findByIdForUser(int $id, int $userId): ?CommentReport
     {
-        return Report::with(['user', 'comment', 'reviewer'])
+        return CommentReport::with(['user', 'comment', 'reviewer'])
             ->where('user_id', $userId)
             ->find($id);
     }
 
     public function byUser(int $userId, array $filters = []): LengthAwarePaginator
     {
-        return Report::with(['comment', 'reviewer'])
+        return CommentReport::with(['comment', 'reviewer'])
             ->where('user_id', $userId)
             ->when($filters['search'] ?? null, fn ($query, string $search) => $this->applySearch($query, $search))
             ->latest()
@@ -50,12 +50,12 @@ class ReportRepository
 
     public function distinctUserCountForComment(int $commentId): int
     {
-        return Report::where('comment_id', $commentId)
+        return CommentReport::where('comment_id', $commentId)
             ->distinct()
             ->count('user_id');
     }
 
-    public function updateStatus(Report $report, string $status, int $reviewerId): Report
+    public function updateStatus(CommentReport $report, string $status, int $reviewerId): CommentReport
     {
         $report->update([
             'status' => $status,

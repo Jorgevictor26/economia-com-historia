@@ -18,7 +18,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->enum('reason', [
                 'spam',
-                'offensive_content',
+                'offensive_comment',
                 'fake_information',
                 'copyright',
                 'other',

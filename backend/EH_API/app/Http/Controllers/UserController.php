@@ -61,6 +61,30 @@ class UserController extends Controller
         );
     }
 
+    public function updateJindungoSubscription(Request $request, User $user): JsonResponse
+    {
+        $data = $request->validate([
+            'jindungo_subscription_expires_at' => ['nullable', 'date'],
+        ]);
+
+        try {
+            $user = $this->users->updateJindungoSubscription(
+                $user,
+                $request->user(),
+                $data['jindungo_subscription_expires_at'] ?? null
+            );
+        } catch (AuthorizationException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 403);
+        }
+
+        return response()->json([
+            'message' => 'Subscrição jindungo atualizada com sucesso',
+            'data' => $user,
+        ]);
+    }
+
     private function promote(callable $callback, string $message): JsonResponse
     {
         try {

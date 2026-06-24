@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Report;
+namespace App\Http\Requests\CommentReport;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreReportRequest extends FormRequest
+class StoreCommentReportRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -15,7 +15,7 @@ class StoreReportRequest extends FormRequest
     {
         return [
             'comment_id' => ['required', 'integer', 'exists:comments,id'],
-            'reason' => ['required', 'string', 'in:spam,offensive_content,fake_information,copyright,other'],
+            'reason' => ['required', 'string', 'in:spam,offensive_comment,fake_information,copyright,other'],
             'description' => ['nullable', 'string', 'max:2000'],
         ];
     }

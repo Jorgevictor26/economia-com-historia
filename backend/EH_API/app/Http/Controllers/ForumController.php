@@ -23,15 +23,23 @@ class ForumController extends Controller
         );
     }
 
+    public function moderationIndex(Request $request): JsonResponse
+    {
+        return response()->json(
+            $this->service->getAllForModeration($request->only(['search', 'status']))
+        );
+    }
+
     public function store(StoreForumRequest $request): JsonResponse
     {
         $forum = $this->service->create(new CreateForumDTO(
+            $request->user()->id,
             $request->string('name')->toString(),
             $request->input('description')
         ));
 
         return response()->json([
-            'message' => 'Forum created successfully',
+            'message' => 'Forum created successfully and is pending approval',
             'data' => $forum,
         ], 201);
     }
@@ -73,5 +81,33 @@ class ForumController extends Controller
         }
 
         return response()->json(['message' => 'Forum deleted successfully']);
+    }
+
+    public function approve(Request $request, int $id): JsonResponse
+    {
+        $forum = $this->service->approve($id, $request->user()->id);
+
+        if (! $forum) {
+            return response()->json(['message' => 'Forum not found'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Forum approved successfully',
+            'data' => $forum,
+        ]);
+    }
+
+    public function reject(Request $request, int $id): JsonResponse
+    {
+        $forum = $this->service->reject($id, $request->user()->id);
+
+        if (! $forum) {
+            return response()->json(['message' => 'Forum not found'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Forum rejected successfully',
+            'data' => $forum,
+        ]);
     }
 }

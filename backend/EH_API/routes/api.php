@@ -20,7 +20,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuizAnswerController;
 use App\Http\Controllers\QuizController;
-use App\Http\Controllers\ReportController;
+use App\Http\Controllers\CommentReportController;
 use App\Http\Controllers\SavedContentController;
 use App\Http\Controllers\UserController;
 
@@ -57,8 +57,10 @@ Route::prefix('v1')->group(function () {
             ->middleware('role:SuperAdmin');
         Route::patch('/users/{user}/roles/super-admin', [UserController::class, 'promoteToSuperAdmin'])
             ->middleware('role:SuperAdmin');
+        Route::patch('/users/{user}/jindungo-subscription', [UserController::class, 'updateJindungoSubscription'])
+            ->middleware('role:SuperAdmin');
         Route::get('/my-results', [QuizAnswerController::class, 'myResults']);
-        Route::get('/my-reports', [ReportController::class, 'myReports']);
+        Route::get('/my-comment-reports', [CommentReportController::class, 'myCommentReports']);
         Route::post('/saved-contents', [SavedContentController::class, 'store']);
         Route::delete('/saved-contents/{contentId}', [SavedContentController::class, 'destroy']);
         Route::get('/my-saved-contents', [SavedContentController::class, 'mine']);
@@ -76,9 +78,9 @@ Route::prefix('v1')->group(function () {
         // REACTIONS
         Route::post('/reactions', [ReactionController::class, 'store']);
 
-        // REPORTS
-        Route::post('/reports', [ReportController::class, 'store']);
-        Route::get('/reports/{id}', [ReportController::class, 'show']);
+        // COMMENT REPORTS
+        Route::post('/comment-reports', [CommentReportController::class, 'store']);
+        Route::get('/comment-reports/{id}', [CommentReportController::class, 'show']);
 
         // CONTENT MEDIA
         Route::post('/contents/{id}/upload-image', [ContentMediaController::class, 'uploadImage']);
@@ -94,6 +96,7 @@ Route::prefix('v1')->group(function () {
         Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 
         // FORUMS
+        Route::post('/forums', [ForumController::class, 'store']);
         Route::post('/forums/{forumId}/topics', [ForumTopicController::class, 'store']);
         Route::put('/topics/{id}', [ForumTopicController::class, 'update']);
         Route::delete('/topics/{id}', [ForumTopicController::class, 'destroy']);
@@ -106,11 +109,13 @@ Route::prefix('v1')->group(function () {
         Route::get('/quizzes/{id}/result', [QuizAnswerController::class, 'result']);
 
         Route::middleware('role:Admin,SuperAdmin')->group(function () {
-            Route::get('/reports', [ReportController::class, 'index']);
-            Route::patch('/reports/{id}/approve', [ReportController::class, 'approve']);
-            Route::patch('/reports/{id}/reject', [ReportController::class, 'reject']);
+            Route::get('/comment-reports', [CommentReportController::class, 'index']);
+            Route::patch('/comment-reports/{id}/approve', [CommentReportController::class, 'approve']);
+            Route::patch('/comment-reports/{id}/reject', [CommentReportController::class, 'reject']);
 
-            Route::post('/forums', [ForumController::class, 'store']);
+            Route::get('/forum-approvals', [ForumController::class, 'moderationIndex']);
+            Route::patch('/forums/{id}/approve', [ForumController::class, 'approve']);
+            Route::patch('/forums/{id}/reject', [ForumController::class, 'reject']);
             Route::put('/forums/{id}', [ForumController::class, 'update']);
             Route::delete('/forums/{id}', [ForumController::class, 'destroy']);
         });

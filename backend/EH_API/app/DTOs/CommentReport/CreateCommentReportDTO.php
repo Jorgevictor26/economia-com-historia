@@ -1,8 +1,8 @@
 <?php
 
-namespace App\DTOs\Report;
+namespace App\DTOs\CommentReport;
 
-readonly class CreateReportDTO
+readonly class CreateCommentReportDTO
 {
     public function __construct(
         public int $userId,

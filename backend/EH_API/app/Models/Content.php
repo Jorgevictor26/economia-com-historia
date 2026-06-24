@@ -57,11 +57,6 @@ class Content extends Model
         return $this->hasMany(Reaction::class);
     }
 
-    public function reports()
-    {
-        return $this->hasMany(Report::class);
-    }
-
     public function quizzes()
     {
         return $this->hasMany(Quiz::class);

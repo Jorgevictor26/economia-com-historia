@@ -12,7 +12,12 @@ class Comment extends Model
     protected $fillable = [
         'user_id',
         'content_id',
-        'comment'
+        'comment',
+        'hidden_at',
+    ];
+
+    protected $casts = [
+        'hidden_at' => 'datetime',
     ];
 
     public function user()
@@ -27,5 +32,10 @@ class Comment extends Model
     public function replies()
     {
         return $this->hasMany(CommentReply::class);
+    }
+
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
     }
 }

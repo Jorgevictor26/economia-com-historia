@@ -47,7 +47,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/topics/{id}', [ForumTopicController::class, 'show']);
     Route::get('/topics/{topicId}/replies', [ForumReplyController::class, 'index']);
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::post('/logout', LogoutController::class);
         Route::get('/profile', [UserController::class, 'me']);
         Route::put('/profile', [UserController::class, 'updateProfile']);

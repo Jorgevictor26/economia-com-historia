@@ -14,7 +14,7 @@ class StoreReportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'content_id' => ['required', 'integer', 'exists:contents,id'],
+            'comment_id' => ['required', 'integer', 'exists:comments,id'],
             'reason' => ['required', 'string', 'in:spam,offensive_content,fake_information,copyright,other'],
             'description' => ['nullable', 'string', 'max:2000'],
         ];

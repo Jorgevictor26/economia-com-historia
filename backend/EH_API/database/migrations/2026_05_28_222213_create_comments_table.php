@@ -21,6 +21,7 @@ return new class extends Migration
                 ->onDelete('cascade');
 
             $table->text('comment');
+            $table->timestamp('hidden_at')->nullable();
 
             $table->timestamps();
         });

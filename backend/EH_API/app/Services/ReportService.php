@@ -5,7 +5,7 @@ namespace App\Services;
 use App\DTOs\Report\CreateReportDTO;
 use App\DTOs\Report\ModerateReportDTO;
 use App\Models\Report;
-use App\Repositories\ContentRepository;
+use App\Repositories\CommentRepository;
 use App\Repositories\ReportRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -15,23 +15,31 @@ class ReportService
 {
     public function __construct(
         private readonly ReportRepository $reports,
-        private readonly ContentRepository $contents,
+        private readonly CommentRepository $comments,
     ) {
     }
 
     public function create(CreateReportDTO $dto): Report
     {
-        $content = $this->contents->findById($dto->contentId) ?? abort(404, 'Content not found');
+        return DB::transaction(function () use ($dto): Report {
+            $comment = $this->comments->findById($dto->commentId) ?? abort(404, 'Comment not found');
 
-        if ((int) $content->user_id === $dto->userId) {
-            throw new UnprocessableEntityHttpException('You cannot report your own content');
-        }
+            if ((int) $comment->user_id === $dto->userId) {
+                throw new UnprocessableEntityHttpException('You cannot report your own comment');
+            }
 
-        if ($this->reports->existsForUserAndContent($dto->userId, $dto->contentId)) {
-            throw new UnprocessableEntityHttpException('You have already reported this content');
-        }
+            if ($this->reports->existsForUserAndComment($dto->userId, $dto->commentId)) {
+                throw new UnprocessableEntityHttpException('You have already reported this comment');
+            }
 
-        return $this->reports->create($dto->toArray());
+            $report = $this->reports->create($dto->toArray());
+
+            if ($this->reports->distinctUserCountForComment($dto->commentId) >= 3) {
+                $this->comments->hide($comment);
+            }
+
+            return $report;
+        });
     }
 
     public function myReports(int $userId, array $filters = []): LengthAwarePaginator
@@ -54,8 +62,8 @@ class ReportService
         return DB::transaction(function () use ($dto): Report {
             $report = $this->findPendingReport($dto->reportId);
 
-            if ($report->content) {
-                $this->contents->updateVisibility($report->content, 'private');
+            if ($report->comment) {
+                $this->comments->hide($report->comment);
             }
 
             return $this->reports->updateStatus($report, 'approved', $dto->reviewerId);

@@ -9,7 +9,7 @@ class ReportRepository
 {
     public function all(array $filters = []): LengthAwarePaginator
     {
-        return Report::with(['user', 'content', 'reviewer'])
+        return Report::with(['user', 'comment', 'reviewer'])
             ->when($filters['search'] ?? null, fn ($query, string $search) => $this->applySearch($query, $search))
             ->latest()
             ->paginate(10);
@@ -17,35 +17,42 @@ class ReportRepository
 
     public function create(array $data): Report
     {
-        return Report::create($data)->load(['user', 'content']);
+        return Report::create($data)->load(['user', 'comment']);
     }
 
     public function findById(int $id): ?Report
     {
-        return Report::with(['user', 'content', 'reviewer'])->find($id);
+        return Report::with(['user', 'comment', 'reviewer'])->find($id);
     }
 
-    public function existsForUserAndContent(int $userId, int $contentId): bool
+    public function existsForUserAndComment(int $userId, int $commentId): bool
     {
         return Report::where('user_id', $userId)
-            ->where('content_id', $contentId)
+            ->where('comment_id', $commentId)
             ->exists();
     }
 
     public function findByIdForUser(int $id, int $userId): ?Report
     {
-        return Report::with(['user', 'content', 'reviewer'])
+        return Report::with(['user', 'comment', 'reviewer'])
             ->where('user_id', $userId)
             ->find($id);
     }
 
     public function byUser(int $userId, array $filters = []): LengthAwarePaginator
     {
-        return Report::with(['content', 'reviewer'])
+        return Report::with(['comment', 'reviewer'])
             ->where('user_id', $userId)
             ->when($filters['search'] ?? null, fn ($query, string $search) => $this->applySearch($query, $search))
             ->latest()
             ->paginate(10);
+    }
+
+    public function distinctUserCountForComment(int $commentId): int
+    {
+        return Report::where('comment_id', $commentId)
+            ->distinct()
+            ->count('user_id');
     }
 
     public function updateStatus(Report $report, string $status, int $reviewerId): Report
@@ -55,7 +62,7 @@ class ReportRepository
             'reviewed_by' => $reviewerId,
         ]);
 
-        return $report->fresh(['user', 'content', 'reviewer']);
+        return $report->fresh(['user', 'comment', 'reviewer']);
     }
 
     private function applySearch($query, string $search): void
@@ -66,7 +73,7 @@ class ReportRepository
                 ->orWhere('description', 'like', "%{$search}%")
                 ->orWhere('status', 'like', "%{$search}%")
                 ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$search}%"))
-                ->orWhereHas('content', fn ($contentQuery) => $contentQuery->where('title', 'like', "%{$search}%"));
+                ->orWhereHas('comment', fn ($commentQuery) => $commentQuery->where('comment', 'like', "%{$search}%"));
         });
     }
 }

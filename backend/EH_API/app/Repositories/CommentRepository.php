@@ -16,6 +16,7 @@ class CommentRepository
     {
         return Comment::with(['user', 'replies.user'])
             ->where('content_id', $contentId)
+            ->whereNull('hidden_at')
             ->when($filters['search'] ?? null, function ($query, string $search) {
                 $query->where(function ($searchQuery) use ($search) {
                     $searchQuery
@@ -26,6 +27,20 @@ class CommentRepository
             })
             ->latest()
             ->get();
+    }
+
+    public function findById(int $id): ?Comment
+    {
+        return Comment::find($id);
+    }
+
+    public function hide(Comment $comment): Comment
+    {
+        if ($comment->hidden_at === null) {
+            $comment->update(['hidden_at' => now()]);
+        }
+
+        return $comment->fresh();
     }
 
     public function createReply(array $data): CommentReply

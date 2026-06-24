@@ -6,7 +6,7 @@ readonly class CreateReportDTO
 {
     public function __construct(
         public int $userId,
-        public int $contentId,
+        public int $commentId,
         public string $reason,
         public ?string $description = null,
     ) {
@@ -16,7 +16,7 @@ readonly class CreateReportDTO
     {
         return new self(
             userId: $userId,
-            contentId: (int) $data['content_id'],
+            commentId: (int) $data['comment_id'],
             reason: $data['reason'],
             description: $data['description'] ?? null,
         );
@@ -26,7 +26,7 @@ readonly class CreateReportDTO
     {
         return [
             'user_id' => $this->userId,
-            'content_id' => $this->contentId,
+            'comment_id' => $this->commentId,
             'reason' => $this->reason,
             'description' => $this->description,
             'status' => 'pending',

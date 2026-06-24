@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1079210835329",
+    "project_id": "economia-com-historia-5d486",
+    "storage_bucket": "economia-com-historia-5d486.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1079210835329:android:7d81394200472704c9bc80",
+        "android_client_info": {
+          "package_name": "com.example.economica_com_historia"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1079210835329-lemarh8hj3rctit6bpoml90r70m5o9iv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.economica_com_historia",
+            "certificate_hash": "9ebab5ebddcb612bebf27db6c065f5777d87ef39"
+          }
+        },
+        {
+          "client_id": "1079210835329-9ecclkcslavkn7tqivu1jd3dtl8i4g2r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAisyuofJuZ0TalNvvMUhWt98-qjfDMCqg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1079210835329-9ecclkcslavkn7tqivu1jd3dtl8i4g2r.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

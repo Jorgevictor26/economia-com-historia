@@ -69,7 +69,7 @@ class _ReporPalavraPasseScreenState extends State<ReporPalavraPasseScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isSuccess ? AppColors.primary : Colors.redAccent,
+        backgroundColor: isSuccess ? AppColors.primary : AppColors.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

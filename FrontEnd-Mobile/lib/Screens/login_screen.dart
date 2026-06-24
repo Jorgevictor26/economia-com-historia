@@ -5,6 +5,7 @@ import '../theme/app_colors.dart';
 import 'criar_conta_screen.dart';
 import 'esqueceu_senha_screen.dart';
 import 'package:economica_com_historia/shared/main_navigation_screen.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -31,7 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Preencha todos os campos.'),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -238,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 50,
                 child: OutlinedButton.icon(
-                  onPressed: () {}, // TODO: Google Sign-In
+                  onPressed: _handleGoogle, // TODO: Google Sign-In
                   icon: Image.asset(
                     'assets/images/Google.png',
                     width: 20,
@@ -275,5 +276,32 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _handleGoogle() async {
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        clientId:
+            '1079210835329-9ecclkcslavkn7tqivu1jd3dtl8i4g2r.apps.googleusercontent.com',
+      );
+      final GoogleSignInAccount? conta = await googleSignIn.signIn();
+
+      if (conta == null) return;
+
+      if (!mounted) return;
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+        (route) => false,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao entrar com Google: $e'),
+          backgroundColor: AppColors.primary,
+        ),
+      );
+    }
   }
 }

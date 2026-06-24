@@ -382,12 +382,18 @@ class _CheckDiretrizes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F3F4),
+        color: valor
+            ? AppColors.primary.withOpacity(0.05)
+            : const Color(0xFFF7F3F4),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEEE8E9)),
+        border: Border.all(
+          color: valor ? AppColors.primary : const Color(0xFFEEE8E9),
+          width: valor ? 1.5 : 1,
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -407,12 +413,14 @@ class _CheckDiretrizes extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          const Expanded(
+          Expanded(
             child: Text(
               'Concordo com as diretrizes acadêmicas da comunidade e comprometo-me a moderar o debate de forma construtiva e respeitosa.',
               style: TextStyle(
                 fontSize: 13,
-                color: AppColors.textMedium,
+                color: valor
+                    ? AppColors.primary
+                    : AppColors.textMedium, // ← texto muda também
                 height: 1.5,
               ),
             ),

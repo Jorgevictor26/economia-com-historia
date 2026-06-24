@@ -48,6 +48,35 @@ interface CommentReplyView {
   createdAt?: string | null;
 }
 
+interface VideoDetail {
+  id: string;
+  title: string;
+  date: string;
+  duration: string;
+  frameUrl: string;
+  author: string;
+  authorInitials: string;
+  authorRole: string;
+  summary: string;
+  quote: string;
+}
+
+interface RelatedResearch {
+  title: string;
+  meta: string;
+  duration: string;
+  imageUrl: string;
+  route: string;
+}
+
+interface VideoComment {
+  author: string;
+  initials: string;
+  time: string;
+  text: string;
+  likes: number;
+}
+
 @Component({
   selector: 'app-content-list-page',
   imports: [PublicNavbarComponent, PublicFooterComponent, BackToTopComponent, ContentCardComponent],
@@ -434,6 +463,30 @@ export class ContentListPage implements OnInit {
       premium: true,
     },
     {
+      id: 'video-cafe',
+      category: 'Economia',
+      contentType: 'Video',
+      meta: '12 Mar 2024 - 18 min video',
+      title: 'Do Cafe ao Petroleo: ciclos economicos que mudaram Angola',
+      excerpt:
+        'Video-aula com imagens de arquivo, mapas e conceitos essenciais para acompanhar as viragens produtivas de Angola.',
+      author: 'Dr. Arnaldo Santos',
+      authorInitials: 'AS',
+      imageUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80',
+    },
+    {
+      id: 'video-ferrovia',
+      category: 'Economia',
+      contentType: 'Video',
+      meta: '18 Mar 2024 - 14 min video',
+      title: 'Ferrovias, portos e mercados: a logistica que move Angola',
+      excerpt:
+        'Uma aula visual sobre corredores de transporte, exportacoes, portos e integracao regional no seculo XX.',
+      author: 'Equipa EH',
+      authorInitials: 'EH',
+      imageUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=900&q=80',
+    },
+    {
       id: 'nzinga-diplomacia',
       category: 'História',
       contentType: 'Texto',
@@ -723,9 +776,145 @@ export class ContentDetailPage {
   }
 }
 
+@Component({
+  selector: 'app-content-video-detail-page',
+  imports: [RouterLink, PublicNavbarComponent, PublicFooterComponent, BackToTopComponent],
+  templateUrl: './content-video-detail-page.html'
+})
+export class ContentVideoDetailPage {
+  private readonly route = inject(ActivatedRoute);
+  readonly auth = inject(AuthStateService);
+  readonly isCommentComposerOpen = signal(false);
+
+  readonly video = computed(() => {
+    const id = this.route.snapshot.params['id'] ?? 'video-cafe';
+    return this.videos.find((item) => item.id === id) ?? this.videos[0];
+  });
+
+  readonly relatedResearch: RelatedResearch[] = [
+    {
+      title: 'A Arquitectura do Lobito: uma cidade portuaria em crise',
+      meta: 'Arquivo - 4.5k visualizacoes',
+      duration: '12:05',
+      imageUrl: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=400&q=80',
+      route: '/app/contents/videos/video-ferrovia',
+    },
+    {
+      title: 'Mudancas cambiais na economia do pos-guerra',
+      meta: 'Economia - 12k visualizacoes',
+      duration: '8:45',
+      imageUrl: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&w=400&q=80',
+      route: '/app/contents/videos/video-inflacao',
+    },
+    {
+      title: 'Documento branco: infraestrutura investindo 1960-1970',
+      meta: 'Pesquisa - 15 min',
+      duration: 'PDF',
+      imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=400&q=80',
+      route: '/app/contents/rotas-comerciais',
+    },
+  ];
+
+  readonly comments: VideoComment[] = [
+    {
+      author: 'Mariana Costa',
+      initials: 'MC',
+      time: '2 horas atras',
+      text: 'O material de arquivo aos 04:20 e incrivel. Nunca tinha visto o porto de Luanda por essa perspectiva.',
+      likes: 142,
+    },
+    {
+      author: 'HistoricoAnalyst88',
+      initials: 'HA',
+      time: '1 dia atras',
+      text: 'Excelente explicacao sobre as politicas fiscais. A relacao com os acordos regionais ficou muito clara.',
+      likes: 45,
+    },
+  ];
+
+  private readonly videos: VideoDetail[] = [
+    {
+      id: 'video-cafe',
+      title: 'Do Cafe ao Petroleo: ciclos economicos que mudaram Angola',
+      date: '12 Marco, 2024',
+      duration: '18:32',
+      frameUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80',
+      author: 'Dr. Arnaldo Santos',
+      authorInitials: 'AS',
+      authorRole: 'Historiador economico senior',
+      summary:
+        'Este ensaio visual explora a transicao da capital e das regioes produtivas de Angola entre economias agricolas, administracao colonial, industrializacao e dependencia petrolifera. Com imagens de arquivo e dados economicos, o video acompanha como infraestruturas, portos e trabalho moldaram a sociedade angolana moderna.',
+      quote:
+        'A passagem da dominancia agricola para a industrializacao nao foi apenas uma mudanca de moeda; foi o nascimento de uma nova classe social angolana.',
+    },
+    {
+      id: 'video-ferrovia',
+      title: 'Ferrovias, portos e mercados: a logistica que move Angola',
+      date: '18 Marco, 2024',
+      duration: '14:32',
+      frameUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=1200&q=80',
+      author: 'Equipa EH',
+      authorInitials: 'EH',
+      authorRole: 'Nucleo de arquivo e visualizacao',
+      summary:
+        'Uma aula visual sobre corredores ferroviarios, portos, exportacoes e integracao regional. O video mostra como as rotas de transporte alteraram mercados locais e ligaram o interior angolano a circuitos comerciais internacionais.',
+      quote:
+        'Cada linha ferroviaria tambem transportava decisoes politicas, expectativas de mercado e novas formas de ocupacao do territorio.',
+    },
+    {
+      id: 'video-inflacao',
+      title: 'Inflacao explicada com exemplos do quotidiano angolano',
+      date: '22 Marco, 2024',
+      duration: '11:18',
+      frameUrl: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&w=1200&q=80',
+      author: 'Nucleo Academico',
+      authorInitials: 'NA',
+      authorRole: 'Educacao economica aplicada',
+      summary:
+        'Conceitos de inflacao, poder de compra, moeda e precos sao apresentados a partir de exemplos familiares do quotidiano angolano, aproximando teoria economica e experiencia social.',
+      quote:
+        'A inflacao torna-se concreta quando o salario, o mercado e a memoria familiar deixam de contar a mesma historia.',
+    },
+  ];
+
+  requireLogin(event: Event, operation: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.auth.requireLoginFor(operation);
+  }
+
+  openCommentComposer(event: Event): void {
+    if (!this.auth.isAuthenticated()) {
+      this.requireLogin(event, 'comentar');
+      return;
+    }
+
+    this.isCommentComposerOpen.set(true);
+  }
+
+  react(event: Event): void {
+    if (!this.auth.isAuthenticated()) {
+      this.requireLogin(event, 'reagir');
+    }
+  }
+
+  currentUserInitials(): string {
+    const name = this.auth.user()?.name ?? 'Utilizador';
+
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase();
+  }
+}
+
 export const CONTENTS_ROUTES: Routes = [
   { path: '', component: ContentListPage },
   { path: 'create', canActivate: [adminGuard], component: ContentDetailPage },
+  { path: 'videos/:id', component: ContentVideoDetailPage },
   { path: ':id', component: ContentDetailPage },
   { path: ':id/edit', canActivate: [adminGuard], component: ContentDetailPage },
 ];

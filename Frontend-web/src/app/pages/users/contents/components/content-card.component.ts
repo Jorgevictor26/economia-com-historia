@@ -13,9 +13,15 @@ export class ContentCardComponent {
   @Output() gatedAction = new EventEmitter<{ event: Event; operation: string }>();
 
   get contentRoute(): unknown[] {
-    return this.isPodcastContent()
-      ? ['/app/podcasts', this.content.id]
-      : ['/app/contents', this.content.id];
+    if (this.isPodcastContent()) {
+      return ['/app/podcasts', this.content.id];
+    }
+
+    if (this.isVideoContent()) {
+      return ['/app/contents/videos', this.content.id];
+    }
+
+    return ['/app/contents', this.content.id];
   }
 
   private normalize(value: string): string {
@@ -30,6 +36,12 @@ export class ContentCardComponent {
     return [this.content.contentType, this.content.category, this.content.meta, this.content.title]
       .filter(Boolean)
       .some((value) => this.normalize(value).includes('podcast') || this.normalize(value).startsWith('ep.'));
+  }
+
+  private isVideoContent(): boolean {
+    return [this.content.contentType, this.content.category, this.content.meta, this.content.title]
+      .filter(Boolean)
+      .some((value) => this.normalize(value).includes('video') || this.normalize(value).includes('video-aula'));
   }
 }
 

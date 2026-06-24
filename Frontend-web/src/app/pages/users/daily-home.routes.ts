@@ -49,7 +49,7 @@ export class DailyHomePage implements OnInit, OnDestroy {
       title: 'Do cafe ao petroleo: ciclos economicos que mudaram Angola',
       summary: 'Video-aula com mapas, imagens de arquivo e conceitos essenciais para entender a economia angolana.',
       author: 'Equipa EH',
-      route: '/app/contents',
+      route: '/app/contents/videos/video-cafe',
       imageUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1400&q=80',
       meta: '18 min',
       progress: 42,
@@ -100,7 +100,7 @@ export class DailyHomePage implements OnInit, OnDestroy {
       title: 'Ferrovias, portos e mercados: a logistica que move Angola',
       summary: 'Aula visual sobre corredores de transporte, exportações e integração regional.',
       author: 'Equipa EH',
-      route: '/app/contents',
+      route: '/app/contents/videos/video-ferrovia',
       imageUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=900&q=80',
       meta: 'Video 14 min',
       progress: 36,
@@ -111,7 +111,7 @@ export class DailyHomePage implements OnInit, OnDestroy {
       title: 'Inflacao explicada com exemplos do quotidiano angolano',
       summary: 'Conceitos de poder de compra, moeda e precos apresentados de forma aplicada.',
       author: 'Equipa EH',
-      route: '/app/contents',
+      route: '/app/contents/videos/video-inflacao',
       imageUrl: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&w=900&q=80',
       meta: 'Video 11 min',
       progress: 64,
@@ -169,6 +169,5 @@ export class DailyHomePage implements OnInit, OnDestroy {
 }
 
 export const DAILY_HOME_ROUTES: Routes = [{ path: '', component: DailyHomePage }];
-
 
 

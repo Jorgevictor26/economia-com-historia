@@ -6,13 +6,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Report extends Model
+class CommentReport extends Model
 {
     use HasFactory;
 
+    protected $table = 'comment_reports';
+
     protected $fillable = [
         'user_id',
-        'content_id',
+        'comment_id',
         'reason',
         'description',
         'status',
@@ -24,9 +26,9 @@ class Report extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function content(): BelongsTo
+    public function comment(): BelongsTo
     {
-        return $this->belongsTo(Content::class);
+        return $this->belongsTo(Comment::class);
     }
 
     public function reviewer(): BelongsTo

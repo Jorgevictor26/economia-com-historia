@@ -11,9 +11,27 @@ class Forum extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'name',
         'description',
+        'status',
+        'reviewed_by',
+        'reviewed_at',
     ];
+
+    protected $casts = [
+        'reviewed_at' => 'datetime',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
 
     public function topics(): HasMany
     {

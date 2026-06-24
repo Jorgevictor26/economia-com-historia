@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Report;
+namespace App\Http\Requests\CommentReport;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ModerateReportRequest extends FormRequest
+class ModerateCommentReportRequest extends FormRequest
 {
     public function authorize(): bool
     {

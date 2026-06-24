@@ -7,16 +7,22 @@ use App\DTOs\Content\UpdateContentDTO;
 use App\Models\Content;
 use App\Models\User;
 use App\Repositories\ContentRepository;
+use App\Repositories\ContentTypeRepository;
 use Illuminate\Auth\Access\AuthorizationException;
 
 class ContentService
 {
     public function __construct(
-        private ContentRepository $repository
+        private ContentRepository $repository,
+        private ContentTypeRepository $contentTypes
     ) {}
 
-    public function create(CreateContentDTO $dto)
+    public function create(CreateContentDTO $dto, User $actor)
     {
+        if ($this->isJindungoType($dto->content_type_id) && ! $actor->hasRoleName('super-admin')) {
+            throw new AuthorizationException('Only SuperAdmin users can create jindungo content');
+        }
+
         return $this->repository->create([
             'user_id' => $dto->user_id,
             'category_id' => $dto->category_id,
@@ -40,9 +46,25 @@ class ContentService
         return $this->repository->findById($id);
     }
 
-    public function update(Content $content, UpdateContentDTO $dto): Content
+    public function update(Content $content, UpdateContentDTO $dto, User $actor): Content
     {
+        if ($dto->contentTypeId !== null && $this->isJindungoType($dto->contentTypeId) && ! $actor->hasRoleName('super-admin')) {
+            throw new AuthorizationException('Only SuperAdmin users can set jindungo content type');
+        }
+
         return $this->repository->update($content, $dto->toArray());
+    }
+
+    public function canAccess(Content $content, ?User $actor): bool
+    {
+        $content->loadMissing('contentType');
+
+        if ($content->contentType?->slug !== 'jindungo') {
+            return true;
+        }
+
+        return $actor !== null
+            && ($actor->hasRoleName('super-admin') || $actor->hasActiveJindungoSubscription());
     }
 
     public function delete(Content $content, User $actor): bool
@@ -67,5 +89,14 @@ class ContentService
         }
 
         return $actor->isWriter() && (int) $content->user_id === (int) $actor->id;
+    }
+
+    private function isJindungoType(?int $contentTypeId): bool
+    {
+        if ($contentTypeId === null) {
+            return false;
+        }
+
+        return $this->contentTypes->findById($contentTypeId)?->slug === 'jindungo';
     }
 }

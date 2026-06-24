@@ -16,6 +16,9 @@ class ContentRepository
     {
         return Content::query()
             ->with(['author', 'category', 'contentType'])
+            ->when(! ($filters['include_jindungo'] ?? false), function ($query) {
+                $query->whereDoesntHave('contentType', fn ($typeQuery) => $typeQuery->where('slug', 'jindungo'));
+            })
             ->when($filters['category_id'] ?? null, fn ($query, $categoryId) => $query->where('category_id', $categoryId))
             ->when($filters['content_type_id'] ?? null, fn ($query, $contentTypeId) => $query->where('content_type_id', $contentTypeId))
             ->when($filters['type'] ?? null, fn ($query, $type) => $query->whereHas('contentType', fn ($typeQuery) => $typeQuery->where('slug', $type)))

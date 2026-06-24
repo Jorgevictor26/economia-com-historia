@@ -22,6 +22,7 @@ class User extends Authenticatable
         'photo',
         'bio',
         'status',
+        'jindungo_subscription_expires_at',
     ];
 
     protected $hidden = [
@@ -33,6 +34,7 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'jindungo_subscription_expires_at' => 'datetime',
         ];
     }
 
@@ -67,9 +69,9 @@ class User extends Authenticatable
         return $this->hasMany(QuizResult::class);
     }
 
-    public function reports(): HasMany
+    public function commentReports(): HasMany
     {
-        return $this->hasMany(Report::class);
+        return $this->hasMany(CommentReport::class);
     }
 
     public function forumTopics(): HasMany
@@ -87,9 +89,9 @@ class User extends Authenticatable
         return $this->hasMany(SavedContent::class);
     }
 
-    public function reviewedReports(): HasMany
+    public function reviewedCommentReports(): HasMany
     {
-        return $this->hasMany(Report::class, 'reviewed_by');
+        return $this->hasMany(CommentReport::class, 'reviewed_by');
     }
 
     public function normalizedRoleNames()
@@ -124,6 +126,12 @@ class User extends Authenticatable
     public function isWriter(): bool
     {
         return $this->hasRoleName('writer');
+    }
+
+    public function hasActiveJindungoSubscription(): bool
+    {
+        return $this->jindungo_subscription_expires_at !== null
+            && $this->jindungo_subscription_expires_at->isFuture();
     }
 
     public static function normalizeRoleName(string $role): string

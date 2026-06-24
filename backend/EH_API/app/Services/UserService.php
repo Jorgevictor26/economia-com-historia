@@ -51,6 +51,19 @@ class UserService
         return $this->users->update($user, $dto);
     }
 
+    public function updateJindungoSubscription(User $target, User $actor, ?string $expiresAt): User
+    {
+        if (! $actor->hasRoleName(self::ROLE_SUPER_ADMIN)) {
+            throw new AuthorizationException('Only SuperAdmin users can manage jindungo subscriptions');
+        }
+
+        $target->update([
+            'jindungo_subscription_expires_at' => $expiresAt,
+        ]);
+
+        return $target->fresh(['roles']);
+    }
+
     public function promoteToWriter(User $target, User $actor): User
     {
         if (! $actor->isAdminOrSuperAdmin()) {

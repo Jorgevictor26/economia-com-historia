@@ -36,7 +36,7 @@ interface ContentDetail {
       <app-public-navbar />
 
       <main class="fluid-container pb-14 pt-6">
-        <section class="mb-8 rounded-[8px] border border-[#d8c1c4]/55 bg-white p-6 shadow-[0_10px_30px_rgba(64,8,26,0.05)]">
+        <section class="mb-8">
           <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_310px] lg:items-end">
             <div>
               <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#735c00]">Biblioteca editorial</p>
@@ -53,73 +53,43 @@ interface ContentDetail {
             </div>
           </div>
 
-          <label class="mt-7 flex min-h-[54px] items-center gap-3 rounded-[8px] border border-[#e6d7dc] bg-[#f8f9fa] px-5 text-[#7f777b]">
-            <span class="relative size-4 shrink-0 rounded-full border-2 border-current after:absolute after:-bottom-1 after:-right-1 after:h-2 after:w-0.5 after:rotate-[-45deg] after:bg-current"></span>
-            <input
-              class="w-full bg-transparent text-[14px] text-[#3b3437] outline-none placeholder:text-[#8e878b]"
-              type="search"
-              placeholder="Pesquisar por autores, períodos históricos ou temas económicos..."
-              [value]="searchTerm()"
-              (input)="updateSearch($event)"
-            />
-          </label>
-        </section>
+          <div class="mt-7 grid gap-4 rounded-[12px] border border-[#ddd8da] bg-white p-3 md:grid-cols-[minmax(0,1.7fr)_minmax(190px,0.85fr)_minmax(190px,0.85fr)]">
+            <label class="flex min-h-[46px] items-center gap-3 rounded-[8px] bg-[#f1f1f3] px-4 text-[#89909d]">
+              <span class="relative size-4 shrink-0 rounded-full border-2 border-current after:absolute after:-bottom-1 after:-right-1 after:h-2 after:w-0.5 after:rotate-[-45deg] after:bg-current"></span>
+              <input
+                class="w-full bg-transparent text-[14px] text-[#3b3437] outline-none placeholder:text-[#7d8490]"
+                type="search"
+                placeholder="Pesquisar conteúdos..."
+                [value]="searchTerm()"
+                (input)="updateSearch($event)"
+              />
+            </label>
 
-        <section class="mb-8 rounded-[8px] border border-[#d8c1c4]/55 bg-white p-5">
-          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#f0ecee] pb-4">
-            <div>
-              <h2 class="font-display text-[20px] font-semibold text-[#40081a]">Filtros</h2>
-              <p class="mt-1 text-[12px] text-[#6f686b]">Combine categoria, formato e pesquisa para refinar a biblioteca.</p>
-            </div>
-            @if (activeFilterCount() > 0) {
-              <button type="button" class="h-9 rounded-[8px] border border-[#d8c1c4] px-4 text-[12px] font-bold text-[#5c1e2f] transition hover:bg-[#fff6f8]" (click)="clearFilters()">
-                Limpar filtros
-              </button>
-            }
-          </div>
-
-          <div class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <div>
-              <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#735c00]">Categorias</p>
-              <div class="flex flex-wrap gap-2">
+            <label class="relative flex min-h-[46px] items-center rounded-[8px] bg-[#f1f1f3]">
+              <select
+                class="h-full w-full appearance-none rounded-[8px] bg-transparent px-4 pr-10 text-[13px] font-semibold text-[#121212] outline-none"
+                [value]="selectedCategoryFilter()"
+                (change)="selectCategoryFilter($any($event.target).value)"
+              >
                 @for (filter of categoryFilters(); track filter) {
-                  <button
-                    type="button"
-                    class="min-h-10 rounded-[999px] border px-4 text-[12px] font-bold transition"
-                    [class.border-[#40081a]]="filter === selectedCategoryFilter()"
-                    [class.bg-[#40081a]]="filter === selectedCategoryFilter()"
-                    [class.text-white]="filter === selectedCategoryFilter()"
-                    [class.border-[#d8cbd0]]="filter !== selectedCategoryFilter()"
-                    [class.bg-[#f8f9fa]]="filter !== selectedCategoryFilter()"
-                    [class.text-[#5f575b]]="filter !== selectedCategoryFilter()"
-                    (click)="selectCategoryFilter(filter)"
-                  >
-                    {{ filter }}
-                  </button>
+                  <option [value]="filter">{{ filter === 'Todos' ? 'Todas as categorias' : filter }}</option>
                 }
-              </div>
-            </div>
+              </select>
+              <span class="pointer-events-none absolute right-4 text-[#a0a5af]">⌄</span>
+            </label>
 
-            <div>
-              <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#735c00]">Formatos</p>
-              <div class="flex flex-wrap gap-2">
+            <label class="relative flex min-h-[46px] items-center rounded-[8px] bg-[#f1f1f3]">
+              <select
+                class="h-full w-full appearance-none rounded-[8px] bg-transparent px-4 pr-10 text-[13px] font-semibold text-[#121212] outline-none"
+                [value]="selectedContentTypeFilter()"
+                (change)="selectContentTypeFilter($any($event.target).value)"
+              >
                 @for (filter of contentTypeFilters(); track filter) {
-                  <button
-                    type="button"
-                    class="min-h-10 rounded-[999px] border px-4 text-[12px] font-bold transition"
-                    [class.border-[#8a4055]]="filter === selectedContentTypeFilter()"
-                    [class.bg-[#ffd9df]]="filter === selectedContentTypeFilter()"
-                    [class.text-[#40081a]]="filter === selectedContentTypeFilter()"
-                    [class.border-[#d8cbd0]]="filter !== selectedContentTypeFilter()"
-                    [class.bg-[#f8f9fa]]="filter !== selectedContentTypeFilter()"
-                    [class.text-[#5f575b]]="filter !== selectedContentTypeFilter()"
-                    (click)="selectContentTypeFilter(filter)"
-                  >
-                    {{ filter }}
-                  </button>
+                  <option [value]="filter">{{ filter === 'Todos os formatos' ? 'Todos os tipos' : filter }}</option>
                 }
-              </div>
-            </div>
+              </select>
+              <span class="pointer-events-none absolute right-4 text-[#a0a5af]">⌄</span>
+            </label>
           </div>
         </section>
 
@@ -140,18 +110,36 @@ interface ContentDetail {
           }
         </div>
 
-        <div class="mt-16 text-center">
-          <p class="mb-4 text-[10px] font-bold uppercase tracking-[0.22em] text-[#8a8587]">{{ contentCountMessage() }}</p>
-          @if (hasMoreContents()) {
+        <div class="mt-16 flex flex-col items-center gap-3">
+          <div class="inline-grid min-h-[64px] overflow-hidden rounded-full border border-[#d8d3d6] bg-white shadow-[0_16px_40px_rgba(64,8,26,0.07)] sm:grid-cols-[220px_96px_220px]">
             <button
               type="button"
-              class="h-[50px] border border-[#5c1e2f] bg-white px-10 text-[12px] font-extrabold text-[#5c1e2f] transition hover:bg-[#5c1e2f] hover:text-white"
-              [disabled]="isLoadingContents()"
-              (click)="loadMoreContents()"
+              class="flex items-center justify-center gap-4 px-7 text-[20px] font-extrabold text-[#6b3344] transition hover:bg-[#fff6f8] disabled:cursor-not-allowed disabled:text-[#c7bdc1]"
+              [disabled]="!hasPreviousPage() || isLoadingContents()"
+              (click)="goToPreviousPage()"
             >
-              {{ isLoadingContents() ? 'A carregar...' : 'Ver Mais Conteúdos' }}
+              <span class="text-[30px] leading-none" aria-hidden="true">&larr;</span>
+              Anterior
             </button>
-          }
+
+            <div class="grid place-items-center border-x border-[#d8d3d6] px-5">
+              <span class="grid size-14 place-items-center rounded-[14px] bg-[#6b3344] text-[26px] font-extrabold text-white">
+                {{ pagination().currentPage }}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              class="flex items-center justify-center gap-4 px-7 text-[20px] font-extrabold text-[#6b3344] transition hover:bg-[#fff6f8] disabled:cursor-not-allowed disabled:text-[#c7bdc1]"
+              [disabled]="!hasMoreContents() || isLoadingContents()"
+              (click)="goToNextPage()"
+            >
+              Próximo
+              <span class="text-[30px] leading-none" aria-hidden="true">&rarr;</span>
+            </button>
+          </div>
+
+          <p class="text-[12px] font-semibold text-[#7f777b]">{{ contentCountMessage() }}</p>
         </div>
       </main>
 
@@ -194,6 +182,7 @@ export class ContentListPage implements OnInit {
   readonly selectedCategoryFilter = signal('Todos');
   readonly selectedContentTypeFilter = signal('Todos os formatos');
   readonly searchTerm = signal('');
+  readonly hasPreviousPage = computed(() => this.pagination().currentPage > 1);
   readonly hasMoreContents = computed(() => this.pagination().currentPage < this.pagination().lastPage);
   readonly activeFilterCount = computed(() => {
     let total = 0;
@@ -305,6 +294,22 @@ export class ContentListPage implements OnInit {
     }
 
     void this.loadContents(this.pagination().currentPage + 1, false);
+  }
+
+  goToPreviousPage(): void {
+    if (!this.hasPreviousPage() || this.isLoadingContents()) {
+      return;
+    }
+
+    void this.loadContents(this.pagination().currentPage - 1, true);
+  }
+
+  goToNextPage(): void {
+    if (!this.hasMoreContents() || this.isLoadingContents()) {
+      return;
+    }
+
+    void this.loadContents(this.pagination().currentPage + 1, true);
   }
 
   private normalizeText(value: string): string {

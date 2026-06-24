@@ -2,79 +2,63 @@
   <app-public-navbar />
 
   <main class="mx-auto max-w-[1140px] px-5 pb-16 pt-8 lg:px-8">
-    <section class="grid gap-6">
-      <div
-        class="overflow-hidden rounded-[8px] bg-black shadow-[0_22px_46px_rgba(10,8,9,0.28)]"
-        aria-label="Reprodutor de vídeo do episódio">
-        <div class="relative aspect-video bg-black">
-          <img
-            src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=1400&q=85"
-            alt="Frame do vídeo do episódio"
-            class="h-full w-full object-cover opacity-90" />
-          <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.68)_0%,rgba(0,0,0,0.08)_18%,rgba(0,0,0,0.08)_82%,rgba(0,0,0,0.68)_100%)]"></div>
-          <button type="button"
-            class="absolute right-5 top-5 grid size-8 place-items-center rounded-full border-2 border-white text-white shadow-[0_10px_18px_rgba(0,0,0,0.35)] transition hover:bg-white/15"
-            aria-label="Informações do vídeo">
-            <span class="material-symbols-outlined text-[19px]" aria-hidden="true">info</span>
-          </button>
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+    <section
+      class="grid gap-5 bg-white p-4 shadow-[0_18px_36px_rgba(44,39,41,0.06)] md:p-4">
+      <div class="podcast-mic min-h-[260px] rounded-[3px] shadow-[0_18px_34px_rgba(44,39,41,0.18)] md:min-h-[360px]" role="img"
+        aria-label="Capa do episódio"></div>
 
-          <button type="button"
-            class="absolute left-1/2 top-1/2 grid size-[74px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-black/70 text-white shadow-[0_16px_30px_rgba(0,0,0,0.42)] transition hover:bg-[#5c1e2f]"
-            aria-label="Reproduzir vídeo">
-            <span class="material-symbols-outlined text-[52px]" aria-hidden="true">play_arrow</span>
-          </button>
-
-          <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/88 to-transparent px-4 pb-3 pt-16 text-white">
-            <div class="relative h-4">
-              <div class="absolute left-0 right-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-white/20"></div>
-              <div class="absolute left-0 top-1/2 h-1 w-[30%] -translate-y-1/2 rounded-full bg-white/55"></div>
-              <div class="absolute left-0 top-1/2 size-3 -translate-y-1/2 rounded-full bg-[#ff003d] shadow-[0_0_0_3px_rgba(255,0,61,0.14)]"></div>
-            </div>
-
-            <div class="mt-2 flex items-center justify-between gap-3">
-              <div class="flex min-w-0 items-center gap-2 sm:gap-4 md:gap-6">
-                <button type="button" class="grid size-8 place-items-center transition hover:text-white/75" aria-label="Reproduzir">
-                  <span class="material-symbols-outlined text-[31px]" aria-hidden="true">play_arrow</span>
-                </button>
-                <button type="button" class="hidden size-8 place-items-center transition hover:text-white/75 sm:grid" aria-label="Vídeo anterior">
-                  <span class="material-symbols-outlined text-[29px]" aria-hidden="true">skip_previous</span>
-                </button>
-                <button type="button" class="hidden size-8 place-items-center transition hover:text-white/75 sm:grid" aria-label="Próximo vídeo">
-                  <span class="material-symbols-outlined text-[29px]" aria-hidden="true">skip_next</span>
-                </button>
-                <button type="button" class="grid size-8 place-items-center transition hover:text-white/75" aria-label="Som">
-                  <span class="material-symbols-outlined text-[29px]" aria-hidden="true">volume_up</span>
-                </button>
-                <span class="whitespace-nowrap text-[12px] font-extrabold tracking-[0.01em]">0:02 / 45:20</span>
-              </div>
-
-              <div class="flex shrink-0 items-center gap-2 sm:gap-3 md:gap-5">
-                <button type="button" class="grid size-8 place-items-center transition hover:text-white/75" aria-label="Definições">
-                  <span class="material-symbols-outlined text-[27px]" aria-hidden="true">settings</span>
-                </button>
-                <button type="button" class="hidden size-8 place-items-center transition hover:text-white/75 sm:grid" aria-label="Modo cinema">
-                  <span class="material-symbols-outlined text-[27px]" aria-hidden="true">picture_in_picture_alt</span>
-                </button>
-                <button type="button" class="grid size-8 place-items-center transition hover:text-white/75" aria-label="Ecrã inteiro">
-                  <span class="material-symbols-outlined text-[28px]" aria-hidden="true">fullscreen</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="min-w-0 bg-white px-5 py-6 shadow-[0_18px_36px_rgba(44,39,41,0.06)] md:px-7">
+      <div class="min-w-0 px-0 py-1 md:px-8 md:pb-6">
         <h1
-          class="font-display max-w-[600px] text-[28px] font-extrabold leading-[1.12] text-[#4b0b22] lg:text-[38px]">
+          class="font-display max-w-[760px] text-[28px] font-extrabold leading-[1.12] text-[#4b0b22] lg:text-[38px]">
           Ep. 24: A Herança do Império Lunda
         </h1>
-        <p class="mt-6 max-w-[590px] text-[13px] leading-6 text-[#6f686b]">
+        <p class="mt-4 max-w-[760px] text-[13px] leading-5 text-[#6f686b]">
           Uma análise profunda sobre a organização económica e política de um dos maiores impérios da história angolana,
           e como o seu legado molda o comércio regional até aos dias de hoje.
         </p>
+        <div class="mt-5 border-[#eee7ea] bg-white px-3 py-4">
+          <div class="mx-auto max-w-[560px]">
+            <div class="h-2 overflow-hidden rounded-full bg-[#e6e9ee]" aria-hidden="true">
+              <div class="h-full w-[30%] rounded-full bg-[#681a31]"></div>
+            </div>
+            <div class="mt-3 flex items-center justify-between text-[13px] font-medium text-[#6f7a89]">
+              <span>12:00</span>
+              <span>-34:20</span>
+            </div>
+          </div>
+
+          <div class="mx-auto mt-4 grid max-w-[560px] grid-cols-5 items-center gap-4">
+            <button type="button"
+              class="grid size-11 place-items-center text-[#a3a9b2] transition hover:text-[#5c1e2f]"
+              aria-label="Reprodução aleatória">
+              <span class="material-symbols-outlined text-[34px]" aria-hidden="true">shuffle</span>
+            </button>
+            <button type="button"
+              class="grid size-12 place-items-center text-[#1f2b3a] transition hover:text-[#5c1e2f]"
+              aria-label="Episódio anterior">
+              <span class="material-symbols-outlined text-[42px]" aria-hidden="true">skip_previous</span>
+            </button>
+            <button type="button"
+              class="mx-auto grid size-[50px] place-items-center rounded-full bg-[#681a31] text-white shadow-[0_18px_34px_rgba(104,26,49,0.28)] transition hover:bg-[#4b0b22]"
+              aria-label="Reproduzir episódio">
+              <span class="material-symbols-outlined text-[58px]" aria-hidden="true">play_arrow</span>
+            </button>
+            <button type="button"
+              class="grid size-12 place-items-center text-[#1f2b3a] transition hover:text-[#5c1e2f]"
+              aria-label="Próximo episódio">
+              <span class="material-symbols-outlined text-[42px]" aria-hidden="true">skip_next</span>
+            </button>
+            <button type="button"
+              class="grid size-11 place-items-center text-[#a3a9b2] transition hover:text-[#5c1e2f]"
+              aria-label="Repetir episódio">
+              <span class="material-symbols-outlined text-[34px]" aria-hidden="true">repeat</span>
+            </button>
+          </div>
+        </div>
+
         <div
-          class="mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-[#eee7ea] pt-5 text-[11px] text-[#6f686b]">
+          class="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-[#eee7ea] pt-4 text-[11px] text-[#6f686b]">
           <div class="flex flex-wrap gap-5">
             <button type="button" class="content-action font-semibold">
               <span class="material-symbols-outlined text-[17px]" aria-hidden="true">favorite</span>
@@ -101,7 +85,55 @@
       </div>
     </section>
 
-    <div class="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <aside class="lg:pt-0">
+        <div class="grid gap-6">
+          <section class="border border-[#ded7da] bg-white px-6 py-6 text-center">
+            <div
+              class="mx-auto grid size-[70px] place-items-center rounded-[8px] bg-[#f5dce4] font-display text-[20px] font-extrabold text-[#8a4055]">
+              MC
+            </div>
+            <h2 class="mt-5 font-display text-[13px] font-medium text-[#5c1e2f]">Dr. Manuel Cassule</h2>
+            <p class="mt-1 text-[11px] font-semibold text-[#8c6f36]">Doutorado em HistÃ³ria EconÃ³mica</p>
+            <p class="mx-auto mt-2 max-w-[170px] text-[9px] leading-[1.35] text-[#5f575b]">
+              Investigador sÃ©nior na Universidade Agostinho Neto, especialista em sistemas polÃ­ticos prÃ©-coloniais da
+              Ãfrica Central.
+            </p>
+            <div class="mt-5 flex justify-center gap-4 text-[#5f575b]">
+              <button type="button" class="cursor-pointer hover:text-[#40081a]" aria-label="Partilhar perfil">
+                <span class="material-symbols-outlined text-[24px] leading-none">share</span>
+              </button>
+              <button type="button" class="cursor-pointer hover:text-[#40081a]" aria-label="Guardar perfil">
+                <span class="material-symbols-outlined text-[24px] leading-none">bookmark</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="border-t border-[#ded7da] pt-6">
+            <h2 class="font-display text-[17px] font-medium text-[#5c1e2f]">Relacionados</h2>
+
+            <a routerLink="/app/podcasts" class="mt-5 grid grid-cols-[86px_minmax(0,1fr)] gap-3">
+              <div class="podcast-radio row-span-2 h-[58px] w-full rounded-[4px]" role="img"
+                aria-label="Capa do episÃ³dio A Economia do Reino do Kongo"></div>
+              <p class="mt-2 text-[10px] font-bold uppercase text-[#8c6f36]">EpisÃ³dio 21</p>
+              <h3 class="col-start-2 mt-1 line-clamp-2 text-[12px] font-bold leading-4 text-[#2c2729]">
+                A Economia do Reino do Kongo
+              </h3>
+            </a>
+
+            <a routerLink="/app/podcasts" class="mt-4 grid grid-cols-[86px_minmax(0,1fr)] gap-3">
+              <div class="podcast-wave row-span-2 h-[58px] w-full rounded-[4px]" role="img"
+                aria-label="Capa do episÃ³dio Rainha Ginga: Diplomacia e Guerra"></div>
+              <p class="mt-2 text-[10px] font-bold uppercase text-[#8c6f36]">EpisÃ³dio 18</p>
+              <h3 class="col-start-2 mt-1 line-clamp-2 text-[12px] font-bold leading-4 text-[#2c2729]">
+                Rainha Ginga: Diplomacia e Guerra
+              </h3>
+            </a>
+          </section>
+        </div>
+      </aside>
+    </div>
+
+    <div class="mt-10">
       <article class="min-w-0">
         <section class="border-t-2 border-[#d4af37] bg-white p-7 shadow-sm">
           <h2 class="flex items-center gap-2 font-display text-[20px] font-extrabold text-[#5c1e2f]">
@@ -246,8 +278,8 @@
         </section>
       </article>
 
-      <aside class="lg:pt-0">
-        <div class="sticky top-[82px] grid gap-6">
+      <aside class="hidden">
+        <div class="grid gap-6">
           <section class="border border-[#ded7da] bg-white px-6 py-6 text-center">
             <div
               class="mx-auto grid size-[70px] place-items-center rounded-[8px] bg-[#f5dce4] font-display text-[20px] font-extrabold text-[#8a4055]">
@@ -272,20 +304,20 @@
           <section class="border-t border-[#ded7da] pt-6">
             <h2 class="font-display text-[17px] font-medium text-[#5c1e2f]">Relacionados</h2>
 
-            <a routerLink="/app/podcasts" class="mt-5 block">
-              <div class="podcast-radio h-[141px] w-full rounded-[2px] object-cover object-center" role="img"
+            <a routerLink="/app/podcasts" class="mt-5 grid grid-cols-[86px_minmax(0,1fr)] gap-3">
+              <div class="podcast-radio row-span-2 h-[58px] w-full rounded-[4px]" role="img"
                 aria-label="Capa do episódio A Economia do Reino do Kongo"></div>
               <p class="mt-2 text-[10px] font-bold uppercase text-[#8c6f36]">Episódio 21</p>
-              <h3 class="mt-1 font-display text-[16px] font-extrabold leading-tight text-[#5c1e2f]">
+              <h3 class="col-start-2 mt-1 line-clamp-2 text-[12px] font-bold leading-4 text-[#2c2729]">
                 A Economia do Reino do Kongo
               </h3>
             </a>
 
-            <a routerLink="/app/podcasts" class="mt-6 block">
-              <div class="podcast-wave h-[141px] w-full rounded-[2px] object-cover object-center" role="img"
+            <a routerLink="/app/podcasts" class="mt-4 grid grid-cols-[86px_minmax(0,1fr)] gap-3">
+              <div class="podcast-wave row-span-2 h-[58px] w-full rounded-[4px]" role="img"
                 aria-label="Capa do episódio Rainha Ginga: Diplomacia e Guerra"></div>
               <p class="mt-2 text-[10px] font-bold uppercase text-[#8c6f36]">Episódio 18</p>
-              <h3 class="mt-1 font-display text-[16px] font-extrabold leading-tight text-[#5c1e2f]">
+              <h3 class="col-start-2 mt-1 line-clamp-2 text-[12px] font-bold leading-4 text-[#2c2729]">
                 Rainha Ginga: Diplomacia e Guerra
               </h3>
             </a>

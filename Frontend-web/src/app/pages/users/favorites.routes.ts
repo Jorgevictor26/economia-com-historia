@@ -1,28 +1,41 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink, Routes } from '@angular/router';
+import { BackendContent } from '../../services/content.service';
+import { SavedContentService } from '../../services/saved-content.service';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicFooterComponent } from '../shared/public-footer/public-footer.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
 interface FavoriteItem {
   id: string;
-  type: 'artigo' | 'podcast' | 'quiz' | 'forum';
+  type: 'texto' | 'podcast' | 'video' | 'jindungo';
   eyebrow: string;
   title: string;
+  excerpt: string;
   author: string;
   meta: string;
+  route: unknown[];
   action: string;
-  visual: 'coffee' | 'podcast' | 'map' | 'forum' | 'stage';
+  imageUrl?: string;
+  authorInitials: string;
+  premium: boolean;
 }
 
 @Component({
   selector: 'app-favorites-page',
   imports: [RouterLink, PublicNavbarComponent, PublicFooterComponent, BackToTopComponent],
-  templateUrl: './favorites-page.html'
+  templateUrl: './favorites-page.html',
 })
-export class FavoritesPage {
-  readonly filters = ['Todos', 'Artigos', 'Podcasts', 'Quizzes', 'Fóruns'];
+export class FavoritesPage implements OnInit {
+  private readonly savedContentService = inject(SavedContentService);
+
+  readonly filters = ['Todos', 'Textos', 'Podcasts', 'Vídeos', 'Jindungo'];
   readonly selectedFilter = signal(this.filters[0]);
+  readonly favorites = signal<FavoriteItem[]>([]);
+  readonly isLoading = signal(true);
+  readonly isRemoving = signal<string | null>(null);
+  readonly feedbackMessage = signal('');
+  readonly errorMessage = signal('');
 
   readonly filteredFavorites = computed(() => {
     const filter = this.selectedFilter();
@@ -32,76 +45,149 @@ export class FavoritesPage {
       return items;
     }
 
-    const typeByFilter: Record<string, FavoriteItem['type']> = {
-      Artigos: 'artigo',
+    const typeByFilter: Record<string, FavoriteItem['type'] | undefined> = {
+      Textos: 'texto',
       Podcasts: 'podcast',
-      Quizzes: 'quiz',
-      Fóruns: 'forum',
+      Vídeos: 'video',
+      Jindungo: 'jindungo',
     };
 
-    return items.filter((item) => item.type === typeByFilter[filter]);
+    const selectedType = typeByFilter[filter];
+
+    return selectedType ? items.filter((item) => item.type === selectedType) : items;
   });
 
-  readonly favorites = signal<FavoriteItem[]>([
-    {
-      id: 'economia-cafe',
-      type: 'artigo',
-      eyebrow: 'Artigo',
-      title: 'A Economia do Café e o Impacto Social...',
-      author: 'Dr. Manuel dos Santos',
-      meta: '12 de Março, 2024',
-      action: 'Ler Agora',
-      visual: 'coffee',
-    },
-    {
-      id: 'ouro-negro',
-      type: 'podcast',
-      eyebrow: 'Podcast',
-      title: 'Ep. 42: Ouro Negro e o Futuro...',
-      author: 'Ana Clara Ribeiro',
-      meta: '06 de Abril, 2024',
-      action: 'Ouvir Podcast',
-      visual: 'podcast',
-    },
-    {
-      id: 'cronologia-independencia',
-      type: 'quiz',
-      eyebrow: 'Quiz',
-      title: 'Desafio: Cronologia da Independência',
-      author: 'Departamento de História',
-      meta: '28 de Fevereiro, 2024',
-      action: 'Iniciar Quiz',
-      visual: 'map',
-    },
-    {
-      id: 'diversificacao-pos',
-      type: 'forum',
-      eyebrow: 'Fórum',
-      title: 'Discussão: Diversificação Pós-...',
-      author: 'Comunidade de Economia',
-      meta: '02 de Maio, 2024',
-      action: 'Ver Tópico',
-      visual: 'forum',
-    },
-    {
-      id: 'mercados-informais',
-      type: 'artigo',
-      eyebrow: 'Artigo',
-      title: 'Mercados Informais: O...',
-      author: 'Isabel Ventura',
-      meta: '20 de Abril, 2024',
-      action: 'Ler Agora',
-      visual: 'stage',
-    },
-  ]);
-
-  removeFavorite(id: string): void {
-    this.favorites.update((items) => items.filter((item) => item.id !== id));
+  async ngOnInit(): Promise<void> {
+    await this.loadFavorites();
   }
 
+  async loadFavorites(): Promise<void> {
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
+    try {
+      const savedContents = await this.savedContentService.getMine();
+      this.favorites.set(
+        savedContents
+          .map((item) => item.content)
+          .filter(Boolean)
+          .map((content) => this.toFavoriteItem(content!)),
+      );
+    } catch {
+      this.errorMessage.set('Não foi possível carregar os conteúdos guardados.');
+      this.favorites.set([]);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  async removeFavorite(item: FavoriteItem): Promise<void> {
+    if (this.isRemoving()) {
+      return;
+    }
+
+    const previousItems = this.favorites();
+
+    this.isRemoving.set(item.id);
+    this.feedbackMessage.set('');
+    this.errorMessage.set('');
+    this.favorites.update((items) => items.filter((favorite) => favorite.id !== item.id));
+
+    try {
+      await this.savedContentService.remove(item.id);
+      this.feedbackMessage.set('Conteúdo removido dos guardados.');
+    } catch {
+      this.favorites.set(previousItems);
+      this.errorMessage.set('Não foi possível remover este conteúdo dos guardados.');
+    } finally {
+      this.isRemoving.set(null);
+    }
+  }
+
+  private toFavoriteItem(content: BackendContent): FavoriteItem {
+    const contentType = content.content_type?.name ?? 'Texto';
+    const contentTypeSlug = this.normalizeText(content.content_type?.slug ?? contentType);
+    const type = this.toFavoriteType(contentTypeSlug);
+    const authorName = content.author?.name ?? content.user?.name ?? 'Equipa editorial';
+
+    return {
+      id: String(content.id),
+      type,
+      eyebrow: type === 'jindungo' ? 'Jindungo' : contentType,
+      title: content.title,
+      excerpt: content.summary || this.toExcerpt(content.content),
+      author: authorName,
+      authorInitials: this.getInitials(authorName),
+      meta: this.buildMeta(content.created_at, contentType),
+      route: this.contentRoute(String(content.id), type),
+      action: type === 'podcast' ? 'Ouvir' : type === 'video' ? 'Ver vídeo' : 'Ler agora',
+      imageUrl: content.image || undefined,
+      premium: type === 'jindungo',
+    };
+  }
+
+  private contentRoute(id: string, type: FavoriteItem['type']): unknown[] {
+    if (type === 'podcast') {
+      return ['/app/podcasts', id];
+    }
+
+    if (type === 'video') {
+      return ['/app/contents/videos', id];
+    }
+
+    return ['/app/contents', id];
+  }
+
+  private toFavoriteType(contentTypeSlug: string): FavoriteItem['type'] {
+    if (contentTypeSlug.includes('podcast')) {
+      return 'podcast';
+    }
+
+    if (contentTypeSlug.includes('video')) {
+      return 'video';
+    }
+
+    if (contentTypeSlug.includes('jindungo')) {
+      return 'jindungo';
+    }
+
+    return 'texto';
+  }
+
+  private buildMeta(createdAt: string | null | undefined, contentType: string): string {
+    const date = createdAt ? new Date(createdAt) : null;
+    const formattedDate =
+      date && !Number.isNaN(date.getTime())
+        ? new Intl.DateTimeFormat('pt-AO', { day: '2-digit', month: 'short', year: 'numeric' }).format(date)
+        : 'Sem data';
+
+    return `${formattedDate} - ${contentType}`;
+  }
+
+  private normalizeText(value: string): string {
+    return value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  private getInitials(name: string): string {
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase();
+  }
+
+  private toExcerpt(value: string | null | undefined): string {
+    if (!value) {
+      return 'Conteúdo disponível na biblioteca Economia com História.';
+    }
+
+    return value.replace(/<[^>]*>/g, '').slice(0, 180);
+  }
 }
 
 export const FAVORITES_ROUTES: Routes = [{ path: '', component: FavoritesPage }];
-
-
-

@@ -34,14 +34,14 @@ class ReportService
         return $this->reports->create($dto->toArray());
     }
 
-    public function myReports(int $userId): LengthAwarePaginator
+    public function myReports(int $userId, array $filters = []): LengthAwarePaginator
     {
-        return $this->reports->byUser($userId);
+        return $this->reports->byUser($userId, $filters);
     }
 
-    public function all(): LengthAwarePaginator
+    public function all(array $filters = []): LengthAwarePaginator
     {
-        return $this->reports->all();
+        return $this->reports->all($filters);
     }
 
     public function findMyReport(int $id, int $userId): ?Report

@@ -29,17 +29,17 @@ class ReportController extends Controller
         ], 201);
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         return response()->json(
-            $this->reports->all()
+            $this->reports->all($request->only('search'))
         );
     }
 
     public function myReports(Request $request): JsonResponse
     {
         return response()->json(
-            $this->reports->myReports($request->user()->id)
+            $this->reports->myReports($request->user()->id, $request->only('search'))
         );
     }
 

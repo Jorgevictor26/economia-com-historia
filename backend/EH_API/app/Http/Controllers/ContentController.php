@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 use App\Http\Requests\Content\StoreContentRequest;
 use App\Http\Requests\Content\UpdateContentRequest;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
 use App\Services\ContentService;
@@ -103,11 +104,11 @@ class ContentController extends Controller
             ], 404);
         }
 
-        if (! $this->canManageContent($request, $content->user_id)) {
+        try {
+            $this->service->delete($content, $request->user());
+        } catch (AuthorizationException) {
             return $this->forbiddenResponse();
         }
-
-        $this->service->delete($content);
 
         return response()->json([
             'message' => 'Content deleted successfully',

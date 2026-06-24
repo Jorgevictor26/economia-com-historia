@@ -8,6 +8,7 @@ use App\Http\Requests\Forum\StoreForumRequest;
 use App\Http\Requests\Forum\UpdateForumRequest;
 use App\Services\ForumService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ForumController extends Controller
 {
@@ -15,9 +16,11 @@ class ForumController extends Controller
         private ForumService $service
     ) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json($this->service->getAll());
+        return response()->json(
+            $this->service->getAll($request->only('search'))
+        );
     }
 
     public function store(StoreForumRequest $request): JsonResponse

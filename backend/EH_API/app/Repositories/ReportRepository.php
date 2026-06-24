@@ -7,9 +7,10 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ReportRepository
 {
-    public function all(): LengthAwarePaginator
+    public function all(array $filters = []): LengthAwarePaginator
     {
         return Report::with(['user', 'content', 'reviewer'])
+            ->when($filters['search'] ?? null, fn ($query, string $search) => $this->applySearch($query, $search))
             ->latest()
             ->paginate(10);
     }
@@ -38,10 +39,11 @@ class ReportRepository
             ->find($id);
     }
 
-    public function byUser(int $userId): LengthAwarePaginator
+    public function byUser(int $userId, array $filters = []): LengthAwarePaginator
     {
         return Report::with(['content', 'reviewer'])
             ->where('user_id', $userId)
+            ->when($filters['search'] ?? null, fn ($query, string $search) => $this->applySearch($query, $search))
             ->latest()
             ->paginate(10);
     }
@@ -54,5 +56,17 @@ class ReportRepository
         ]);
 
         return $report->fresh(['user', 'content', 'reviewer']);
+    }
+
+    private function applySearch($query, string $search): void
+    {
+        $query->where(function ($searchQuery) use ($search) {
+            $searchQuery
+                ->where('reason', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%")
+                ->orWhere('status', 'like', "%{$search}%")
+                ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$search}%"))
+                ->orWhereHas('content', fn ($contentQuery) => $contentQuery->where('title', 'like', "%{$search}%"));
+        });
     }
 }

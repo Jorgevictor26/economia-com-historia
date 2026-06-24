@@ -39,10 +39,10 @@ class CommentController extends Controller
         ], 201);
     }
 
-    public function indexByContent(int $contentId)
+    public function indexByContent(Request $request, int $contentId)
     {
         return response()->json(
-            $this->service->getByContent($contentId)
+            $this->service->getByContent($contentId, $request->only('search'))
         );
     }
 

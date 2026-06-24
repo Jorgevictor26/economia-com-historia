@@ -12,9 +12,17 @@ class ForumRepository
         return Forum::create($data);
     }
 
-    public function all(): Collection
+    public function all(array $filters = []): Collection
     {
-        return Forum::withCount('topics')
+        return Forum::query()
+            ->withCount('topics')
+            ->when($filters['search'] ?? null, function ($query, string $search) {
+                $query->where(function ($searchQuery) use ($search) {
+                    $searchQuery
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
             ->latest()
             ->get();
     }

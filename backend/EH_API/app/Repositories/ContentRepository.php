@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Content;
+use App\Models\User;
 
 class ContentRepository
 {
@@ -35,7 +36,7 @@ class ContentRepository
 
     public function findById(int $id): ?Content
     {
-        return Content::with(['author', 'category', 'contentType'])->find($id);
+        return Content::with(['author.roles', 'category', 'contentType'])->find($id);
     }
 
     public function update(Content $content, array $data): Content
@@ -45,8 +46,12 @@ class ContentRepository
         return $content->fresh(['author', 'category', 'contentType']);
     }
 
-    public function delete(Content $content): bool
+    public function delete(Content $content, User $deletedBy): bool
     {
+        $content->forceFill([
+            'deleted_by' => $deletedBy->id,
+        ])->save();
+
         return (bool) $content->delete();
     }
 

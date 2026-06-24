@@ -11,9 +11,19 @@ class ContentTypeRepository
         return ContentType::create($data);
     }
 
-    public function all()
+    public function all(array $filters = [])
     {
-        return ContentType::orderBy('name')->get();
+        return ContentType::query()
+            ->when($filters['search'] ?? null, function ($query, string $search) {
+                $query->where(function ($searchQuery) use ($search) {
+                    $searchQuery
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('slug', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('name')
+            ->get();
     }
 
     public function findById(int $id): ?ContentType

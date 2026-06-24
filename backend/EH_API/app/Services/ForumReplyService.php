@@ -30,13 +30,13 @@ class ForumReplyService
         ]);
     }
 
-    public function getByTopic(int $topicId)
+    public function getByTopic(int $topicId, array $filters = [])
     {
         if (! $this->topicRepository->findById($topicId)) {
             return null;
         }
 
-        return $this->repository->getByTopic($topicId);
+        return $this->repository->getByTopic($topicId, $filters);
     }
 
     public function update(int $id, UpdateReplyDTO $dto, User $user): ?ForumReply

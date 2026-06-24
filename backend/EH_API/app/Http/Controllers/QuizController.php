@@ -17,9 +17,11 @@ class QuizController extends Controller
     ) {
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json($this->quizzes->getAll());
+        return response()->json(
+            $this->quizzes->getAll($request->only('search'))
+        );
     }
 
     public function store(StoreQuizRequest $request): JsonResponse

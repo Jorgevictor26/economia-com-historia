@@ -12,10 +12,17 @@ class ForumReplyRepository
         return ForumReply::create($data)->load(['topic', 'user']);
     }
 
-    public function getByTopic(int $topicId): Collection
+    public function getByTopic(int $topicId, array $filters = []): Collection
     {
         return ForumReply::with(['user', 'topic'])
             ->where('topic_id', $topicId)
+            ->when($filters['search'] ?? null, function ($query, string $search) {
+                $query->where(function ($searchQuery) use ($search) {
+                    $searchQuery
+                        ->where('reply', 'like', "%{$search}%")
+                        ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$search}%"));
+                });
+            })
             ->oldest()
             ->get();
     }

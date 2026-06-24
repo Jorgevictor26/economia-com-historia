@@ -11,12 +11,17 @@ class NotificationRepository
         return Notification::create($data);
     }
 
-    public function getByUser(int $userId)
+    public function getByUser(int $userId, array $filters = [])
     {
-        return Notification::where(
-            'user_id',
-            $userId
-        )
+        return Notification::query()
+        ->where('user_id', $userId)
+        ->when($filters['search'] ?? null, function ($query, string $search) {
+            $query->where(function ($searchQuery) use ($search) {
+                $searchQuery
+                    ->where('title', 'like', "%{$search}%")
+                    ->orWhere('message', 'like', "%{$search}%");
+            });
+        })
         ->latest()
         ->get();
     }

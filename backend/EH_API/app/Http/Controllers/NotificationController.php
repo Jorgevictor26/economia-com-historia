@@ -36,7 +36,8 @@ class NotificationController extends Controller
     {
         return response()->json(
             $this->service->getByUser(
-                $request->user()->id
+                $request->user()->id,
+                $request->only('search')
             )
         );
     }

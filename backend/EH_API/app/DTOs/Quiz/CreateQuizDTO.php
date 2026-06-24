@@ -6,6 +6,7 @@ readonly class CreateQuizDTO
 {
     public function __construct(
         public int $userId,
+        public int $contentId,
         public string $title,
         public ?string $description = null,
         public ?int $timeLimit = null,
@@ -16,6 +17,7 @@ readonly class CreateQuizDTO
     {
         return new self(
             userId: $userId,
+            contentId: (int) $data['content_id'],
             title: $data['title'],
             description: $data['description'] ?? null,
             timeLimit: isset($data['time_limit']) ? (int) $data['time_limit'] : null,
@@ -26,6 +28,7 @@ readonly class CreateQuizDTO
     {
         return [
             'user_id' => $this->userId,
+            'content_id' => $this->contentId,
             'title' => $this->title,
             'description' => $this->description,
             'time_limit' => $this->timeLimit,

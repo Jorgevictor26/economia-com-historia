@@ -31,13 +31,13 @@ class ForumTopicService
         ]);
     }
 
-    public function getByForum(int $forumId)
+    public function getByForum(int $forumId, array $filters = [])
     {
         if (! $this->forumRepository->findById($forumId)) {
             return null;
         }
 
-        return $this->repository->getByForum($forumId);
+        return $this->repository->getByForum($forumId, $filters);
     }
 
     public function findById(int $id): ?ForumTopic

@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Content extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -22,7 +23,8 @@ class Content extends Model
         'video_url',
         'audio_url',
         'document_url',
-        'visibility'
+        'visibility',
+        'deleted_by',
     ];
 
     public function user()
@@ -33,6 +35,11 @@ class Content extends Model
     public function author()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 
     public function category()
@@ -53,6 +60,11 @@ class Content extends Model
     public function reports()
     {
         return $this->hasMany(Report::class);
+    }
+
+    public function quizzes()
+    {
+        return $this->hasMany(Quiz::class);
     }
 
     public function savedByUsers()

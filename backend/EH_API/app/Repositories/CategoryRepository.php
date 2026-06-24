@@ -11,9 +11,18 @@ class CategoryRepository
         return Category::create($data);
     }
 
-    public function all()
+    public function all(array $filters = [])
     {
-        return Category::latest()->get();
+        return Category::query()
+            ->when($filters['search'] ?? null, function ($query, string $search) {
+                $query->where(function ($searchQuery) use ($search) {
+                    $searchQuery
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->get();
     }
 
     public function findById(int $id): ?Category

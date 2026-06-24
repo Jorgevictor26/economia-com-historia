@@ -20,7 +20,7 @@ class RoleMiddleware
 
         if (! $user->hasAnyRoleName($roles)) {
             return response()->json([
-                'message' => 'Only Admin and SuperAdmin users can access this resource',
+                'message' => 'You do not have permission to access this resource',
             ], Response::HTTP_FORBIDDEN);
         }
 

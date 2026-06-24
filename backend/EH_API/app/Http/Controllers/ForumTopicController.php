@@ -17,9 +17,9 @@ class ForumTopicController extends Controller
         private ForumTopicService $service
     ) {}
 
-    public function index(int $forumId): JsonResponse
+    public function index(Request $request, int $forumId): JsonResponse
     {
-        $topics = $this->service->getByForum($forumId);
+        $topics = $this->service->getByForum($forumId, $request->only('search'));
 
         if (is_null($topics)) {
             return response()->json(['message' => 'Forum not found'], 404);

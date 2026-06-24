@@ -36,11 +36,27 @@ Route::prefix('v1')->group(function () {
     Route::get('/quizzes', [QuizController::class, 'index']);
     Route::get('/quizzes/{id}', [QuizController::class, 'show']);
     Route::get('/quizzes/{id}/questions', [QuestionController::class, 'index']);
+    Route::get('/categories/{id}', [CategoryController::class, 'show']);
+    Route::get('/content-types/{id}', [ContentTypeController::class, 'show']);
+    Route::get('/comments/content/{contentId}', [CommentController::class, 'indexByContent']);
+    Route::get('/reactions/content/{contentId}', [ReactionController::class, 'getByContent']);
+    Route::get('/reactions/content/{contentId}/count', [ReactionController::class, 'getCountByType']);
+    Route::get('/forums', [ForumController::class, 'index']);
+    Route::get('/forums/{id}', [ForumController::class, 'show']);
+    Route::get('/forums/{forumId}/topics', [ForumTopicController::class, 'index']);
+    Route::get('/topics/{id}', [ForumTopicController::class, 'show']);
+    Route::get('/topics/{topicId}/replies', [ForumReplyController::class, 'index']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', LogoutController::class);
         Route::get('/profile', [UserController::class, 'me']);
         Route::put('/profile', [UserController::class, 'updateProfile']);
+        Route::patch('/users/{user}/roles/writer', [UserController::class, 'promoteToWriter'])
+            ->middleware('role:Admin,SuperAdmin');
+        Route::patch('/users/{user}/roles/admin', [UserController::class, 'promoteToAdmin'])
+            ->middleware('role:SuperAdmin');
+        Route::patch('/users/{user}/roles/super-admin', [UserController::class, 'promoteToSuperAdmin'])
+            ->middleware('role:SuperAdmin');
         Route::get('/my-results', [QuizAnswerController::class, 'myResults']);
         Route::get('/my-reports', [ReportController::class, 'myReports']);
         Route::post('/saved-contents', [SavedContentController::class, 'store']);
@@ -49,21 +65,16 @@ Route::prefix('v1')->group(function () {
 
         // CATEGORIES
         Route::post('/categories', [CategoryController::class, 'store']);
-        Route::get('/categories/{id}', [CategoryController::class, 'show']);
 
         // CONTENT TYPES
         Route::post('/content-types', [ContentTypeController::class, 'store']);
-        Route::get('/content-types/{id}', [ContentTypeController::class, 'show']);
 
         // COMMENTS
         Route::post('/comments', [CommentController::class, 'store']);
-        Route::get('/comments/content/{contentId}', [CommentController::class, 'indexByContent']);
         Route::post('/comments/{commentId}/reply', [CommentController::class, 'replyToComment']);
 
         // REACTIONS
         Route::post('/reactions', [ReactionController::class, 'store']);
-        Route::get('/reactions/content/{contentId}', [ReactionController::class, 'getByContent']);
-        Route::get('/reactions/content/{contentId}/count', [ReactionController::class, 'getCountByType']);
 
         // REPORTS
         Route::post('/reports', [ReportController::class, 'store']);
@@ -83,14 +94,9 @@ Route::prefix('v1')->group(function () {
         Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 
         // FORUMS
-        Route::get('/forums', [ForumController::class, 'index']);
-        Route::get('/forums/{id}', [ForumController::class, 'show']);
-        Route::get('/forums/{forumId}/topics', [ForumTopicController::class, 'index']);
         Route::post('/forums/{forumId}/topics', [ForumTopicController::class, 'store']);
-        Route::get('/topics/{id}', [ForumTopicController::class, 'show']);
         Route::put('/topics/{id}', [ForumTopicController::class, 'update']);
         Route::delete('/topics/{id}', [ForumTopicController::class, 'destroy']);
-        Route::get('/topics/{topicId}/replies', [ForumReplyController::class, 'index']);
         Route::post('/topics/{topicId}/replies', [ForumReplyController::class, 'store']);
         Route::put('/replies/{id}', [ForumReplyController::class, 'update']);
         Route::delete('/replies/{id}', [ForumReplyController::class, 'destroy']);

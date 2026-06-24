@@ -5,7 +5,9 @@ namespace App\Services;
 use App\DTOs\Content\CreateContentDTO;
 use App\DTOs\Content\UpdateContentDTO;
 use App\Models\Content;
+use App\Models\User;
 use App\Repositories\ContentRepository;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class ContentService
 {
@@ -43,8 +45,27 @@ class ContentService
         return $this->repository->update($content, $dto->toArray());
     }
 
-    public function delete(Content $content): bool
+    public function delete(Content $content, User $actor): bool
     {
-        return $this->repository->delete($content);
+        if (! $this->canDelete($content, $actor)) {
+            throw new AuthorizationException('You are not allowed to delete this content');
+        }
+
+        return $this->repository->delete($content, $actor);
+    }
+
+    private function canDelete(Content $content, User $actor): bool
+    {
+        $content->loadMissing('author.roles');
+
+        if ($actor->hasRoleName('super-admin')) {
+            return true;
+        }
+
+        if ($actor->hasRoleName('admin')) {
+            return (bool) $content->author?->hasRoleName('writer');
+        }
+
+        return $actor->isWriter() && (int) $content->user_id === (int) $actor->id;
     }
 }

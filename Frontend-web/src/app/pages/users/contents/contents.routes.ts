@@ -8,6 +8,7 @@ import { CategoryService } from '../../../services/category.service';
 import { BackendComment, CommentService } from '../../../services/comment.service';
 import { BackendContent, ContentPagination, ContentService } from '../../../services/content.service';
 import { ContentTypeService } from '../../../services/content-type.service';
+import { QuizService } from '../../../services/quiz.service';
 import { ReactionService } from '../../../services/reaction.service';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
 import { PublicFooterComponent } from '../../shared/public-footer/public-footer.component';
@@ -184,6 +185,11 @@ export class ContentListPage implements OnInit {
 
   updateSearch(event: Event): void {
     this.searchTerm.set((event.target as HTMLInputElement).value);
+    void this.loadContents(1, true);
+  }
+
+  clearSearch(): void {
+    this.searchTerm.set('');
     void this.loadContents(1, true);
   }
 
@@ -486,6 +492,7 @@ export class ContentDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly commentService = inject(CommentService);
   private readonly contentService = inject(ContentService);
+  private readonly quizService = inject(QuizService);
   private readonly reactionService = inject(ReactionService);
   readonly auth = inject(AuthStateService);
   readonly detail = signal<ContentDetail | null>(null);
@@ -497,6 +504,11 @@ export class ContentDetailPage {
   readonly isSavingReaction = signal(false);
   readonly commentError = signal('');
   readonly commentSuccess = signal('');
+  readonly relatedQuiz = computed(() => {
+    const contentId = this.detail()?.id ?? this.route.snapshot.params['id'];
+
+    return this.quizService.quizzes().find((quiz) => quiz.relatedContent.id === contentId);
+  });
   readonly title = computed(() => this.detail()?.title ?? (this.route.snapshot.params['id'] === 'create' ? 'Criar conteúdo' : 'Conteúdo editorial'));
   readonly isPremiumContent = computed(() => this.detail()?.premium ?? ['imposto-reservas', 'diamantes-luanda-sul', 'politica-monetaria-angola'].includes(this.route.snapshot.params['id']));
 

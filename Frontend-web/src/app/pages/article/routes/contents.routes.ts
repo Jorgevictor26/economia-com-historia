@@ -58,7 +58,7 @@ interface ContentDetail {
               <span class="relative size-4 shrink-0 rounded-full border-2 border-current after:absolute after:-bottom-1 after:-right-1 after:h-2 after:w-0.5 after:rotate-[-45deg] after:bg-current"></span>
               <input
                 class="w-full bg-transparent text-[14px] text-[#3b3437] outline-none placeholder:text-[#7d8490]"
-                type="search"
+                type="text"
                 placeholder="Pesquisar conteúdos..."
                 [value]="searchTerm()"
                 (input)="updateSearch($event)"
@@ -278,6 +278,11 @@ export class ContentListPage implements OnInit {
 
   updateSearch(event: Event): void {
     this.searchTerm.set((event.target as HTMLInputElement).value);
+    void this.loadContents(1, true);
+  }
+
+  clearSearch(): void {
+    this.searchTerm.set('');
     void this.loadContents(1, true);
   }
 

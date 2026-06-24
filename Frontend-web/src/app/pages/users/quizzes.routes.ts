@@ -15,15 +15,31 @@ export class QuizzesPage {
   readonly quizService = inject(QuizService);
   readonly auth = inject(AuthStateService);
   readonly searchTerm = signal('');
+  readonly selectedLevel = signal('Todos');
+  readonly levelFilters = ['Todos', 'Iniciante', 'Interm\u00e9dio', 'Avan\u00e7ado'];
+  readonly userQuizStats = [
+    { label: 'Pontua\u00e7\u00e3o', value: '1.240 XP', icon: 'military_tech' },
+    { label: 'Ranking', value: '#8', icon: 'leaderboard' },
+    { label: 'Quiz Completados', value: '14', icon: 'trophy' },
+  ];
+  readonly topFive = [
+    { position: 1, name: 'Isabel Marques', score: 1960 },
+    { position: 2, name: 'Carlos Tchipia', score: 1840 },
+    { position: 3, name: 'Jussana Paim', score: 1795 },
+    { position: 4, name: 'David Jaspe', score: 1710 },
+    { position: 5, name: 'L\u00edria B\u00e1', score: 1650 },
+  ];
 
   readonly quizCards = [
     {
       quizId: 'reino-kongo',
-      area: 'História Imperial',
-      level: 'Intermédio',
-      icon: '♜',
+      area: 'Hist\u00f3ria Imperial',
+      level: 'Interm\u00e9dio',
+      icon: 'castle',
       title: 'O Reino do Congo e a Diplomacia Europeia',
-      summary: 'Análise duas instituições diplomáticas entre a corte do Manicongo e as potências europeias.',
+      summary: 'Analise duas institui\u00e7\u00f5es diplom\u00e1ticas entre a corte do Manicongo e as pot\u00eancias europeias.',
+      coverImage: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=900&q=80',
+      coverAlt: 'Arquitetura hist\u00f3rica em pedra',
       progress: 40,
       questions: 12,
       action: 'Continuar',
@@ -32,10 +48,12 @@ export class QuizzesPage {
     {
       quizId: 'angola-mercados',
       area: 'Macroeconomia',
-      level: 'Avançado',
-      icon: '▣',
-      title: 'Políticas Monetárias no Pós-Independência',
-      summary: 'Estude sobre a transição cambial e a estabilização do Kwanza nos primeiros anos.',
+      level: 'Avan\u00e7ado',
+      icon: 'analytics',
+      title: 'Pol\u00edticas Monet\u00e1rias no P\u00f3s-Independ\u00eancia',
+      summary: 'Estude sobre a transi\u00e7\u00e3o cambial e a estabiliza\u00e7\u00e3o do Kwanza nos primeiros anos.',
+      coverImage: '/assets/bna-hero.jpg',
+      coverAlt: 'Banco Nacional de Angola',
       progress: 0,
       questions: 20,
       action: 'Iniciar',
@@ -45,9 +63,9 @@ export class QuizzesPage {
       quizId: 'cafe-dende',
       area: 'Sociedade & Economia',
       level: 'Iniciante',
-      icon: '♟',
+      icon: 'groups',
       title: 'Demografia e Mercados Locais',
-      summary: 'Como os movimentos migratórios internos moldaram o comércio informal e as redes de troca.',
+      summary: 'Como os movimentos migrat\u00f3rios internos moldaram o com\u00e9rcio informal e as redes de troca.',
       progress: 100,
       questions: 0,
       action: 'Rever',
@@ -55,11 +73,13 @@ export class QuizzesPage {
     },
     {
       quizId: 'cafe-dende',
-      area: 'História Económica',
-      level: 'Intermédio',
-      icon: '✦',
+      area: 'Hist\u00f3ria Econ\u00f3mica',
+      level: 'Interm\u00e9dio',
+      icon: 'route',
       title: 'O Caminho de Ferro de Benguela',
       summary: 'O impacto do CFB na estrutura mineira do Katanga e no desenvolvimento regional do Lobito.',
+      coverImage: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=900&q=80',
+      coverAlt: 'Comboio em linha ferrovi\u00e1ria',
       progress: 15,
       questions: 18,
       action: 'Continuar',
@@ -67,11 +87,11 @@ export class QuizzesPage {
     },
     {
       quizId: 'reino-kongo',
-      area: 'Instituições',
-      level: 'Avançado',
-      icon: '▥',
-      title: 'Arquitetura das Instituições Coloniais',
-      summary: 'Exame crítico sobre a formação do aparelho administrativo e seu legado na governança.',
+      area: 'Institui\u00e7\u00f5es',
+      level: 'Avan\u00e7ado',
+      icon: 'account_balance',
+      title: 'Arquitetura das Institui\u00e7\u00f5es Coloniais',
+      summary: 'Exame cr\u00edtico sobre a forma\u00e7\u00e3o do aparelho administrativo e seu legado na governan\u00e7a.',
       progress: 0,
       questions: 25,
       action: 'Iniciar',
@@ -80,21 +100,27 @@ export class QuizzesPage {
   ];
 
   readonly featuredQuiz = computed(() => this.quizService.quizzes()[1] ?? this.quizService.quizzes()[0]);
+  readonly availableChallenges = computed(() => this.quizCards.filter((quiz) => quiz.progress < 100).slice(0, 3));
   readonly filteredQuizzes = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
+    const level = this.selectedLevel();
 
-    if (!term) {
-      return this.quizCards;
-    }
-
-    return this.quizCards.filter((quiz) =>
-      [quiz.title, quiz.summary, quiz.area, quiz.level]
+    return this.quizCards.filter((quiz) => {
+      const matchesTerm = !term || [quiz.title, quiz.summary, quiz.area, quiz.level]
         .join(' ')
         .toLowerCase()
-        .includes(term),
-    );
+        .includes(term);
+      const matchesLevel = level === 'Todos' || quiz.level === level;
+
+      return matchesTerm && matchesLevel;
+    });
   });
+
+  clearSearch(): void {
+    this.searchTerm.set('');
+  }
 }
+
 @Component({
   selector: 'app-quiz-play-page',
   imports: [RouterLink],
@@ -180,6 +206,3 @@ export const QUIZZES_ROUTES: Routes = [
   { path: '', component: QuizzesPage },
   { path: ':id/play', component: QuizPlayPage },
 ];
-
-
-

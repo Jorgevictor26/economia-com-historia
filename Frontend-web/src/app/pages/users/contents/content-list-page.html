@@ -5,43 +5,62 @@
     <section class="mb-8">
       <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_310px] lg:items-end">
         <div>
-          <h1 class="mt-3 font-display text-[34px] font-extrabold leading-tight text-[#40081a]">Explorar
+          <h1 class="mt-3 font-display text-[32px] font-extrabold leading-tight text-[#640926]">Explorar
             Conte&uacute;dos</h1>
         </div>
       </div>
 
       <div
         class="mt-7 grid gap-4 rounded-[12px] border border-[#ddd8da] bg-white p-3 md:grid-cols-[minmax(0,1.7fr)_minmax(190px,0.85fr)_minmax(190px,0.85fr)]">
-        <label class="flex min-h-[46px] items-center gap-3 rounded-[8px] bg-[#f1f1f3] px-4 text-[#89909d]">
-          <span
-            class="relative size-4 shrink-0 rounded-full border-2 border-current after:absolute after:-bottom-1 after:-right-1 after:h-2 after:w-0.5 after:rotate-[-45deg] after:bg-current"></span>
-          <input class="w-full bg-transparent text-[14px] text-[#3b3437] outline-none placeholder:text-[#7d8490]"
-            type="search" placeholder="Pesquisar conte&uacute;dos..." [value]="searchTerm()"
-            (input)="updateSearch($event)" />
+        <!-- Pesquisa -->
+        <label
+          class="flex min-h-[40px] items-center gap-2 rounded-[8px] bg-[#f1f1f3] px-3 text-[#89909d] cursor-pointer">
+          <span class="material-symbols-outlined text-[#40081a]">search</span>
+          <input
+            class="w-full bg-transparent text-[13px] text-[#3b3437] outline-none placeholder:text-[#7d8490] cursor-pointer"
+            type="text" placeholder="Pesquisar conteúdos..." [value]="searchTerm()" (input)="updateSearch($event)" />
+          <!-- Ícone de limpar único -->
+          @if (searchTerm()) {
+          <button type="button" class="ml-2 text-[#40081a] hover:text-[#8a4055] cursor-pointer" (click)="clearSearch()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+          }
         </label>
 
-        <label class="relative flex min-h-[46px] items-center rounded-[8px] bg-[#f1f1f3]">
+        <!-- Categoria -->
+        <label class="relative flex min-h-[40px] items-center gap-2 rounded-[8px] bg-[#f1f1f3] px-3 cursor-pointer">
+          <span class="material-symbols-outlined text-[#40081a]">category</span>
           <select
-            class="h-full w-full appearance-none rounded-[8px] bg-transparent px-4 pr-10 text-[13px] font-semibold text-[#121212] outline-none"
+            class="h-full w-full appearance-none rounded-[8px] bg-transparent px-2 pr-8 text-[13px] font-semibold text-[#121212] outline-none cursor-pointer"
             [value]="selectedCategoryFilter()" (change)="selectCategoryFilter($any($event.target).value)">
             @for (filter of categoryFilters(); track filter) {
             <option [value]="filter">{{ filter === 'Todos' ? 'Todas as categorias' : filter }}</option>
             }
           </select>
-          <span class="pointer-events-none absolute right-4 text-[#a0a5af]">⌄</span>
+          <!-- Ícone dropdown -->
+          <span class="pointer-events-none absolute right-3 text-[#40081a]">
+            <span class="material-symbols-outlined">arrow_drop_down</span>
+          </span>
         </label>
 
-        <label class="relative flex min-h-[46px] items-center rounded-[8px] bg-[#f1f1f3]">
+        <!-- Tipo de conteúdo -->
+        <label class="relative flex min-h-[40px] items-center gap-2 rounded-[8px] bg-[#f1f1f3] px-3 cursor-pointer">
+          <span class="material-symbols-outlined text-[#40081a]">video_library</span>
           <select
-            class="h-full w-full appearance-none rounded-[8px] bg-transparent px-4 pr-10 text-[13px] font-semibold text-[#121212] outline-none"
+            class="h-full w-full appearance-none rounded-[8px] bg-transparent px-2 pr-8 text-[13px] font-semibold text-[#121212] outline-none cursor-pointer"
             [value]="selectedContentTypeFilter()" (change)="selectContentTypeFilter($any($event.target).value)">
             @for (filter of contentTypeFilters(); track filter) {
             <option [value]="filter">{{ filter === 'Todos os formatos' ? 'Todos os tipos' : filter }}</option>
             }
           </select>
-          <span class="pointer-events-none absolute right-4 text-[#a0a5af]">⌄</span>
+          <!-- Ícone dropdown -->
+          <span class="pointer-events-none absolute right-3 text-[#40081a]">
+            <span class="material-symbols-outlined">arrow_drop_down</span>
+          </span>
         </label>
       </div>
+
+
     </section>
 
     @if (filteredContents().length === 0) {

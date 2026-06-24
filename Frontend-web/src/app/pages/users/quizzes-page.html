@@ -1,118 +1,161 @@
-    <section class="-m-6 min-h-dvh bg-[#f7f8f8] text-[#2c2729]">
-      <app-public-navbar />
+<section class="-m-6 min-h-dvh bg-[#f7f8f8] text-[#2c2729]">
+  <app-public-navbar />
 
-      <main class="w-full px-5 pb-12 pt-7">
-        <section class="grid overflow-hidden rounded-[8px] border border-[#ded7da] bg-white shadow-[0_1px_4px_rgba(22,19,21,0.04)] lg:grid-cols-[minmax(0,1fr)_minmax(420px,42vw)]">
-          <div class="flex min-h-[430px] flex-col justify-center px-8 py-8 md:px-12">
-            <span class="w-fit rounded-[4px] bg-[#d4af37] px-3 py-1 text-[9px] font-extrabold uppercase tracking-[0.08em] text-[#5c1e2f]">
-              Destaque da semana
-            </span>
-            <h2 class="mt-5 max-w-[520px] font-display text-[32px] font-extrabold leading-[1.04] text-[#5c1e2f] md:text-[38px]">
-              A Economia do Café em Angola: Do Império à Independência
-            </h2>
-            <p class="mt-5 max-w-[520px] text-[13px] leading-6 text-[#5f575b]">
-              Explore as raízes estruturais da produção cafeeira e seu impacto na formação da infraestrutura logística angolana durante o século XX.
-            </p>
-            <div class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-[#6f686b]">
-              <span class="inline-flex items-center gap-2"><span class="text-[#5c1e2f]">▣</span>Nível Académico</span>
-              <span class="inline-flex items-center gap-2"><span class="text-[#5c1e2f]">◷</span>25 Minutos</span>
-              <span class="inline-flex items-center gap-2"><span class="text-[#5c1e2f]">▤</span>15 Questões</span>
-            </div>
-            <div class="mt-8">
-              @if (auth.isAuthenticated()) {
-                <a [routerLink]="[featuredQuiz().id, 'play']" class="inline-flex h-11 items-center justify-center rounded-[2px] bg-[#5c1e2f] px-7 text-[12px] font-extrabold text-white transition hover:bg-[#40081a]">
-                  Começar Avaliação →
-                </a>
-              } @else {
-                <button type="button" class="inline-flex h-11 items-center justify-center rounded-[2px] bg-[#5c1e2f] px-7 text-[12px] font-extrabold text-white transition hover:bg-[#40081a]" (click)="auth.requireLoginFor('fazer quiz')">
-                  Começar Avaliação →
-                </button>
-              }
-            </div>
-          </div>
+  <main class="fluid-container pb-14 pt-6">
+    <section class="mb-8">
+      <h1 class="font-display text-[34px] font-extrabold leading-tight text-[#5c1e2f] md:text-[42px]">Quiz</h1>
 
-          <figure class="min-h-[320px] bg-[#d7d2c5] p-3 lg:min-h-[430px]">
-            <img
-              src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1200&q=80"
-              alt="Plantação de café"
-              class="h-full w-full object-cover"
-            />
-          </figure>
-        </section>
+      <div
+        class="mt-6 grid max-w-[760px] gap-4 rounded-[12px] border border-[#ddd8da] bg-white p-3 md:grid-cols-[minmax(0,1.45fr)_minmax(190px,0.85fr)]">
+        <label
+          class="flex min-h-[40px] cursor-pointer items-center gap-2 rounded-[8px] bg-[#f1f1f3] px-3 text-[#89909d]">
+          <span class="material-symbols-outlined text-[#40081a]">search</span>
+          <input
+            class="w-full cursor-pointer bg-transparent text-[13px] text-[#3b3437] outline-none placeholder:text-[#7d8490]"
+            type="text" placeholder="Pesquisar quizzes..." [value]="searchTerm()"
+            (input)="searchTerm.set($any($event.target).value)" />
+          @if (searchTerm()) {
+          <button type="button" class="ml-2 text-[#40081a] hover:text-[#8a4055]" (click)="clearSearch()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+          }
+        </label>
 
-        <section class="mt-8">
-          <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h2 class="font-display text-[22px] font-extrabold text-[#40081a]">Avaliações Académicas</h2>
-              <p class="mt-1 text-[12px] text-[#6f686b]">Teste os seus conhecimentos com rigor a nossas metodologias.</p>
-            </div>
-
-            <label class="relative w-full md:w-[300px]">
-              <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-[#8a8587]">⌕</span>
-              <input
-                type="search"
-                class="h-9 w-full rounded-[2px] border border-[#ded7da] bg-white pl-9 pr-3 text-[11px] text-[#2c2729] outline-none transition placeholder:text-[#8a8587] focus:border-[#8a4055] focus:ring-2 focus:ring-[#f1d8df]"
-                placeholder="Procurar temas ou tópicos..."
-                [value]="searchTerm()"
-                (input)="searchTerm.set($any($event.target).value)"
-              />
-            </label>
-          </div>
-
-          <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            @for (quiz of filteredQuizzes(); track quiz.title) {
-              <article class="flex min-h-[292px] flex-col rounded-[2px] border border-[#ded7da] bg-white shadow-[0_1px_2px_rgba(22,19,21,0.03)] transition hover:-translate-y-0.5 hover:shadow-lg">
-                <div class="border-t-4 border-[#d4af37] px-6 pb-5 pt-4" [class.border-[#2a9d8f]]="quiz.accent === 'green'" [class.border-[#8a4055]]="quiz.accent === 'wine'">
-                  <div class="flex items-start justify-between gap-4">
-                    <span class="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#735c00]">{{ quiz.area }}</span>
-                    <span class="text-[12px] text-[#6f686b]">{{ quiz.level }}</span>
-                  </div>
-
-                  <div class="mt-4 grid size-10 place-items-center rounded-[4px] bg-[#f7edef] text-[18px] text-[#5c1e2f]">{{ quiz.icon }}</div>
-
-                  <h3 class="mt-4 min-h-[54px] font-display text-[21px] font-extrabold leading-tight text-[#40081a]">{{ quiz.title }}</h3>
-                  <p class="mt-3 line-clamp-2 min-h-[48px] text-[13px] leading-6 text-[#5f575b]">{{ quiz.summary }}</p>
-
-                  <div class="mt-4">
-                    <div class="h-2 overflow-hidden rounded-full bg-[#ece8ea]">
-                      <span class="block h-full rounded-full bg-[#2a9d8f]" [style.width.%]="quiz.progress"></span>
-                    </div>
-                    <div class="mt-2 flex justify-between text-[11px] text-[#8a8587]">
-                      <span>Progresso Atual</span>
-                      <span>{{ quiz.progress }}%</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="mt-auto flex items-center justify-between gap-3 border-t border-[#f0ecee] px-6 py-4">
-                  <span class="text-[12px] text-[#6f686b]">▦ {{ quiz.questions }} Perguntas</span>
-
-                  @if (auth.isAuthenticated()) {
-                    <a [routerLink]="[quiz.quizId, 'play']" class="text-[12px] font-extrabold text-[#5c1e2f] hover:underline">{{ quiz.action }} →</a>
-                  } @else {
-                    <button type="button" class="text-[12px] font-extrabold text-[#5c1e2f] hover:underline" (click)="auth.requireLoginFor('fazer quiz')">{{ quiz.action }} →</button>
-                  }
-                </div>
-              </article>
-            } @empty {
-              <article class="rounded-[8px] border border-dashed border-[#ded7da] bg-white p-8 text-center md:col-span-2 xl:col-span-3">
-                <h3 class="font-display text-[18px] font-extrabold text-[#40081a]">Nenhum quiz encontrado</h3>
-                <p class="mt-2 text-[13px] text-[#6f686b]">Experimente procurar por outro tema ou dificuldade.</p>
-              </article>
+        <label class="relative flex min-h-[40px] cursor-pointer items-center gap-2 rounded-[8px] bg-[#f1f1f3] px-3">
+          <span class="material-symbols-outlined text-[#40081a]">filter_list</span>
+          <select
+            class="h-full w-full cursor-pointer appearance-none rounded-[8px] bg-transparent px-2 pr-8 text-[13px] font-semibold text-[#121212] outline-none"
+            [value]="selectedLevel()" (change)="selectedLevel.set($any($event.target).value)">
+            @for (level of levelFilters; track level) {
+            <option [value]="level">{{ level === 'Todos' ? 'Todos os n&iacute;veis' : level }}</option>
             }
+          </select>
+          <span class="pointer-events-none absolute right-3 text-[#40081a]">
+            <span class="material-symbols-outlined">arrow_drop_down</span>
+          </span>
+        </label>
+      </div>
 
-            <article class="grid min-h-[292px] place-items-center rounded-[2px] border border-dashed border-[#cfc7cb] bg-white p-6 text-center">
-              <div>
-                <div class="mx-auto grid size-12 place-items-center text-[34px] text-[#c8c2c5]">⌂</div>
-                <h3 class="mt-3 font-display text-[18px] font-extrabold text-[#c8c2c5]">Novas Avaliações</h3>
-                <p class="mt-1 text-[13px] leading-5 text-[#b0aaad]">Disponíveis em Breve</p>
-                <p class="mt-1 text-[12px] text-[#c8c2c5]">Próximos temas: A Era do Petróleo</p>
+      <div class="mt-6 grid gap-5">
+        <div class="grid gap-4 md:grid-cols-3">
+          @for (stat of userQuizStats; track stat.label) {
+          <article class="flex h-[68px] items-center gap-3 rounded-[6px] border border-[#ddd8da] bg-white px-4">
+            <span class="material-symbols-outlined text-[#9b0035] text-[20px]">{{ stat.icon }}</span>
+            <div class="min-w-0">
+              <p class="truncate text-[11px] font-medium text-[#17324d]">{{ stat.label }}</p>
+              <strong class="block font-display text-[16px] font-extrabold leading-none text-[#06111f]">{{ stat.value
+                }}</strong>
+            </div>
+          </article>
+          }
+        </div>
+        <aside class="grid gap-4 sm:grid-cols-2">
+        <section class="bg-white p-4">
+          <h2 class="font-display text-[16px] font-extrabold text-[#40081a]">Top 5</h2>
+          <div class="mt-3 grid gap-2">
+            @for (student of topFive; track student.position) {
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex min-w-0 items-center gap-2">
+                <span
+                  class="grid size-6 shrink-0 place-items-center rounded-[6px] bg-[#5c1e2f] text-[10px] font-extrabold text-white">{{
+                  student.position }}</span>
+                <span class="truncate text-[12px] font-bold text-[#2c2729]">{{ student.name }}</span>
               </div>
-            </article>
+              <strong class="text-[12px] text-[#735c00]">{{ student.score }} XP</strong>
+            </div>
+            }
           </div>
         </section>
-      </main>
 
-      <app-public-footer />
-      <app-back-to-top />
+        <section class="bg-white p-4">
+          <h2 class="font-display text-[16px] font-extrabold text-[#40081a]">Desafios</h2>
+          <div class="mt-3 grid gap-2">
+            @for (challenge of availableChallenges(); track challenge.title) {
+            @if (auth.isAuthenticated()) {
+            <a [routerLink]="[challenge.quizId, 'play']" class="block py-1 hover:text-[#5c1e2f]">
+              <span class="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#735c00]">{{ challenge.level
+                }}</span>
+              <strong class="block truncate text-[12px] leading-5 text-[#5c1e2f]">{{ challenge.title }}</strong>
+            </a>
+            } @else {
+            <button type="button" class="block w-full py-1 text-left hover:text-[#5c1e2f]"
+              (click)="auth.requireLoginFor('fazer quiz')">
+              <span class="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#735c00]">{{ challenge.level
+                }}</span>
+              <strong class="block truncate text-[12px] leading-5 text-[#5c1e2f]">{{ challenge.title }}</strong>
+            </button>
+            }
+            }
+          </div>
+        </section>
+        </aside>
+      </div>
     </section>
+
+    <section class="mt-16">
+
+
+      <div class="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        @for (quiz of filteredQuizzes(); track quiz.title) {
+        <article
+          class="flex min-h-[292px] flex-col rounded-[2px] border border-[#ded7da] bg-white shadow-[0_1px_2px_rgba(22,19,21,0.03)] transition hover:-translate-y-0.5 hover:shadow-lg">
+          <div class="px-6 pb-5 pt-4" [class.border-[#2a9d8f]]="quiz.accent === 'green'"
+            [class.border-[#8a4055]]="quiz.accent === 'wine'">
+            <div class="flex items-start justify-between gap-4">
+              <span class="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#735c00]">{{ quiz.area }}</span>
+              <span class="text-[12px] text-[#6f686b]">{{ quiz.level }}</span>
+            </div>
+
+            <h3 class="mt-4 min-h-[54px] font-display text-[21px] font-extrabold leading-tight text-[#40081a]">{{
+              quiz.title }}</h3>
+            <p class="mt-3 line-clamp-2 min-h-[48px] text-[13px] leading-6 text-[#5f575b]">{{ quiz.summary }}</p>
+
+            <div class="mt-4">
+              <div class="h-2 overflow-hidden rounded-full bg-[#ece8ea]">
+                <span class="block h-full rounded-full bg-[#2a9d8f]" [style.width.%]="quiz.progress"></span>
+              </div>
+              <div class="mt-2 flex justify-between text-[11px] text-[#8a8587]">
+                <span>Progresso atual</span>
+                <span>{{ quiz.progress }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-auto flex items-center justify-between gap-3 border-t border-[#f0ecee] px-6 py-4">
+            <span class="text-[12px] text-[#6f686b]">{{ quiz.questions }} perguntas</span>
+
+            @if (auth.isAuthenticated()) {
+            <a [routerLink]="[quiz.quizId, 'play']" class="text-[12px] font-extrabold text-[#5c1e2f] hover:underline">{{
+              quiz.action }}</a>
+            } @else {
+            <button type="button" class="text-[12px] font-extrabold text-[#5c1e2f] hover:underline"
+              (click)="auth.requireLoginFor('fazer quiz')">{{ quiz.action }}</button>
+            }
+          </div>
+        </article>
+        } @empty {
+        <article
+          class="rounded-[8px] border border-dashed border-[#ded7da] bg-white p-8 text-center md:col-span-2 xl:col-span-3">
+          <h3 class="font-display text-[18px] font-extrabold text-[#40081a]">Nenhum quiz encontrado</h3>
+          <p class="mt-2 text-[13px] text-[#6f686b]">Experimente procurar por outro tema ou dificuldade.</p>
+        </article>
+        }
+
+        <article
+          class="grid min-h-[292px] place-items-center rounded-[2px] border border-dashed border-[#cfc7cb] bg-white p-6 text-center">
+          <div>
+            <div class="mx-auto grid size-12 place-items-center text-[34px] text-[#c8c2c5]">
+              <span class="material-symbols-outlined text-[34px]">pending</span>
+            </div>
+            <h3 class="mt-3 font-display text-[18px] font-extrabold text-[#c8c2c5]">Novas avalia&ccedil;&otilde;es</h3>
+            <p class="mt-1 text-[13px] leading-5 text-[#b0aaad]">Dispon&iacute;veis em breve</p>
+            <p class="mt-1 text-[12px] text-[#c8c2c5]">Pr&oacute;ximos temas: A Era do Petr&oacute;leo</p>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <app-public-footer />
+  <app-back-to-top />
+</section>

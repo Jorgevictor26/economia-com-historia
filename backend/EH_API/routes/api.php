@@ -23,6 +23,7 @@ use App\Http\Controllers\QuizController;
 use App\Http\Controllers\CommentReportController;
 use App\Http\Controllers\SavedContentController;
 use App\Http\Controllers\UserController;
+use App\Support\ContentMedia;
 
 Route::prefix('v1')->group(function () {
     Route::post('/register', RegisterController::class);
@@ -83,10 +84,13 @@ Route::prefix('v1')->group(function () {
         Route::get('/comment-reports/{id}', [CommentReportController::class, 'show']);
 
         // CONTENT MEDIA
-        Route::post('/contents/{id}/upload-image', [ContentMediaController::class, 'uploadImage']);
-        Route::post('/contents/{id}/upload-video', [ContentMediaController::class, 'uploadVideo']);
-        Route::post('/contents/{id}/upload-audio', [ContentMediaController::class, 'uploadAudio']);
-        Route::post('/contents/{id}/upload-document', [ContentMediaController::class, 'uploadDocument']);
+        Route::post('/contents/{id}/media/{mediaType}', [ContentMediaController::class, 'store'])
+            ->whereIn('mediaType', ContentMedia::TYPES);
+
+        foreach (ContentMedia::TYPES as $mediaType) {
+            Route::post('/contents/{id}/upload-'.$mediaType, [ContentMediaController::class, 'store'])
+                ->defaults('mediaType', $mediaType);
+        }
         Route::delete('/contents/{id}/media', [ContentMediaController::class, 'destroy'])
             ->middleware('role:Admin,SuperAdmin');
 

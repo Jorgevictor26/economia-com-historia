@@ -30,8 +30,8 @@ class ContentService
             'title' => $dto->title,
             'summary' => $dto->summary,
             'content' => $dto->content,
-            'image' => $dto->image,
-            'video' => $dto->video,
+            'image_url' => $dto->image,
+            'video_url' => $dto->video,
             'visibility' => $dto->visibility
         ]);
     }

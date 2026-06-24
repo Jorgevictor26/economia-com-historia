@@ -6,17 +6,11 @@ use App\DTOs\Content\DeleteContentMediaDTO;
 use App\DTOs\Content\UploadContentMediaDTO;
 use App\Models\Content;
 use App\Repositories\ContentRepository;
+use App\Support\ContentMedia;
 use Illuminate\Auth\Access\AuthorizationException;
 
 class ContentMediaService
 {
-    private const MEDIA_COLUMNS = [
-        'image' => 'image_url',
-        'video' => 'video_url',
-        'audio' => 'audio_url',
-        'document' => 'document_url',
-    ];
-
     public function __construct(
         private ContentRepository $repository,
         private FileUploadService $uploads
@@ -34,7 +28,7 @@ class ContentMediaService
             throw new AuthorizationException('Only the content author can attach files to this content');
         }
 
-        $column = $this->columnFor($dto->mediaType);
+        $column = ContentMedia::columnFor($dto->mediaType);
         $this->uploads->deleteByUrl($content->{$column});
 
         $url = $this->uploads->upload(
@@ -57,14 +51,9 @@ class ContentMediaService
             throw new AuthorizationException('Only Admin and SuperAdmin users can remove content files');
         }
 
-        $column = $this->columnFor($dto->mediaType);
+        $column = ContentMedia::columnFor($dto->mediaType);
         $this->uploads->deleteByUrl($content->{$column});
 
         return $this->repository->updateMedia($content, $column, null);
-    }
-
-    private function columnFor(string $mediaType): string
-    {
-        return self::MEDIA_COLUMNS[$mediaType];
     }
 }

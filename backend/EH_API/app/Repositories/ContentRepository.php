@@ -69,9 +69,19 @@ class ContentRepository
 
     public function updateMedia(Content $content, string $column, ?string $url): Content
     {
-        $content->update([
+        $updates = [
             $column => $url,
-        ]);
+        ];
+
+        if ($column === 'image_url') {
+            $updates['image'] = null;
+        }
+
+        if ($column === 'video_url') {
+            $updates['video'] = null;
+        }
+
+        $content->update($updates);
 
         return $content->fresh(['author', 'category', 'contentType']);
     }

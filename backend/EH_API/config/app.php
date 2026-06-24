@@ -54,9 +54,9 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
-    'frontend_url' => env('FRONTEND_URL'),
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:4200'),
 
-    'frontend_password_reset_url' => env('FRONTEND_PASSWORD_RESET_URL'),
+    'frontend_password_reset_url' => env('FRONTEND_PASSWORD_RESET_URL', env('FRONTEND_URL', 'http://localhost:4200').'/auth/reset-password'),
 
     /*
     |--------------------------------------------------------------------------

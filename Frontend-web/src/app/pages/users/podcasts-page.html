@@ -63,7 +63,7 @@
               <span class="material-symbols-outlined text-[17px]" aria-hidden="true">favorite</span>
               <span>Gostar</span>
             </button>
-            <button type="button" class="content-action">
+            <button type="button" class="content-action" (click)="openCommentComposer()">
               <span class="material-symbols-outlined text-[17px]" aria-hidden="true">chat_bubble</span>
               <span>Comentar</span>
             </button>
@@ -122,6 +122,7 @@
         <section class="mt-10 border-t border-[#eee7ea] pt-9">
           <h2 class="text-[14px] font-medium text-[#5c1e2f]">Comentários (3)</h2>
 
+          @if (isCommentComposerOpen()) {
           <div class="mt-6 flex gap-4">
             <span class="size-9 rounded-[10px] bg-[#e7e7e7]"></span>
             <div class="min-w-0 flex-1">
@@ -135,6 +136,7 @@
               </div>
             </div>
           </div>
+          }
 
           <div class="mt-9 grid gap-7">
             <div class="flex gap-4">
@@ -229,44 +231,47 @@
 
       <aside class="lg:pt-0">
         <div class="sticky top-[82px] grid gap-6">
-          <section class="rounded-[5px] border border-[#e3dadd] bg-white p-6 text-center shadow-sm">
-            <p class="text-[9px] font-extrabold uppercase tracking-[0.18em] text-[#8a8587]">Convidado Especial</p>
+          <section class="border border-[#ded7da] bg-white px-6 py-6 text-center">
             <div
-              class="mx-auto mt-6 grid size-[96px] place-items-center overflow-hidden rounded-[6px] bg-[#5c1e2f] font-display text-[28px] font-extrabold text-[#d4af37] shadow-sm">
-              MC</div>
-            <h2 class="mt-5 font-display text-[16px] font-extrabold text-[#5c1e2f]">Dr. Manuel Cassule</h2>
-            <p class="mt-1 text-[12px] font-semibold text-[#b58a00]">Doutorado em História Económica</p>
-            <p class="mx-auto mt-4 max-w-[220px] text-[11px] leading-5 text-[#6f686b]">
-              Investigador Sénior na Universidade Agostinho Neto, especialista em sistemas políticos pré-coloniais da
+              class="mx-auto grid size-[70px] place-items-center rounded-[8px] bg-[#f5dce4] font-display text-[20px] font-extrabold text-[#8a4055]">
+              MC
+            </div>
+            <h2 class="mt-5 font-display text-[13px] font-medium text-[#5c1e2f]">Dr. Manuel Cassule</h2>
+            <p class="mt-1 text-[11px] font-semibold text-[#8c6f36]">Doutorado em História Económica</p>
+            <p class="mx-auto mt-2 max-w-[170px] text-[9px] leading-[1.35] text-[#5f575b]">
+              Investigador sénior na Universidade Agostinho Neto, especialista em sistemas políticos pré-coloniais da
               África Central.
             </p>
-            <div class="mt-5 flex justify-center gap-4 text-[#5c1e2f]">
-              <button type="button" aria-label="Partilhar convidado"><span
-                  class="material-symbols-outlined text-[19px]">link</span></button>
-              <button type="button" aria-label="Contactar convidado"><span
-                  class="material-symbols-outlined text-[19px]">alternate_email</span></button>
+            <div class="mt-5 flex justify-center gap-4 text-[#5f575b]">
+              <button type="button" class="cursor-pointer hover:text-[#40081a]" aria-label="Partilhar perfil">
+                <span class="material-symbols-outlined text-[24px] leading-none">share</span>
+              </button>
+              <button type="button" class="cursor-pointer hover:text-[#40081a]" aria-label="Guardar perfil">
+                <span class="material-symbols-outlined text-[24px] leading-none">bookmark</span>
+              </button>
             </div>
           </section>
 
-          <section>
-            <h2 class="mb-4 flex items-center gap-2 text-[13px] font-extrabold text-[#5c1e2f]">
-              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">play_circle</span>
-              Relacionados
-            </h2>
-            <div class="grid gap-4">
-              <a routerLink="/app/podcasts" class="block border border-[#e3dadd] bg-white p-5 shadow-sm">
-                <p class="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#b58a00]">Episódio 21</p>
-                <h3 class="mt-2 font-display text-[15px] font-extrabold leading-5 text-[#5c1e2f]">A Economia do Reino do
-                  Kongo</h3>
-                <p class="mt-1 text-[11px] text-[#8a8587]">45 min &bull; História</p>
-              </a>
-              <a routerLink="/app/podcasts" class="block border border-[#e3dadd] bg-white p-5 shadow-sm">
-                <p class="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#b58a00]">Episódio 18</p>
-                <h3 class="mt-2 font-display text-[15px] font-extrabold leading-5 text-[#5c1e2f]">Rainha Ginga:
-                  Diplomacia e Guerra</h3>
-                <p class="mt-1 text-[11px] text-[#8a8587]">62 min &bull; Biografia</p>
-              </a>
-            </div>
+          <section class="border-t border-[#ded7da] pt-6">
+            <h2 class="font-display text-[17px] font-medium text-[#5c1e2f]">Relacionados</h2>
+
+            <a routerLink="/app/podcasts" class="mt-5 block">
+              <div class="podcast-radio h-[141px] w-full rounded-[2px] object-cover object-center" role="img"
+                aria-label="Capa do episódio A Economia do Reino do Kongo"></div>
+              <p class="mt-2 text-[10px] font-bold uppercase text-[#8c6f36]">Episódio 21</p>
+              <h3 class="mt-1 font-display text-[16px] font-extrabold leading-tight text-[#5c1e2f]">
+                A Economia do Reino do Kongo
+              </h3>
+            </a>
+
+            <a routerLink="/app/podcasts" class="mt-6 block">
+              <div class="podcast-wave h-[141px] w-full rounded-[2px] object-cover object-center" role="img"
+                aria-label="Capa do episódio Rainha Ginga: Diplomacia e Guerra"></div>
+              <p class="mt-2 text-[10px] font-bold uppercase text-[#8c6f36]">Episódio 18</p>
+              <h3 class="mt-1 font-display text-[16px] font-extrabold leading-tight text-[#5c1e2f]">
+                Rainha Ginga: Diplomacia e Guerra
+              </h3>
+            </a>
           </section>
         </div>
       </aside>

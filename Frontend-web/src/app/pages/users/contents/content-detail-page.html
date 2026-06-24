@@ -97,7 +97,7 @@
               <img src="/assets/icons/like.png" alt="" />
               <span>{{ isSavingReaction() ? 'A reagir...' : 'Reações (' + reactionCount() + ')' }}</span>
             </button>
-            <button type="button" class="content-action" (click)="requireLogin($event, 'comentar')">
+            <button type="button" class="content-action" (click)="openCommentComposer($event)">
               <img src="/assets/icons/comment.png" alt="" />
               <span>Comentar</span>
             </button>
@@ -116,7 +116,7 @@
 
         <h2 class="mt-10 text-[14px] font-medium text-[#5c1e2f]">Comentários ({{ comments().length }})</h2>
 
-        @if (auth.isAuthenticated()) {
+        @if (auth.isAuthenticated() && isCommentComposerOpen()) {
         <div class="mt-6 flex gap-4">
           <span class="size-9 rounded-[10px] bg-[#e7e7e7]"></span>
           <div class="min-w-0 flex-1">

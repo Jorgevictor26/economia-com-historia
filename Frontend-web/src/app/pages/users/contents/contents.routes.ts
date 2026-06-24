@@ -502,6 +502,7 @@ export class ContentDetailPage {
   readonly isLoadingComments = signal(false);
   readonly isSavingComment = signal(false);
   readonly isSavingReaction = signal(false);
+  readonly isCommentComposerOpen = signal(false);
   readonly commentError = signal('');
   readonly commentSuccess = signal('');
   readonly relatedQuiz = computed(() => {
@@ -536,6 +537,15 @@ export class ContentDetailPage {
     event.preventDefault();
     event.stopPropagation();
     this.auth.requireLoginFor(operation);
+  }
+
+  openCommentComposer(event: Event): void {
+    if (!this.auth.isAuthenticated()) {
+      this.requireLogin(event, 'comentar');
+      return;
+    }
+
+    this.isCommentComposerOpen.set(true);
   }
 
   async react(event: Event): Promise<void> {
@@ -578,6 +588,7 @@ export class ContentDetailPage {
       await this.commentService.create(contentId, comment);
       await this.loadComments(contentId);
       this.commentSuccess.set('Comentário publicado com sucesso.');
+      this.isCommentComposerOpen.set(false);
     } catch {
       this.commentError.set('Não foi possível publicar o comentário.');
     } finally {
@@ -718,6 +729,4 @@ export const CONTENTS_ROUTES: Routes = [
   { path: ':id', component: ContentDetailPage },
   { path: ':id/edit', canActivate: [adminGuard], component: ContentDetailPage },
 ];
-
-
 

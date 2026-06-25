@@ -12,32 +12,38 @@
 
 .profile-editor {
   display: grid;
-  grid-template-columns: minmax(250px, 296px) minmax(0, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: minmax(228px, 260px) minmax(0, 1fr);
+  gap: 1rem;
   align-items: start;
 }
 
 .profile-sidebar,
 .profile-form-panel {
   position: relative;
-  overflow: hidden;
   border: 1px solid rgb(227 212 216 / 0.76);
   border-radius: 8px;
   background: rgb(255 255 255 / 0.96);
   box-shadow: 0 24px 60px rgb(22 19 21 / 0.12);
 }
 
+.profile-form-panel {
+  overflow: hidden;
+}
+
+.profile-sidebar {
+  overflow: visible;
+}
+
 .profile-identity {
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 0.8rem;
+  gap: 0.55rem;
   justify-items: center;
-  padding: clamp(1.25rem, 2.2vw, 1.65rem) 1rem 1rem;
+  padding: 1rem 0.9rem 0.75rem;
   text-align: center;
 }
 
-.profile-avatar,
 .profile-initials,
 .profile-photo-large,
 .photo-preview-box {
@@ -49,10 +55,13 @@
 
 .profile-avatar {
   position: relative;
-  width: clamp(6.6rem, 9vw, 7.7rem);
-  border: 3px solid #6b2038;
+  display: grid;
+  width: 6.25rem;
+  aspect-ratio: 1;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 999px;
   background: #6b2038;
-  box-shadow: 0 18px 34px rgb(92 30 47 / 0.2);
 }
 
 .profile-avatar img,
@@ -71,70 +80,69 @@
   background: #662239;
   color: #fff;
   font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-size: clamp(1.75rem, 3vw, 2.65rem);
   font-weight: 800;
 }
 
-.profile-avatar-action,
 .photo-change-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.42rem;
+  gap: 0.32rem;
   border: 1px solid rgb(255 255 255 / 0.2);
   border-radius: 8px;
   background: #50576a;
   color: #fff;
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-weight: 800;
-  box-shadow: 0 14px 28px rgb(24 27 36 / 0.2);
+  box-shadow: 0 8px 18px rgb(24 27 36 / 0.16);
 }
 
-.profile-avatar-action {
+.profile-avatar input {
   position: absolute;
-  right: 0.15rem;
-  bottom: 0.7rem;
-  width: 2.05rem;
-  height: 2.05rem;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .profile-identity h2,
 .profile-form-header h1,
 .profile-sidebar-note strong {
-  color: #282d33;
+  color: #5c1e2f;
   font-family: var(--font-display);
   font-weight: 800;
 }
 
 .profile-identity h2 {
   max-width: 13rem;
-  font-size: 1rem;
+  font-size: 0.92rem;
   line-height: 1.2;
 }
 
 .profile-identity p {
   color: #343a40;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
 }
 
 .profile-menu {
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 0.18rem;
+  gap: 0.1rem;
   overflow: visible;
-  padding: 0.35rem 0.95rem 1rem;
+  padding: 0.25rem 0.7rem 0.8rem;
 }
 
 .profile-menu a {
   display: flex;
-  min-height: 2.35rem;
+  min-height: 2.05rem;
   align-items: center;
-  gap: 0.78rem;
+  gap: 0.62rem;
   border-radius: 8px;
-  padding-inline: 0.95rem 1rem;
+  padding-inline: 0.78rem 0.8rem;
   color: #32373d;
-  font-size: 0.86rem;
+  font-size: 0.78rem;
   line-height: 1.25;
 }
 
@@ -152,20 +160,20 @@
   position: relative;
   z-index: 1;
   border-bottom: 1px solid #e7e9ec;
-  padding: clamp(1.45rem, 3vw, 2.25rem) clamp(1.25rem, 5vw, 3.2rem);
+  padding: 1.25rem clamp(1rem, 4vw, 2.5rem);
 }
 
 .profile-form-header h1 {
-  font-size: clamp(1.75rem, 3vw, 2.45rem);
+  font-size: clamp(1.35rem, 2.2vw, 1.8rem);
   line-height: 1.04;
 }
 
 .profile-form-header span {
   display: block;
   max-width: 46rem;
-  margin-top: 0.75rem;
+  margin-top: 0.45rem;
   color: #3f454c;
-  font-size: clamp(0.92rem, 1.4vw, 1.1rem);
+  font-size: clamp(0.78rem, 1.2vw, 0.92rem);
   line-height: 1.45;
 }
 
@@ -177,10 +185,10 @@
 
 .profile-form-with-photo {
   display: grid;
-  grid-template-columns: minmax(150px, 190px) minmax(0, 1fr);
-  gap: clamp(1.25rem, 3vw, 2.3rem);
+  grid-template-columns: minmax(132px, 164px) minmax(0, 1fr);
+  gap: clamp(1rem, 2vw, 1.75rem);
   align-items: start;
-  padding: clamp(1.45rem, 3vw, 2.25rem) clamp(1.25rem, 5vw, 3.2rem);
+  padding: 1.25rem clamp(1rem, 4vw, 2.5rem);
 }
 
 .profile-photo-column,
@@ -197,20 +205,20 @@
 }
 
 .profile-photo-large {
-  width: min(100%, 178px);
+  width: min(100%, 148px);
   border: 3px solid #6b2038;
   background: #6b2038;
   box-shadow: 0 18px 38px rgb(92 30 47 / 0.2);
 }
 
 .profile-fields-column {
-  gap: 1.45rem;
+  gap: 1rem;
 }
 
 .field-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem 1.35rem;
+  gap: 0.75rem 1rem;
 }
 
 .field-grid label,
@@ -223,8 +231,8 @@
 .photo-editor-copy h2,
 .account-field span,
 .account-section h2 {
-  color: #2d333a;
-  font-size: 0.92rem;
+  color: #5c1e2f;
+  font-size: 0.78rem;
   font-weight: 800;
 }
 
@@ -243,19 +251,19 @@ select,
 textarea {
   color: #2d333a;
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
 }
 
 input,
 select {
-  min-height: 3rem;
-  padding-inline: 1rem;
+  min-height: 2.55rem;
+  padding-inline: 0.85rem;
 }
 
 textarea {
-  min-height: 6.35rem;
+  min-height: 5.45rem;
   resize: vertical;
-  padding: 1rem;
+  padding: 0.85rem;
 }
 
 input:focus,
@@ -279,13 +287,13 @@ textarea:focus,
 
 .editor-toolbar {
   display: flex;
-  min-height: 2.55rem;
+  min-height: 2.2rem;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.1rem;
   border-bottom: 1px solid #d3d8df;
-  padding-inline: 1rem;
+  padding-inline: 0.85rem;
   color: #2d333a;
-  font-size: 1.05rem;
+  font-size: 0.9rem;
 }
 
 .form-actions {
@@ -297,16 +305,16 @@ textarea:focus,
 .form-actions button,
 .form-actions a {
   display: inline-flex;
-  min-height: 3.05rem;
-  min-width: 12rem;
+  min-height: 2.55rem;
+  min-width: 10.5rem;
   align-items: center;
   justify-content: center;
   border: 1px solid #b22f54;
   border-radius: 8px;
   background: #b22f54;
-  padding-inline: 1.45rem;
+  padding-inline: 1.15rem;
   color: #fff;
-  font-size: 0.86rem;
+  font-size: 0.78rem;
   font-weight: 800;
   box-shadow: 0 14px 28px rgb(178 47 84 / 0.18);
 }
@@ -330,8 +338,15 @@ textarea:focus,
 }
 
 .photo-change-button {
-  min-height: 2.3rem;
-  padding-inline: 0.85rem;
+  min-height: 1.85rem;
+  padding-inline: 0.55rem;
+}
+
+.photo-change-button .profile-menu-icon {
+  width: 16px;
+  height: 16px;
+  flex-basis: 16px;
+  font-size: 16px;
 }
 
 .photo-change-button input {
@@ -343,18 +358,18 @@ textarea:focus,
 }
 
 .inline-photo-button {
-  margin-top: -3.6rem;
+  margin-top: -2.65rem;
   justify-self: end;
 }
 
 .photo-form {
-  padding: clamp(1.45rem, 3vw, 2.25rem) clamp(1.25rem, 5vw, 3.2rem);
+  padding: 1.25rem clamp(1rem, 4vw, 2.5rem);
 }
 
 .photo-editor-card {
   display: grid;
-  grid-template-columns: minmax(160px, 230px) minmax(0, 1fr);
-  gap: clamp(1.25rem, 3vw, 2.3rem);
+  grid-template-columns: minmax(140px, 190px) minmax(0, 1fr);
+  gap: clamp(1rem, 2vw, 1.75rem);
   align-items: center;
 }
 
@@ -365,7 +380,7 @@ textarea:focus,
 }
 
 .photo-preview-box {
-  width: min(100%, 200px);
+  width: min(100%, 168px);
   border: 3px solid #6b2038;
   background: #6b2038;
   box-shadow: 0 18px 38px rgb(92 30 47 / 0.2);
@@ -379,7 +394,7 @@ textarea:focus,
 .photo-editor-copy p,
 .field-help {
   color: #6a717a;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   line-height: 1.55;
 }
 
@@ -390,9 +405,9 @@ textarea:focus,
   gap: 0.5rem;
   border-radius: 8px;
   background: #eef7ef;
-  padding: 0.65rem 0.8rem;
+  padding: 0.5rem 0.65rem;
   color: #2f6f46;
-  font-size: 0.9rem;
+  font-size: 0.78rem;
   font-weight: 700;
 }
 
@@ -409,7 +424,7 @@ textarea:focus,
   z-index: 1;
   display: grid;
   gap: 1rem;
-  padding: clamp(1.45rem, 3vw, 2.25rem) clamp(1.25rem, 5vw, 3.2rem);
+  padding: 1.25rem clamp(1rem, 4vw, 2.5rem);
 }
 
 .profile-history-list a,
@@ -425,7 +440,7 @@ textarea:focus,
   grid-template-columns: auto 1fr;
   gap: 0.25rem 0.75rem;
   align-items: center;
-  padding: 0.95rem 1rem;
+  padding: 0.75rem 0.85rem;
 }
 
 .profile-history-list strong,
@@ -448,7 +463,7 @@ textarea:focus,
 .account-email-row button {
   display: grid;
   width: 3.55rem;
-  min-height: 3.55rem;
+  min-height: 2.55rem;
   place-items: center;
   border: 1px solid #6b2038;
   color: #6b2038;
@@ -479,7 +494,7 @@ textarea:focus,
   }
 
   .inline-photo-button {
-    margin-top: -3.25rem;
+    margin-top: -2.45rem;
   }
 }
 
@@ -500,7 +515,7 @@ textarea:focus,
   }
 
   .profile-form-header h1 {
-    font-size: 2rem;
+    font-size: 1.45rem;
   }
 
   .form-actions > * {

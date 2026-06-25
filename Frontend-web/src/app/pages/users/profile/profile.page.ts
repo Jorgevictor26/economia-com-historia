@@ -1,7 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthStateService } from '../../../services/auth-state.service';
-import { AngolaEconomicMapComponent } from '../../shared/angola-economic-map/angola-economic-map.component';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
 import { PublicFooterComponent } from '../../shared/public-footer/public-footer.component';
 import { PublicNavbarComponent } from '../../shared/public-navbar/public-navbar.component';
@@ -17,7 +16,6 @@ import { ProfileService } from '../../../services/profile.service';
     PublicNavbarComponent,
     PublicFooterComponent,
     BackToTopComponent,
-    AngolaEconomicMapComponent,
     AchievementsComponent,
     LearningProgressComponent,
     ProgressDomainsComponent,
@@ -51,7 +49,6 @@ export class ProfilePage implements OnInit {
     { label: 'Meu aprendizado', icon: 'school', route: '/app/profile/learning', active: this.isLearningSection },
     { label: 'Minhas conquistas', icon: 'military_tech', route: '/app/profile/achievements', active: this.isAchievementsSection },
     { label: 'Histórico', icon: 'history', route: '/app/profile/history', active: this.isHistorySection },
-    { label: 'Foto', icon: 'photo_camera', route: '/app/profile/photo', active: this.isPhotoSection },
     { label: 'Segurança da conta', icon: 'lock', route: '/app/profile/security', active: this.isSecuritySection },
     {
       label: 'Preferência de notificação',
@@ -143,7 +140,7 @@ export class ProfilePage implements OnInit {
     }
   }
 
-  onPhotoSelected(event: Event): void {
+  onPhotoSelected(event: Event, saveAfterLoad = false): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
 
@@ -156,7 +153,13 @@ export class ProfilePage implements OnInit {
     this.selectedPhotoName.set(file.name);
 
     const reader = new FileReader();
-    reader.onload = () => this.selectedPhotoPreviewUrl.set(String(reader.result || ''));
+    reader.onload = () => {
+      this.selectedPhotoPreviewUrl.set(String(reader.result || ''));
+
+      if (saveAfterLoad) {
+        this.savePhoto();
+      }
+    };
     reader.readAsDataURL(file);
   }
 

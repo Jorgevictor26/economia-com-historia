@@ -12,9 +12,21 @@ import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.com
 })
 export class PodcastsPage {
   readonly isCommentComposerOpen = signal(false);
+  readonly expandedReplies = signal<Record<string, boolean>>({});
 
   openCommentComposer(): void {
     this.isCommentComposerOpen.set(true);
+  }
+
+  toggleReplies(commentId: string): void {
+    this.expandedReplies.update((state) => ({
+      ...state,
+      [commentId]: !state[commentId],
+    }));
+  }
+
+  areRepliesOpen(commentId: string): boolean {
+    return this.expandedReplies()[commentId] ?? false;
   }
 }
 

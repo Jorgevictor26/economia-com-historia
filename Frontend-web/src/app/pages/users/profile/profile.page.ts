@@ -57,6 +57,9 @@ export class ProfilePage implements OnInit {
       active: this.isNotificationPreferencesSection,
     },
     { label: 'Subscrições', icon: 'workspace_premium', route: '/app/subscriptions', active: false },
+    ...(this.auth.canWriteContent()
+      ? [{ label: this.auth.canManagePlatform() ? 'Administração' : 'Console editorial', icon: 'admin_panel_settings', route: '/admin', active: false }]
+      : []),
     { label: 'Suporte', icon: 'help_outline', route: '/app/profile/support', active: this.isSupportSection },
   ];
 
@@ -75,6 +78,22 @@ export class ProfilePage implements OnInit {
 
   readonly profileName = computed(() => this.auth.user()?.name || this.dashboard.user.name);
   readonly profileEmail = computed(() => this.auth.user()?.email || this.dashboard.user.email);
+  readonly profileAccessLevel = computed(() => {
+    const role = this.auth.user()?.role;
+
+    switch (role) {
+      case 'super-admin':
+        return 'Super admin';
+      case 'admin':
+        return 'Admin';
+      case 'writer':
+        return 'Escritor';
+      case 'moderator':
+        return 'Moderador';
+      default:
+        return this.dashboard.user.accessLevel;
+    }
+  });
   readonly profileAvatarUrl = computed(() => {
     const authenticatedUser = this.auth.user();
     return authenticatedUser ? (authenticatedUser.avatarUrl ?? '') : this.dashboard.user.avatarUrl;

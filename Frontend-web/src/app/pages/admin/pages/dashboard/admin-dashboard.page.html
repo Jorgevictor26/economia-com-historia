@@ -1,117 +1,142 @@
 <app-admin-console-shell activeItem="dashboard">
-  <section class="grid gap-8">
-    <header class="rounded-[22px] bg-[#f8f2ef] p-8 text-[#5c1e2f] shadow-sm">
-      <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#8a8587]">
-        Painel de Controle
-      </p>
-      <h1 class="mt-4 text-[34px] font-extrabold">Visão Geral da Administração</h1>
-      <p class="mt-3 max-w-2xl text-[14px] leading-7 text-[#534345]">
-        Acompanhe o desempenho da plataforma, os conteúdos publicados e as principais métricas de engajamento.
-      </p>
-    </header>
+  <section class="mx-auto grid max-w-6xl gap-5">
+    <section
+      class="rounded-[8px] border border-[#ece7ea] bg-white px-8 py-7 shadow-[0_18px_45px_rgba(27,22,30,0.05)] max-md:px-5">
+      <header>
+        <p class="text-[11px] font-extrabold uppercase text-[#9a949d]">Painel geral</p>
+        <h1 class="mt-3 font-display text-[30px] font-extrabold leading-tight text-[#4a1425]">
+          Vis&atilde;o Geral da Administra&ccedil;&atilde;o
+        </h1>
+        <p class="mt-3 max-w-3xl text-[13px] font-semibold leading-6 text-[#6f686b]">
+          Acompanhe o desempenho da plataforma, os conte&uacute;dos publicados e as principais m&eacute;tricas de
+          engajamento.
+        </p>
+      </header>
 
-    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <article class="rounded-[24px] border border-[#e8dde0] bg-white p-6 shadow-sm">
-        <p class="text-[12px] uppercase tracking-[0.18em] text-[#8a8587]">Engajamento</p>
-        <strong class="mt-4 block text-[32px] font-extrabold text-[#9b4056]">8.4 / 10</strong>
-        <p class="mt-3 text-[13px] text-[#6f686b]">Interações médias dos estudantes no último mês.</p>
-      </article>
-      <article class="rounded-[24px] border border-[#e8dde0] bg-white p-6 shadow-sm">
-        <p class="text-[12px] uppercase tracking-[0.18em] text-[#8a8587]">Assinantes</p>
-        <strong class="mt-4 block text-[32px] font-extrabold text-[#9b4056]">12.450</strong>
-        <p class="mt-3 text-[13px] text-[#6f686b]">Total de utilizadores com acesso a conteúdos exclusivos.</p>
-      </article>
-      <article class="rounded-[24px] border border-[#e8dde0] bg-white p-6 shadow-sm">
-        <p class="text-[12px] uppercase tracking-[0.18em] text-[#8a8587]">Conteúdos</p>
-        <strong class="mt-4 block text-[32px] font-extrabold text-[#9b4056]">654</strong>
-        <p class="mt-3 text-[13px] text-[#6f686b]">Itens publicados em todas as categorias da plataforma.</p>
-      </article>
-      <article class="rounded-[24px] border border-[#e8dde0] bg-white p-6 shadow-sm">
-        <p class="text-[12px] uppercase tracking-[0.18em] text-[#8a8587]">Retenção</p>
-        <strong class="mt-4 block text-[32px] font-extrabold text-[#9b4056]">97.6%</strong>
-        <p class="mt-3 text-[13px] text-[#6f686b]">Percentual de utilizadores ativos que retornam ao site.</p>
-      </article>
-    </div>
+      <div class="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <article class="rounded-[8px] border border-[#e5dde2] bg-[#fffdfc] p-5">
+          <span class="material-symbols-outlined text-[22px] text-[#7d193b]" aria-hidden="true">monitoring</span>
+          <p class="mt-4 text-[12px] font-bold text-[#7a7276]">Engajamento</p>
+          <strong class="mt-2 block text-[28px] font-extrabold leading-none text-[#2c2729]">8.4 / 10</strong>
+          <p class="mt-3 text-[12px] leading-5 text-[#6f686b]">Intera&ccedil;&otilde;es m&eacute;dias no &uacute;ltimo
+            m&ecirc;s.</p>
+        </article>
 
-    <section class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-      <div class="rounded-[24px] border border-[#e8dde0] bg-white p-6 shadow-sm">
-        <div class="flex items-center justify-between gap-4">
-          <div>
-            <p class="text-[10px] uppercase tracking-[0.24em] text-[#8a8587]">Estudantes Principais</p>
-            <h2 class="mt-3 text-[22px] font-bold text-[#2c2729]">Top 5 Desempenho</h2>
-          </div>
-          <a routerLink="/admin/users" class="rounded-full bg-[#9b4056] px-4 py-2 text-[12px] font-bold text-white">
-            Ver todos
-          </a>
-        </div>
+        <article class="rounded-[8px] border border-[#e5dde2] bg-[#fffdfc] p-5">
+          <span class="material-symbols-outlined text-[22px] text-[#7d193b]" aria-hidden="true">group</span>
+          <p class="mt-4 text-[12px] font-bold text-[#7a7276]">Assinantes</p>
+          <strong class="mt-2 block text-[28px] font-extrabold leading-none text-[#2c2729]">12.450</strong>
+          <p class="mt-3 text-[12px] leading-5 text-[#6f686b]">Total de utilizadores ativos.</p>
+        </article>
 
-        <div class="mt-6 grid gap-4">
-          @for (student of topStudents(); track student.name) {
-            <article class="grid grid-cols-[44px_1fr_72px] items-center gap-3 rounded-[18px] border border-[#ede8e9] p-4">
-              <span class="grid h-11 w-11 place-items-center rounded-full bg-[#f1e4e7] text-[14px] font-bold text-[#9b4056]">
-                {{ student.position }}
-              </span>
-              <div>
-                <h3 class="font-semibold text-[#2c2729]">{{ student.name }}</h3>
-                <p class="text-[12px] text-[#7a7276]">{{ student.course }}</p>
-              </div>
-              <strong class="text-[15px] font-bold text-[#5c1e2f]">{{ student.score }} pts</strong>
-            </article>
-          }
-        </div>
-      </div>
+        <article class="rounded-[8px] border border-[#e5dde2] bg-[#fffdfc] p-5">
+          <span class="material-symbols-outlined text-[22px] text-[#7d193b]" aria-hidden="true">article</span>
+          <p class="mt-4 text-[12px] font-bold text-[#7a7276]">Conte&uacute;dos</p>
+          <strong class="mt-2 block text-[28px] font-extrabold leading-none text-[#2c2729]">654</strong>
+          <p class="mt-3 text-[12px] leading-5 text-[#6f686b]">Itens publicados na plataforma.</p>
+        </article>
 
-      <div class="rounded-[24px] border border-[#e8dde0] bg-white p-6 shadow-sm">
-        <div class="flex items-center justify-between gap-4">
-          <div>
-            <p class="text-[10px] uppercase tracking-[0.24em] text-[#8a8587]">Atividade</p>
-            <h2 class="mt-3 text-[22px] font-bold text-[#2c2729]">Tendências recentes</h2>
-          </div>
-          <a routerLink="/admin/statistics" class="rounded-full bg-[#9b4056] px-4 py-2 text-[12px] font-bold text-white">
-            Detalhes
-          </a>
-        </div>
-
-        <div class="mt-8 grid gap-4">
-          @for (metric of activityMetrics; track metric.label) {
-            <div class="rounded-[18px] bg-[#f8f2ef] p-4">
-              <p class="text-[12px] font-semibold text-[#6f686b]">{{ metric.label }}</p>
-              <strong class="mt-2 block text-[24px] font-extrabold text-[#9b4056]">{{ metric.value }}</strong>
-              <p class="mt-2 text-[12px] text-[#7a7276]">{{ metric.note }}</p>
-            </div>
-          }
-        </div>
+        <article class="rounded-[8px] border border-[#e5dde2] bg-[#fffdfc] p-5">
+          <span class="material-symbols-outlined text-[22px] text-[#7d193b]" aria-hidden="true">restart_alt</span>
+          <p class="mt-4 text-[12px] font-bold text-[#7a7276]">Reten&ccedil;&atilde;o</p>
+          <strong class="mt-2 block text-[28px] font-extrabold leading-none text-[#2c2729]">97,6%</strong>
+          <p class="mt-3 text-[12px] leading-5 text-[#6f686b]">Taxa de retorno dos utilizadores.</p>
+        </article>
       </div>
     </section>
 
-    <section class="grid gap-4 rounded-[24px] border border-[#e8dde0] bg-white p-6 shadow-sm">
-      <div class="flex items-center justify-between gap-4">
-        <div>
-          <p class="text-[10px] uppercase tracking-[0.24em] text-[#8a8587]">Ações rápidas</p>
-          <h2 class="mt-3 text-[22px] font-bold text-[#2c2729]">Criar novo conteúdo</h2>
+    <section class="grid gap-5 xl:grid-cols-[1.12fr_0.88fr]">
+      <article class="rounded-[8px] border border-[#ece7ea] bg-white p-6 shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-[11px] font-extrabold uppercase text-[#9a949d]">Desempenho</p>
+            <h2 class="mt-2 text-[20px] font-extrabold text-[#4a1425]">Top 5 Desempenho</h2>
+          </div>
+          <a routerLink="/admin/users" class="text-[12px] font-extrabold text-[#7d193b]">Ver todos</a>
         </div>
-        <a routerLink="/admin/contents" class="text-[12px] font-semibold text-[#9b4056]">Ir para Conteúdos</a>
-      </div>
 
-      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <a routerLink="/admin/contents/create" class="rounded-[18px] border border-[#e8dde0] bg-[#fbfaf7] p-5 text-start text-[14px] font-semibold text-[#2c2729] hover:border-[#9b4056]">
-          Novo Artigo
-        </a>
-        <a routerLink="/admin/video/create" class="rounded-[18px] border border-[#e8dde0] bg-[#fbfaf7] p-5 text-start text-[14px] font-semibold text-[#2c2729] hover:border-[#9b4056]">
-          Novo Vídeo
-        </a>
-        <a routerLink="/admin/podcast/create" class="rounded-[18px] border border-[#e8dde0] bg-[#fbfaf7] p-5 text-start text-[14px] font-semibold text-[#2c2729] hover:border-[#9b4056]">
-          Novo Podcast
-        </a>
-        <a routerLink="/admin/forum/create" class="rounded-[18px] border border-[#e8dde0] bg-[#fbfaf7] p-5 text-start text-[14px] font-semibold text-[#2c2729] hover:border-[#9b4056]">
-          Novo Fórum
-        </a>
-        @if (auth.canCreateJindungo()) {
-          <a routerLink="/admin/jindungo/create" class="rounded-[18px] border border-[#e8dde0] bg-[#fbfaf7] p-5 text-start text-[14px] font-semibold text-[#2c2729] hover:border-[#9b4056]">
-            Novo Jindungo
-          </a>
-        }
-      </div>
+        <div class="mt-5 grid gap-2">
+          @for (student of topStudents(); track student.name) {
+          <article
+            class="grid grid-cols-[38px_1fr_auto] items-center gap-3 rounded-[8px] border border-[#eee8ec] bg-[#fffdfc] px-4 py-3">
+            <span
+              class="grid size-9 place-items-center rounded-full border border-[#e3d7dd] bg-white text-[13px] font-extrabold text-[#4a1425]">
+              {{ student.position }}
+            </span>
+            <div class="min-w-0">
+              <h3 class="truncate text-[14px] font-extrabold text-[#2c2729]">{{ student.name }}</h3>
+              <p class="text-[12px] font-semibold text-[#7a7276]">{{ student.course }}</p>
+            </div>
+            <strong class="text-[13px] font-extrabold text-[#4a1425]">{{ student.score }} pts</strong>
+          </article>
+          }
+        </div>
+      </article>
+
+      <section class="grid gap-5">
+        <article class="rounded-[8px] border border-[#ece7ea] bg-white p-6 shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-[11px] font-extrabold uppercase text-[#9a949d]">Atividade</p>
+              <h2 class="mt-2 text-[20px] font-extrabold text-[#4a1425]">Tend&ecirc;ncias recentes</h2>
+            </div>
+            <strong class="text-[30px] font-extrabold leading-none text-[#2c2729]">86%</strong>
+          </div>
+
+          <div class="mt-5 grid gap-4 sm:grid-cols-[120px_1fr] sm:items-end">
+            <p class="text-[12px] font-semibold leading-5 text-[#6f686b]">Conte&uacute;dos lidos nas &uacute;ltimas 24h
+            </p>
+            <svg viewBox="0 0 260 76" class="h-[78px] w-full" role="img" aria-label="Grafico de tendencia">
+              <path d="M8 62 L252 62" stroke="#eee8ec" stroke-width="1" />
+              <path d="M8 39 L252 39" stroke="#eee8ec" stroke-width="1" />
+              <path d="M8 16 L252 16" stroke="#eee8ec" stroke-width="1" />
+              <path d="M10 51 L52 35 L96 44 L140 24 L184 41 L224 30 L252 24" fill="none" stroke="#7a7276"
+                stroke-width="2" />
+              <g fill="#fff" stroke="#7a7276" stroke-width="2">
+                <circle cx="10" cy="51" r="3" />
+                <circle cx="52" cy="35" r="3" />
+                <circle cx="96" cy="44" r="3" />
+                <circle cx="140" cy="24" r="3" />
+                <circle cx="184" cy="41" r="3" />
+                <circle cx="224" cy="30" r="3" />
+                <circle cx="252" cy="24" r="3" />
+              </g>
+            </svg>
+          </div>
+        </article>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <article class="rounded-[8px] border border-[#ece7ea] bg-white p-5 shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
+            <strong class="block text-[28px] font-extrabold leading-none text-[#2c2729]">128</strong>
+            <p class="mt-2 text-[12px] font-semibold text-[#6f686b]">Discuss&otilde;es nesta semana</p>
+          </article>
+          <article class="rounded-[8px] border border-[#ece7ea] bg-white p-5 shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
+            <strong class="block text-[28px] font-extrabold leading-none text-[#2c2729]">2,4k</strong>
+            <p class="mt-2 text-[12px] font-semibold text-[#6f686b]">Tentativas respondidas</p>
+          </article>
+        </div>
+
+        <article class="rounded-[8px] border border-[#ece7ea] bg-white p-5 shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
+          <h2 class="text-[16px] font-extrabold text-[#4a1425]">A&ccedil;&otilde;es r&aacute;pidas</h2>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <a routerLink="/admin/contents/create"
+              class="inline-flex h-10 items-center gap-2 rounded-[8px] border border-[#ded8dd] bg-white px-4 text-[12px] font-extrabold text-[#554d57] transition hover:border-[#9b1640] hover:text-[#4a1425]">
+              <span class="material-symbols-outlined text-[17px]" aria-hidden="true">article</span>
+              Novo Artigo
+            </a>
+            <a routerLink="/admin/video/create"
+              class="inline-flex h-10 items-center gap-2 rounded-[8px] border border-[#ded8dd] bg-white px-4 text-[12px] font-extrabold text-[#554d57] transition hover:border-[#9b1640] hover:text-[#4a1425]">
+              <span class="material-symbols-outlined text-[17px]" aria-hidden="true">video_library</span>
+              Novo V&iacute;deo
+            </a>
+            <a routerLink="/admin/forum/create"
+              class="inline-flex h-10 items-center gap-2 rounded-[8px] border border-[#ded8dd] bg-white px-4 text-[12px] font-extrabold text-[#554d57] transition hover:border-[#9b1640] hover:text-[#4a1425]">
+              <span class="material-symbols-outlined text-[17px]" aria-hidden="true">forum</span>
+              Novo F&oacute;rum
+            </a>
+          </div>
+        </article>
+      </section>
     </section>
   </section>
 </app-admin-console-shell>

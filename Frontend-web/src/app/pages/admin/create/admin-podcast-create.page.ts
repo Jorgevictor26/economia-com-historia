@@ -1,12 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { AuthStateService } from '../../../services/auth-state.service';
 import { AdminConsoleShellComponent } from '../components/admin-console-shell.component';
 import { AdminEditorialSectionComponent } from '../components/admin-editorial-section.component';
 
 @Component({
   selector: 'app-admin-podcast-create-page',
-  imports: [RouterLink, AdminConsoleShellComponent, AdminEditorialSectionComponent],
+  imports: [AdminConsoleShellComponent, AdminEditorialSectionComponent],
   templateUrl: './admin-podcast-create.page.html',
   styles: [
     `

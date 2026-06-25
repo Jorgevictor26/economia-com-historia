@@ -14,7 +14,7 @@
             <input type="file" accept="image/*" (change)="onPhotoSelected($event, true)" />
           </label>
           <h2>{{ profileName() }}</h2>
-          <p>{{ dashboard.user.accessLevel }}</p>
+          <p>{{ profileAccessLevel() }}</p>
         </div>
 
         <nav class="profile-menu">

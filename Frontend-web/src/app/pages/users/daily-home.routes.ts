@@ -25,7 +25,7 @@ interface DailyContent {
 })
 export class DailyHomePage implements OnInit, OnDestroy {
   readonly auth = inject(AuthStateService);
-  readonly showWelcome = signal(true);
+  readonly showWelcome = signal(false);
   readonly activeHighlightIndex = signal(0);
   private welcomeTimer?: ReturnType<typeof window.setTimeout>;
   private carouselTimer?: ReturnType<typeof window.setInterval>;
@@ -118,10 +118,11 @@ export class DailyHomePage implements OnInit, OnDestroy {
     },
   ];
 
-  readonly recommendedContent: DailyContent[] = [
+  readonly featuredResumeVideo: DailyContent = this.videoContent[1];
+
+  private readonly suggestionContent: DailyContent[] = [
     ...this.highlights,
     ...this.videoContent,
-    this.podcastResume,
     {
       id: 'artigo-planalto',
       type: 'Artigo',
@@ -134,10 +135,15 @@ export class DailyHomePage implements OnInit, OnDestroy {
     },
   ];
 
+  readonly recommendedContent: DailyContent[] = this.suggestionContent.slice(0, 9);
   readonly quickQueue = this.recommendedContent.slice(1, 5);
 
   ngOnInit(): void {
-    this.welcomeTimer = window.setTimeout(() => this.showWelcome.set(false), 4200);
+    if (this.auth.consumeWelcomeForHome()) {
+      this.showWelcome.set(true);
+      this.welcomeTimer = window.setTimeout(() => this.showWelcome.set(false), 4200);
+    }
+
     this.carouselTimer = window.setInterval(() => this.nextHighlight(), 3600);
   }
 

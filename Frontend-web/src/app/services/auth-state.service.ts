@@ -6,6 +6,7 @@ export class AuthStateService {
   private readonly storageKey = 'economia-com-historia.user';
   private readonly tokenStorageKey = 'economia-com-historia.token';
   private readonly rememberStorageKey = 'economia-com-historia.remember';
+  private readonly welcomeStorageKey = 'economia-com-historia.show-welcome';
   private readonly userSignal = signal<User | null>(this.readStoredUser());
   private readonly tokenSignal = signal<string | null>(this.readStoredToken());
   private readonly loginPromptSignal = signal<{ operation: string } | null>(null);
@@ -33,6 +34,7 @@ export class AuthStateService {
       invitedForumIds: [],
       streakDays: 12,
     });
+    this.markWelcomeForNextHomeVisit();
   }
 
   registerStudent(name: string, email: string, avatarUrl = '', biography = ''): void {
@@ -47,11 +49,13 @@ export class AuthStateService {
       invitedForumIds: [],
       streakDays: 0,
     });
+    this.markWelcomeForNextHomeVisit();
   }
 
   setAuthenticatedUser(user: User, token: string, remember = true): void {
     this.setToken(token, remember);
     this.setUser(user, remember);
+    this.markWelcomeForNextHomeVisit();
   }
 
   updateAuthenticatedUser(user: User): void {
@@ -94,6 +98,17 @@ export class AuthStateService {
       this.loginPromptSignal.set(null);
       this.loginPromptClosingSignal.set(false);
     }, 220);
+  }
+
+  consumeWelcomeForHome(): boolean {
+    try {
+      const shouldShowWelcome = window.sessionStorage.getItem(this.welcomeStorageKey) === 'true';
+      window.sessionStorage.removeItem(this.welcomeStorageKey);
+
+      return shouldShowWelcome;
+    } catch {
+      return false;
+    }
   }
 
   private setUser(user: User | null, remember = true): void {
@@ -160,5 +175,13 @@ export class AuthStateService {
 
   private storage(remember: boolean): Storage {
     return remember ? window.localStorage : window.sessionStorage;
+  }
+
+  private markWelcomeForNextHomeVisit(): void {
+    try {
+      window.sessionStorage.setItem(this.welcomeStorageKey, 'true');
+    } catch {
+      // Session storage can be unavailable in restricted browser contexts.
+    }
   }
 }

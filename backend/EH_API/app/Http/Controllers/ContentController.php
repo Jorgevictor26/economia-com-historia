@@ -33,6 +33,7 @@ class ContentController extends Controller
                 'search',
             ]), [
                 'include_jindungo' => (bool) $includeJindungo,
+                'user_id' => $user?->id,
             ]))
         );
     }
@@ -84,6 +85,11 @@ class ContentController extends Controller
                 'message' => 'An active jindungo subscription is required to access this content',
             ], 403);
         }
+
+        $content->setAttribute('liked_by_me', (bool) $request->user('sanctum')?->id && $content->reactions()
+            ->where('user_id', $request->user('sanctum')->id)
+            ->where('reaction_type', 'like')
+            ->exists());
 
         return response()->json($content);
     }

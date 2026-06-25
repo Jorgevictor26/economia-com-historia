@@ -20,6 +20,15 @@ class ReactionService
         ]);
     }
 
+    public function toggle(CreateReactionDTO $dto): array
+    {
+        return $this->repository->toggle([
+            'user_id' => $dto->userId,
+            'content_id' => $dto->contentId,
+            'reaction_type' => $dto->reactionType
+        ]);
+    }
+
     public function getByContent(int $contentId)
     {
         return $this->repository->getByContent($contentId);

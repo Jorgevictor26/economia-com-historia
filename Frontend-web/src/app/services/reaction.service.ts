@@ -14,18 +14,36 @@ interface MutationResponse<T> {
   message?: string;
 }
 
+export interface ReactionToggleResult {
+  reacted: boolean;
+  reactions_count: number | string;
+  reaction?: unknown;
+}
+
+interface ListResponse<T> {
+  data: T[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class ReactionService {
   private readonly http = inject(HttpClient);
 
-  getCountByType(contentId: string): Promise<ReactionCount[]> {
-    return firstValueFrom(this.http.get<ReactionCount[]>(`/reactions/content/${contentId}/count`));
+  async getCountByType(contentId: string): Promise<ReactionCount[]> {
+    const response = await firstValueFrom(
+      this.http.get<ReactionCount[] | ListResponse<ReactionCount>>(`/reactions/content/${contentId}/count`),
+    );
+
+    return Array.isArray(response) ? response : response.data;
   }
 
-  create(contentId: string, reactionType: ReactionType = 'like'): Promise<MutationResponse<unknown>> {
-    return firstValueFrom(this.http.post<MutationResponse<unknown>>('/reactions', {
+  toggle(contentId: string, reactionType: ReactionType = 'like'): Promise<MutationResponse<ReactionToggleResult>> {
+    return firstValueFrom(this.http.post<MutationResponse<ReactionToggleResult>>('/reactions', {
       content_id: contentId,
       reaction_type: reactionType,
     }));
+  }
+
+  create(contentId: string, reactionType: ReactionType = 'like'): Promise<MutationResponse<ReactionToggleResult>> {
+    return this.toggle(contentId, reactionType);
   }
 }

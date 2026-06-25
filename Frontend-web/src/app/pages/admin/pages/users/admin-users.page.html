@@ -16,9 +16,29 @@
               <p class="text-[13px] font-semibold text-[#2c2729]">{{ user.name }}</p>
               <p class="text-[12px] text-[#7a7276]">{{ user.email }} · {{ user.role }}</p>
             </div>
-            <span class="rounded-full bg-[#f3edea] px-3 py-1 text-[12px] font-semibold text-[#9b4056]">
-              {{ user.status }}
-            </span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="rounded-full bg-[#f3edea] px-3 py-1 text-[12px] font-semibold text-[#9b4056]">
+                {{ user.status }}
+              </span>
+
+              @if (auth.canPromoteWriters() && user.role !== 'Administrador' && user.role !== 'Editor') {
+                <button type="button" class="rounded-full border border-[#9b4056] px-3 py-1 text-[12px] font-bold text-[#9b4056]">
+                  Promover a escritor
+                </button>
+              }
+
+              @if (auth.canPromoteAdmins() && user.role !== 'Administrador') {
+                <button type="button" class="rounded-full bg-[#9b4056] px-3 py-1 text-[12px] font-bold text-white">
+                  Promover a admin
+                </button>
+              }
+
+              @if (auth.isSuperAdmin() && user.role === 'Administrador') {
+                <button type="button" class="rounded-full bg-[#5c1e2f] px-3 py-1 text-[12px] font-bold text-white">
+                  Promover a super-admin
+                </button>
+              }
+            </div>
           </div>
         </article>
       }

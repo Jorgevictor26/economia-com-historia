@@ -12,11 +12,19 @@ class ForumTopicRepository
         return ForumTopic::create($data)->load(['forum', 'user']);
     }
 
-    public function getByForum(int $forumId): Collection
+    public function getByForum(int $forumId, array $filters = []): Collection
     {
         return ForumTopic::with(['user', 'forum'])
             ->withCount('replies')
             ->where('forum_id', $forumId)
+            ->when($filters['search'] ?? null, function ($query, string $search) {
+                $query->where(function ($searchQuery) use ($search) {
+                    $searchQuery
+                        ->where('title', 'like', "%{$search}%")
+                        ->orWhere('content', 'like', "%{$search}%")
+                        ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$search}%"));
+                });
+            })
             ->latest()
             ->get();
     }

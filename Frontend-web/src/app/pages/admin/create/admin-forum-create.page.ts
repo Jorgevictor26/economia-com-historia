@@ -1,10 +1,9 @@
 import { Component, computed, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { AdminConsoleShellComponent } from '../components/admin-console-shell.component';
 
 @Component({
   selector: 'app-admin-forum-create-page',
-  imports: [RouterLink, AdminConsoleShellComponent],
+  imports: [AdminConsoleShellComponent],
   templateUrl: './admin-forum-create.page.html',
   styles: [
     `

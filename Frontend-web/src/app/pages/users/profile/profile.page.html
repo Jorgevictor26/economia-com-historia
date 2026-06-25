@@ -1,11 +1,18 @@
-<section class="profile-page -m-6 min-h-dvh bg-[#f7f8f8] text-[#191c1d]">
+<section class="profile-page -m-6 min-h-dvh text-[#191c1d]">
   <app-public-navbar />
 
-  <main class="fluid-container profile-main py-8 lg:py-12">
+  <main class="fluid-container profile-main py-8 lg:py-10">
     <section class="profile-editor">
       <aside class="profile-sidebar" aria-label="Menu de perfil">
         <div class="profile-identity">
-          <div class="profile-initials" aria-hidden="true">{{ initials() }}</div>
+          <label class="profile-avatar" aria-label="Alterar foto de perfil">
+            @if (displayedAvatarUrl()) {
+              <img [src]="displayedAvatarUrl()" [alt]="profileName()" />
+            } @else {
+              <span class="profile-initials" aria-hidden="true">{{ initials() }}</span>
+            }
+            <input type="file" accept="image/*" (change)="onPhotoSelected($event, true)" />
+          </label>
           <h2>{{ profileName() }}</h2>
           <p>{{ dashboard.user.accessLevel }}</p>
         </div>
@@ -22,12 +29,6 @@
             Sair
           </a>
         </nav>
-
-        <div class="profile-sidebar-note">
-          <span>{{ dashboard.user.badge }}</span>
-          <strong>{{ dashboard.ranking.points }} XP</strong>
-          <p>Ranking #{{ dashboard.ranking.currentPosition }} entre {{ dashboard.ranking.totalStudents }} utilizadores.</p>
-        </div>
       </aside>
 
       <section class="profile-form-panel">
@@ -66,9 +67,6 @@
             }
           </section>
 
-          <section class="grid gap-4 px-5 pb-6 sm:px-8 lg:px-16" aria-label="Mapa economico-histórico de Angola">
-            <app-angola-economic-map />
-          </section>
         } @else if (isSupportSection) {
           <header class="profile-form-header">
             <h1>Suporte</h1>
@@ -156,32 +154,43 @@
         } @else if (isPhotoSection) {
           <header class="profile-form-header">
             <h1>Foto</h1>
-            <span>Adicione uma foto sua para o seu perfil.</span>
+            <span>Escolha uma imagem clara para aparecer no seu perfil e na comunidade.</span>
           </header>
 
-          <form class="profile-form photo-form" (submit)="$event.preventDefault()">
-            <section class="photo-upload" aria-labelledby="photo-preview">
-              <h2 id="photo-preview">Visualização da imagem</h2>
-              <div class="photo-preview-box">
-                @if (profileAvatarUrl()) {
-                  <img [src]="profileAvatarUrl()" [alt]="profileName()" />
-                } @else {
-                  <span class="photo-preview-initials">{{ initials() }}</span>
+          <form class="photo-form" (submit)="$event.preventDefault(); savePhoto()">
+            <section class="photo-editor-card" aria-labelledby="photo-preview">
+              <div class="photo-preview-wrap">
+                <div class="photo-preview-box">
+                  @if (displayedAvatarUrl()) {
+                    <img [src]="displayedAvatarUrl()" [alt]="profileName()" />
+                  } @else {
+                    <span class="photo-preview-initials">{{ initials() }}</span>
+                  }
+                </div>
+
+                <label class="photo-change-button">
+                  <span class="profile-menu-icon" aria-hidden="true">photo_camera</span>
+                  Alterar foto
+                  <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
+                </label>
+              </div>
+
+              <div class="photo-editor-copy">
+                <h2 id="photo-preview">Foto de perfil</h2>
+                <p>{{ selectedPhotoName() || 'Nenhum arquivo selecionado' }}</p>
+
+                @if (photoSaveMessage()) {
+                  <p class="photo-success">
+                    <span class="profile-menu-icon" aria-hidden="true">check_circle</span>
+                    {{ photoSaveMessage() }}
+                  </p>
                 }
+
+                <div class="form-actions">
+                  <button type="submit" [disabled]="!selectedPhotoPreviewUrl()">Salvar foto</button>
+                </div>
               </div>
             </section>
-
-            <section class="photo-upload" aria-labelledby="photo-upload-title">
-              <h2 id="photo-upload-title">Adicionar/alterar imagem</h2>
-              <div class="upload-row">
-                <span>Nenhum arquivo selecionado</span>
-                <button type="button">Fazer upload de imagem</button>
-              </div>
-            </section>
-
-            <div class="form-actions">
-              <button type="submit">Salvar</button>
-            </div>
           </form>
         } @else {
           <header class="profile-form-header">
@@ -189,60 +198,71 @@
             <span>Adicione informações sobre si e personalize como aparece na comunidade Economia com História.</span>
           </header>
 
-          <form class="profile-form" (submit)="$event.preventDefault(); saveProfile(profileNameInput.value, profileEmailInput.value, profileBioInput.value)">
-            <section class="form-block" aria-labelledby="basic-data">
-              <h2 id="basic-data">Dados básicos:</h2>
-              <div class="field-stack">
-                <label>
-                  <span class="sr-only">Nome completo</span>
-                  <input #profileNameInput type="text" [value]="profileName()" aria-label="Nome completo" autocomplete="name" />
-                </label>
-
-                <label>
-                  <span class="sr-only">E-mail</span>
-                  <input #profileEmailInput type="email" [value]="profileEmail()" aria-label="E-mail" autocomplete="email" />
-                </label>
+          <form class="profile-form profile-form-with-photo" (submit)="$event.preventDefault(); saveProfile(profileNameInput.value, profileEmailInput.value, profileBioInput.value)">
+            <section class="profile-photo-column" aria-label="Foto de perfil">
+              <div class="profile-photo-large">
+                @if (displayedAvatarUrl()) {
+                  <img [src]="displayedAvatarUrl()" [alt]="profileName()" />
+                } @else {
+                  <span class="photo-preview-initials">{{ initials() }}</span>
+                }
               </div>
-            </section>
 
-            <section class="form-block" aria-labelledby="bio-data">
-              <h2 id="bio-data">Biografia</h2>
-              <div class="bio-editor">
-                <div class="editor-toolbar" aria-hidden="true">
-                  <strong>B</strong>
-                  <i>I</i>
-                </div>
-                <textarea #profileBioInput rows="6" placeholder="Sem biografia">{{ profileDescription() }}</textarea>
-              </div>
-              <p class="field-help">Use este espaço para resumir os seus interesses em economia, história de Angola, investigação ou ensino.</p>
-            </section>
-
-            <section class="form-block" aria-labelledby="profile-context">
-              <h2 id="profile-context">Preferências de Idioma</h2>
-              <label>
-                <span class="sr-only">Idioma principal</span>
-                <select>
-                  @for (language of languages; track language) {
-                    <option>{{ language }}</option>
-                  }
-                </select>
+              <label class="photo-change-button inline-photo-button">
+                <span class="profile-menu-icon" aria-hidden="true">photo_camera</span>
+                Alterar foto
+                <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
               </label>
+
+              @if (photoSaveMessage()) {
+                <p class="photo-success">
+                  <span class="profile-menu-icon" aria-hidden="true">check_circle</span>
+                  {{ photoSaveMessage() }}
+                </p>
+              }
             </section>
 
-            <div class="form-actions">
-              <button type="submit" [disabled]="isSavingProfile()">
-                {{ isSavingProfile() ? 'A salvar...' : 'Salvar perfil' }}
-              </button>
-              <a routerLink="/app/contents">Voltar aos conteúdos</a>
-            </div>
+            <section class="profile-fields-column">
+              <div class="field-grid">
+                <label>
+                  <span>Nome</span>
+                  <input #profileNameInput type="text" [value]="profileName()" autocomplete="name" />
+                </label>
 
-            @if (profileSaveMessage()) {
-              <p class="field-help text-[#2f6f46]">{{ profileSaveMessage() }}</p>
-            }
+                <label>
+                  <span>E-mail</span>
+                  <input #profileEmailInput type="email" [value]="profileEmail()" autocomplete="email" />
+                </label>
+              </div>
 
-            @if (profileSaveError()) {
-              <p class="field-help text-[#9b1c31]">{{ profileSaveError() }}</p>
-            }
+              <section class="form-block" aria-labelledby="bio-data">
+                <h2 id="bio-data">Biografia</h2>
+                <div class="bio-editor">
+                  <div class="editor-toolbar" aria-hidden="true">
+                    <strong>B</strong>
+                    <i>I</i>
+                  </div>
+                  <textarea #profileBioInput rows="5" placeholder="Sem biografia">{{ profileDescription() }}</textarea>
+                </div>
+              </section>
+
+              <div class="form-actions">
+                <button type="submit" [disabled]="isSavingProfile()">
+                  {{ isSavingProfile() ? 'A salvar...' : 'Salvar mudanças' }}
+                </button>
+                @if (selectedPhotoPreviewUrl()) {
+                  <button type="button" class="secondary-action" (click)="savePhoto()">Salvar foto</button>
+                }
+              </div>
+
+              @if (profileSaveMessage()) {
+                <p class="field-help text-[#2f6f46]">{{ profileSaveMessage() }}</p>
+              }
+
+              @if (profileSaveError()) {
+                <p class="field-help text-[#9b1c31]">{{ profileSaveError() }}</p>
+              }
+            </section>
           </form>
         }
       </section>

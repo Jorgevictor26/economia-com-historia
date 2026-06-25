@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Content extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -22,7 +24,8 @@ class Content extends Model
         'video_url',
         'audio_url',
         'document_url',
-        'visibility'
+        'visibility',
+        'deleted_by',
     ];
 
     public function user()
@@ -33,6 +36,11 @@ class Content extends Model
     public function author()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 
     public function category()
@@ -50,9 +58,14 @@ class Content extends Model
         return $this->hasMany(Reaction::class);
     }
 
-    public function reports()
+    public function comments()
     {
-        return $this->hasMany(Report::class);
+        return $this->hasMany(Comment::class);
+    }
+
+    public function quizzes()
+    {
+        return $this->hasMany(Quiz::class);
     }
 
     public function savedByUsers()
@@ -63,5 +76,19 @@ class Content extends Model
     public function savedContents()
     {
         return $this->hasMany(SavedContent::class);
+    }
+
+    protected function image(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value): ?string => $this->image_url ?? $value,
+        );
+    }
+
+    protected function video(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value): ?string => $this->video_url ?? $value,
+        );
     }
 }

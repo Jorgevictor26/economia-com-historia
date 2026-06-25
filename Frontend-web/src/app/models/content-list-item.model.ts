@@ -9,5 +9,8 @@ export interface ContentListItem {
   authorInitials: string;
   imageUrl?: string;
   premium?: boolean;
+  reactionsCount?: number;
+  commentsCount?: number;
+  likedByMe?: boolean;
   searchText?: string;
 }

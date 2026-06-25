@@ -25,6 +25,9 @@ export interface BackendContent {
   user?: BackendRelation | null;
   category?: BackendRelation | null;
   content_type?: BackendRelation | null;
+  reactions_count?: number | string;
+  comments_count?: number | string;
+  liked_by_me?: boolean | number;
 }
 
 export interface ContentPagination {

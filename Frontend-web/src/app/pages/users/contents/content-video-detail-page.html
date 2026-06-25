@@ -1,0 +1,209 @@
+<section class="-m-6 min-h-dvh bg-[#f7f8f8] text-[#2c2729]">
+  <app-public-navbar />
+
+  <main class="mx-auto grid max-w-[1160px] gap-8 px-5 pb-20 pt-8 lg:grid-cols-[minmax(0,1fr)_310px] lg:px-8">
+    <article class="min-w-0">
+      <section class="overflow-hidden rounded-2xl bg-black">
+
+        <div class="group relative aspect-video bg-[#151515]">
+
+          <!-- Thumbnail -->
+          <img [src]="video().frameUrl" [alt]="video().title" class="h-full w-full object-cover" />
+
+          <!-- Overlay -->
+          <div class="absolute inset-0 bg-black/20 transition group-hover:bg-black/10"></div>
+
+          <!-- Play Central -->
+          <div class="absolute inset-0 flex items-center justify-center">
+
+            <button type="button"
+              class="grid h-15 w-15 place-items-center rounded-full bg-black/70 text-white backdrop-blur-md transition duration-300 hover:scale-110 hover:bg-[#9b1c31]">
+              <span class="material-symbols-outlined text-[50px]">
+                play_arrow
+              </span>
+            </button>
+
+          </div>
+
+          <!-- Título -->
+          <div class="absolute left-6 top-6 max-w-[70%]">
+
+            <h2 class="text-lg font-bold text-white md:text-2xl">
+              {{ video().title }}
+            </h2>
+
+            <p class="mt-1 text-xs text-white/70">
+              {{ video().author }}
+            </p>
+
+          </div>
+          <div
+            class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/70 to-transparent px-4 pb-3 pt-12">
+
+            <div class="mb-3 h-[4px] overflow-hidden rounded-full bg-white/20">
+
+              <div class="relative h-full w-[38%] bg-[#ff0033]">
+
+                <span class="absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-[#ff0033]"></span>
+
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+
+              <div class="flex items-center gap-3">
+
+                <button class="text-white">
+                  <span class="material-symbols-outlined text-[24px]">
+                    play_arrow
+                  </span>
+                </button>
+
+                <button class="text-white">
+                  <span class="material-symbols-outlined text-[22px]">
+                    volume_up
+                  </span>
+                </button>
+
+                <div class="h-1 w-20 rounded-full bg-white/20">
+                  <div class="h-full w-[65%] rounded-full bg-white"></div>
+                </div>
+
+                <span class="text-xs text-white/80">
+                  12:34 / {{ video().duration }}
+                </span>
+
+              </div>
+
+              <div class="flex items-center gap-4 text-white">
+
+                <button>
+                  <span class="material-symbols-outlined text-[20px]">
+                    settings
+                  </span>
+                </button>
+                <button>
+                  <span class="material-symbols-outlined text-[22px]">
+                    fullscreen
+                  </span>
+                </button>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="mt-7 flex flex-wrap items-center gap-3 text-[14px] text-[#6f686b]">
+        <h1
+          class="mt-3 max-w-[720px] font-display text-[20px] font-extrabold leading-[1.05] text-[#5c1e2f] md:text-[34px]">
+          {{ video().title }}
+        </h1>
+        <div class="flex items-center gap-4">
+          <span class="grid h-8 w-8 place-items-center rounded-full bg-[#0f1b1f] text-white font-bold">
+            {{ video().authorInitials }}
+          </span>
+          <div>
+            <h3 class="font-bold text-[#5c1e2f]">
+              {{ video().author }}
+            </h3>
+          </div>
+        </div>
+        <span>{{ video().date }}</span>
+      </div>
+
+
+      <section class="mt-8 border-y border-[#eee7ea] py-5">
+        <div class="grid gap-4">
+          <div class="flex flex-wrap items-center justify-start gap-5 text-[10px] text-[#5f575b]">
+
+            <button type="button" class="inline-flex items-center gap-1" (click)="share($event)">
+              <span class="material-symbols-outlined text-[14px]">share</span>
+              <span>Partilhar</span>
+            </button>
+
+            <button type="button" class="inline-flex items-center gap-1" (click)="requireLogin($event, 'guardar')">
+              <span class="material-symbols-outlined text-[14px]">bookmark_add</span>
+              <span>Guardar</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-10 max-w-[720px]">
+        <p class="text-[14px] leading-7 text-[#5f575b]">
+          {{ video().summary }}
+        </p>
+
+        <blockquote
+          class="mt-6 border-l-4 border-[#8a4055] bg-white px-5 py-4 font-display text-[14px] italic leading-7 text-[#7b3f51]">
+          {{ video().quote }}
+        </blockquote>
+      </section>
+      <section class="mt-10 border-t border-[#eee7ea] pt-9">
+        <h2 class="text-[14px] font-medium text-[#5c1e2f]">Comentários ({{ comments.length }})</h2>
+        <div class="mt-9 grid gap-7">
+          @if (!comments.length) {
+          <p class="text-[13px] text-[#5f575b]">Ainda não há comentários neste vídeo.</p>
+          }
+          @for (comment of comments; track comment.author) {
+          <div class="flex gap-4">
+            <span class="grid size-9 place-items-center rounded-[8px] bg-[#e7e7e7] text-[11px] font-bold text-[#777]">
+              {{ comment.initials }}
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-start justify-between gap-4">
+                <p class="text-[13px] font-extrabold text-[#5c1e2f]">{{ comment.author }}</p>
+                <span class="text-[10px] text-[#777]">{{ comment.time }}</span>
+              </div>
+              <p class="mt-1 text-[13px] leading-5 text-[#1f1a1c]">{{ comment.text }}</p>
+              <div class="mt-3 flex gap-6 text-[10px] text-[#5f575b]">
+                <button type="button" class="content-action" (click)="requireLogin($event, 'denunciar')"><img
+                    src="/assets/icons/report.png" alt="" /><span>Denunciar</span></button>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+      </section>
+    </article>
+
+    <aside class="lg:pt-1">
+      <div class="sticky top-[82px] grid gap-6">
+        <section>
+          <h2 class="mb-5 flex items-center gap-2 font-display text-[15px] font-extrabold text-[#5c1e2f]">
+            <span class="text-[17px] text-[#8a4055]" aria-hidden="true">Relacionados</span>
+          </h2>
+          <div class="grid gap-4">
+            @for (item of relatedResearch; track item.title) {
+            <a [routerLink]="item.route" class="grid grid-cols-[86px_minmax(0,1fr)] gap-3">
+              <div class="relative h-[58px] overflow-hidden rounded-[4px] bg-[#23171b]">
+                <img [src]="item.imageUrl" [alt]="item.title" class="h-full w-full object-cover opacity-85" />
+                <span class="absolute bottom-1 right-1 bg-black/75 px-1.5 py-0.5 text-[8px] font-bold text-white">{{
+                  item.duration }}</span>
+              </div>
+              <span class="min-w-0">
+                <strong class="line-clamp-2 text-[12px] leading-4 text-[#2c2729]">{{ item.title }}</strong>
+                <span class="mt-1 block text-[10px] text-[#6f686b]">{{ item.meta }}</span>
+              </span>
+            </a>
+            }
+          </div>
+        </section>
+
+        <section class="rounded-[6px] bg-[#ffdadd] p-6">
+          <h2 class="font-display text-[15px] font-extrabold text-[#5c1e2f]">Apoie o Arquivo</h2>
+          <p class="mt-3 text-[12px] leading-5 text-[#6f4d55]">
+            Junte-se para desbloquear vídeos de alta resolução, documentos raros e visualizações interativas.
+          </p>
+          <a routerLink="/app/subscriptions"
+            class="mt-5 inline-flex h-10 w-full items-center justify-center bg-[#5c1e2f] text-[11px] font-extrabold uppercase text-white">
+            Ir para premium
+          </a>
+        </section>
+      </div>
+    </aside>
+  </main>
+
+  <app-public-footer />
+  <app-back-to-top />
+</section>

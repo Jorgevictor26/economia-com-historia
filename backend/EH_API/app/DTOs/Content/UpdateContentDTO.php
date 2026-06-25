@@ -38,8 +38,8 @@ readonly class UpdateContentDTO
             'title' => $this->title,
             'summary' => $this->summary,
             'content' => $this->content,
-            'image' => $this->image,
-            'video' => $this->video,
+            'image_url' => $this->image,
+            'video_url' => $this->video,
             'visibility' => $this->visibility,
         ], fn (mixed $value): bool => $value !== null);
     }

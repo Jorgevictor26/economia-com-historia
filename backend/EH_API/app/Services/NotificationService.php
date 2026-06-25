@@ -24,11 +24,12 @@ class NotificationService
     }
 
     public function getByUser(
-        int $userId
+        int $userId,
+        array $filters = []
     )
     {
         return $this->repository
-            ->getByUser($userId);
+            ->getByUser($userId, $filters);
     }
 
     public function markAsRead(

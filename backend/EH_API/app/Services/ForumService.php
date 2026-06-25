@@ -16,24 +16,31 @@ class ForumService
     public function create(CreateForumDTO $dto): Forum
     {
         return $this->repository->create([
+            'user_id' => $dto->userId,
             'name' => $dto->name,
             'description' => $dto->description,
+            'status' => 'pending',
         ]);
     }
 
-    public function getAll()
+    public function getAll(array $filters = [])
     {
-        return $this->repository->all();
+        return $this->repository->all($filters);
     }
 
-    public function findById(int $id): ?Forum
+    public function getAllForModeration(array $filters = [])
     {
-        return $this->repository->findById($id);
+        return $this->repository->allForModeration($filters);
+    }
+
+    public function findById(int $id, bool $onlyApproved = true): ?Forum
+    {
+        return $this->repository->findById($id, $onlyApproved);
     }
 
     public function update(int $id, UpdateForumDTO $dto): ?Forum
     {
-        $forum = $this->repository->findById($id);
+        $forum = $this->repository->findById($id, false);
 
         if (! $forum) {
             return null;
@@ -44,12 +51,34 @@ class ForumService
 
     public function delete(int $id): bool
     {
-        $forum = $this->repository->findById($id);
+        $forum = $this->repository->findById($id, false);
 
         if (! $forum) {
             return false;
         }
 
         return $this->repository->delete($forum);
+    }
+
+    public function approve(int $id, int $reviewerId): ?Forum
+    {
+        $forum = $this->repository->findById($id, false);
+
+        if (! $forum) {
+            return null;
+        }
+
+        return $this->repository->updateStatus($forum, 'approved', $reviewerId);
+    }
+
+    public function reject(int $id, int $reviewerId): ?Forum
+    {
+        $forum = $this->repository->findById($id, false);
+
+        if (! $forum) {
+            return null;
+        }
+
+        return $this->repository->updateStatus($forum, 'rejected', $reviewerId);
     }
 }

@@ -14,6 +14,7 @@ class StoreQuizRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'content_id' => ['required', 'integer', 'exists:contents,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'time_limit' => ['nullable', 'integer', 'min:1'],

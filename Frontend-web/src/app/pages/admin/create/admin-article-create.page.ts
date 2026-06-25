@@ -1,5 +1,6 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthStateService } from '../../../services/auth-state.service';
 import { AdminConsoleShellComponent } from '../components/admin-console-shell.component';
 
 @Component({
@@ -8,6 +9,7 @@ import { AdminConsoleShellComponent } from '../components/admin-console-shell.co
   templateUrl: './admin-article-create.page.html'
 })
 export class AdminArticleCreatePage {
+  readonly auth = inject(AuthStateService);
   readonly title = signal('');
   readonly summary = signal('');
   readonly category = signal('Selecione uma categoria');
@@ -16,7 +18,10 @@ export class AdminArticleCreatePage {
   readonly body = signal('');
   readonly visibility = signal<'publico' | 'analise' | 'privado'>('publico');
   readonly coverUploaded = signal(false);
-  readonly showPreview = signal(false);
+  readonly coverPreview = signal<string | null>(null);
+  readonly coverFileName = signal('');
+  readonly currentStep = signal(1);
+  readonly previewOpen = signal(false);
   readonly status = signal('Rascunho');
 
   readonly progress = computed(() => {
@@ -29,11 +34,12 @@ export class AdminArticleCreatePage {
       this.body().trim().length > 0,
       this.coverUploaded(),
     ];
+
     return Math.round((checks.filter(Boolean).length / checks.length) * 100);
   });
 
   readonly previewTitle = computed(() => this.title().trim() || 'Novo artigo academico');
-  readonly previewSummary = computed(() => this.summary().trim() || 'O resumo academico aparece aqui para revisão antes da publicacao.');
+  readonly previewSummary = computed(() => this.summary().trim() || 'O resumo academico aparece aqui para revisao antes da publicacao.');
   readonly categoryLabel = computed(() => (this.category() === 'Selecione uma categoria' ? 'Sem categoria' : this.category()));
   readonly typeLabel = computed(() => (this.type() === 'Selecione o tipo' ? 'Sem tipo' : this.type()));
   readonly readTimeLabel = computed(() => (this.readTime() === 'Selecione' ? 'Tempo indefinido' : this.readTime()));
@@ -66,14 +72,54 @@ export class AdminArticleCreatePage {
     this.status.set('Rascunho guardado');
   }
 
-  togglePreview(): void {
-    this.showPreview.update((value) => !value);
-    this.status.set('Em revisão');
+  publish(): void {
+    this.status.set('Publicado');
+    this.previewOpen.set(false);
+  }
+
+  nextStep(): void {
+    this.currentStep.update((step) => Math.min(step + 1, 3));
+  }
+
+  previousStep(): void {
+    this.currentStep.update((step) => Math.max(step - 1, 1));
+  }
+
+  openPreview(): void {
+    this.previewOpen.set(true);
+    this.status.set('Em revisao');
+  }
+
+  closePreview(): void {
+    this.previewOpen.set(false);
+  }
+
+  onCoverSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      this.coverPreview.set(reader.result as string);
+      this.coverFileName.set(file.name);
+      this.coverUploaded.set(true);
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  clearCover(): void {
+    this.coverPreview.set(null);
+    this.coverFileName.set('');
+    this.coverUploaded.set(false);
   }
 
   private eventValue(event: Event): string {
     return (event.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).value;
   }
 }
-
-

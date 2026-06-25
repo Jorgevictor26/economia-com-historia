@@ -27,12 +27,20 @@ interface MutationResponse<T> {
   message?: string;
 }
 
+interface ListResponse<T> {
+  data: T[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class CommentService {
   private readonly http = inject(HttpClient);
 
-  getByContent(contentId: string): Promise<BackendComment[]> {
-    return firstValueFrom(this.http.get<BackendComment[]>(`/comments/content/${contentId}`));
+  async getByContent(contentId: string): Promise<BackendComment[]> {
+    const response = await firstValueFrom(
+      this.http.get<BackendComment[] | ListResponse<BackendComment>>(`/comments/content/${contentId}`),
+    );
+
+    return Array.isArray(response) ? response : response.data;
   }
 
   create(contentId: string, comment: string): Promise<MutationResponse<BackendComment>> {

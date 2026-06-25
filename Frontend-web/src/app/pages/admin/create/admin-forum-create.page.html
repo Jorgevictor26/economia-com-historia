@@ -1,60 +1,11 @@
     <app-admin-console-shell activeItem="contents">
       <main class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_330px]">
         <section class="min-w-0">
-          <header class="overflow-hidden rounded-[8px] border border-[#eadfe3] bg-white shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
-            <div class="grid gap-6 p-7 lg:grid-cols-[minmax(0,1fr)_340px]">
-              <div>
-                <a routerLink="/admin" class="inline-flex items-center gap-2 text-[13px] font-semibold text-[#5f5861]">
-                  <span aria-hidden="true" class="text-[18px] leading-none">&larr;</span>
-                  Voltar a conte&uacute;dos
-                </a>
-                <p class="mt-6 inline-flex items-center gap-2 rounded-[999px] bg-[#f7edef] px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#8a1238]">
-                  <span class="material-icon" aria-hidden="true">forum</span>
-                  Debate orientado
-                </p>
-                <h1 class="mt-4 font-display text-[32px] font-extrabold leading-tight text-[#5c1e2f]">Criar novo f&oacute;rum</h1>
-                <p class="mt-3 max-w-[680px] text-[14px] leading-6 text-[#534345]">
-                  Estruture um espa&ccedil;o de debate com regras claras, conte&uacute;dos associados, controlo de acesso e modera&ccedil;&atilde;o editorial.
-                </p>
-              </div>
-
-              <section class="rounded-[8px] border border-[#e6dde1] bg-[#fbfaf7] p-4">
-                <p class="text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#8a8587]">Resumo do debate</p>
-                <h2 class="mt-2 font-display text-[20px] font-extrabold leading-tight text-[#3a232b]">{{ previewTitle() }}</h2>
-                <div class="mt-4 grid grid-cols-2 gap-3 text-[12px]">
-                  <span class="rounded-[8px] bg-white px-3 py-2 text-[#534345]"><b class="block text-[#5c1e2f]">Categoria</b>{{ category() }}</span>
-                  <span class="rounded-[8px] bg-white px-3 py-2 text-[#534345]"><b class="block text-[#5c1e2f]">Acesso</b>{{ publicVisible() ? 'Publico' : 'Restrito' }}</span>
-                  <span class="rounded-[8px] bg-white px-3 py-2 text-[#534345]"><b class="block text-[#5c1e2f]">Anexos</b>{{ allowAttachments() ? 'PDFs' : 'Desligado' }}</span>
-                  <span class="rounded-[8px] bg-white px-3 py-2 text-[#534345]"><b class="block text-[#5c1e2f]">Estado</b>{{ status() }}</span>
-                </div>
-              </section>
-            </div>
-          </header>
-
-          <section class="mt-6 grid gap-4 md:grid-cols-4">
-            @for (metric of metrics; track metric.label) {
-              <article class="rounded-[8px] border border-[#eadfe3] bg-white p-5 shadow-[0_12px_30px_rgba(27,22,30,0.045)]">
-                <div class="flex items-center justify-between gap-3">
-                  <span class="grid size-10 place-items-center rounded-[8px] bg-[#f7edef] text-[#8a1238]">
-                    <span class="material-icon" aria-hidden="true">{{ metric.icon }}</span>
-                  </span>
-                  <span class="text-[11px] font-extrabold uppercase text-[#8a8587]">{{ metric.badge }}</span>
-                </div>
-                <strong class="mt-4 block font-display text-[24px] font-extrabold leading-none text-[#5c1e2f]">{{ metric.value }}</strong>
-                <p class="mt-2 text-[13px] font-bold text-[#3a3236]">{{ metric.label }}</p>
-                <p class="mt-1 text-[12px] leading-5 text-[#6f686b]">{{ metric.description }}</p>
-              </article>
-            }
-          </section>
-
           <form class="mt-6 grid gap-5" (submit)="$event.preventDefault()">
             <section class="rounded-[8px] border border-[#eadfe3] bg-white p-6 shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
               <h2 class="flex items-center gap-3 font-display text-[24px] font-extrabold text-[#5c1e2f]">
-                <span class="material-icon" aria-hidden="true">format_list_bulleted</span>
                 Informa&ccedil;&atilde;o estrutural
               </h2>
-              <p class="mt-2 text-[13px] leading-6 text-[#6f686b]">Defina o t&iacute;tulo, o enquadramento e as regras que guiam a participa&ccedil;&atilde;o.</p>
-
               <label class="mt-5 grid gap-2">
                 <span class="text-[13px] font-extrabold text-[#534345]">T&iacute;tulo do f&oacute;rum <b class="text-[#c43f58]">*</b></span>
                 <input
@@ -85,15 +36,9 @@
               <div class="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h2 class="flex items-center gap-3 font-display text-[24px] font-extrabold text-[#5c1e2f]">
-                    <span class="material-icon" aria-hidden="true">hub</span>
                     Vincula&ccedil;&atilde;o de conte&uacute;do
                   </h2>
-                  <p class="mt-2 text-[13px] leading-6 text-[#6f686b]">Selecione o conte&uacute;do acad&eacute;mico que servir&aacute; de complemento ao debate.</p>
-                </div>
-                <button type="button" class="inline-flex h-10 items-center gap-2 rounded-[8px] border border-[#5c1e2f] bg-white px-4 text-[12px] font-extrabold text-[#5c1e2f]">
-                  <span class="material-icon" aria-hidden="true">search</span>
-                  Procurar conte&uacute;dos
-                </button>
+                  </div>
               </div>
 
               <div class="mt-5 grid gap-4 md:grid-cols-2">
@@ -214,20 +159,6 @@
               <div class="mt-2 h-2 overflow-hidden rounded-full bg-[#eee6e9]">
                 <span class="block h-full rounded-full bg-[#d4af37]" [style.width.%]="progress()"></span>
               </div>
-            </div>
-          </section>
-
-          <section class="rounded-[8px] border border-[#eadfe3] bg-white p-5 shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
-            <h2 class="font-display text-[18px] font-extrabold text-[#5c1e2f]">Centro de controlo</h2>
-            <div class="mt-4 grid gap-3">
-              @for (item of validationChecklist; track item.label) {
-                <p class="flex items-center gap-3 text-[13px] font-semibold text-[#534345]">
-                  <span class="grid size-7 place-items-center rounded-full" [class.bg-[#f7edef]]="item.done" [class.text-[#5c1e2f]]="item.done" [class.bg-[#f0eef0]]="!item.done" [class.text-[#8a8587]]="!item.done">
-                    <span class="material-icon text-[18px]" aria-hidden="true">{{ item.done ? 'check' : 'radio_button_unchecked' }}</span>
-                  </span>
-                  {{ item.label }}
-                </p>
-              }
             </div>
           </section>
         </aside>

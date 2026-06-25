@@ -20,9 +20,10 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuizAnswerController;
 use App\Http\Controllers\QuizController;
-use App\Http\Controllers\ReportController;
+use App\Http\Controllers\CommentReportController;
 use App\Http\Controllers\SavedContentController;
 use App\Http\Controllers\UserController;
+use App\Support\ContentMedia;
 
 Route::prefix('v1')->group(function () {
     Route::post('/register', RegisterController::class);
@@ -36,44 +37,60 @@ Route::prefix('v1')->group(function () {
     Route::get('/quizzes', [QuizController::class, 'index']);
     Route::get('/quizzes/{id}', [QuizController::class, 'show']);
     Route::get('/quizzes/{id}/questions', [QuestionController::class, 'index']);
+    Route::get('/categories/{id}', [CategoryController::class, 'show']);
+    Route::get('/content-types/{id}', [ContentTypeController::class, 'show']);
+    Route::get('/comments/content/{contentId}', [CommentController::class, 'indexByContent']);
+    Route::get('/reactions/content/{contentId}', [ReactionController::class, 'getByContent']);
+    Route::get('/reactions/content/{contentId}/count', [ReactionController::class, 'getCountByType']);
+    Route::get('/forums', [ForumController::class, 'index']);
+    Route::get('/forums/{id}', [ForumController::class, 'show']);
+    Route::get('/forums/{forumId}/topics', [ForumTopicController::class, 'index']);
+    Route::get('/topics/{id}', [ForumTopicController::class, 'show']);
+    Route::get('/topics/{topicId}/replies', [ForumReplyController::class, 'index']);
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::post('/logout', LogoutController::class);
         Route::get('/profile', [UserController::class, 'me']);
         Route::put('/profile', [UserController::class, 'updateProfile']);
+        Route::patch('/users/{user}/roles/writer', [UserController::class, 'promoteToWriter'])
+            ->middleware('role:Admin,SuperAdmin');
+        Route::patch('/users/{user}/roles/admin', [UserController::class, 'promoteToAdmin'])
+            ->middleware('role:SuperAdmin');
+        Route::patch('/users/{user}/roles/super-admin', [UserController::class, 'promoteToSuperAdmin'])
+            ->middleware('role:SuperAdmin');
+        Route::patch('/users/{user}/jindungo-subscription', [UserController::class, 'updateJindungoSubscription'])
+            ->middleware('role:SuperAdmin');
         Route::get('/my-results', [QuizAnswerController::class, 'myResults']);
-        Route::get('/my-reports', [ReportController::class, 'myReports']);
+        Route::get('/my-comment-reports', [CommentReportController::class, 'myCommentReports']);
         Route::post('/saved-contents', [SavedContentController::class, 'store']);
         Route::delete('/saved-contents/{contentId}', [SavedContentController::class, 'destroy']);
         Route::get('/my-saved-contents', [SavedContentController::class, 'mine']);
 
         // CATEGORIES
         Route::post('/categories', [CategoryController::class, 'store']);
-        Route::get('/categories/{id}', [CategoryController::class, 'show']);
 
         // CONTENT TYPES
         Route::post('/content-types', [ContentTypeController::class, 'store']);
-        Route::get('/content-types/{id}', [ContentTypeController::class, 'show']);
 
         // COMMENTS
         Route::post('/comments', [CommentController::class, 'store']);
-        Route::get('/comments/content/{contentId}', [CommentController::class, 'indexByContent']);
         Route::post('/comments/{commentId}/reply', [CommentController::class, 'replyToComment']);
 
         // REACTIONS
         Route::post('/reactions', [ReactionController::class, 'store']);
-        Route::get('/reactions/content/{contentId}', [ReactionController::class, 'getByContent']);
-        Route::get('/reactions/content/{contentId}/count', [ReactionController::class, 'getCountByType']);
 
-        // REPORTS
-        Route::post('/reports', [ReportController::class, 'store']);
-        Route::get('/reports/{id}', [ReportController::class, 'show']);
+        // COMMENT REPORTS
+        Route::post('/comment-reports', [CommentReportController::class, 'store']);
+        Route::get('/comment-reports/{id}', [CommentReportController::class, 'show']);
 
         // CONTENT MEDIA
-        Route::post('/contents/{id}/upload-image', [ContentMediaController::class, 'uploadImage']);
-        Route::post('/contents/{id}/upload-video', [ContentMediaController::class, 'uploadVideo']);
-        Route::post('/contents/{id}/upload-audio', [ContentMediaController::class, 'uploadAudio']);
-        Route::post('/contents/{id}/upload-document', [ContentMediaController::class, 'uploadDocument']);
+        Route::post('/contents/{id}/media/{mediaType}', [ContentMediaController::class, 'store'])
+            ->whereIn('mediaType', ContentMedia::TYPES);
+
+        foreach (ContentMedia::TYPES as $mediaType) {
+            Route::post('/contents/{id}/upload-'.$mediaType, [ContentMediaController::class, 'store'])
+                ->defaults('mediaType', $mediaType);
+        }
         Route::delete('/contents/{id}/media', [ContentMediaController::class, 'destroy'])
             ->middleware('role:Admin,SuperAdmin');
 
@@ -83,14 +100,10 @@ Route::prefix('v1')->group(function () {
         Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 
         // FORUMS
-        Route::get('/forums', [ForumController::class, 'index']);
-        Route::get('/forums/{id}', [ForumController::class, 'show']);
-        Route::get('/forums/{forumId}/topics', [ForumTopicController::class, 'index']);
+        Route::post('/forums', [ForumController::class, 'store']);
         Route::post('/forums/{forumId}/topics', [ForumTopicController::class, 'store']);
-        Route::get('/topics/{id}', [ForumTopicController::class, 'show']);
         Route::put('/topics/{id}', [ForumTopicController::class, 'update']);
         Route::delete('/topics/{id}', [ForumTopicController::class, 'destroy']);
-        Route::get('/topics/{topicId}/replies', [ForumReplyController::class, 'index']);
         Route::post('/topics/{topicId}/replies', [ForumReplyController::class, 'store']);
         Route::put('/replies/{id}', [ForumReplyController::class, 'update']);
         Route::delete('/replies/{id}', [ForumReplyController::class, 'destroy']);
@@ -100,11 +113,13 @@ Route::prefix('v1')->group(function () {
         Route::get('/quizzes/{id}/result', [QuizAnswerController::class, 'result']);
 
         Route::middleware('role:Admin,SuperAdmin')->group(function () {
-            Route::get('/reports', [ReportController::class, 'index']);
-            Route::patch('/reports/{id}/approve', [ReportController::class, 'approve']);
-            Route::patch('/reports/{id}/reject', [ReportController::class, 'reject']);
+            Route::get('/comment-reports', [CommentReportController::class, 'index']);
+            Route::patch('/comment-reports/{id}/approve', [CommentReportController::class, 'approve']);
+            Route::patch('/comment-reports/{id}/reject', [CommentReportController::class, 'reject']);
 
-            Route::post('/forums', [ForumController::class, 'store']);
+            Route::get('/forum-approvals', [ForumController::class, 'moderationIndex']);
+            Route::patch('/forums/{id}/approve', [ForumController::class, 'approve']);
+            Route::patch('/forums/{id}/reject', [ForumController::class, 'reject']);
             Route::put('/forums/{id}', [ForumController::class, 'update']);
             Route::delete('/forums/{id}', [ForumController::class, 'destroy']);
         });

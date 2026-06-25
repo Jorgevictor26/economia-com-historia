@@ -13,10 +13,10 @@ class ContentTypeController extends Controller
         private ContentTypeService $service
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
         return response()->json(
-            $this->service->getAll()
+            $this->service->getAll($request->only('search'))
         );
     }
 

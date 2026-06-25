@@ -1,7 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthSidePanelComponent } from '../components/auth-side-panel/auth-side-panel.component';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-forgot-password-page',
@@ -11,10 +13,13 @@ import { AuthSidePanelComponent } from '../components/auth-side-panel/auth-side-
 })
 export class ForgotPasswordPage {
   private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
 
   readonly isLoading = signal(false);
   readonly submitted = signal(false);
   readonly sent = signal(false);
+  readonly feedbackMessage = signal('');
+  readonly errorMessage = signal('');
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -28,6 +33,8 @@ export class ForgotPasswordPage {
   async submit(): Promise<void> {
     this.submitted.set(true);
     this.sent.set(false);
+    this.feedbackMessage.set('');
+    this.errorMessage.set('');
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -35,9 +42,32 @@ export class ForgotPasswordPage {
     }
 
     this.isLoading.set(true);
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    this.isLoading.set(false);
-    this.sent.set(true);
+
+    try {
+      const message = await this.authService.forgotPassword(this.form.getRawValue());
+      this.feedbackMessage.set(message);
+      this.sent.set(true);
+    } catch (error) {
+      this.errorMessage.set(this.extractErrorMessage(error));
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  private extractErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      const validationErrors = error.error?.errors;
+      const firstError = validationErrors ? Object.values(validationErrors)[0] : null;
+
+      if (Array.isArray(firstError) && firstError[0]) {
+        return String(firstError[0]);
+      }
+
+      if (error.error?.message) {
+        return String(error.error.message);
+      }
+    }
+
+    return 'Não foi possível enviar o email de recuperação. Verifique se a API está ativa e tente novamente.';
   }
 }
-

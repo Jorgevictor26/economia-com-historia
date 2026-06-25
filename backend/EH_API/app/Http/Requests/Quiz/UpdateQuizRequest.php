@@ -14,6 +14,7 @@ class UpdateQuizRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'content_id' => ['sometimes', 'required', 'integer', 'exists:contents,id'],
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'time_limit' => ['nullable', 'integer', 'min:1'],

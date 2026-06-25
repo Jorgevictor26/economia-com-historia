@@ -4,6 +4,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthSidePanelComponent } from '../components/auth-side-panel/auth-side-panel.component';
 import { AuthService } from '../../../services/auth.service';
+import { AuthStateService } from '../../../services/auth-state.service';
+import { UserRole } from '../../../models/user.model';
 
 @Component({
   selector: 'app-login',
@@ -14,6 +16,7 @@ import { AuthService } from '../../../services/auth.service';
 export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly authState = inject(AuthStateService);
   private readonly router = inject(Router);
 
   readonly isLoading = signal(false);
@@ -42,7 +45,7 @@ export class LoginComponent {
 
     try {
       await this.authService.login(this.form.getRawValue());
-      await this.router.navigateByUrl('/app/home');
+      await this.router.navigateByUrl(this.routeForRole(this.authState.user()?.role));
     } catch (error) {
       this.errorMessage.set(this.extractErrorMessage(error));
     } finally {
@@ -65,6 +68,14 @@ export class LoginComponent {
     }
 
     return 'Não foi possível entrar. Verifique se a API está ativa e tente novamente.';
+  }
+
+  private routeForRole(role: UserRole | undefined): string {
+    if (role === 'super-admin' || role === 'admin' || role === 'writer' || role === 'moderator') {
+      return '/admin';
+    }
+
+    return '/app/home';
   }
 
   private isInvalid(controlName: 'email' | 'password'): boolean {

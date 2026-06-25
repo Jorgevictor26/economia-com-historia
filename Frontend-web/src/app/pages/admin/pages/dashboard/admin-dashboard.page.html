@@ -106,9 +106,11 @@
         <a routerLink="/admin/forum/create" class="rounded-[18px] border border-[#e8dde0] bg-[#fbfaf7] p-5 text-start text-[14px] font-semibold text-[#2c2729] hover:border-[#9b4056]">
           Novo Fórum
         </a>
-        <a routerLink="/admin/jindungo/create" class="rounded-[18px] border border-[#e8dde0] bg-[#fbfaf7] p-5 text-start text-[14px] font-semibold text-[#2c2729] hover:border-[#9b4056]">
-          Novo Jindungo
-        </a>
+        @if (auth.canCreateJindungo()) {
+          <a routerLink="/admin/jindungo/create" class="rounded-[18px] border border-[#e8dde0] bg-[#fbfaf7] p-5 text-start text-[14px] font-semibold text-[#2c2729] hover:border-[#9b4056]">
+            Novo Jindungo
+          </a>
+        }
       </div>
     </section>
   </section>

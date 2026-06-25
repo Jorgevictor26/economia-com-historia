@@ -11,7 +11,7 @@ class RoleSeeder extends Seeder
     {
         $roles = [
             [
-                'name' => 'student',
+                'name' => 'user',
                 'description' => 'Utilizador normal que pode visualizar conteúdos e quizzes.',
             ],
             [

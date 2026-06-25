@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink, Routes } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, Routes } from '@angular/router';
 import { adminGuard } from '../../../services/admin.guard';
 import { Category } from '../../../models/category.model';
 import { ContentTypeOption } from '../../../models/content-type.model';
@@ -8,7 +8,9 @@ import { CategoryService } from '../../../services/category.service';
 import { BackendComment, CommentService } from '../../../services/comment.service';
 import { BackendContent, ContentPagination, ContentService } from '../../../services/content.service';
 import { ContentTypeService } from '../../../services/content-type.service';
+import { QuizService } from '../../../services/quiz.service';
 import { ReactionService } from '../../../services/reaction.service';
+import { SavedContentService } from '../../../services/saved-content.service';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
 import { PublicFooterComponent } from '../../shared/public-footer/public-footer.component';
 import { PublicNavbarComponent } from '../../shared/public-navbar/public-navbar.component';
@@ -28,6 +30,9 @@ interface ContentDetail {
   authorBio?: string;
   imageUrl?: string;
   premium: boolean;
+  reactionsCount: number;
+  commentsCount: number;
+  likedByMe: boolean;
 }
 
 interface CommentView {
@@ -47,16 +52,49 @@ interface CommentReplyView {
   createdAt?: string | null;
 }
 
+interface VideoDetail {
+  id: string;
+  title: string;
+  date: string;
+  duration: string;
+  frameUrl: string;
+  author: string;
+  authorInitials: string;
+  authorRole: string;
+  summary: string;
+  quote: string;
+}
+
+interface RelatedResearch {
+  title: string;
+  meta: string;
+  duration: string;
+  imageUrl: string;
+  route: string;
+}
+
+interface VideoComment {
+  author: string;
+  initials: string;
+  time: string;
+  text: string;
+  likes: number;
+}
+
 @Component({
   selector: 'app-content-list-page',
   imports: [PublicNavbarComponent, PublicFooterComponent, BackToTopComponent, ContentCardComponent],
   templateUrl: './content-list-page.html'
 })
 export class ContentListPage implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   readonly auth = inject(AuthStateService);
   private readonly categoryService = inject(CategoryService);
   private readonly contentService = inject(ContentService);
   private readonly contentTypeService = inject(ContentTypeService);
+  private readonly reactionService = inject(ReactionService);
+  private readonly savedContentService = inject(SavedContentService);
   private loadRequestId = 0;
   private readonly fallbackCategories: Category[] = [
     { id: 1, name: 'História' },
@@ -86,6 +124,16 @@ export class ContentListPage implements OnInit {
   readonly selectedCategoryFilter = signal('Todos');
   readonly selectedContentTypeFilter = signal('Todos os formatos');
   readonly searchTerm = signal('');
+  readonly shareContentTarget = signal<ContentListItem | null>(null);
+  readonly shareStatus = signal('');
+  readonly saveStatus = signal('');
+  readonly savingContentId = signal<string | null>(null);
+  readonly shareUrl = computed(() => {
+    const content = this.shareContentTarget();
+
+    return content ? this.absoluteContentUrl(content.id) : '';
+  });
+  readonly hasPreviousPage = computed(() => this.pagination().currentPage > 1);
   readonly hasMoreContents = computed(() => this.pagination().currentPage < this.pagination().lastPage);
   readonly activeFilterCount = computed(() => {
     let total = 0;
@@ -160,6 +208,7 @@ export class ContentListPage implements OnInit {
       this.contentTypes.set(this.fallbackContentTypes);
     }
 
+    this.applyRouteFilters();
     await this.loadContents(1, true);
   }
 
@@ -167,6 +216,89 @@ export class ContentListPage implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     this.auth.requireLoginFor(operation);
+  }
+
+  async handleContentAction(payload: { event: Event; operation: string; content: ContentListItem }): Promise<void> {
+    payload.event.preventDefault();
+    payload.event.stopPropagation();
+
+    if (payload.operation === 'partilhar') {
+      this.openShareModal(payload.content);
+      return;
+    }
+
+    if (payload.operation === 'comentar') {
+      await this.router.navigate(['/app/contents', payload.content.id], { fragment: 'comments' });
+      return;
+    }
+
+    if (payload.operation === 'gostar') {
+      if (!this.auth.isAuthenticated()) {
+        this.auth.requireLoginFor('gostar');
+        return;
+      }
+
+      await this.likeContent(payload.content);
+      return;
+    }
+
+    if (payload.operation === 'guardar') {
+      if (!this.auth.isAuthenticated()) {
+        this.auth.requireLoginFor('guardar');
+        return;
+      }
+
+      await this.saveContent(payload.content);
+      return;
+    }
+
+    this.auth.requireLoginFor(payload.operation);
+  }
+
+  openShareModal(content: ContentListItem): void {
+    this.shareContentTarget.set(content);
+    this.shareStatus.set('');
+  }
+
+  closeShareModal(): void {
+    this.shareContentTarget.set(null);
+    this.shareStatus.set('');
+  }
+
+  async copyShareLink(): Promise<void> {
+    const url = this.shareUrl();
+
+    if (!url) {
+      return;
+    }
+
+    await navigator.clipboard?.writeText(url);
+    this.shareStatus.set('Link copiado.');
+  }
+
+  async shareFromModal(platform: 'whatsapp' | 'facebook' | 'instagram'): Promise<void> {
+    const content = this.shareContentTarget();
+    const url = this.shareUrl();
+
+    if (!content || !url) {
+      return;
+    }
+
+    const title = `${content.title} - Economia com História`;
+
+    if (platform === 'instagram') {
+      await this.copyShareLink();
+      window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    const encodedUrl = encodeURIComponent(url);
+    const targets: Record<'whatsapp' | 'facebook', string> = {
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    };
+
+    window.open(targets[platform], '_blank', 'noopener,noreferrer');
   }
 
   selectCategoryFilter(filter: string): void {
@@ -181,6 +313,11 @@ export class ContentListPage implements OnInit {
 
   updateSearch(event: Event): void {
     this.searchTerm.set((event.target as HTMLInputElement).value);
+    void this.loadContents(1, true);
+  }
+
+  clearSearch(): void {
+    this.searchTerm.set('');
     void this.loadContents(1, true);
   }
 
@@ -199,11 +336,109 @@ export class ContentListPage implements OnInit {
     void this.loadContents(this.pagination().currentPage + 1, false);
   }
 
+  goToPreviousPage(): void {
+    if (!this.hasPreviousPage() || this.isLoadingContents()) {
+      return;
+    }
+
+    void this.loadContents(this.pagination().currentPage - 1, true);
+  }
+
+  goToNextPage(): void {
+    if (!this.hasMoreContents() || this.isLoadingContents()) {
+      return;
+    }
+
+    void this.loadContents(this.pagination().currentPage + 1, true);
+  }
+
   private normalizeText(value: string): string {
     return value
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  private async saveContent(content: ContentListItem): Promise<void> {
+    this.savingContentId.set(content.id);
+    this.saveStatus.set('');
+
+    try {
+      await this.savedContentService.save(content.id);
+      this.saveStatus.set(`"${content.title}" foi guardado.`);
+    } catch {
+      this.saveStatus.set('Não foi possível guardar este conteúdo.');
+    } finally {
+      this.savingContentId.set(null);
+    }
+  }
+
+  private async likeContent(content: ContentListItem): Promise<void> {
+    const currentCount = content.reactionsCount ?? 0;
+    const currentLikedByMe = content.likedByMe ?? false;
+    const nextLikedByMe = !currentLikedByMe;
+    const nextCount = Math.max(0, currentCount + (nextLikedByMe ? 1 : -1));
+
+    this.contents.update((items) =>
+      items.map((item) =>
+        item.id === content.id
+          ? { ...item, reactionsCount: nextCount, likedByMe: nextLikedByMe }
+          : item,
+      ),
+    );
+
+    try {
+      const response = await this.reactionService.toggle(content.id, 'like');
+      const reacted = response.data.reacted;
+      const reactionsCount = Number(response.data.reactions_count ?? nextCount);
+
+      this.contents.update((items) =>
+        items.map((item) =>
+          item.id === content.id
+            ? { ...item, reactionsCount, likedByMe: reacted }
+            : item,
+        ),
+      );
+    } catch {
+      this.contents.update((items) =>
+        items.map((item) =>
+          item.id === content.id
+            ? { ...item, reactionsCount: currentCount, likedByMe: currentLikedByMe }
+            : item,
+        ),
+      );
+    }
+  }
+
+  private absoluteContentUrl(contentId: string): string {
+    return `${window.location.origin}/app/contents/${contentId}`;
+  }
+
+  private applyRouteFilters(): void {
+    const params = this.route.snapshot.queryParamMap;
+    const category = params.get('categoria') ?? params.get('category');
+    const type = params.get('tipo') ?? params.get('type') ?? params.get('contentType');
+    const query = params.get('q') ?? params.get('search');
+
+    if (category) {
+      const normalizedCategory = this.normalizeText(category);
+      const matchingCategory = this.categories().find((item) => this.normalizeText(item.name) === normalizedCategory);
+
+      this.selectedCategoryFilter.set(matchingCategory?.name ?? category);
+    }
+
+    if (type) {
+      const normalizedType = this.normalizeText(type);
+      const matchingType = this.contentTypes().find((item) =>
+        this.normalizeText(item.name) === normalizedType || this.normalizeText(item.slug) === normalizedType,
+      );
+
+      this.selectedContentTypeFilter.set(matchingType?.name ?? type);
+    }
+
+    if (query) {
+      this.searchTerm.set(query);
+    }
   }
 
   private toHomeContent(content: BackendContent): ContentListItem {
@@ -223,6 +458,9 @@ export class ContentListPage implements OnInit {
       authorInitials: this.getInitials(authorName),
       imageUrl: content.image || undefined,
       premium,
+      reactionsCount: Number(content.reactions_count ?? 0),
+      commentsCount: Number(content.comments_count ?? 0),
+      likedByMe: Boolean(content.liked_by_me),
       searchText: content.content || '',
     };
   }
@@ -382,6 +620,30 @@ export class ContentListPage implements OnInit {
       premium: true,
     },
     {
+      id: 'video-cafe',
+      category: 'Economia',
+      contentType: 'Video',
+      meta: '12 Mar 2024 - 18 min video',
+      title: 'Do Cafe ao Petroleo: ciclos economicos que mudaram Angola',
+      excerpt:
+        'Video-aula com imagens de arquivo, mapas e conceitos essenciais para acompanhar as viragens produtivas de Angola.',
+      author: 'Dr. Arnaldo Santos',
+      authorInitials: 'AS',
+      imageUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80',
+    },
+    {
+      id: 'video-ferrovia',
+      category: 'Economia',
+      contentType: 'Video',
+      meta: '18 Mar 2024 - 14 min video',
+      title: 'Ferrovias, portos e mercados: a logistica que move Angola',
+      excerpt:
+        'Uma aula visual sobre corredores de transporte, exportacoes, portos e integracao regional no seculo XX.',
+      author: 'Equipa EH',
+      authorInitials: 'EH',
+      imageUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=900&q=80',
+    },
+    {
       id: 'nzinga-diplomacia',
       category: 'História',
       contentType: 'Texto',
@@ -440,17 +702,32 @@ export class ContentDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly commentService = inject(CommentService);
   private readonly contentService = inject(ContentService);
+  private readonly quizService = inject(QuizService);
   private readonly reactionService = inject(ReactionService);
+  private readonly savedContentService = inject(SavedContentService);
   readonly auth = inject(AuthStateService);
   readonly detail = signal<ContentDetail | null>(null);
   readonly comments = signal<CommentView[]>([]);
   readonly reactionCount = signal(0);
+  readonly likedByMe = signal(false);
   readonly isLoading = signal(true);
   readonly isLoadingComments = signal(false);
   readonly isSavingComment = signal(false);
   readonly isSavingReaction = signal(false);
+  readonly isSavingContent = signal(false);
+  readonly isCommentComposerOpen = signal(false);
+  readonly shareMenuOpen = signal(false);
   readonly commentError = signal('');
   readonly commentSuccess = signal('');
+  readonly reactionError = signal('');
+  readonly saveStatus = signal('');
+  readonly shareStatus = signal('');
+  readonly canUseNativeShare = typeof navigator !== 'undefined' && 'share' in navigator;
+  readonly relatedQuiz = computed(() => {
+    const contentId = this.detail()?.id ?? this.route.snapshot.params['id'];
+
+    return this.quizService.quizzes().find((quiz) => quiz.relatedContent.id === contentId);
+  });
   readonly title = computed(() => this.detail()?.title ?? (this.route.snapshot.params['id'] === 'create' ? 'Criar conteúdo' : 'Conteúdo editorial'));
   readonly isPremiumContent = computed(() => this.detail()?.premium ?? ['imposto-reservas', 'diamantes-luanda-sul', 'politica-monetaria-angola'].includes(this.route.snapshot.params['id']));
 
@@ -480,6 +757,15 @@ export class ContentDetailPage {
     this.auth.requireLoginFor(operation);
   }
 
+  openCommentComposer(event: Event): void {
+    if (!this.auth.isAuthenticated()) {
+      this.requireLogin(event, 'comentar');
+      return;
+    }
+
+    this.isCommentComposerOpen.set(true);
+  }
+
   async react(event: Event): Promise<void> {
     if (!this.auth.isAuthenticated()) {
       this.requireLogin(event, 'reagir');
@@ -493,13 +779,95 @@ export class ContentDetailPage {
     }
 
     this.isSavingReaction.set(true);
+    this.reactionError.set('');
 
     try {
-      await this.reactionService.create(contentId, 'like');
-      await this.loadReactionCount(contentId);
+      const response = await this.reactionService.toggle(contentId, 'like');
+      this.likedByMe.set(response.data.reacted);
+      this.reactionCount.set(Number(response.data.reactions_count ?? this.reactionCount()));
+    } catch {
+      this.reactionError.set('Não foi possível registar a reação.');
     } finally {
       this.isSavingReaction.set(false);
     }
+  }
+
+  async saveContent(event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.auth.isAuthenticated()) {
+      this.auth.requireLoginFor('guardar');
+      return;
+    }
+
+    const contentId = this.detail()?.id;
+
+    if (!contentId || this.isSavingContent()) {
+      return;
+    }
+
+    this.isSavingContent.set(true);
+    this.saveStatus.set('');
+
+    try {
+      await this.savedContentService.save(contentId);
+      this.saveStatus.set('Conteúdo guardado.');
+    } catch {
+      this.saveStatus.set('Não foi possível guardar este conteúdo.');
+    } finally {
+      this.isSavingContent.set(false);
+    }
+  }
+
+  toggleShareMenu(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.shareStatus.set('');
+    this.shareMenuOpen.set(!this.shareMenuOpen());
+  }
+
+  async shareTo(platform: 'native' | 'whatsapp' | 'linkedin' | 'facebook' | 'x' | 'copy', event?: Event): Promise<void> {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    const detail = this.detail();
+
+    if (!detail) {
+      return;
+    }
+
+    const url = this.currentShareUrl();
+    const title = `${detail.title} - Economia com História`;
+
+    if (platform === 'native' && navigator.share) {
+      try {
+        await navigator.share({ title: detail.title, text: title, url });
+        this.shareMenuOpen.set(false);
+      } catch {
+        this.shareMenuOpen.set(false);
+      }
+
+      return;
+    }
+
+    if (platform === 'copy') {
+      await navigator.clipboard?.writeText(url);
+      this.shareStatus.set('Link copiado.');
+      return;
+    }
+
+    const encodedUrl = encodeURIComponent(url);
+    const encodedTitle = encodeURIComponent(title);
+    const targets: Record<'whatsapp' | 'linkedin' | 'facebook' | 'x', string> = {
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+      x: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+    };
+
+    window.open(targets[platform as keyof typeof targets], '_blank', 'noopener,noreferrer');
+    this.shareMenuOpen.set(false);
   }
 
   async submitComment(value: string): Promise<void> {
@@ -520,6 +888,7 @@ export class ContentDetailPage {
       await this.commentService.create(contentId, comment);
       await this.loadComments(contentId);
       this.commentSuccess.set('Comentário publicado com sucesso.');
+      this.isCommentComposerOpen.set(false);
     } catch {
       this.commentError.set('Não foi possível publicar o comentário.');
     } finally {
@@ -560,8 +929,16 @@ export class ContentDetailPage {
   }
 
   private async loadReactionCount(contentId: string): Promise<void> {
-    const counts = await this.reactionService.getCountByType(contentId);
-    this.reactionCount.set(counts.reduce((total, item) => total + Number(item.count || 0), 0));
+    try {
+      const counts = await this.reactionService.getCountByType(contentId);
+      this.reactionCount.set(counts.reduce((total, item) => total + Number(item.count || 0), 0));
+    } catch {
+      this.reactionCount.set(0);
+    }
+  }
+
+  private currentShareUrl(): string {
+    return window.location.href.split('#')[0];
   }
 
   private toCommentView(comment: BackendComment): CommentView {
@@ -615,6 +992,9 @@ export class ContentDetailPage {
       authorBio: content.author?.bio || content.user?.bio || undefined,
       imageUrl: content.image || undefined,
       premium: contentTypeSlug === 'jindungo',
+      reactionsCount: Number(content.reactions_count ?? 0),
+      commentsCount: Number(content.comments_count ?? 0),
+      likedByMe: Boolean(content.liked_by_me),
     };
   }
 
@@ -654,12 +1034,122 @@ export class ContentDetailPage {
   }
 }
 
+@Component({
+  selector: 'app-content-video-detail-page',
+  imports: [RouterLink, PublicNavbarComponent, PublicFooterComponent, BackToTopComponent],
+  templateUrl: './content-video-detail-page.html'
+})
+export class ContentVideoDetailPage {
+  private readonly route = inject(ActivatedRoute);
+  readonly auth = inject(AuthStateService);
+
+  readonly video = computed(() => {
+    const id = this.route.snapshot.params['id'] ?? 'video-cafe';
+    return this.videos.find((item) => item.id === id) ?? this.videos[0];
+  });
+
+  readonly relatedResearch: RelatedResearch[] = [
+    {
+      title: 'A Arquitectura do Lobito: uma cidade portuaria em crise',
+      meta: 'Arquivo - 4.5k visualizacoes',
+      duration: '12:05',
+      imageUrl: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=400&q=80',
+      route: '/app/contents/videos/video-ferrovia',
+    },
+    {
+      title: 'Mudancas cambiais na economia do pos-guerra',
+      meta: 'Economia - 12k visualizacoes',
+      duration: '8:45',
+      imageUrl: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&w=400&q=80',
+      route: '/app/contents/videos/video-inflacao',
+    },
+    {
+      title: 'Documento branco: infraestrutura investindo 1960-1970',
+      meta: 'Pesquisa - 15 min',
+      duration: 'PDF',
+      imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=400&q=80',
+      route: '/app/contents/rotas-comerciais',
+    },
+  ];
+
+  readonly comments: VideoComment[] = [];
+
+  private readonly videos: VideoDetail[] = [
+    {
+      id: 'video-cafe',
+      title: 'Do Cafe ao Petroleo: ciclos economicos que mudaram Angola',
+      date: '12 Marco, 2024',
+      duration: '18:32',
+      frameUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80',
+      author: 'Dr. Arnaldo Santos',
+      authorInitials: 'AS',
+      authorRole: 'Historiador economico senior',
+      summary:
+        'Este ensaio visual explora a transicao da capital e das regioes produtivas de Angola entre economias agricolas, administracao colonial, industrializacao e dependencia petrolifera. Com imagens de arquivo e dados economicos, o video acompanha como infraestruturas, portos e trabalho moldaram a sociedade angolana moderna.',
+      quote:
+        'A passagem da dominancia agricola para a industrializacao nao foi apenas uma mudanca de moeda; foi o nascimento de uma nova classe social angolana.',
+    },
+    {
+      id: 'video-ferrovia',
+      title: 'Ferrovias, portos e mercados: a logistica que move Angola',
+      date: '18 Marco, 2024',
+      duration: '14:32',
+      frameUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=1200&q=80',
+      author: 'Equipa EH',
+      authorInitials: 'EH',
+      authorRole: 'Nucleo de arquivo e visualizacao',
+      summary:
+        'Uma aula visual sobre corredores ferroviarios, portos, exportacoes e integracao regional. O video mostra como as rotas de transporte alteraram mercados locais e ligaram o interior angolano a circuitos comerciais internacionais.',
+      quote:
+        'Cada linha ferroviaria tambem transportava decisoes politicas, expectativas de mercado e novas formas de ocupacao do territorio.',
+    },
+    {
+      id: 'video-inflacao',
+      title: 'Inflacao explicada com exemplos do quotidiano angolano',
+      date: '22 Marco, 2024',
+      duration: '11:18',
+      frameUrl: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&w=1200&q=80',
+      author: 'Nucleo Academico',
+      authorInitials: 'NA',
+      authorRole: 'Educacao economica aplicada',
+      summary:
+        'Conceitos de inflacao, poder de compra, moeda e precos sao apresentados a partir de exemplos familiares do quotidiano angolano, aproximando teoria economica e experiencia social.',
+      quote:
+        'A inflacao torna-se concreta quando o salario, o mercado e a memoria familiar deixam de contar a mesma historia.',
+    },
+  ];
+
+  requireLogin(event: Event, operation: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.auth.requireLoginFor(operation);
+  }
+
+  share(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const video = this.video();
+    const url = window.location.href.split('#')[0];
+    const text = `${video.title} - Economia com História`;
+
+    if (navigator.share) {
+      void navigator.share({ title: video.title, text, url }).catch(() => undefined);
+      return;
+    }
+
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`,
+      '_blank',
+      'noopener,noreferrer',
+    );
+  }
+}
+
 export const CONTENTS_ROUTES: Routes = [
   { path: '', component: ContentListPage },
   { path: 'create', canActivate: [adminGuard], component: ContentDetailPage },
+  { path: 'videos/:id', component: ContentVideoDetailPage },
   { path: ':id', component: ContentDetailPage },
   { path: ':id/edit', canActivate: [adminGuard], component: ContentDetailPage },
 ];
-
-
-

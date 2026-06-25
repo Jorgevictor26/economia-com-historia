@@ -1,7 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthSidePanelComponent } from '../components/auth-side-panel/auth-side-panel.component';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-reset-password-page',
@@ -11,13 +13,20 @@ import { AuthSidePanelComponent } from '../components/auth-side-panel/auth-side-
 })
 export class ResetPasswordPage {
   private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   readonly isLoading = signal(false);
   readonly submitted = signal(false);
   readonly passwordVisible = signal(false);
   readonly confirmPasswordVisible = signal(false);
+  readonly errorMessage = signal('');
+  readonly successMessage = signal('');
 
   readonly form = this.fb.nonNullable.group({
+    email: ['', [Validators.required, Validators.email]],
+    token: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     confirmPassword: ['', [Validators.required]],
   });
@@ -34,6 +43,16 @@ export class ResetPasswordPage {
       (control.touched || this.form.controls.password.touched || this.submitted())
     );
   });
+  readonly emailInvalid = computed(() => this.isInvalid('email'));
+  readonly tokenInvalid = computed(() => this.isInvalid('token'));
+
+  ngOnInit(): void {
+    const query = this.route.snapshot.queryParamMap;
+    const token = query.get('token') ?? this.route.snapshot.paramMap.get('token') ?? '';
+    const email = query.get('email') ?? '';
+
+    this.form.patchValue({ token, email });
+  }
 
   togglePasswordVisibility(): void {
     this.passwordVisible.update((visible) => !visible);
@@ -45,6 +64,8 @@ export class ResetPasswordPage {
 
   async submit(): Promise<void> {
     this.submitted.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
 
     if (this.form.invalid || this.passwordsDoNotMatch() || !this.hasUppercase() || !this.hasNumber()) {
       this.form.markAllAsTouched();
@@ -52,8 +73,26 @@ export class ResetPasswordPage {
     }
 
     this.isLoading.set(true);
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    this.isLoading.set(false);
+
+    try {
+      const { email, token, password, confirmPassword } = this.form.getRawValue();
+      const message = await this.authService.resetPassword({
+        email,
+        token,
+        password,
+        password_confirmation: confirmPassword,
+      });
+
+      this.successMessage.set(message);
+
+      window.setTimeout(() => {
+        void this.router.navigateByUrl('/auth/login');
+      }, 900);
+    } catch (error) {
+      this.errorMessage.set(this.extractErrorMessage(error));
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
   private passwordsDoNotMatch(): boolean {
@@ -65,5 +104,21 @@ export class ResetPasswordPage {
     const control = this.form.controls[controlName];
     return control.invalid && (control.touched || this.submitted());
   }
-}
 
+  private extractErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      const validationErrors = error.error?.errors;
+      const firstError = validationErrors ? Object.values(validationErrors)[0] : null;
+
+      if (Array.isArray(firstError) && firstError[0]) {
+        return String(firstError[0]);
+      }
+
+      if (error.error?.message) {
+        return String(error.error.message);
+      }
+    }
+
+    return 'Não foi possível redefinir a palavra-passe. Verifique o link e tente novamente.';
+  }
+}

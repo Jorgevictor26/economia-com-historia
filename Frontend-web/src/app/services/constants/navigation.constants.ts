@@ -6,6 +6,7 @@ export const DASHBOARD_NAVIGATION: NavigationItem[] = [
   { label: 'Fóruns', route: '/app/forums', icon: 'chat' },
   { label: 'Podcasts', route: '/app/podcasts', icon: 'audio' },
   { label: 'Jindungo', route: '/app/jindungo', icon: 'lock' },
+  { label: 'Guardados', route: '/app/guardados', icon: 'bookmark' },
   { label: 'Perfil', route: '/app/profile', icon: 'user' },
 ];
 

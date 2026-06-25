@@ -13,6 +13,7 @@ class Quiz extends Model
 
     protected $fillable = [
         'user_id',
+        'content_id',
         'title',
         'description',
         'time_limit',
@@ -25,6 +26,11 @@ class Quiz extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function content(): BelongsTo
+    {
+        return $this->belongsTo(Content::class);
     }
 
     public function questions(): HasMany

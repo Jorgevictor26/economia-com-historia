@@ -69,7 +69,9 @@
                     <select [value]="category()" (change)="setCategory($event)" class="h-11 rounded-[8px] border border-[#ded8dd] bg-white px-3 text-[13px] text-[#534345] outline-none focus:border-[#5c1e2f]">
                       <option>Economia</option>
                       <option>Hist&oacute;ria</option>
-                      <option>Textos com Jindungo</option>
+                      @if (auth.canCreateJindungo()) {
+                        <option>Textos com Jindungo</option>
+                      }
                     </select>
                   </label>
                   <label class="grid gap-2">

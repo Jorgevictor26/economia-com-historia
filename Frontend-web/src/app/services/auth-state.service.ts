@@ -5,6 +5,8 @@ import { User, UserRole } from '../models/user.model';
 export class AuthStateService {
   private readonly storageKey = 'economia-com-historia.user';
   private readonly tokenStorageKey = 'economia-com-historia.token';
+  private readonly rememberStorageKey = 'economia-com-historia.remember';
+  private readonly welcomeStorageKey = 'economia-com-historia.show-welcome';
   private readonly userSignal = signal<User | null>(this.readStoredUser());
   private readonly tokenSignal = signal<string | null>(this.readStoredToken());
   private readonly loginPromptSignal = signal<{ operation: string } | null>(null);
@@ -19,6 +21,12 @@ export class AuthStateService {
   readonly canWriteContent = computed(() => ['writer', 'admin', 'super-admin'].includes(this.userSignal()?.role ?? 'student'));
   readonly canModerate = computed(() => ['moderator', 'admin', 'super-admin'].includes(this.userSignal()?.role ?? 'student'));
   readonly isSuperAdmin = computed(() => this.userSignal()?.role === 'super-admin');
+  readonly canManagePlatform = computed(() => ['admin', 'super-admin'].includes(this.userSignal()?.role ?? 'student'));
+  readonly canManageUsers = computed(() => this.canManagePlatform());
+  readonly canPromoteWriters = computed(() => ['admin', 'super-admin'].includes(this.userSignal()?.role ?? 'student'));
+  readonly canPromoteAdmins = computed(() => this.isSuperAdmin());
+  readonly canCreateJindungo = computed(() => this.isSuperAdmin());
+  readonly canManageJindungo = computed(() => this.isSuperAdmin());
   readonly hasPremiumAccess = computed(() => Boolean(this.userSignal()?.hasPremiumAccess || this.isAdmin()));
   readonly canReadJindungo = computed(() => this.hasPremiumAccess());
 
@@ -32,6 +40,7 @@ export class AuthStateService {
       invitedForumIds: [],
       streakDays: 12,
     });
+    this.markWelcomeForNextHomeVisit();
   }
 
   registerStudent(name: string, email: string, avatarUrl = '', biography = ''): void {
@@ -46,15 +55,17 @@ export class AuthStateService {
       invitedForumIds: [],
       streakDays: 0,
     });
+    this.markWelcomeForNextHomeVisit();
   }
 
-  setAuthenticatedUser(user: User, token: string): void {
-    this.setToken(token);
-    this.setUser(user);
+  setAuthenticatedUser(user: User, token: string, remember = true): void {
+    this.setToken(token, remember);
+    this.setUser(user, remember);
+    this.markWelcomeForNextHomeVisit();
   }
 
   updateAuthenticatedUser(user: User): void {
-    this.setUser(user);
+    this.setUser(user, this.shouldRemember());
   }
 
   canAccessForum(roomId: string, visibility: 'public' | 'private'): boolean {
@@ -95,28 +106,44 @@ export class AuthStateService {
     }, 220);
   }
 
-  private setUser(user: User | null): void {
+  consumeWelcomeForHome(): boolean {
+    try {
+      const shouldShowWelcome = window.sessionStorage.getItem(this.welcomeStorageKey) === 'true';
+      window.sessionStorage.removeItem(this.welcomeStorageKey);
+
+      return shouldShowWelcome;
+    } catch {
+      return false;
+    }
+  }
+
+  private setUser(user: User | null, remember = true): void {
     this.userSignal.set(user);
 
     try {
+      window.localStorage.removeItem(this.storageKey);
+      window.sessionStorage.removeItem(this.storageKey);
+
       if (user) {
-        window.localStorage.setItem(this.storageKey, JSON.stringify(user));
-      } else {
-        window.localStorage.removeItem(this.storageKey);
+        this.storage(remember).setItem(this.storageKey, JSON.stringify(user));
       }
     } catch {
       // Storage can be unavailable in restricted browser contexts.
     }
   }
 
-  private setToken(token: string | null): void {
+  private setToken(token: string | null, remember = true): void {
     this.tokenSignal.set(token);
 
     try {
+      window.localStorage.removeItem(this.tokenStorageKey);
+      window.sessionStorage.removeItem(this.tokenStorageKey);
+
       if (token) {
-        window.localStorage.setItem(this.tokenStorageKey, token);
+        this.storage(remember).setItem(this.tokenStorageKey, token);
+        window.localStorage.setItem(this.rememberStorageKey, String(remember));
       } else {
-        window.localStorage.removeItem(this.tokenStorageKey);
+        window.localStorage.removeItem(this.rememberStorageKey);
       }
     } catch {
       // Storage can be unavailable in restricted browser contexts.
@@ -125,7 +152,7 @@ export class AuthStateService {
 
   private readStoredUser(): User | null {
     try {
-      const storedUser = window.localStorage.getItem(this.storageKey);
+      const storedUser = window.localStorage.getItem(this.storageKey) ?? window.sessionStorage.getItem(this.storageKey);
       if (!storedUser) {
         return null;
       }
@@ -138,9 +165,29 @@ export class AuthStateService {
 
   private readStoredToken(): string | null {
     try {
-      return window.localStorage.getItem(this.tokenStorageKey);
+      return window.localStorage.getItem(this.tokenStorageKey) ?? window.sessionStorage.getItem(this.tokenStorageKey);
     } catch {
       return null;
+    }
+  }
+
+  private shouldRemember(): boolean {
+    try {
+      return window.localStorage.getItem(this.rememberStorageKey) !== 'false';
+    } catch {
+      return true;
+    }
+  }
+
+  private storage(remember: boolean): Storage {
+    return remember ? window.localStorage : window.sessionStorage;
+  }
+
+  private markWelcomeForNextHomeVisit(): void {
+    try {
+      window.sessionStorage.setItem(this.welcomeStorageKey, 'true');
+    } catch {
+      // Session storage can be unavailable in restricted browser contexts.
     }
   }
 }

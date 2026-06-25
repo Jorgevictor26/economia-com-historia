@@ -21,9 +21,9 @@ class CommentService
         ]);
     }
 
-    public function getByContent(int $contentId)
+    public function getByContent(int $contentId, array $filters = [])
     {
-        return $this->repository->getByContent($contentId);
+        return $this->repository->getByContent($contentId, $filters);
     }
 
     public function createReply(ReplyCommentDTO $dto)

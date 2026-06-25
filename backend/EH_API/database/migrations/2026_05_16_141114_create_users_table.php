@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('photo')->nullable();
             $table->text('bio')->nullable();
             $table->string('status')->default('active');
+            $table->timestamp('jindungo_subscription_expires_at')->nullable();
             $table->timestamps();
         });
     }

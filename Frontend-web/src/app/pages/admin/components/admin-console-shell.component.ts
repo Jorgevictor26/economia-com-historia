@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthStateService } from '../../../services/auth-state.service';
 import { PublicNavbarComponent } from '../../shared/public-navbar/public-navbar.component';
 
 interface AdminNavItem {
@@ -21,16 +22,29 @@ interface AdminNavGroup {
   templateUrl: './admin-console-shell.component.html'
 })
 export class AdminConsoleShellComponent {
+  readonly auth = inject(AuthStateService);
+
   @Input() homeRoute = '/admin';
   @Input() userInitials = 'JD';
   @Input() userName = 'Joao dos Santos';
-  @Input() userRole = 'Super Admin';
+  @Input() userRole = 'Admin';
   @Input() avatarUrl = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80';
   @Input() activeItem: 'dashboard' | 'statistics' | 'admins' | 'reports' | 'users' | 'subscriptions' | 'quiz' | 'contents' | 'settings' =
     'dashboard';
 
   get navGroups(): AdminNavGroup[] {
-    return [
+    const contentChildren: AdminNavItem[] = [
+      { label: 'Artigo', route: '/admin/contents/create', icon: 'article' },
+      { label: 'Video', route: '/admin/video/create', icon: 'smart_display' },
+      { label: 'Podcast', route: '/admin/podcast/create', icon: 'podcasts' },
+      { label: 'Forum', route: '/admin/forum/create', icon: 'forum' },
+    ];
+
+    if (this.auth.canCreateJindungo()) {
+      contentChildren.push({ label: 'Jindungo', route: '/admin/jindungo/create', icon: 'workspace_premium' });
+    }
+
+    const groups: AdminNavGroup[] = [
       {
         label: 'Plataforma',
         items: [
@@ -41,7 +55,6 @@ export class AdminConsoleShellComponent {
       {
         label: 'Administracao',
         items: [
-          { label: 'Gestao Admins', route: '/super-admin/admins', icon: 'admin_panel_settings', active: this.activeItem === 'admins' },
           { label: 'Gestao Denuncias', route: '/admin/reports', icon: 'report', active: this.activeItem === 'reports' },
           { label: 'Utilizadores', route: '/admin/users', icon: 'group', active: this.activeItem === 'users' },
           { label: 'Subscricoes', route: '/admin/subscriptions', icon: 'workspace_premium', active: this.activeItem === 'subscriptions' },
@@ -51,18 +64,32 @@ export class AdminConsoleShellComponent {
             route: '/admin/contents/create',
             icon: 'article',
             active: this.activeItem === 'contents',
-            children: [
-              { label: 'Artigo', route: '/admin/contents/create', icon: 'article' },
-              { label: 'Video', route: '/admin/video/create', icon: 'smart_display' },
-              { label: 'Podcast', route: '/admin/podcast/create', icon: 'podcasts' },
-              { label: 'Forum', route: '/admin/forum/create', icon: 'forum' },
-            ],
+            children: contentChildren,
           },
         ],
       },
       {
         label: 'Infraestrutura',
         items: [{ label: 'Configuracoes', route: '/admin/settings', icon: 'settings', active: this.activeItem === 'settings' }],
+      },
+    ];
+
+    if (this.auth.canManagePlatform()) {
+      return groups;
+    }
+
+    return [
+      {
+        label: 'Conteudos',
+        items: [
+          {
+            label: 'Criar conteudo',
+            route: '/admin/contents/create',
+            icon: 'article',
+            active: this.activeItem === 'contents',
+            children: contentChildren,
+          },
+        ],
       },
     ];
   }

@@ -12,16 +12,57 @@ class ForumRepository
         return Forum::create($data);
     }
 
-    public function all(): Collection
+    public function all(array $filters = []): Collection
     {
-        return Forum::withCount('topics')
+        return Forum::query()
+            ->where('status', 'approved')
+            ->with(['user', 'reviewer'])
+            ->withCount('topics')
+            ->when($filters['search'] ?? null, function ($query, string $search) {
+                $query->where(function ($searchQuery) use ($search) {
+                    $searchQuery
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
             ->latest()
             ->get();
     }
 
-    public function findById(int $id): ?Forum
+    public function allForModeration(array $filters = []): Collection
     {
-        return Forum::with(['topics.user'])->find($id);
+        return Forum::query()
+            ->with(['user', 'reviewer'])
+            ->withCount('topics')
+            ->when($filters['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
+            ->when($filters['search'] ?? null, function ($query, string $search) {
+                $query->where(function ($searchQuery) use ($search) {
+                    $searchQuery
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->latest()
+            ->get();
+    }
+
+    public function findById(int $id, bool $onlyApproved = true): ?Forum
+    {
+        return Forum::with(['topics.user', 'user', 'reviewer'])
+            ->when($onlyApproved, fn ($query) => $query->where('status', 'approved'))
+            ->find($id);
+    }
+
+    public function updateStatus(Forum $forum, string $status, int $reviewerId): Forum
+    {
+        $forum->update([
+            'status' => $status,
+            'reviewed_by' => $reviewerId,
+            'reviewed_at' => now(),
+        ]);
+
+        return $forum->fresh(['topics.user', 'user', 'reviewer']);
     }
 
     public function update(Forum $forum, array $data): Forum

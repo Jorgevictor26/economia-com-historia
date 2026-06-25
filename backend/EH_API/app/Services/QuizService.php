@@ -15,9 +15,9 @@ class QuizService
     ) {
     }
 
-    public function getAll(): LengthAwarePaginator
+    public function getAll(array $filters = []): LengthAwarePaginator
     {
-        return $this->quizzes->all();
+        return $this->quizzes->all($filters);
     }
 
     public function findById(int $id): ?Quiz

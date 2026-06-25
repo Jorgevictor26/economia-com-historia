@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Content;
+use App\Models\User;
 
 class ContentRepository
 {
@@ -15,6 +16,17 @@ class ContentRepository
     {
         return Content::query()
             ->with(['author', 'category', 'contentType'])
+            ->withCount(['reactions', 'comments'])
+            ->when($filters['user_id'] ?? null, function ($query, $userId) {
+                $query->withExists([
+                    'reactions as liked_by_me' => fn ($reactionQuery) => $reactionQuery
+                        ->where('user_id', $userId)
+                        ->where('reaction_type', 'like'),
+                ]);
+            })
+            ->when(! ($filters['include_jindungo'] ?? false), function ($query) {
+                $query->whereDoesntHave('contentType', fn ($typeQuery) => $typeQuery->where('slug', 'jindungo'));
+            })
             ->when($filters['category_id'] ?? null, fn ($query, $categoryId) => $query->where('category_id', $categoryId))
             ->when($filters['content_type_id'] ?? null, fn ($query, $contentTypeId) => $query->where('content_type_id', $contentTypeId))
             ->when($filters['type'] ?? null, fn ($query, $type) => $query->whereHas('contentType', fn ($typeQuery) => $typeQuery->where('slug', $type)))
@@ -35,7 +47,9 @@ class ContentRepository
 
     public function findById(int $id): ?Content
     {
-        return Content::with(['author', 'category', 'contentType'])->find($id);
+        return Content::with(['author.roles', 'category', 'contentType'])
+            ->withCount(['reactions', 'comments'])
+            ->find($id);
     }
 
     public function update(Content $content, array $data): Content
@@ -45,8 +59,12 @@ class ContentRepository
         return $content->fresh(['author', 'category', 'contentType']);
     }
 
-    public function delete(Content $content): bool
+    public function delete(Content $content, User $deletedBy): bool
     {
+        $content->forceFill([
+            'deleted_by' => $deletedBy->id,
+        ])->save();
+
         return (bool) $content->delete();
     }
 
@@ -61,9 +79,19 @@ class ContentRepository
 
     public function updateMedia(Content $content, string $column, ?string $url): Content
     {
-        $content->update([
+        $updates = [
             $column => $url,
-        ]);
+        ];
+
+        if ($column === 'image_url') {
+            $updates['image'] = null;
+        }
+
+        if ($column === 'video_url') {
+            $updates['video'] = null;
+        }
+
+        $content->update($updates);
 
         return $content->fresh(['author', 'category', 'contentType']);
     }

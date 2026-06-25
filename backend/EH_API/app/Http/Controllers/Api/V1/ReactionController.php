@@ -29,12 +29,12 @@ class ReactionController extends Controller
             $request->reaction_type
         );
 
-        $reaction = $this->service->create($dto);
+        $result = $this->service->toggle($dto);
 
         return response()->json([
-            'message' => 'Reaction added successfully',
-            'data' => $reaction
-        ], 201);
+            'message' => $result['reacted'] ? 'Reaction added successfully' : 'Reaction removed successfully',
+            'data' => $result
+        ]);
     }
 
     public function getByContent(int $contentId)

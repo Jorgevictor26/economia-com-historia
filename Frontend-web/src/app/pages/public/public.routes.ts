@@ -20,6 +20,7 @@ export class LandingPage implements AfterViewInit, OnDestroy {
       text: 'Investigação profunda desde as origens pré-coloniais até à modernidade.',
       action: 'Explorar',
       route: '/app/contents',
+      queryParams: { categoria: 'História' },
       image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=900&q=80',
     },
     {
@@ -27,13 +28,15 @@ export class LandingPage implements AfterViewInit, OnDestroy {
       text: 'Análise rigorosa de fluxos, mercados e políticas de desenvolvimento nacional.',
       action: 'Explorar',
       route: '/app/contents',
+      queryParams: { categoria: 'Economia' },
       image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80',
     },
     {
       title: 'Jindungo',
       text: 'Acesso a conteúdos exclusivos, relatórios detalhados e insights para subscritores.',
       action: 'Explorar',
-      route: '/app/subscriptions',
+      route: '/app/contents',
+      queryParams: { tipo: 'Jindungo' },
       image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80',
     },
     {
@@ -41,29 +44,58 @@ export class LandingPage implements AfterViewInit, OnDestroy {
       text: 'Entrevistas e debates narrados por vozes experientes.',
       action: 'Explorar',
       route: '/app/contents',
+      queryParams: { tipo: 'Podcast' },
       image: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&w=900&q=80',
     },
   ];
 
   readonly podcasts = [
     {
-      title: 'As Rotas Comerciais do Reino do Kongo',
-      text: 'Uma análise sobre como as trocas comerciais moldaram a diplomacia regional.',
+      title: 'Ep. 42: O Boom do Petr\u00f3leo e o Futuro',
       duration: '45 min',
-      image: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=900&q=80',
+      visual: 'mic',
+      displayTitle: 'Ep. 42: O Boom do Petr\u00f3leo e o Futuro',
     },
     {
-      title: 'A Evolução da Moeda em Angola',
-      text: 'Do Zimbo ao Kwanza: uma jornada pela história numismática nacional.',
+      title: 'Ep. 41: Mem\u00f3rias da Rota do Sul',
       duration: '38 min',
-      image: 'https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?auto=format&fit=crop&w=900&q=80',
+      visual: 'radio',
+      displayTitle: 'Ep. 41: Mem\u00f3rias da Rota do Sul',
     },
     {
-      title: 'Desenvolvimento Industrial Pós-Independência',
-      text: 'Os desafios e vitórias da industrialização angolana no século XX.',
+      title: 'Ep. 40: Entrevista com a Reitora do ISPTEC',
       duration: '52 min',
-      image: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=900&q=80',
+      visual: 'wave',
+      displayTitle: 'Ep. 40: Entrevista com a Reitora do ISPTEC',
     },
+  ];
+
+  readonly forumHighlights = [
+    {
+      title: 'O Impacto da Diversifica\u00e7\u00e3o Econ\u00f3mica no Kwanza',
+      meta: 'Iniciado por Dr. Manuel dos Santos - h\u00e1 2 horas',
+      comments: '45',
+      views: '1.2k',
+    },
+    {
+      title: 'Arqueologia Industrial no Sul de Angola',
+      meta: 'Iniciado por Prof.\u00aa Ana Paula - h\u00e1 5 horas',
+      comments: '12',
+      views: '300',
+    },
+  ];
+
+  readonly forumChannels = [
+    { icon: 'public', label: 'F\u00f3rum Aberto: Atualidade' },
+    { icon: 'lock', label: 'Grupo de Investiga\u00e7\u00e3o: ISPTEC' },
+    { icon: 'groups', label: 'Semin\u00e1rio de Pos-Gradua\u00e7\u00e3o' },
+  ];
+
+  readonly podcastMeterBars = [
+    { height: '10px' },
+    { height: '16px' },
+    { height: '8px' },
+    { height: '20px' },
   ];
 
   readonly institutionalPoints = [

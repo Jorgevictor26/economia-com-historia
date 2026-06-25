@@ -1,5 +1,6 @@
 import { Component, computed, signal } from '@angular/core';
 import { RouterLink, Routes } from '@angular/router';
+import { adminDashboardGuard, contentWriterGuard, jindungoManagerGuard, platformManagerGuard } from '../../services/role-access.guards';
 import { AdminConsoleShellComponent } from './components/admin-console-shell.component';
 import { AdminEditorialSectionComponent } from './components/admin-editorial-section.component';
 import { AdminArticleCreatePage as AdminArticleCreateStandalonePage } from './create/admin-article-create.page';
@@ -8,6 +9,13 @@ import { AdminJindungoCreatePage } from './create/admin-jindungo-create.page';
 import { AdminPodcastCreatePage } from './create/admin-podcast-create.page';
 import { AdminQuizCreatePage as AdminQuizCreateStandalonePage } from './create/admin-quiz-create.page';
 import { AdminVideoCreatePage } from './create/admin-video-create.page';
+import { AdminContentsPage } from './pages/contents/admin-contents.page';
+import { AdminDashboardPage } from './pages/dashboard/admin-dashboard.page';
+import { AdminReportsPage } from './pages/reports/admin-reports.page';
+import { AdminSettingsPage } from './pages/settings/admin-settings.page';
+import { AdminStatisticsPage } from './pages/statistics/admin-statistics.page';
+import { AdminSubscriptionsPage } from './pages/subscriptions/admin-subscriptions.page';
+import { AdminUsersPage } from './pages/users/admin-users.page';
 
 interface AdminMetric {
   label: string;
@@ -155,21 +163,28 @@ export class AdminQuizCreatePage{
 }
 
 export const ADMIN_ROUTES: Routes = [
-  { path: 'quiz', component: AdminQuizCreateStandalonePage },
+  { path: '', component: AdminDashboardPage, canActivate: [adminDashboardGuard], pathMatch: 'full' },
+  { path: 'dashboard', redirectTo: '', pathMatch: 'full' },
+  { path: 'statistics', component: AdminStatisticsPage, canActivate: [platformManagerGuard] },
+  { path: 'contents', component: AdminContentsPage, canActivate: [platformManagerGuard] },
+  { path: 'users', component: AdminUsersPage, canActivate: [platformManagerGuard] },
+  { path: 'subscriptions', component: AdminSubscriptionsPage, canActivate: [platformManagerGuard] },
+  { path: 'reports', component: AdminReportsPage, canActivate: [platformManagerGuard] },
+  { path: 'settings', component: AdminSettingsPage, canActivate: [platformManagerGuard] },
+  { path: 'quiz', component: AdminQuizCreateStandalonePage, canActivate: [platformManagerGuard] },
   { path: 'quizzes', redirectTo: 'quiz' },
-  { path: 'podcast/create', component: AdminPodcastCreatePage },
+  { path: 'podcast/create', component: AdminPodcastCreatePage, canActivate: [contentWriterGuard] },
   { path: 'podcasts/create', redirectTo: 'podcast/create' },
-  { path: 'jindungo/create', component: AdminJindungoCreatePage },
+  { path: 'jindungo/create', component: AdminJindungoCreatePage, canActivate: [jindungoManagerGuard] },
   { path: 'jindungos/create', redirectTo: 'jindungo/create' },
   { path: 'contents/jindungo/create', redirectTo: 'jindungo/create' },
-  { path: 'video/create', component: AdminVideoCreatePage },
+  { path: 'video/create', component: AdminVideoCreatePage, canActivate: [contentWriterGuard] },
   { path: 'videos/create', redirectTo: 'video/create' },
   { path: 'contents/video/create', redirectTo: 'video/create' },
-  { path: 'forum/create', component: AdminForumCreatePage },
+  { path: 'forum/create', component: AdminForumCreatePage, canActivate: [contentWriterGuard] },
   { path: 'forums/create', redirectTo: 'forum/create' },
   { path: 'contents/forum/create', redirectTo: 'forum/create' },
-  { path: 'contents/create', component: AdminArticleCreateStandalonePage },
-  { path: '', component: AdminPage },
-  { path: ':section', component: AdminPage },
+  { path: 'contents/create', component: AdminArticleCreateStandalonePage, canActivate: [contentWriterGuard] },
+  { path: '**', redirectTo: '' },
 ];
 

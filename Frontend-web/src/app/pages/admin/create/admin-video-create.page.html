@@ -131,7 +131,9 @@
                     <option>Hist&oacute;ria Econ&oacute;mica</option>
                     <option>Economia</option>
                     <option>Hist&oacute;ria</option>
-                    <option>Textos com Jindungo</option>
+                    @if (auth.canCreateJindungo()) {
+                      <option>Textos com Jindungo</option>
+                    }
                   </select>
                 </label>
                 <label class="grid gap-2">

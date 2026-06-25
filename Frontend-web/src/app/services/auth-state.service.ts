@@ -21,6 +21,12 @@ export class AuthStateService {
   readonly canWriteContent = computed(() => ['writer', 'admin', 'super-admin'].includes(this.userSignal()?.role ?? 'student'));
   readonly canModerate = computed(() => ['moderator', 'admin', 'super-admin'].includes(this.userSignal()?.role ?? 'student'));
   readonly isSuperAdmin = computed(() => this.userSignal()?.role === 'super-admin');
+  readonly canManagePlatform = computed(() => ['admin', 'super-admin'].includes(this.userSignal()?.role ?? 'student'));
+  readonly canManageUsers = computed(() => this.canManagePlatform());
+  readonly canPromoteWriters = computed(() => ['admin', 'super-admin'].includes(this.userSignal()?.role ?? 'student'));
+  readonly canPromoteAdmins = computed(() => this.isSuperAdmin());
+  readonly canCreateJindungo = computed(() => this.isSuperAdmin());
+  readonly canManageJindungo = computed(() => this.isSuperAdmin());
   readonly hasPremiumAccess = computed(() => Boolean(this.userSignal()?.hasPremiumAccess || this.isAdmin()));
   readonly canReadJindungo = computed(() => this.hasPremiumAccess());
 

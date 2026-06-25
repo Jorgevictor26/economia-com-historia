@@ -1,5 +1,6 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthStateService } from '../../../services/auth-state.service';
 import { AdminConsoleShellComponent } from '../components/admin-console-shell.component';
 
 @Component({
@@ -8,6 +9,7 @@ import { AdminConsoleShellComponent } from '../components/admin-console-shell.co
   templateUrl: './admin-article-create.page.html'
 })
 export class AdminArticleCreatePage {
+  readonly auth = inject(AuthStateService);
   readonly title = signal('');
   readonly summary = signal('');
   readonly category = signal('Selecione uma categoria');

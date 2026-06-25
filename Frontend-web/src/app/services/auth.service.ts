@@ -108,16 +108,16 @@ export class AuthService {
       return 'super-admin';
     }
 
+    if (roleNames.includes('admin')) {
+      return 'admin';
+    }
+
     if (roleNames.includes('moderator') || roleNames.includes('moderador')) {
       return 'moderator';
     }
 
     if (roleNames.includes('writer') || roleNames.includes('escritor')) {
       return 'writer';
-    }
-
-    if (roleNames.includes('admin')) {
-      return 'admin';
     }
 
     return 'student';

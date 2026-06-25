@@ -1,5 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthStateService } from '../../../../services/auth-state.service';
 import { AdminConsoleShellComponent } from '../../components/admin-console-shell.component';
 
 interface AdminMetric {
@@ -21,6 +22,8 @@ interface StudentRank {
   templateUrl: './admin-dashboard.page.html',
 })
 export class AdminDashboardPage {
+  readonly auth = inject(AuthStateService);
+
   readonly topStudentsSignal = signal<StudentRank[]>([
     { position: 1, name: 'Carlos Tchipia', course: 'Gestão', score: 950 },
     { position: 2, name: 'Jussana Paim', course: 'Contabilidade', score: 920 },

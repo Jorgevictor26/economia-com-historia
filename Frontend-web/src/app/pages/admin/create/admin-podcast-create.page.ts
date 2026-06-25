@@ -1,5 +1,6 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthStateService } from '../../../services/auth-state.service';
 import { AdminConsoleShellComponent } from '../components/admin-console-shell.component';
 import { AdminEditorialSectionComponent } from '../components/admin-editorial-section.component';
 
@@ -27,6 +28,7 @@ import { AdminEditorialSectionComponent } from '../components/admin-editorial-se
   ],
 })
 export class AdminPodcastCreatePage {
+  readonly auth = inject(AuthStateService);
   readonly title = signal('');
   readonly category = signal('Economia');
   readonly playlist = signal('');

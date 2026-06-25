@@ -1,5 +1,6 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthStateService } from '../../../services/auth-state.service';
 import { AdminConsoleShellComponent } from '../components/admin-console-shell.component';
 
 @Component({
@@ -26,6 +27,7 @@ import { AdminConsoleShellComponent } from '../components/admin-console-shell.co
   ],
 })
 export class AdminVideoCreatePage {
+  readonly auth = inject(AuthStateService);
   readonly sourceMode = signal<'url' | 'upload'>('url');
   readonly videoUrl = signal('');
   readonly videoUploaded = signal(false);

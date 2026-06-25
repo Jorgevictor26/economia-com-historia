@@ -55,7 +55,6 @@ export class AdminConsoleShellComponent {
       {
         label: 'Administracao',
         items: [
-          { label: 'Gestao Admins', route: '/super-admin/admins', icon: 'admin_panel_settings', active: this.activeItem === 'admins' },
           { label: 'Gestao Denuncias', route: '/admin/reports', icon: 'report', active: this.activeItem === 'reports' },
           { label: 'Utilizadores', route: '/admin/users', icon: 'group', active: this.activeItem === 'users' },
           { label: 'Subscricoes', route: '/admin/subscriptions', icon: 'workspace_premium', active: this.activeItem === 'subscriptions' },
@@ -75,15 +74,8 @@ export class AdminConsoleShellComponent {
       },
     ];
 
-    if (this.auth.isSuperAdmin()) {
-      return groups;
-    }
-
     if (this.auth.canManagePlatform()) {
-      return groups.map((group) => ({
-        ...group,
-        items: group.items.filter((item) => item.route !== '/super-admin/admins'),
-      }));
+      return groups;
     }
 
     return [

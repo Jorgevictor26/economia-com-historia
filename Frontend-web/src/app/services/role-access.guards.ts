@@ -27,6 +27,13 @@ export const platformManagerGuard: CanActivateFn = () => {
   return auth.canManagePlatform() || router.createUrlTree(['/admin/contents/create']);
 };
 
+export const userManagerGuard: CanActivateFn = () => {
+  const auth = inject(AuthStateService);
+  const router = inject(Router);
+
+  return auth.canManageUsers() || router.createUrlTree(['/admin/contents/create']);
+};
+
 export const jindungoManagerGuard: CanActivateFn = () => {
   const auth = inject(AuthStateService);
   const router = inject(Router);

@@ -1,6 +1,6 @@
 import { Component, computed, signal } from '@angular/core';
 import { RouterLink, Routes } from '@angular/router';
-import { adminDashboardGuard, contentWriterGuard, jindungoManagerGuard, platformManagerGuard } from '../../services/role-access.guards';
+import { adminDashboardGuard, contentWriterGuard, jindungoManagerGuard, platformManagerGuard, userManagerGuard } from '../../services/role-access.guards';
 import { AdminConsoleShellComponent } from './components/admin-console-shell.component';
 import { AdminEditorialSectionComponent } from './components/admin-editorial-section.component';
 import { AdminArticleCreatePage as AdminArticleCreateStandalonePage } from './create/admin-article-create.page';
@@ -166,15 +166,19 @@ export const ADMIN_ROUTES: Routes = [
   { path: '', component: AdminDashboardPage, canActivate: [adminDashboardGuard], pathMatch: 'full' },
   { path: 'dashboard', redirectTo: '', pathMatch: 'full' },
   { path: 'statistics', component: AdminStatisticsPage, canActivate: [platformManagerGuard] },
-  { path: 'contents', component: AdminContentsPage, canActivate: [platformManagerGuard] },
-  { path: 'users', component: AdminUsersPage, canActivate: [platformManagerGuard] },
+  { path: 'contents', component: AdminContentsPage, canActivate: [contentWriterGuard] },
+  { path: 'users', component: AdminUsersPage, canActivate: [userManagerGuard] },
   { path: 'subscriptions', component: AdminSubscriptionsPage, canActivate: [platformManagerGuard] },
   { path: 'reports', component: AdminReportsPage, canActivate: [platformManagerGuard] },
   { path: 'settings', component: AdminSettingsPage, canActivate: [platformManagerGuard] },
   { path: 'quiz', component: AdminQuizCreateStandalonePage, canActivate: [platformManagerGuard] },
+  { path: 'quiz/create', redirectTo: 'quiz' },
   { path: 'quizzes', redirectTo: 'quiz' },
+  { path: 'quizzes/create', redirectTo: 'quiz' },
+  { path: 'contents/quiz/create', redirectTo: 'quiz' },
   { path: 'podcast/create', component: AdminPodcastCreatePage, canActivate: [contentWriterGuard] },
   { path: 'podcasts/create', redirectTo: 'podcast/create' },
+  { path: 'contents/podcast/create', redirectTo: 'podcast/create' },
   { path: 'jindungo/create', component: AdminJindungoCreatePage, canActivate: [jindungoManagerGuard] },
   { path: 'jindungos/create', redirectTo: 'jindungo/create' },
   { path: 'contents/jindungo/create', redirectTo: 'jindungo/create' },
@@ -185,6 +189,9 @@ export const ADMIN_ROUTES: Routes = [
   { path: 'forums/create', redirectTo: 'forum/create' },
   { path: 'contents/forum/create', redirectTo: 'forum/create' },
   { path: 'contents/create', component: AdminArticleCreateStandalonePage, canActivate: [contentWriterGuard] },
+  { path: 'article/create', redirectTo: 'contents/create' },
+  { path: 'articles/create', redirectTo: 'contents/create' },
+  { path: 'contents/article/create', redirectTo: 'contents/create' },
   { path: '**', redirectTo: '' },
 ];
 

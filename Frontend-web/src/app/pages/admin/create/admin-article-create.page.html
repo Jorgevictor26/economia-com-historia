@@ -1,142 +1,294 @@
-    <app-admin-console-shell activeItem="contents">
-      <main class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_260px]">
-        <section class="min-w-0 rounded-[8px] border border-[#ece7ea] bg-white px-8 py-6 shadow-[0_18px_45px_rgba(27,22,30,0.05)] max-md:px-5">
-          <header class="flex items-start justify-between gap-6">
-            <div>
-              <h1 class="mt-7 font-display text-[28px] font-extrabold leading-none text-[#4a1425]">Novo artigo</h1>
-            </div>
+<app-admin-console-shell activeItem="contents">
+  <main class="mx-auto grid max-w-6xl gap-5">
+    <section
+      class="rounded-[8px] border border-[#ece7ea] bg-white px-8 py-7 shadow-[0_18px_45px_rgba(27,22,30,0.05)] max-md:px-5">
+      <header class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h1 class="mt-6 font-display text-[30px] font-extrabold leading-tight text-[#4a1425]">Novo artigo</h1>
+        </div>
 
-            <ol class="flex shrink-0 items-center gap-3 text-[11px] font-semibold text-[#aaa3aa] max-md:hidden">
-              <li class="flex items-center gap-1.5 text-[#7d193b]"><span class="grid size-5 place-items-center rounded-full border border-[#7d193b] text-[11px]">1</span> Dados</li>
-              <li class="flex items-center gap-1.5"><span class="grid size-5 place-items-center rounded-full border border-[#d9d3d7]">2</span> Estrutura</li>
-              <li class="flex items-center gap-1.5"><span class="grid size-5 place-items-center rounded-full border border-[#d9d3d7]">3</span> Revis&atilde;o</li>
-            </ol>
-          </header>
+        <ol class="flex w-full max-w-[520px] items-center text-[12px] font-extrabold text-[#a9a1a6]">
+          <li class="flex min-w-0 flex-1 items-center gap-2" [class.text-[#7d193b]]="currentStep() === 1">
+            <span class="grid size-7 shrink-0 place-items-center rounded-full border text-[12px]"
+              [class.border-[#7d193b]]="currentStep() === 1" [class.bg-[#7d193b]]="currentStep() === 1"
+              [class.text-white]="currentStep() === 1" [class.border-[#d9d3d7]]="currentStep() !== 1">1</span>
+            <span class="truncate">Dados</span>
+          </li>
+          <li class="mx-3 h-px flex-1 bg-[#e3d7dd]" aria-hidden="true"></li>
+          <li class="flex min-w-0 flex-1 items-center gap-2" [class.text-[#7d193b]]="currentStep() === 2">
+            <span class="grid size-7 shrink-0 place-items-center rounded-full border text-[12px]"
+              [class.border-[#7d193b]]="currentStep() === 2" [class.bg-[#7d193b]]="currentStep() === 2"
+              [class.text-white]="currentStep() === 2" [class.border-[#d9d3d7]]="currentStep() !== 2">2</span>
+            <span class="truncate">Conte&uacute;do</span>
+          </li>
+          <li class="mx-3 h-px flex-1 bg-[#e3d7dd]" aria-hidden="true"></li>
+          <li class="flex min-w-0 items-center gap-2" [class.text-[#7d193b]]="currentStep() === 3">
+            <span class="grid size-7 shrink-0 place-items-center rounded-full border text-[12px]"
+              [class.border-[#7d193b]]="currentStep() === 3" [class.bg-[#7d193b]]="currentStep() === 3"
+              [class.text-white]="currentStep() === 3" [class.border-[#d9d3d7]]="currentStep() !== 3">3</span>
+            <span>Capa</span>
+          </li>
+        </ol>
+      </header>
 
-          <form class="mt-7 grid gap-5" (submit)="$event.preventDefault()">
-            <section class="rounded-[8px] border border-[#e5dde2] bg-white p-5">
-              <h2 class="flex items-center gap-3 text-[18px] font-extrabold text-[#5f0e28]">
-                Dados principaís
-              </h2>
+      <form class="mt-8" (submit)="$event.preventDefault()">
+        @if (currentStep() === 1) {
+        <section class="rounded-[8px] border border-[#e5dde2] bg-[#fffdfc] p-6">
+          <h2 class="text-[20px] font-extrabold text-[#5f0e28]">Dados principais</h2>
 
-              <label class="mt-6 grid gap-2">
-                <span class="text-[13px] font-bold text-[#554d57]">T&iacute;tulo do artigo <b class="text-[#c43f58]">*</b></span>
-                <input type="text" placeholder="Ex: A Evolu&ccedil;&atilde;o do Com&eacute;rcio no Reino do Kongo" maxlength="100" [value]="title()" (input)="setTitle($event)" class="h-12 rounded-[8px] border border-[#ded8dd] bg-white px-4 text-[14px] text-[#2c2729] outline-none placeholder:text-[#9a949d] focus:border-[#9b1640]" />
-                <span class="-mt-1 text-right text-[12px] text-[#89828b]">{{ title().length }}/100</span>
-              </label>
+          <label class="mt-6 grid gap-2">
+            <span class="text-[13px] font-bold text-[#554d57]">T&iacute;tulo do artigo <b
+                class="text-[#c43f58]">*</b></span>
+            <input type="text" placeholder="Ex: A Evolu&ccedil;&atilde;o do Com&eacute;rcio no Reino do Kongo"
+              maxlength="100" [value]="title()" (input)="setTitle($event)"
+              class="h-12 rounded-[8px] border border-[#ded8dd] bg-white px-4 text-[14px] text-[#2c2729] outline-none placeholder:text-[#9a949d] focus:border-[#9b1640]" />
+            <span class="-mt-1 text-right text-[12px] text-[#89828b]">{{ title().length }}/100</span>
+          </label>
 
-              <label class="mt-4 grid gap-2">
-                <span class="text-[13px] font-bold text-[#554d57]">Resumo acad&eacute;mico <b class="text-[#c43f58]">*</b></span>
-                <textarea placeholder="S&iacute;ntese do objetivo, contexto hist&oacute;rico e conceitos econ&oacute;micos abordados..." maxlength="500" [value]="summary()" (input)="setSummary($event)" class="min-h-[104px] resize-y rounded-[8px] border border-[#ded8dd] bg-white px-4 py-3 text-[14px] leading-6 text-[#2c2729] outline-none placeholder:text-[#9a949d] focus:border-[#9b1640]"></textarea>
-                <span class="-mt-1 text-right text-[12px] text-[#89828b]">{{ summary().length }}/500</span>
-              </label>
+          <label class="mt-4 grid gap-2">
+            <span class="text-[13px] font-bold text-[#554d57]">Resumo acad&eacute;mico <b
+                class="text-[#c43f58]">*</b></span>
+            <textarea
+              placeholder="S&iacute;ntese do objetivo, contexto hist&oacute;rico e conceitos econ&oacute;micos abordados..."
+              maxlength="500" [value]="summary()" (input)="setSummary($event)"
+              class="min-h-[126px] resize-y rounded-[8px] border border-[#ded8dd] bg-white px-4 py-3 text-[14px] leading-6 text-[#2c2729] outline-none placeholder:text-[#9a949d] focus:border-[#9b1640]"></textarea>
+            <span class="-mt-1 text-right text-[12px] text-[#89828b]">{{ summary().length }}/500</span>
+          </label>
 
-              <div class="mt-4 grid gap-4 md:grid-cols-3">
-                <label class="grid gap-2">
-                  <span class="text-[13px] font-bold text-[#554d57]">Categoria <b class="text-[#c43f58]">*</b></span>
-                  <select [value]="category()" (change)="setCategory($event)" class="h-11 rounded-[8px] border border-[#ded8dd] bg-white px-3 text-[13px] text-[#8a828b] outline-none focus:border-[#9b1640]">
-                    <option>Selecione uma categoria</option>
-                    <option>Economia</option>
-                    <option>Hist&oacute;ria</option>
-                    @if (auth.canCreateJindungo()) {
-                      <option>Textos com Jindungo</option>
-                    }
-                  </select>
-                </label>
-                <label class="grid gap-2">
-                  <span class="text-[13px] font-bold text-[#554d57]">Tipo <b class="text-[#c43f58]">*</b></span>
-                  <select [value]="type()" (change)="setType($event)" class="h-11 rounded-[8px] border border-[#ded8dd] bg-white px-3 text-[13px] text-[#8a828b] outline-none focus:border-[#9b1640]">
-                    <option>Selecione o tipo</option>
-                    <option>Artigo</option>
-                    <option>Ensaio</option>
-                    <option>Estudo de caso</option>
-                  </select>
-                </label>
-                <label class="grid gap-2">
-                  <span class="text-[13px] font-bold text-[#554d57]">Tempo de leitura <b class="text-[#c43f58]">*</b></span>
-                  <select [value]="readTime()" (change)="setReadTime($event)" class="h-11 rounded-[8px] border border-[#ded8dd] bg-white px-3 text-[13px] text-[#8a828b] outline-none focus:border-[#9b1640]">
-                    <option>Selecione</option>
-                    <option>5 min</option>
-                    <option>10 min</option>
-                    <option>15 min</option>
-                  </select>
-                </label>
-              </div>
-            </section>
-
-            <section class="rounded-[8px] border border-[#e5dde2] bg-white p-5">
-              <h2 class="flex items-center gap-3 text-[18px] font-extrabold text-[#8a1238]">
-                <span class="grid size-5 place-items-center text-[20px] leading-none" style="font-family: 'Material Symbols Outlined'; font-feature-settings: 'liga'; -webkit-font-feature-settings: 'liga'; font-variation-settings: 'FILL' 0, 'wght' 430, 'GRAD' 0, 'opsz' 24;" aria-hidden="true">edit_square</span>
-                Conte&uacute;do do artigo
-              </h2>
-
-              <div class="mt-5 overflow-hidden rounded-[8px] border border-[#ded8dd] bg-white">
-                <div class="flex min-h-11 flex-wrap items-center gap-4 border-b border-[#ebe5e8] px-4 text-[14px] text-[#4f4852]">
-                  <select aria-label="Estilo de texto" class="h-8 bg-transparent text-[13px] outline-none">
-                    <option>Normal</option>
-                    <option>T&iacute;tulo</option>
-                    <option>Cita&ccedil;&atilde;o</option>
-                  </select>
-                  <button type="button" class="grid size-7 place-items-center font-extrabold" aria-label="Negrito">B</button>
-                  <button type="button" class="grid size-7 place-items-center italic" aria-label="It&aacute;lico">I</button>
-                  <button type="button" class="grid size-7 place-items-center underline" aria-label="Sublinhado">U</button>
-                  <button type="button" class="grid size-7 place-items-center" aria-label="Lista"><span style="font-family: 'Material Symbols Outlined'; font-feature-settings: 'liga'; -webkit-font-feature-settings: 'liga';">format_list_bulleted</span></button>
-                  <button type="button" class="grid size-7 place-items-center" aria-label="Alinhar"><span style="font-family: 'Material Symbols Outlined'; font-feature-settings: 'liga'; -webkit-font-feature-settings: 'liga';">format_align_left</span></button>
-                  <button type="button" class="grid size-7 place-items-center" aria-label="Link"><span style="font-family: 'Material Symbols Outlined'; font-feature-settings: 'liga'; -webkit-font-feature-settings: 'liga';">link</span></button>
-                  <button type="button" class="grid size-7 place-items-center" aria-label="Imagem"><span style="font-family: 'Material Symbols Outlined'; font-feature-settings: 'liga'; -webkit-font-feature-settings: 'liga';">image</span></button>
-                  <button type="button" class="grid size-7 place-items-center" aria-label="Citacao">&rdquo;</button>
-                  <button type="button" class="grid size-7 place-items-center" aria-label="Tabela">&#9638;</button>
-                  <button type="button" class="grid size-7 place-items-center" aria-label="Formula">T<sub>x</sub></button>
-                  <button type="button" class="grid size-7 place-items-center" aria-label="Ajuda">?</button>
-                </div>
-                <textarea [value]="body()" (input)="setBody($event)" class="min-h-[210px] w-full resize-y border-0 px-4 py-4 text-[15px] leading-7 text-[#2c2729] outline-none" placeholder="Escreva o conte&uacute;do aqui..."></textarea>
-              </div>
-            </section>
-          </form>
-
-          @if (showPreview()) {
-            <section class="mt-5 rounded-[8px] border border-[#e5dde2] bg-[#fbfaf7] p-5">
-              <div class="flex flex-wrap items-center justify-between gap-3">
-                <h2 class="font-display text-[22px] font-extrabold text-[#4a1425]">{{ previewTitle() }}</h2>
-                <span class="rounded-[999px] bg-white px-3 py-1 text-[11px] font-extrabold uppercase text-[#735c00]">{{ status() }}</span>
-              </div>
-              <p class="mt-3 text-[13px] leading-6 text-[#69616a]">{{ previewSummary() }}</p>
-              <div class="mt-4 flex flex-wrap gap-2">
-                <span class="rounded-[999px] bg-white px-3 py-1 text-[11px] font-bold text-[#8a1238]">{{ categoryLabel() }}</span>
-                <span class="rounded-[999px] bg-white px-3 py-1 text-[11px] font-bold text-[#8a1238]">{{ typeLabel() }}</span>
-                <span class="rounded-[999px] bg-white px-3 py-1 text-[11px] font-bold text-[#8a1238]">{{ readTimeLabel() }}</span>
-              </div>
-            </section>
-          }
+          <div class="mt-4 grid gap-4 md:grid-cols-3">
+            <label class="grid gap-2">
+              <span class="text-[13px] font-bold text-[#554d57]">Categoria <b class="text-[#5f0e28]">*</b></span>
+              <select [value]="category()" (change)="setCategory($event)"
+                class="h-11 cursor-pointer rounded-[8px] border border-[#ded8dd] bg-white px-3 text-[13px] text-[#8a828b] outline-none transition hover:border-[#cbbcc5] focus:border-[#9b1640]">
+                <option>Selecione uma categoria</option>
+                <option>Economia</option>
+                <option>Hist&oacute;ria</option>
+                @if (auth.canCreateJindungo()) {
+                <option>Textos com Jindungo</option>
+                }
+              </select>
+            </label>
+            <label class="grid gap-2">
+              <span class="text-[13px] font-bold text-[#554d57]">Tipo <b class="text-[#5f0e28]">*</b></span>
+              <select [value]="type()" (change)="setType($event)"
+                class="h-11 cursor-pointer rounded-[8px] border border-[#ded8dd] bg-white px-3 text-[13px] text-[#8a828b] outline-none transition hover:border-[#cbbcc5] focus:border-[#9b1640]">
+                <option>Selecione o tipo</option>
+                <option>Artigo</option>
+                <option>Ensaio</option>
+                <option>Estudo de caso</option>
+              </select>
+            </label>
+            <label class="grid gap-2">
+              <span class="text-[13px] font-bold text-[#554d57]">Tempo de leitura <b class="text-[#5f0e28]">*</b></span>
+              <select [value]="readTime()" (change)="setReadTime($event)"
+                class="h-11 cursor-pointer rounded-[8px] border border-[#ded8dd] bg-white px-3 text-[13px] text-[#8a828b] outline-none transition hover:border-[#cbbcc5] focus:border-[#9b1640]">
+                <option>Selecione</option>
+                <option>5 min</option>
+                <option>10 min</option>
+                <option>15 min</option>
+              </select>
+            </label>
+          </div>
         </section>
 
-        <aside class="grid content-start gap-5">
-          <section class="rounded-[8px] border border-[#ece7ea] bg-white p-5 shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
-            <h2 class="text-[16px] font-extrabold text-[#39333c]">Imagem de capa</h2>
-            <button type="button" (click)="coverUploaded.set(!coverUploaded())" class="mt-5 grid min-h-[156px] w-full place-items-center rounded-[8px] border border-dashed border-[#cfc7ce] bg-white text-center">
-              <span>
-                <span class="mx-auto grid size-10 place-items-center text-[30px] text-[#85808a]" style="font-family: 'Material Symbols Outlined'; font-feature-settings: 'liga'; -webkit-font-feature-settings: 'liga'; font-variation-settings: 'FILL' 0, 'wght' 430, 'GRAD' 0, 'opsz' 24;" aria-hidden="true">{{ coverUploaded() ? 'image' : 'cloud_upload' }}</span>
-                <small class="mt-3 block text-[12px] font-semibold text-[#817982]">{{ coverUploaded() ? 'Capa selecionada' : 'Arraste ou clique para carregar' }}</small>
-                <small class="mt-1 block text-[11px] text-[#958e97]">{{ coverUploaded() ? 'Clique para remover/trocar' : 'PNG, JPG at&eacute; 5MB' }}</small>
-                <small class="mt-1 block text-[11px] text-[#958e97]">Recomendado: 16:9</small>
-              </span>
-            </button>
-          </section>
-          <section class="rounded-[8px] border border-[#f3ddbf] bg-[#fff5e8] p-5 text-[#6f3d12]">
-            <h2 class="flex items-center gap-2 text-[14px] font-extrabold"><span aria-hidden="true">&#128161;</span> Dica</h2>
-            <p class="mt-3 text-[13px] leading-5 text-[#68451e]">Revise o seu conte&uacute;do antes de publicar para garantir a melhor qualidade.</p>
-          </section>
+        <div class="mt-6 flex flex-wrap justify-end gap-3">
+          <a routerLink="/admin/contents"
+            class="inline-flex h-11 items-center justify-center rounded-[8px] px-5 text-[13px] font-extrabold text-[#6f686b] transition hover:bg-[#f6f1f4] hover:text-[#40081a]">Cancelar</a>
+          <button type="button" (click)="nextStep()"
+            class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#40081a] px-6 text-[13px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.18)] transition hover:bg-[#5f0e28] hover:shadow-[0_12px_28px_rgba(64,8,26,0.22)]">Seguinte</button>
+        </div>
+        }
 
-          <section class="grid gap-3">
-            <button type="button" (click)="saveDraft()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] bg-[#8a1238] px-4 text-[14px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.22)]">
-              <span style="font-family: 'Material Symbols Outlined'; font-feature-settings: 'liga'; -webkit-font-feature-settings: 'liga';" aria-hidden="true">save</span>
-              Guardar rascunho
-            </button>
-            <button type="button" (click)="togglePreview()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#9b1640] bg-white px-4 text-[14px] font-extrabold text-[#9b1640]">
-              <span style="font-family: 'Material Symbols Outlined'; font-feature-settings: 'liga'; -webkit-font-feature-settings: 'liga';" aria-hidden="true">visibility</span>
-              {{ showPreview() ? 'Ocultar preview' : 'Pr&eacute;-visualizar' }}
-            </button>
-          </section>
-        </aside>
-      </main>
-    </app-admin-console-shell>
+        @if (currentStep() === 2) {
+        <section class="rounded-[8px] border border-[#e5dde2] bg-[#fffdfc] p-6">
+          <h2 class="flex items-center gap-3 text-[20px] font-extrabold text-[#5f0e28]">
+            Conte&uacute;do do artigo
+          </h2>
+
+          <div class="mt-5 overflow-hidden rounded-[8px] border border-[#ded8dd] bg-white">
+            <div
+              class="flex min-h-11 flex-wrap items-center gap-4 border-b border-[#ebe5e8] px-4 text-[14px] text-[#4f4852]">
+              <select aria-label="Estilo de texto" class="h-8 cursor-pointer bg-transparent text-[13px] outline-none">
+                <option>Normal</option>
+                <option>T&iacute;tulo</option>
+                <option>Cita&ccedil;&atilde;o</option>
+              </select>
+              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#f7edef] hover:text-[#40081a]" aria-label="Negrito">
+                <span class="material-symbols-outlined text-[18px]">format_bold</span>
+              </button>
+
+              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#f7edef] hover:text-[#40081a]" aria-label="Itálico">
+                <span class="material-symbols-outlined text-[18px]">format_italic</span>
+              </button>
+
+              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#f7edef] hover:text-[#40081a]" aria-label="Sublinhado">
+                <span class="material-symbols-outlined text-[18px]">format_underlined</span>
+              </button>
+
+              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#f7edef] hover:text-[#40081a]" aria-label="Lista">
+                <span class="material-symbols-outlined text-[18px]">format_list_bulleted</span>
+              </button>
+
+              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#f7edef] hover:text-[#40081a]" aria-label="Alinhar">
+                <span class="material-symbols-outlined text-[18px]">format_align_left</span>
+              </button>
+
+              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#f7edef] hover:text-[#40081a]" aria-label="Link">
+                <span class="material-symbols-outlined text-[18px]">link</span>
+              </button>
+
+              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#f7edef] hover:text-[#40081a]" aria-label="Imagem">
+                <span class="material-symbols-outlined text-[18px]">image</span>
+              </button>
+
+              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#f7edef] hover:text-[#40081a]" aria-label="Citação">
+                <span class="material-symbols-outlined text-[18px]">format_quote</span>
+              </button>
+
+              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#f7edef] hover:text-[#40081a]" aria-label="Tabela">
+                <span class="material-symbols-outlined text-[18px]">table_chart</span>
+              </button>
+
+              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#f7edef] hover:text-[#40081a]" aria-label="Fórmula">
+                <span class="material-symbols-outlined text-[18px]">functions</span>
+              </button>
+
+            </div>
+            <textarea [value]="body()" (input)="setBody($event)"
+              class="min-h-[360px] w-full resize-y border-0 px-4 py-4 text-[15px] leading-7 text-[#2c2729] outline-none"
+              placeholder="Escreva o conte&uacute;do aqui..."></textarea>
+          </div>
+        </section>
+
+        <div class="mt-6 flex flex-wrap justify-between gap-3">
+          <button type="button" (click)="previousStep()"
+            class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#40081a] bg-white px-5 text-[13px] font-extrabold text-[#40081a] transition hover:bg-[#f7edef]">Anterior</button>
+          <button type="button" (click)="nextStep()"
+            class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#40081a] px-6 text-[13px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.18)] transition hover:bg-[#5f0e28] hover:shadow-[0_12px_28px_rgba(64,8,26,0.22)]">Seguinte</button>
+        </div>
+        }
+
+        @if (currentStep() === 3) {
+        <section class="rounded-[8px] border border-[#e5dde2] bg-[#fffdfc] p-6">
+          <div class="flex flex-col gap-2">
+            <h2 class="text-[20px] font-extrabold text-[#5f0e28]">Imagem de capa <span
+                class="text-[#8a8587]">(Opcional)</span></h2>
+            <p class="max-w-2xl text-[13px] leading-6 text-[#69616a]">
+              Adicionar uma imagem de capa &eacute; opcional, mas ajuda a destacar o artigo.
+            </p>
+          </div>
+
+          <label
+            class="mt-6 grid min-h-[260px] w-full cursor-pointer place-items-center overflow-hidden rounded-[8px] border border-dashed border-[#cfc7ce] bg-white text-center transition hover:border-[#9b1640] hover:bg-[#fff8fa]">
+            <input type="file" accept="image/png,image/jpeg,image/webp" class="sr-only" (change)="onCoverSelected($event)" />
+            @if (coverPreview()) {
+            <span class="grid w-full gap-4 p-4">
+              <img [src]="coverPreview()" alt="Imagem de capa selecionada"
+                class="mx-auto aspect-[16/7] w-full max-w-4xl rounded-[8px] object-cover shadow-[0_12px_30px_rgba(27,22,30,0.12)]" />
+              <span class="block text-[13px] font-extrabold text-[#4a1425]">{{ coverFileName() }}</span>
+              <small class="block text-[12px] text-[#958e97]">Clique na imagem para trocar</small>
+            </span>
+            } @else {
+            <span>
+              <span
+                class="mx-auto grid size-14 place-items-center rounded-[8px] bg-[#f7edef] text-[34px] text-[#8a1238]"
+                style="font-family: 'Material Symbols Outlined'; font-feature-settings: 'liga'; -webkit-font-feature-settings: 'liga'; font-variation-settings: 'FILL' 0, 'wght' 430, 'GRAD' 0, 'opsz' 24;"
+                aria-hidden="true">cloud_upload</span>
+              <strong class="mt-4 block text-[14px] font-extrabold text-[#4a1425]">Clique para carregar a capa</strong>
+              <small class="mt-2 block text-[12px] text-[#958e97]">PNG, JPG ou WebP at&eacute; 5MB</small>
+              <small class="mt-1 block text-[11px] text-[#958e97]">Recomendado: 16:9</small>
+            </span>
+            }
+          </label>
+
+          <div
+            class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[8px] border border-[#eadfe3] bg-white px-4 py-3 text-[13px] font-semibold text-[#534345]">
+            <span>Estado da imagem: <span class="text-[#8a1238]">{{ coverUploaded() ? 'imagem carregada' : 'sem imagem de capa' }}</span></span>
+            @if (coverUploaded()) {
+            <button type="button" (click)="clearCover()"
+              class="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#eadfe3] px-4 text-[12px] font-extrabold text-[#6f686b] transition hover:border-[#40081a] hover:bg-[#f7edef] hover:text-[#40081a]">Remover imagem</button>
+            }
+          </div>
+        </section>
+
+        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <button type="button" (click)="previousStep()"
+            class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#40081a] bg-white px-5 text-[13px] font-extrabold text-[#40081a] transition hover:bg-[#f7edef]">Anterior</button>
+
+          <div class="flex flex-wrap justify-end gap-3">
+            <a routerLink="/admin/contents"
+              class="inline-flex h-11 items-center justify-center rounded-[8px] px-5 text-[13px] font-extrabold text-[#6f686b] transition hover:bg-[#f6f1f4] hover:text-[#40081a]">Cancelar</a>
+            <button type="button" (click)="saveDraft()"
+              class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#40081a] bg-white px-5 text-[13px] font-extrabold text-[#40081a] transition hover:bg-[#f7edef]">Guardar
+              rascunho</button>
+            <button type="button" (click)="openPreview()"
+              class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#40081a] bg-white px-5 text-[13px] font-extrabold text-[#40081a] transition hover:bg-[#f7edef]">Pr&eacute;-visualizar</button>
+            <button type="button" (click)="publish()"
+              class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#40081a] px-6 text-[13px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.18)] transition hover:bg-[#5f0e28] hover:shadow-[0_12px_28px_rgba(64,8,26,0.22)]">Publicar
+              artigo</button>
+          </div>
+        </div>
+        }
+      </form>
+    </section>
+  </main>
+
+  @if (previewOpen()) {
+  <section class="fixed inset-0 z-[120] grid place-items-center bg-[#160912]/70 p-4" role="dialog" aria-modal="true"
+    aria-labelledby="article-preview-title">
+    <article
+      class="flex h-[90dvh] w-[min(1100px,94vw)] flex-col overflow-hidden rounded-[8px] bg-white shadow-[0_28px_90px_rgba(0,0,0,0.28)]">
+      <header class="flex min-h-16 items-center justify-between gap-4 border-b border-[#eadfe3] px-6">
+        <h2 id="article-preview-title" class="font-display text-[20px] font-extrabold text-[#4a1425]">
+          Pr&eacute;-visualiza&ccedil;&atilde;o do artigo</h2>
+        <button type="button" (click)="closePreview()"
+          class="grid size-10 place-items-center rounded-[8px] border border-[#eadfe3] text-[22px] font-bold text-[#5c1e2f]"
+          aria-label="Fechar">&times;</button>
+      </header>
+
+      <div class="min-h-0 flex-1 overflow-y-auto bg-[#fbfaf7] px-6 py-7">
+        <article class="mx-auto max-w-3xl rounded-[8px] bg-white p-6 shadow-[0_14px_38px_rgba(27,22,30,0.06)]">
+          @if (coverUploaded()) {
+          @if (coverPreview()) {
+          <img [src]="coverPreview()" alt="Imagem de capa do artigo"
+            class="aspect-[16/7] w-full rounded-[8px] object-cover shadow-[0_12px_30px_rgba(27,22,30,0.12)]" />
+          } @else {
+          <div
+            class="grid aspect-[16/7] place-items-center overflow-hidden rounded-[8px] bg-[linear-gradient(135deg,#5c1e2f,#d4af37)] text-white">
+            <span class="text-[13px] font-extrabold uppercase tracking-[0.18em]">Imagem de capa</span>
+          </div>
+          }
+          }
+
+          <div class="mt-6 flex flex-wrap gap-2">
+            <span class="rounded-[999px] bg-[#f7edef] px-3 py-1 text-[11px] font-extrabold uppercase text-[#40081a]">{{
+              categoryLabel() }}</span>
+            <span class="rounded-[999px] bg-[#fff7df] px-3 py-1 text-[11px] font-extrabold uppercase text-[#735c00]">{{
+              typeLabel() }}</span>
+            <span class="rounded-[999px] bg-[#f0eef0] px-3 py-1 text-[11px] font-extrabold uppercase text-[#6f686b]">{{
+              readTimeLabel() }}</span>
+          </div>
+
+          <h1 class="mt-5 font-display text-[36px] font-extrabold leading-tight text-[#2c2729] max-md:text-[28px]">{{
+            previewTitle() }}</h1>
+          <p class="mt-4 border-l-4 border-[#8a1238] pl-4 text-[16px] leading-8 text-[#5f575b]">{{ previewSummary() }}
+          </p>
+
+          <div class="mt-8 whitespace-pre-line text-[16px] leading-8 text-[#2c2729]">
+            {{ body().trim() || 'O conteudo completo do artigo aparecera aqui para revisao.' }}
+          </div>
+        </article>
+      </div>
+
+      <footer class="flex flex-wrap items-center justify-end gap-3 border-t border-[#eadfe3] bg-white px-6 py-4">
+        <button type="button" (click)="closePreview()"
+          class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#40081a] bg-white px-5 text-[13px] font-extrabold text-[#40081a] transition hover:bg-[#f7edef]">Fechar</button>
+        <button type="button" (click)="publish()"
+          class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#40081a] px-6 text-[13px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.18)] transition hover:bg-[#5f0e28] hover:shadow-[0_12px_28px_rgba(64,8,26,0.22)]">Publicar
+          artigo</button>
+      </footer>
+    </article>
+  </section>
+  }
+</app-admin-console-shell>
+

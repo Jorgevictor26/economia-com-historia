@@ -18,6 +18,8 @@ export class AdminArticleCreatePage {
   readonly body = signal('');
   readonly visibility = signal<'publico' | 'analise' | 'privado'>('publico');
   readonly coverUploaded = signal(false);
+  readonly coverPreview = signal<string | null>(null);
+  readonly coverFileName = signal('');
   readonly currentStep = signal(1);
   readonly previewOpen = signal(false);
   readonly status = signal('Rascunho');
@@ -90,6 +92,31 @@ export class AdminArticleCreatePage {
 
   closePreview(): void {
     this.previewOpen.set(false);
+  }
+
+  onCoverSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      this.coverPreview.set(reader.result as string);
+      this.coverFileName.set(file.name);
+      this.coverUploaded.set(true);
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  clearCover(): void {
+    this.coverPreview.set(null);
+    this.coverFileName.set('');
+    this.coverUploaded.set(false);
   }
 
   private eventValue(event: Event): string {

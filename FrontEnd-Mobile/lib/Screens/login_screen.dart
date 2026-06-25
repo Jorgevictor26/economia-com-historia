@@ -34,7 +34,9 @@ class _LoginScreenState extends State<LoginScreen> {
           content: const Text('Preencha todos os campos.'),
           backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
       return;
@@ -150,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               .withOpacity(0.6),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           elevation: 0,
                         ),
@@ -260,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: 1.2,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(1),
                     ),
                   ),
                 ),

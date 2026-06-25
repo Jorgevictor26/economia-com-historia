@@ -104,6 +104,7 @@ class HomeScreen extends StatelessWidget {
                   title: 'Continuar a Estudar',
                   actionLabel: 'Ver tudo',
                   onAction: () {},
+                  titleColor: AppColors.primary,
                 ),
                 const SizedBox(height: 14),
                 _ModulosRow(modulos: _modulos),
@@ -116,7 +117,7 @@ class HomeScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
+                    color: AppColors.primary,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -130,7 +131,7 @@ class HomeScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
+                    color: AppColors.primary,
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -144,6 +145,7 @@ class HomeScreen extends StatelessWidget {
                   actionLabel: 'Fóruns que segues',
                   onAction: () {},
                   actionIsLabel: true,
+                  titleColor: AppColors.primary,
                 ),
                 const SizedBox(height: 14),
                 ..._forumPosts.map((post) => _ForumPostTile(post: post)),
@@ -173,7 +175,7 @@ class _HomeAppBar extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
+              color: AppColors.primary,
             ),
           ),
 
@@ -217,7 +219,7 @@ class _GreetingSection extends StatelessWidget {
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w700,
-            color: AppColors.textDark,
+            color: AppColors.primary,
           ),
         ),
         SizedBox(height: 4),
@@ -322,12 +324,14 @@ class _SectionHeader extends StatelessWidget {
   final String actionLabel;
   final VoidCallback onAction;
   final bool actionIsLabel;
+  final Color titleColor;
 
   const _SectionHeader({
     required this.title,
     required this.actionLabel,
     required this.onAction,
     this.actionIsLabel = false,
+    required this.titleColor,
   });
 
   @override
@@ -338,10 +342,10 @@ class _SectionHeader extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w700,
-            color: AppColors.textDark,
+            color: titleColor,
           ),
         ),
         GestureDetector(

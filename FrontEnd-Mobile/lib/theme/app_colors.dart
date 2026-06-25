@@ -7,6 +7,8 @@ class AppColors {
 
   static const textBordeaux = Color(0xFF8A3F50);
 
+  static const secondary = Color(0xFFD1AF45);
+
   static const background = Color(0xFFFFFFFF);
 
   static const cardBackground = Color(0xFFFFFFFF);

@@ -142,7 +142,7 @@ class BackToLoginLink extends StatelessWidget {
             size: 18,
           ),
           label: const Text(
-            'Voltar ao Login',
+            'Voltar ao início de Sessão',
             style: TextStyle(
               color: AppColors.primary,
               fontWeight: FontWeight.w600,

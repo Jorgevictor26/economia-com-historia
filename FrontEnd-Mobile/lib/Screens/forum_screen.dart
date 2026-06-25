@@ -245,7 +245,7 @@ class _SectionHeader extends StatelessWidget {
           height: 22,
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: AppColors.primary,
+              color: AppColors.secondary,
               borderRadius: BorderRadius.all(Radius.circular(2)),
             ),
           ),
@@ -426,14 +426,7 @@ class _SalaCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      if (sala.isPrivado) ...[
-                        const SizedBox(width: 6),
-                        const Icon(
-                          Icons.lock_outline_rounded,
-                          size: 15,
-                          color: AppColors.textLight,
-                        ),
-                      ],
+                      if (sala.isPrivado) ...[const SizedBox(width: 6)],
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -471,22 +464,6 @@ class _SalaCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (!sala.isPrivado) ...[
-              const SizedBox(width: 12),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFD8C1C4)),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.login_rounded,
-                  color: AppColors.primary,
-                  size: 20,
-                ),
-              ),
-            ],
           ],
         ),
       ),

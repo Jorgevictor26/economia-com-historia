@@ -19,6 +19,39 @@ class ReactionRepository
         );
     }
 
+    public function toggle(array $data): array
+    {
+        $reaction = Reaction::where('user_id', $data['user_id'])
+            ->where('content_id', $data['content_id'])
+            ->first();
+
+        if ($reaction && $reaction->reaction_type === $data['reaction_type']) {
+            $reaction->delete();
+
+            return [
+                'reacted' => false,
+                'reaction' => null,
+                'reactions_count' => Reaction::where('content_id', $data['content_id'])->count(),
+            ];
+        }
+
+        $reaction = Reaction::updateOrCreate(
+            [
+                'user_id' => $data['user_id'],
+                'content_id' => $data['content_id'],
+            ],
+            [
+                'reaction_type' => $data['reaction_type'],
+            ]
+        );
+
+        return [
+            'reacted' => true,
+            'reaction' => $reaction,
+            'reactions_count' => Reaction::where('content_id', $data['content_id'])->count(),
+        ];
+    }
+
     public function getByContent(int $contentId)
     {
         return Reaction::where('content_id', $contentId)->get();

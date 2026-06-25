@@ -10,7 +10,7 @@ import { ContentListItem } from '../../../../models/content-list-item.model';
 export class ContentCardComponent {
   @Input({ required: true }) content!: ContentListItem;
   @Input() canReadPremium = false;
-  @Output() gatedAction = new EventEmitter<{ event: Event; operation: string }>();
+  @Output() contentAction = new EventEmitter<{ event: Event; operation: string; content: ContentListItem }>();
 
   get contentRoute(): unknown[] {
     if (this.isPodcastContent()) {
@@ -44,4 +44,3 @@ export class ContentCardComponent {
       .some((value) => this.normalize(value).includes('video') || this.normalize(value).includes('video-aula'));
   }
 }
-

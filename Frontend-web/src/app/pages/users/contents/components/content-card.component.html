@@ -44,22 +44,25 @@
             </span>
 
             <span class="flex items-center gap-3 text-[12px] text-[#6f686b]">
-              <button type="button" class="content-action" aria-label="Gostar" (click)="gatedAction.emit({ event: $event, operation: 'gostar' })">
-                <img src="/assets/icons/like.png" alt="" />
-                <span>12</span>
+              <button type="button" class="content-action" aria-label="Gostar" (click)="contentAction.emit({ event: $event, operation: 'gostar', content })">
+                <span class="material-symbols-outlined text-[19px] leading-none" [class.text-[#c81e3a]]="content.likedByMe">favorite</span>
+                <span [class.text-[#c81e3a]]="content.likedByMe">{{ content.reactionsCount ?? 0 }}</span>
               </button>
-              <button type="button" class="content-action" aria-label="Comentar" (click)="gatedAction.emit({ event: $event, operation: 'comentar' })">
+              <button type="button" class="content-action" aria-label="Comentar" (click)="contentAction.emit({ event: $event, operation: 'comentar', content })">
                 <img src="/assets/icons/comment.png" alt="" />
-                <span>5</span>
+                <span>{{ content.commentsCount ?? 0 }}</span>
               </button>
-              <button type="button" class="content-action" aria-label="Partilhar" (click)="gatedAction.emit({ event: $event, operation: 'partilhar' })">
+              <button type="button" class="content-action" aria-label="Guardar" (click)="contentAction.emit({ event: $event, operation: 'guardar', content })">
+                <span class="material-symbols-outlined text-[19px] leading-none">bookmark_add</span>
+              </button>
+              <button type="button" class="content-action" aria-label="Partilhar" (click)="contentAction.emit({ event: $event, operation: 'partilhar', content })">
                 <img src="/assets/icons/share.png" alt="" />
               </button>
             </span>
           </div>
 
           @if (content.premium && !canReadPremium) {
-            <button type="button" class="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[8px] bg-[#ffd9df] px-5 text-[13px] font-bold text-[#743141] transition hover:bg-[#40081a] hover:text-white" (click)="gatedAction.emit({ event: $event, operation: 'subscrever ao Jindungo' })">
+            <button type="button" class="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[8px] bg-[#ffd9df] px-5 text-[13px] font-bold text-[#743141] transition hover:bg-[#40081a] hover:text-white" (click)="contentAction.emit({ event: $event, operation: 'subscrever ao Jindungo', content })">
               <img src="/assets/icons/lock.png" alt="" class="h-4 w-4" />
               Desbloquear com Jindungo
             </button>

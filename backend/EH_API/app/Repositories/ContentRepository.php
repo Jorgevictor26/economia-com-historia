@@ -16,6 +16,14 @@ class ContentRepository
     {
         return Content::query()
             ->with(['author', 'category', 'contentType'])
+            ->withCount(['reactions', 'comments'])
+            ->when($filters['user_id'] ?? null, function ($query, $userId) {
+                $query->withExists([
+                    'reactions as liked_by_me' => fn ($reactionQuery) => $reactionQuery
+                        ->where('user_id', $userId)
+                        ->where('reaction_type', 'like'),
+                ]);
+            })
             ->when(! ($filters['include_jindungo'] ?? false), function ($query) {
                 $query->whereDoesntHave('contentType', fn ($typeQuery) => $typeQuery->where('slug', 'jindungo'));
             })
@@ -39,7 +47,9 @@ class ContentRepository
 
     public function findById(int $id): ?Content
     {
-        return Content::with(['author.roles', 'category', 'contentType'])->find($id);
+        return Content::with(['author.roles', 'category', 'contentType'])
+            ->withCount(['reactions', 'comments'])
+            ->find($id);
     }
 
     public function update(Content $content, array $data): Content

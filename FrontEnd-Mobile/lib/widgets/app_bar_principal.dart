@@ -45,7 +45,7 @@ class AppBarPrincipal extends StatelessWidget implements PreferredSizeWidget {
         style: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w700,
-          color: AppColors.textDark,
+          color: AppColors.primary,
         ),
       ),
       actions: [
@@ -57,7 +57,7 @@ class AppBarPrincipal extends StatelessWidget implements PreferredSizeWidget {
             ),
             icon: const Icon(
               Icons.bookmark_border_rounded,
-              color: AppColors.textDark,
+              color: AppColors.primary,
               size: 24,
             ),
           ),
@@ -69,7 +69,7 @@ class AppBarPrincipal extends StatelessWidget implements PreferredSizeWidget {
             ),
             icon: const Icon(
               Icons.notifications_none_rounded,
-              color: AppColors.textDark,
+              color: AppColors.primary,
               size: 24,
             ),
           ),
@@ -78,7 +78,7 @@ class AppBarPrincipal extends StatelessWidget implements PreferredSizeWidget {
             onPressed: () => SearchModal.show(context),
             icon: const Icon(
               Icons.search_rounded,
-              color: AppColors.textDark,
+              color: AppColors.primary,
               size: 24,
             ),
           ),

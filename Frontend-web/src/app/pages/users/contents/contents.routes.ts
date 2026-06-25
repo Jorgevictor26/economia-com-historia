@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink, Routes } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, Routes } from '@angular/router';
 import { adminGuard } from '../../../services/admin.guard';
 import { Category } from '../../../models/category.model';
 import { ContentTypeOption } from '../../../models/content-type.model';
@@ -10,6 +10,7 @@ import { BackendContent, ContentPagination, ContentService } from '../../../serv
 import { ContentTypeService } from '../../../services/content-type.service';
 import { QuizService } from '../../../services/quiz.service';
 import { ReactionService } from '../../../services/reaction.service';
+import { SavedContentService } from '../../../services/saved-content.service';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
 import { PublicFooterComponent } from '../../shared/public-footer/public-footer.component';
 import { PublicNavbarComponent } from '../../shared/public-navbar/public-navbar.component';
@@ -29,6 +30,9 @@ interface ContentDetail {
   authorBio?: string;
   imageUrl?: string;
   premium: boolean;
+  reactionsCount: number;
+  commentsCount: number;
+  likedByMe: boolean;
 }
 
 interface CommentView {
@@ -84,10 +88,13 @@ interface VideoComment {
 })
 export class ContentListPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   readonly auth = inject(AuthStateService);
   private readonly categoryService = inject(CategoryService);
   private readonly contentService = inject(ContentService);
   private readonly contentTypeService = inject(ContentTypeService);
+  private readonly reactionService = inject(ReactionService);
+  private readonly savedContentService = inject(SavedContentService);
   private loadRequestId = 0;
   private readonly fallbackCategories: Category[] = [
     { id: 1, name: 'História' },
@@ -117,6 +124,15 @@ export class ContentListPage implements OnInit {
   readonly selectedCategoryFilter = signal('Todos');
   readonly selectedContentTypeFilter = signal('Todos os formatos');
   readonly searchTerm = signal('');
+  readonly shareContentTarget = signal<ContentListItem | null>(null);
+  readonly shareStatus = signal('');
+  readonly saveStatus = signal('');
+  readonly savingContentId = signal<string | null>(null);
+  readonly shareUrl = computed(() => {
+    const content = this.shareContentTarget();
+
+    return content ? this.absoluteContentUrl(content.id) : '';
+  });
   readonly hasPreviousPage = computed(() => this.pagination().currentPage > 1);
   readonly hasMoreContents = computed(() => this.pagination().currentPage < this.pagination().lastPage);
   readonly activeFilterCount = computed(() => {
@@ -202,6 +218,89 @@ export class ContentListPage implements OnInit {
     this.auth.requireLoginFor(operation);
   }
 
+  async handleContentAction(payload: { event: Event; operation: string; content: ContentListItem }): Promise<void> {
+    payload.event.preventDefault();
+    payload.event.stopPropagation();
+
+    if (payload.operation === 'partilhar') {
+      this.openShareModal(payload.content);
+      return;
+    }
+
+    if (payload.operation === 'comentar') {
+      await this.router.navigate(['/app/contents', payload.content.id], { fragment: 'comments' });
+      return;
+    }
+
+    if (payload.operation === 'gostar') {
+      if (!this.auth.isAuthenticated()) {
+        this.auth.requireLoginFor('gostar');
+        return;
+      }
+
+      await this.likeContent(payload.content);
+      return;
+    }
+
+    if (payload.operation === 'guardar') {
+      if (!this.auth.isAuthenticated()) {
+        this.auth.requireLoginFor('guardar');
+        return;
+      }
+
+      await this.saveContent(payload.content);
+      return;
+    }
+
+    this.auth.requireLoginFor(payload.operation);
+  }
+
+  openShareModal(content: ContentListItem): void {
+    this.shareContentTarget.set(content);
+    this.shareStatus.set('');
+  }
+
+  closeShareModal(): void {
+    this.shareContentTarget.set(null);
+    this.shareStatus.set('');
+  }
+
+  async copyShareLink(): Promise<void> {
+    const url = this.shareUrl();
+
+    if (!url) {
+      return;
+    }
+
+    await navigator.clipboard?.writeText(url);
+    this.shareStatus.set('Link copiado.');
+  }
+
+  async shareFromModal(platform: 'whatsapp' | 'facebook' | 'instagram'): Promise<void> {
+    const content = this.shareContentTarget();
+    const url = this.shareUrl();
+
+    if (!content || !url) {
+      return;
+    }
+
+    const title = `${content.title} - Economia com História`;
+
+    if (platform === 'instagram') {
+      await this.copyShareLink();
+      window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    const encodedUrl = encodeURIComponent(url);
+    const targets: Record<'whatsapp' | 'facebook', string> = {
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    };
+
+    window.open(targets[platform], '_blank', 'noopener,noreferrer');
+  }
+
   selectCategoryFilter(filter: string): void {
     this.selectedCategoryFilter.set(filter);
     void this.loadContents(1, true);
@@ -260,6 +359,61 @@ export class ContentListPage implements OnInit {
       .replace(/[\u0300-\u036f]/g, '');
   }
 
+  private async saveContent(content: ContentListItem): Promise<void> {
+    this.savingContentId.set(content.id);
+    this.saveStatus.set('');
+
+    try {
+      await this.savedContentService.save(content.id);
+      this.saveStatus.set(`"${content.title}" foi guardado.`);
+    } catch {
+      this.saveStatus.set('Não foi possível guardar este conteúdo.');
+    } finally {
+      this.savingContentId.set(null);
+    }
+  }
+
+  private async likeContent(content: ContentListItem): Promise<void> {
+    const currentCount = content.reactionsCount ?? 0;
+    const currentLikedByMe = content.likedByMe ?? false;
+    const nextLikedByMe = !currentLikedByMe;
+    const nextCount = Math.max(0, currentCount + (nextLikedByMe ? 1 : -1));
+
+    this.contents.update((items) =>
+      items.map((item) =>
+        item.id === content.id
+          ? { ...item, reactionsCount: nextCount, likedByMe: nextLikedByMe }
+          : item,
+      ),
+    );
+
+    try {
+      const response = await this.reactionService.toggle(content.id, 'like');
+      const reacted = response.data.reacted;
+      const reactionsCount = Number(response.data.reactions_count ?? nextCount);
+
+      this.contents.update((items) =>
+        items.map((item) =>
+          item.id === content.id
+            ? { ...item, reactionsCount, likedByMe: reacted }
+            : item,
+        ),
+      );
+    } catch {
+      this.contents.update((items) =>
+        items.map((item) =>
+          item.id === content.id
+            ? { ...item, reactionsCount: currentCount, likedByMe: currentLikedByMe }
+            : item,
+        ),
+      );
+    }
+  }
+
+  private absoluteContentUrl(contentId: string): string {
+    return `${window.location.origin}/app/contents/${contentId}`;
+  }
+
   private applyRouteFilters(): void {
     const params = this.route.snapshot.queryParamMap;
     const category = params.get('categoria') ?? params.get('category');
@@ -304,6 +458,9 @@ export class ContentListPage implements OnInit {
       authorInitials: this.getInitials(authorName),
       imageUrl: content.image || undefined,
       premium,
+      reactionsCount: Number(content.reactions_count ?? 0),
+      commentsCount: Number(content.comments_count ?? 0),
+      likedByMe: Boolean(content.liked_by_me),
       searchText: content.content || '',
     };
   }
@@ -547,17 +704,25 @@ export class ContentDetailPage {
   private readonly contentService = inject(ContentService);
   private readonly quizService = inject(QuizService);
   private readonly reactionService = inject(ReactionService);
+  private readonly savedContentService = inject(SavedContentService);
   readonly auth = inject(AuthStateService);
   readonly detail = signal<ContentDetail | null>(null);
   readonly comments = signal<CommentView[]>([]);
   readonly reactionCount = signal(0);
+  readonly likedByMe = signal(false);
   readonly isLoading = signal(true);
   readonly isLoadingComments = signal(false);
   readonly isSavingComment = signal(false);
   readonly isSavingReaction = signal(false);
+  readonly isSavingContent = signal(false);
   readonly isCommentComposerOpen = signal(false);
+  readonly shareMenuOpen = signal(false);
   readonly commentError = signal('');
   readonly commentSuccess = signal('');
+  readonly reactionError = signal('');
+  readonly saveStatus = signal('');
+  readonly shareStatus = signal('');
+  readonly canUseNativeShare = typeof navigator !== 'undefined' && 'share' in navigator;
   readonly relatedQuiz = computed(() => {
     const contentId = this.detail()?.id ?? this.route.snapshot.params['id'];
 
@@ -614,13 +779,95 @@ export class ContentDetailPage {
     }
 
     this.isSavingReaction.set(true);
+    this.reactionError.set('');
 
     try {
-      await this.reactionService.create(contentId, 'like');
-      await this.loadReactionCount(contentId);
+      const response = await this.reactionService.toggle(contentId, 'like');
+      this.likedByMe.set(response.data.reacted);
+      this.reactionCount.set(Number(response.data.reactions_count ?? this.reactionCount()));
+    } catch {
+      this.reactionError.set('Não foi possível registar a reação.');
     } finally {
       this.isSavingReaction.set(false);
     }
+  }
+
+  async saveContent(event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.auth.isAuthenticated()) {
+      this.auth.requireLoginFor('guardar');
+      return;
+    }
+
+    const contentId = this.detail()?.id;
+
+    if (!contentId || this.isSavingContent()) {
+      return;
+    }
+
+    this.isSavingContent.set(true);
+    this.saveStatus.set('');
+
+    try {
+      await this.savedContentService.save(contentId);
+      this.saveStatus.set('Conteúdo guardado.');
+    } catch {
+      this.saveStatus.set('Não foi possível guardar este conteúdo.');
+    } finally {
+      this.isSavingContent.set(false);
+    }
+  }
+
+  toggleShareMenu(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.shareStatus.set('');
+    this.shareMenuOpen.set(!this.shareMenuOpen());
+  }
+
+  async shareTo(platform: 'native' | 'whatsapp' | 'linkedin' | 'facebook' | 'x' | 'copy', event?: Event): Promise<void> {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    const detail = this.detail();
+
+    if (!detail) {
+      return;
+    }
+
+    const url = this.currentShareUrl();
+    const title = `${detail.title} - Economia com História`;
+
+    if (platform === 'native' && navigator.share) {
+      try {
+        await navigator.share({ title: detail.title, text: title, url });
+        this.shareMenuOpen.set(false);
+      } catch {
+        this.shareMenuOpen.set(false);
+      }
+
+      return;
+    }
+
+    if (platform === 'copy') {
+      await navigator.clipboard?.writeText(url);
+      this.shareStatus.set('Link copiado.');
+      return;
+    }
+
+    const encodedUrl = encodeURIComponent(url);
+    const encodedTitle = encodeURIComponent(title);
+    const targets: Record<'whatsapp' | 'linkedin' | 'facebook' | 'x', string> = {
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+      x: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+    };
+
+    window.open(targets[platform as keyof typeof targets], '_blank', 'noopener,noreferrer');
+    this.shareMenuOpen.set(false);
   }
 
   async submitComment(value: string): Promise<void> {
@@ -682,8 +929,16 @@ export class ContentDetailPage {
   }
 
   private async loadReactionCount(contentId: string): Promise<void> {
-    const counts = await this.reactionService.getCountByType(contentId);
-    this.reactionCount.set(counts.reduce((total, item) => total + Number(item.count || 0), 0));
+    try {
+      const counts = await this.reactionService.getCountByType(contentId);
+      this.reactionCount.set(counts.reduce((total, item) => total + Number(item.count || 0), 0));
+    } catch {
+      this.reactionCount.set(0);
+    }
+  }
+
+  private currentShareUrl(): string {
+    return window.location.href.split('#')[0];
   }
 
   private toCommentView(comment: BackendComment): CommentView {
@@ -737,6 +992,9 @@ export class ContentDetailPage {
       authorBio: content.author?.bio || content.user?.bio || undefined,
       imageUrl: content.image || undefined,
       premium: contentTypeSlug === 'jindungo',
+      reactionsCount: Number(content.reactions_count ?? 0),
+      commentsCount: Number(content.comments_count ?? 0),
+      likedByMe: Boolean(content.liked_by_me),
     };
   }
 
@@ -784,7 +1042,6 @@ export class ContentDetailPage {
 export class ContentVideoDetailPage {
   private readonly route = inject(ActivatedRoute);
   readonly auth = inject(AuthStateService);
-  readonly isCommentComposerOpen = signal(false);
 
   readonly video = computed(() => {
     const id = this.route.snapshot.params['id'] ?? 'video-cafe';
@@ -815,22 +1072,7 @@ export class ContentVideoDetailPage {
     },
   ];
 
-  readonly comments: VideoComment[] = [
-    {
-      author: 'Mariana Costa',
-      initials: 'MC',
-      time: '2 horas atras',
-      text: 'O material de arquivo aos 04:20 e incrivel. Nunca tinha visto o porto de Luanda por essa perspectiva.',
-      likes: 142,
-    },
-    {
-      author: 'HistoricoAnalyst88',
-      initials: 'HA',
-      time: '1 dia atras',
-      text: 'Excelente explicacao sobre as politicas fiscais. A relacao com os acordos regionais ficou muito clara.',
-      likes: 45,
-    },
-  ];
+  readonly comments: VideoComment[] = [];
 
   private readonly videos: VideoDetail[] = [
     {
@@ -883,31 +1125,24 @@ export class ContentVideoDetailPage {
     this.auth.requireLoginFor(operation);
   }
 
-  openCommentComposer(event: Event): void {
-    if (!this.auth.isAuthenticated()) {
-      this.requireLogin(event, 'comentar');
+  share(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const video = this.video();
+    const url = window.location.href.split('#')[0];
+    const text = `${video.title} - Economia com História`;
+
+    if (navigator.share) {
+      void navigator.share({ title: video.title, text, url }).catch(() => undefined);
       return;
     }
 
-    this.isCommentComposerOpen.set(true);
-  }
-
-  react(event: Event): void {
-    if (!this.auth.isAuthenticated()) {
-      this.requireLogin(event, 'reagir');
-    }
-  }
-
-  currentUserInitials(): string {
-    const name = this.auth.user()?.name ?? 'Utilizador';
-
-    return name
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join('')
-      .toUpperCase();
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`,
+      '_blank',
+      'noopener,noreferrer',
+    );
   }
 }
 
@@ -918,4 +1153,3 @@ export const CONTENTS_ROUTES: Routes = [
   { path: ':id', component: ContentDetailPage },
   { path: ':id/edit', canActivate: [adminGuard], component: ContentDetailPage },
 ];
-

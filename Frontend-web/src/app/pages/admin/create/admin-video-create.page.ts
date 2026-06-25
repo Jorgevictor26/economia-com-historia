@@ -1,11 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { AuthStateService } from '../../../services/auth-state.service';
 import { AdminConsoleShellComponent } from '../components/admin-console-shell.component';
 
 @Component({
   selector: 'app-admin-video-create-page',
-  imports: [RouterLink, AdminConsoleShellComponent],
+  imports: [AdminConsoleShellComponent],
   templateUrl: './admin-video-create.page.html',
   styles: [
     `

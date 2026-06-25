@@ -18,7 +18,8 @@ export class AdminArticleCreatePage {
   readonly body = signal('');
   readonly visibility = signal<'publico' | 'analise' | 'privado'>('publico');
   readonly coverUploaded = signal(false);
-  readonly showPreview = signal(false);
+  readonly currentStep = signal(1);
+  readonly previewOpen = signal(false);
   readonly status = signal('Rascunho');
 
   readonly progress = computed(() => {
@@ -31,11 +32,12 @@ export class AdminArticleCreatePage {
       this.body().trim().length > 0,
       this.coverUploaded(),
     ];
+
     return Math.round((checks.filter(Boolean).length / checks.length) * 100);
   });
 
   readonly previewTitle = computed(() => this.title().trim() || 'Novo artigo academico');
-  readonly previewSummary = computed(() => this.summary().trim() || 'O resumo academico aparece aqui para revisão antes da publicacao.');
+  readonly previewSummary = computed(() => this.summary().trim() || 'O resumo academico aparece aqui para revisao antes da publicacao.');
   readonly categoryLabel = computed(() => (this.category() === 'Selecione uma categoria' ? 'Sem categoria' : this.category()));
   readonly typeLabel = computed(() => (this.type() === 'Selecione o tipo' ? 'Sem tipo' : this.type()));
   readonly readTimeLabel = computed(() => (this.readTime() === 'Selecione' ? 'Tempo indefinido' : this.readTime()));
@@ -68,14 +70,29 @@ export class AdminArticleCreatePage {
     this.status.set('Rascunho guardado');
   }
 
-  togglePreview(): void {
-    this.showPreview.update((value) => !value);
-    this.status.set('Em revisão');
+  publish(): void {
+    this.status.set('Publicado');
+    this.previewOpen.set(false);
+  }
+
+  nextStep(): void {
+    this.currentStep.update((step) => Math.min(step + 1, 3));
+  }
+
+  previousStep(): void {
+    this.currentStep.update((step) => Math.max(step - 1, 1));
+  }
+
+  openPreview(): void {
+    this.previewOpen.set(true);
+    this.status.set('Em revisao');
+  }
+
+  closePreview(): void {
+    this.previewOpen.set(false);
   }
 
   private eventValue(event: Event): string {
     return (event.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).value;
   }
 }
-
-

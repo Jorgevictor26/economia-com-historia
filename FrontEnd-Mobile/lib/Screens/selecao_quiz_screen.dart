@@ -3,8 +3,16 @@ import 'package:economica_com_historia/theme/app_colors.dart';
 import 'package:economica_com_historia/Screens/praticar_quiz_screen.dart';
 import 'package:economica_com_historia/widgets/app_bar_principal.dart';
 
-class SelecaoQuizScreen extends StatelessWidget {
+class SelecaoQuizScreen extends StatefulWidget {
   const SelecaoQuizScreen({super.key});
+
+  @override
+  State<SelecaoQuizScreen> createState() => _SelecaoQuizScreenState();
+}
+
+class _SelecaoQuizScreenState extends State<SelecaoQuizScreen> {
+  int _filtroSelecionado = 0;
+  final _filtros = ['Todos', 'História', 'Economia'];
 
   static const _ciclosColoniais = [
     _QuizItem(
@@ -13,7 +21,6 @@ class SelecaoQuizScreen extends StatelessWidget {
       questoes: 15,
       tempo: '10 min',
       progresso: 0.80,
-      icone: Icons.swap_horiz_rounded,
       isPremium: false,
       acaoBotao: 'Continuar Quiz',
     ),
@@ -23,7 +30,6 @@ class SelecaoQuizScreen extends StatelessWidget {
       questoes: 20,
       tempo: '15 min',
       progresso: 0.0,
-      icone: Icons.sailing_outlined,
       isPremium: false,
       acaoBotao: 'Iniciar Agora',
     ),
@@ -36,7 +42,6 @@ class SelecaoQuizScreen extends StatelessWidget {
       questoes: 25,
       tempo: 'Expertise',
       progresso: 0.45,
-      icone: Icons.point_of_sale_outlined,
       isPremium: true,
       acaoBotao: 'Retomar Desafio',
     ),
@@ -78,16 +83,68 @@ class SelecaoQuizScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 32),
-                _SecaoQuiz(
-                  titulo: 'Ciclos Coloniais',
-                  quizzes: _ciclosColoniais,
+
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: List.generate(_filtros.length, (i) {
+                      final ativo = i == _filtroSelecionado;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: GestureDetector(
+                          onTap: () => setState(() => _filtroSelecionado = i),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: ativo
+                                  ? AppColors.primary
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: ativo
+                                    ? AppColors.primary
+                                    : const Color(0xFFD8C1C4),
+                              ),
+                            ),
+                            child: Text(
+                              _filtros[i],
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: ativo
+                                    ? Colors.white
+                                    : AppColors.textMedium,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
                 ),
+
                 const SizedBox(height: 28),
-                _SecaoQuiz(
-                  titulo: 'História Monetária',
-                  quizzes: _historiaMonetaria,
-                ),
-                const SizedBox(height: 28),
+
+                // ── Secções filtradas ─────────────────────────────────
+                if (_filtroSelecionado == 0 || _filtroSelecionado == 1) ...[
+                  _SecaoQuiz(
+                    titulo: 'Ciclos Coloniais',
+                    quizzes: _ciclosColoniais,
+                  ),
+                  const SizedBox(height: 28),
+                ],
+                if (_filtroSelecionado == 0 || _filtroSelecionado == 2) ...[
+                  _SecaoQuiz(
+                    titulo: 'História Monetária',
+                    quizzes: _historiaMonetaria,
+                  ),
+                  const SizedBox(height: 28),
+                ],
+
                 _CitacaoCard(),
                 const SizedBox(height: 36),
               ]),
@@ -147,7 +204,6 @@ class _QuizItem {
   final int questoes;
   final String tempo;
   final double progresso;
-  final IconData icone;
   final bool isPremium;
   final String acaoBotao;
 
@@ -157,7 +213,6 @@ class _QuizItem {
     required this.questoes,
     required this.tempo,
     required this.progresso,
-    required this.icone,
     required this.isPremium,
     required this.acaoBotao,
   });
@@ -256,16 +311,6 @@ class _QuizCard extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0EAEA),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(item.icone, color: AppColors.primary, size: 20),
               ),
             ],
           ),

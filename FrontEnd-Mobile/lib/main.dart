@@ -16,7 +16,7 @@ import 'package:economica_com_historia/Screens/selecao_quiz_screen.dart';
 import 'package:economica_com_historia/Screens/discussao_screen.dart';
 import 'package:economica_com_historia/Screens/notificacoes_screen.dart';
 import 'package:economica_com_historia/Screens/podcast_screen.dart';
-import 'package:economica_com_historia/Screens/texto_jindungo_screen.dart';
+import 'package:economica_com_historia/Screens/conteudo_screen.dart';
 import 'package:economica_com_historia/Screens/podcast_selecionado_screen.dart';
 import 'package:economica_com_historia/Screens/sala_de_debate_screen.dart';
 import 'package:economica_com_historia/Screens/forum_screen.dart';
@@ -56,7 +56,7 @@ class EconomiaApp extends StatelessWidget {
       //home: const NotificacoesScreen(),
       //home: const PodcastScreen(),
       //home: const PodcastSelecionadoScreen(),
-      //home: const TextoJindungoScreen(),
+      //home: const ConteudoScreen(),
       //home: const MainNavigationScreen(),
     );
   }

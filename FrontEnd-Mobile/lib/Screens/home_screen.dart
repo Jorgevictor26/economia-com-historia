@@ -559,7 +559,7 @@ class _FiltrosRowState extends State<_FiltrosRow> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: isActive ? AppColors.primary : AppColors.surface,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: isActive ? AppColors.primary : AppColors.borderSoft,
                   width: 1.2,

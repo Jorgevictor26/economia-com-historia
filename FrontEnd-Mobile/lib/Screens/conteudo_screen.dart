@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:economica_com_historia/theme/app_colors.dart';
 
-class TextoJindungoScreen extends StatelessWidget {
-  const TextoJindungoScreen({super.key});
+class ConteudoScreen extends StatelessWidget {
+  const ConteudoScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +41,7 @@ class TextoJindungoScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.textDark,
+                              color: AppColors.primary,
                               height: 1.25,
                             ),
                           ),
@@ -186,17 +186,19 @@ class _AutorRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        CircleAvatar(
-          radius: 20,
-          backgroundColor: const Color(0xFFEEE8E9),
-          child: ClipOval(
-            child: Image.asset(
-              'assets/images/Manuel_Cassule.png',
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.asset(
+            'assets/images/Manuel_Cassule.png',
+            width: 40,
+            height: 40,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
               width: 40,
               height: 40,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const Icon(
-                Icons.person_rounded,
+              color: const Color(0xFFEEE8E9),
+              child: const Icon(
+                Icons.person_outline_rounded,
                 color: AppColors.textLight,
                 size: 22,
               ),
@@ -276,7 +278,7 @@ class _CitacaoDestaque extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       decoration: BoxDecoration(
         border: const Border(
-          left: BorderSide(color: AppColors.primary, width: 3),
+          left: BorderSide(color: AppColors.secondaryDark, width: 3),
         ),
         color: const Color(0xFFF7F3F4),
         borderRadius: const BorderRadius.only(
@@ -358,7 +360,7 @@ class _RelacionadoCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textLight,
+                      color: AppColors.secondaryDark,
                       letterSpacing: 0.5,
                     ),
                   ),

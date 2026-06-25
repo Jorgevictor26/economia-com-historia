@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:economica_com_historia/theme/app_colors.dart';
 import 'package:economica_com_historia/widgets/app_bar_principal.dart';
-import 'package:economica_com_historia/Screens/texto_jindungo_screen.dart';
+import 'package:economica_com_historia/Screens/conteudo_screen.dart';
 
 class ExplorarConteudoScreen extends StatefulWidget {
   const ExplorarConteudoScreen({super.key});
@@ -10,25 +10,87 @@ class ExplorarConteudoScreen extends StatefulWidget {
   State<ExplorarConteudoScreen> createState() => _ExplorarConteudoScreenState();
 }
 
+// Modelo de item de conteúdo
+class _ConteudoItem {
+  final String categoria;
+  final String titulo;
+  final String imagemAsset;
+  final bool isPodcast;
+  final String filtroTag; // 'História', 'Economia', 'Podcasts', etc.
+
+  const _ConteudoItem({
+    required this.categoria,
+    required this.titulo,
+    required this.imagemAsset,
+    required this.isPodcast,
+    required this.filtroTag,
+  });
+}
+
 class _ExplorarConteudoScreenState extends State<ExplorarConteudoScreen> {
   int _filtroSelecionado = 0;
-  final _filtros = ['Todos', 'História', 'Economia', 'Jindungo', 'Podcasts'];
+  final _filtros = [
+    'Todos',
+    'História',
+    'Economia',
+    'Jindungo',
+    'Podcasts',
+    'Fórum',
+    'Quiz',
+  ];
+
+  final List<_ConteudoItem> _todosItens = const [
+    _ConteudoItem(
+      categoria: 'ECONOMIA • 8 MIN',
+      titulo: 'O Impacto do Comércio Transatlântico na Moeda Nacional',
+      imagemAsset: 'assets/images/Impacto_do_comercio.png',
+      isPodcast: false,
+      filtroTag: 'Economia',
+    ),
+    _ConteudoItem(
+      categoria: 'HISTÓRIA • 12 MIN',
+      titulo: 'Crónicas do Reino do Kongo: Estrutura Social e Política',
+      imagemAsset: 'assets/images/Cronicas_do_Reino_do_Congo.png',
+      isPodcast: false,
+      filtroTag: 'História',
+    ),
+    _ConteudoItem(
+      categoria: 'PODCAST • EPISÓDIO 42',
+      titulo: 'Debate: O Futuro da Diversificação Económica em Angola',
+      imagemAsset: 'assets/images/Debate_Diversificacao_Economica.png',
+      isPodcast: true,
+      filtroTag: 'Podcasts',
+    ),
+  ];
+
+  List<_ConteudoItem> get _itensFiltrados {
+    final filtroAtual = _filtros[_filtroSelecionado];
+    if (filtroAtual == 'Todos') return List<_ConteudoItem>.from(_todosItens);
+    return List<_ConteudoItem>.from(
+      _todosItens.where((item) => item.filtroTag == filtroAtual),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final itens = _itensFiltrados;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppBarPrincipal(
         titulo: 'Explorar Conteúdo',
         mostrarFavoritos: true,
-      ), // ← SUBSTITUIU _AppBar()
+      ),
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
-            child: _FiltrosRow(
-              filtros: _filtros,
-              selecionado: _filtroSelecionado,
-              onSelect: (i) => setState(() => _filtroSelecionado = i),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 16, bottom: 4),
+              child: _FiltrosRow(
+                filtros: _filtros,
+                selecionado: _filtroSelecionado,
+                onSelect: (i) => setState(() => _filtroSelecionado = i),
+              ),
             ),
           ),
           SliverPadding(
@@ -42,48 +104,58 @@ class _ExplorarConteudoScreenState extends State<ExplorarConteudoScreen> {
                   onAcao: () {},
                 ),
                 const SizedBox(height: 12),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const TextoJindungoScreen(),
+                if (itens.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    child: Center(
+                      child: Text(
+                        'Nenhum conteúdo encontrado\npara "${_filtros[_filtroSelecionado]}".',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textMedium,
+                          height: 1.5,
+                        ),
                       ),
-                    );
-                  },
-                  child: const _TrendingItem(
-                    categoria: 'ECONOMIA • 8 MIN',
-                    titulo:
-                        'O Impacto do Comércio Transatlântico na Moeda Nacional',
-                    imagemAsset: 'assets/images/Impacto_do_comercio.png',
-                    isPodcast: false,
-                  ),
-                ),
+                    ),
+                  )
+                else
+                  ...List.generate(itens.length, (i) {
+                    final item = itens[i];
+                    final isFirst =
+                        i == 0 && item.filtroTag == 'Economia' ||
+                        (_filtros[_filtroSelecionado] == 'Todos' && i == 0);
 
-                const Divider(color: Color(0xFFEEE8E9), height: 1),
-                _TrendingItem(
-                  categoria: 'HISTÓRIA • 12 MIN',
-                  titulo:
-                      'Crónicas do Reino do Kongo: Estrutura Social e Política',
-                  imagemAsset: 'assets/images/Cronicas_do_Reino_do_Congo.png',
-                  isPodcast: false,
-                ),
-                const Divider(color: Color(0xFFEEE8E9), height: 1),
-                _TrendingItem(
-                  categoria: 'PODCAST • EPISÓDIO 42',
-                  titulo:
-                      'Debate: O Futuro da Diversificação Económica em Angola',
-                  imagemAsset:
-                      'assets/images/Debate_Diversificacao_Economica.png',
-                  isPodcast: true,
-                ),
+                    return Column(
+                      children: [
+                        if (i > 0)
+                          const Divider(color: Color(0xFFEEE8E9), height: 1),
+                        GestureDetector(
+                          onTap: isFirst
+                              ? () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const ConteudoScreen(),
+                                  ),
+                                )
+                              : null,
+                          child: _TrendingItem(
+                            categoria: item.categoria,
+                            titulo: item.titulo,
+                            imagemAsset: item.imagemAsset,
+                            isPodcast: item.isPodcast,
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
                 const SizedBox(height: 28),
                 const Text(
                   'Recomendado para ti',
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
+                    color: AppColors.primary,
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -93,56 +165,6 @@ class _ExplorarConteudoScreenState extends State<ExplorarConteudoScreen> {
                 const SizedBox(height: 32),
               ]),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AppBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.maybePop(context),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: const Color(0x4DD8C1C4),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.chevron_left_rounded,
-                color: AppColors.textDark,
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Text(
-            'Explorar Conteúdo',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
-            ),
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: AppColors.textDark,
-            ),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.search_rounded, color: AppColors.textDark),
           ),
         ],
       ),
@@ -177,9 +199,10 @@ class _FiltrosRow extends StatelessWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: ativo ? AppColors.primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: ativo ? AppColors.primary : const Color(0xFFD8C1C4),
                 ),

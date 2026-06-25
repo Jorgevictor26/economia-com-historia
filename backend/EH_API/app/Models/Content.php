@@ -25,7 +25,12 @@ class Content extends Model
         'audio_url',
         'document_url',
         'visibility',
+        'views_count',
         'deleted_by',
+    ];
+
+    protected $casts = [
+        'views_count' => 'integer',
     ];
 
     public function user()

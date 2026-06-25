@@ -46,6 +46,11 @@ class ContentService
         return $this->repository->findById($id);
     }
 
+    public function registerView(Content $content): Content
+    {
+        return $this->repository->incrementViews($content);
+    }
+
     public function update(Content $content, UpdateContentDTO $dto, User $actor): Content
     {
         if ($dto->contentTypeId !== null && $this->isJindungoType($dto->contentTypeId) && ! $actor->hasRoleName('super-admin')) {

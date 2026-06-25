@@ -52,6 +52,13 @@ class ContentRepository
             ->find($id);
     }
 
+    public function incrementViews(Content $content): Content
+    {
+        $content->increment('views_count');
+
+        return $content->fresh(['author.roles', 'category', 'contentType']);
+    }
+
     public function update(Content $content, array $data): Content
     {
         $content->update($data);

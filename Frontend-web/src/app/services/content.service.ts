@@ -19,6 +19,7 @@ export interface BackendContent {
   image?: string | null;
   video?: string | null;
   visibility?: string;
+  views_count?: number | string;
   created_at?: string | null;
   updated_at?: string | null;
   author?: BackendRelation | null;

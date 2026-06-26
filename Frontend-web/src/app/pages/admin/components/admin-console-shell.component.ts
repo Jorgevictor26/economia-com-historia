@@ -19,7 +19,8 @@ interface AdminNavGroup {
 @Component({
   selector: 'app-admin-console-shell',
   imports: [RouterLink, PublicNavbarComponent],
-  templateUrl: './admin-console-shell.component.html'
+  templateUrl: './admin-console-shell.component.html',
+  styleUrl: './admin-console-shell.component.scss',
 })
 export class AdminConsoleShellComponent {
   readonly auth = inject(AuthStateService);
@@ -28,9 +29,53 @@ export class AdminConsoleShellComponent {
   @Input() userInitials = 'JD';
   @Input() userName = 'Joao dos Santos';
   @Input() userRole = 'Admin';
-  @Input() avatarUrl = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80';
+  @Input() avatarUrl = '';
   @Input() activeItem: 'dashboard' | 'statistics' | 'admins' | 'reports' | 'users' | 'subscriptions' | 'quiz' | 'contents' | 'settings' =
     'dashboard';
+
+  get displayName(): string {
+    return this.auth.user()?.name || this.userName;
+  }
+
+  get displayAvatarUrl(): string {
+    return this.auth.user()?.avatarUrl || this.avatarUrl;
+  }
+
+  get displayRole(): string {
+    const role = this.auth.user()?.role;
+
+    if (role === 'super-admin') {
+      return 'Superadministrador';
+    }
+
+    if (role === 'admin') {
+      return 'Administrador';
+    }
+
+    if (role === 'writer') {
+      return 'Editor de conteudos';
+    }
+
+    if (role === 'moderator') {
+      return 'Moderador';
+    }
+
+    return this.userRole;
+  }
+
+  get displayInitials(): string {
+    const name = this.displayName.trim();
+
+    if (!name) {
+      return this.userInitials;
+    }
+
+    return name
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join('');
+  }
 
   get navGroups(): AdminNavGroup[] {
     const contentChildren: AdminNavItem[] = [

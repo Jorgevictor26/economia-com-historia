@@ -1,47 +1,157 @@
 <app-admin-console-shell activeItem="users">
-  <section class="grid gap-8">
-    <header class="rounded-[22px] bg-[#f8f2ef] p-8 text-[#5c1e2f] shadow-sm">
-      <p class="text-[10px] uppercase tracking-[0.24em] text-[#8a8587]">Utilizadores</p>
-      <h1 class="mt-4 text-[34px] font-extrabold">Gestão de Utilizadores</h1>
-      <p class="mt-3 max-w-2xl text-[14px] leading-7 text-[#534345]">
-        Analise perfis, revise assinaturas e administre o acesso dos membros à plataforma.
-      </p>
+  <section class="mx-auto grid max-w-6xl gap-5">
+    <header class="flex flex-wrap items-center justify-between gap-4">
+      <h1 class="font-display text-[30px] font-extrabold leading-tight text-[#8f4058]">Gestao de Admins</h1>
+
+      @if (auth.isSuperAdmin()) {
+        <button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-[6px] bg-[#5c1e2f] px-5 text-[13px] font-extrabold text-white shadow-[0_12px_28px_rgba(92,30,47,0.18)] transition hover:bg-[#6f263a]">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">person_add</span>
+          Adicionar Admin
+        </button>
+      }
     </header>
 
-    <div class="grid gap-4">
-      @for (user of users; track user.email) {
-        <article class="rounded-[22px] border border-[#e8dde0] bg-white p-6 shadow-sm">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p class="text-[13px] font-semibold text-[#2c2729]">{{ user.name }}</p>
-              <p class="text-[12px] text-[#7a7276]">{{ user.email }} · {{ user.role }}</p>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="rounded-full bg-[#f3edea] px-3 py-1 text-[12px] font-semibold text-[#9b4056]">
+    <section class="grid gap-3">
+      <div class="grid gap-3 md:grid-cols-[minmax(220px,1fr)_minmax(180px,0.65fr)_minmax(180px,0.65fr)_auto]">
+        <label class="grid gap-1">
+          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8f4058]">Pesquisar</span>
+          <div class="flex h-9 items-center gap-2 rounded-[6px] border border-[#eee7ea] bg-white px-3 shadow-[0_10px_24px_rgba(27,22,30,0.035)]">
+            <span class="material-symbols-outlined text-[16px] text-[#8b8589]" aria-hidden="true">search</span>
+            <input type="search" placeholder="Nome ou email..." class="min-w-0 flex-1 border-0 bg-transparent text-[12px] text-[#3a3034] outline-none placeholder:text-[#aaa3a7]" />
+          </div>
+        </label>
+
+        <label class="grid gap-1">
+          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8f4058]">Departamento</span>
+          <select class="h-9 rounded-[6px] border border-[#eee7ea] bg-white px-3 text-[12px] text-[#3a3034] shadow-[0_10px_24px_rgba(27,22,30,0.035)] outline-none">
+            <option>Todos os departamentos</option>
+            <option>Academico</option>
+            <option>Marketing</option>
+            <option>Financeiro</option>
+            <option>Tecnologia</option>
+          </select>
+        </label>
+
+        <label class="grid gap-1">
+          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8f4058]">Nivel de acesso</span>
+          <select class="h-9 rounded-[6px] border border-[#eee7ea] bg-white px-3 text-[12px] text-[#3a3034] shadow-[0_10px_24px_rgba(27,22,30,0.035)] outline-none">
+            <option>Todos os cargos</option>
+            <option>Super admin</option>
+            <option>Administrador</option>
+            <option>Escritor</option>
+            <option>Utilizador</option>
+          </select>
+        </label>
+
+        <button type="button" class="mt-auto inline-flex h-9 items-center justify-center gap-2 rounded-[6px] border border-[#eadfe3] bg-white px-4 text-[12px] font-extrabold text-[#8f4058] shadow-[0_10px_24px_rgba(27,22,30,0.035)] transition hover:border-[#8f4058]">
+          <span class="material-symbols-outlined text-[16px]" aria-hidden="true">filter_list</span>
+          Filtrar
+        </button>
+      </div>
+
+      <section class="overflow-hidden rounded-[8px] border border-[#eee7ea] bg-white shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
+        <div class="grid grid-cols-[minmax(210px,1.2fr)_minmax(120px,0.55fr)_minmax(130px,0.58fr)_minmax(90px,0.42fr)_minmax(115px,0.5fr)_48px] gap-4 border-b border-[#f0e8eb] bg-[#f8f6f7] px-5 py-3 text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8f4058] max-xl:hidden">
+          <span>Administrador</span>
+          <span>Departamento</span>
+          <span>Cargo</span>
+          <span>Status</span>
+          <span>Ultimo acesso</span>
+          <span class="text-right">Acoes</span>
+        </div>
+
+        <div class="grid divide-y divide-[#f1eaed]">
+          @for (user of users; track user.email) {
+            <article class="grid grid-cols-[minmax(210px,1.2fr)_minmax(120px,0.55fr)_minmax(130px,0.58fr)_minmax(90px,0.42fr)_minmax(115px,0.5fr)_48px] items-center gap-4 px-5 py-4 transition hover:bg-[#fbfafb] max-xl:grid-cols-1">
+              <div class="flex min-w-0 items-center gap-3">
+                <span class="grid size-9 shrink-0 place-items-center rounded-full bg-[#f6e9ed] text-[11px] font-extrabold text-[#8f4058]">{{ initials(user.name) }}</span>
+                <span class="min-w-0">
+                  <strong class="block truncate text-[13px] text-[#2e272a]">{{ user.name }}</strong>
+                  <small class="block truncate text-[11px] text-[#8d8589]">{{ user.email }}</small>
+                </span>
+              </div>
+
+              <span class="text-[12px] text-[#5d5357] max-xl:before:mr-2 max-xl:before:font-extrabold max-xl:before:text-[#8f4058] max-xl:before:content-['Departamento:']">{{ user.department }}</span>
+
+              <span class="w-fit rounded-[4px] bg-[#f2f0f1] px-2.5 py-1 text-[9px] font-extrabold uppercase text-[#5f575b]">
+                {{ user.position }}
+              </span>
+
+              <span class="inline-flex items-center gap-2 text-[12px] font-bold" [class.text-[#2d7a47]]="user.status === 'Ativo'" [class.text-[#7b6a20]]="user.status === 'Pendente'" [class.text-[#5f575b]]="user.status === 'Inativo'">
+                <span class="size-1.5 rounded-full" [class.bg-[#2fbd68]]="user.status === 'Ativo'" [class.bg-[#d7a51f]]="user.status === 'Pendente'" [class.bg-[#777075]]="user.status === 'Inativo'"></span>
                 {{ user.status }}
               </span>
 
-              @if (auth.canPromoteWriters() && user.role !== 'Administrador' && user.role !== 'Editor') {
-                <button type="button" class="rounded-full border border-[#9b4056] px-3 py-1 text-[12px] font-bold text-[#9b4056]">
-                  Promover a escritor
-                </button>
-              }
+              <span class="text-[12px] text-[#5d5357] max-xl:before:mr-2 max-xl:before:font-extrabold max-xl:before:text-[#8f4058] max-xl:before:content-['Ultimo_acesso:']">{{ user.lastAccess }}</span>
 
-              @if (auth.canPromoteAdmins() && user.role !== 'Administrador') {
-                <button type="button" class="rounded-full bg-[#9b4056] px-3 py-1 text-[12px] font-bold text-white">
-                  Promover a admin
-                </button>
-              }
+              <div class="relative flex items-center justify-end max-xl:justify-start">
+                <details class="group relative">
+                  <summary class="grid size-8 cursor-pointer list-none place-items-center rounded-[5px] text-[#5f575b] transition hover:bg-[#f4eef1] hover:text-[#8f4058]" aria-label="Mais acoes">
+                    <span class="material-symbols-outlined text-[20px]" aria-hidden="true">more_vert</span>
+                  </summary>
 
-              @if (auth.isSuperAdmin() && user.role === 'Administrador') {
-                <button type="button" class="rounded-full bg-[#5c1e2f] px-3 py-1 text-[12px] font-bold text-white">
-                  Promover a super-admin
-                </button>
-              }
-            </div>
+                  <div class="absolute right-0 z-20 mt-2 grid min-w-40 gap-1 rounded-[8px] border border-[#eee7ea] bg-white p-2 shadow-[0_18px_45px_rgba(27,22,30,0.12)] max-xl:left-0 max-xl:right-auto">
+                    @if (canPromoteToWriter(user)) {
+                      <button type="button" (click)="promoteToWriter(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8f4058] transition hover:bg-[#fff4f7]">
+                        Promover a escritor
+                      </button>
+                    }
+
+                    @if (canPromoteToAdmin(user)) {
+                      <button type="button" (click)="promoteToAdmin(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8f4058] transition hover:bg-[#fff4f7]">
+                        Promover a admin
+                      </button>
+                    }
+
+                    @if (!canPromoteToWriter(user) && !canPromoteToAdmin(user)) {
+                      <span class="px-3 py-2 text-[11px] font-semibold text-[#8d8589]">Sem acao disponivel</span>
+                    }
+                  </div>
+                </details>
+              </div>
+            </article>
+          }
+        </div>
+
+        <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-[#f0e8eb] px-5 py-4 text-[11px] text-[#8d8589]">
+          <span>Mostrando 1-{{ users.length }} de {{ users.length }} administradores</span>
+          <div class="flex items-center gap-2">
+            <button type="button" class="h-8 rounded-[5px] border border-[#eee7ea] bg-white px-3 text-[11px] font-bold text-[#6f686b] transition hover:border-[#8f4058]">Anterior</button>
+            <button type="button" class="h-8 rounded-[5px] border border-[#8f4058] bg-white px-3 text-[11px] font-bold text-[#8f4058] transition hover:bg-[#fff4f7]">Proxima</button>
           </div>
-        </article>
-      }
-    </div>
+        </footer>
+      </section>
+    </section>
+
+    <section class="grid gap-4 md:grid-cols-3">
+      <article class="flex min-h-20 items-center gap-4 rounded-[8px] border border-[#eee7ea] bg-[#f4f5f6] px-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
+        <span class="grid size-10 place-items-center rounded-[7px] bg-[#f5e7ec] text-[#8f4058]">
+          <span class="material-symbols-outlined text-[21px]" aria-hidden="true">groups</span>
+        </span>
+        <div>
+          <strong class="block text-[17px] text-[#5c1e2f]">{{ adminCount }}</strong>
+          <span class="text-[10px] font-extrabold uppercase tracking-[0.04em] text-[#8a8587]">Total de admins</span>
+        </div>
+      </article>
+
+      <article class="flex min-h-20 items-center gap-4 rounded-[8px] border border-[#eee7ea] bg-[#f4f5f6] px-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
+        <span class="grid size-10 place-items-center rounded-[7px] bg-[#f5e7ec] text-[#8f4058]">
+          <span class="material-symbols-outlined text-[21px]" aria-hidden="true">shield</span>
+        </span>
+        <div>
+          <strong class="block text-[17px] text-[#5c1e2f]">{{ superAdminCount }}</strong>
+          <span class="text-[10px] font-extrabold uppercase tracking-[0.04em] text-[#8a8587]">Super admins</span>
+        </div>
+      </article>
+
+      <article class="flex min-h-20 items-center gap-4 rounded-[8px] border border-[#eee7ea] bg-[#f4f5f6] px-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
+        <span class="grid size-10 place-items-center rounded-[7px] bg-[#f5e7ec] text-[#8f4058]">
+          <span class="material-symbols-outlined text-[21px]" aria-hidden="true">history</span>
+        </span>
+        <div>
+          <strong class="block text-[17px] text-[#5c1e2f]">{{ pendingCount }}</strong>
+          <span class="text-[10px] font-extrabold uppercase tracking-[0.04em] text-[#8a8587]">Solicitacoes pendentes</span>
+        </div>
+      </article>
+    </section>
   </section>
 </app-admin-console-shell>

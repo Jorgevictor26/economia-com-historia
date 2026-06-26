@@ -18,8 +18,7 @@
   padding-block: 2rem 2.5rem;
 }
 
-.admin-sidebar,
-.admin-content-panel {
+.admin-sidebar {
   position: relative;
   border: 1px solid rgb(227 212 216 / 0.76);
   border-radius: 8px;
@@ -32,9 +31,9 @@
 }
 
 .admin-content-panel {
+  position: relative;
   min-width: 0;
-  overflow: hidden;
-  padding: 1.25rem clamp(1rem, 3vw, 1.75rem);
+  padding: 0;
 }
 
 .admin-identity {
@@ -244,6 +243,6 @@
   }
 
   .admin-content-panel {
-    padding: 1rem;
+    padding: 0;
   }
 }

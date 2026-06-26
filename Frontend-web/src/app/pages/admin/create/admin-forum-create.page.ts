@@ -32,6 +32,18 @@ export class AdminForumCreatePage {
   readonly publicVisible = signal(true);
   readonly allowAttachments = signal(false);
   readonly status = signal('Rascunho');
+  readonly coverUploaded = signal(false);
+  readonly coverPreview = signal<string | null>(null);
+  readonly coverFileName = signal('');
+  readonly previewOpen = signal(false);
+  readonly currentStep = signal(1);
+  readonly steps = [
+    { value: 1, title: 'Dados' },
+    { value: 2, title: 'Regras' },
+    { value: 3, title: 'Foto' },
+    { value: 4, title: 'Acesso' },
+    { value: 5, title: 'Revisao' },
+  ];
 
   readonly previewTitle = computed(() => this.title().trim() || 'Mantenha a moderacao activa para garantir rigor.');
   readonly previewRules = computed(() => this.rules().trim() || 'O rigor histórico e a clareza para uma economia sustentavel serao apresentados como pontos de partida do debate.');
@@ -79,6 +91,47 @@ export class AdminForumCreatePage {
 
   publish(): void {
     this.status.set('Publicado');
+    this.previewOpen.set(false);
+  }
+
+  nextStep(): void {
+    this.currentStep.update((step) => Math.min(step + 1, this.steps.length));
+  }
+
+  previousStep(): void {
+    this.currentStep.update((step) => Math.max(step - 1, 1));
+  }
+
+  openPreview(): void {
+    this.previewOpen.set(true);
+    this.status.set('Em revisao');
+  }
+
+  closePreview(): void {
+    this.previewOpen.set(false);
+  }
+
+  onCoverSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.coverPreview.set(reader.result as string);
+      this.coverFileName.set(file.name);
+      this.coverUploaded.set(true);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  clearCover(): void {
+    this.coverPreview.set(null);
+    this.coverFileName.set('');
+    this.coverUploaded.set(false);
   }
 
   private eventValue(event: Event): string {

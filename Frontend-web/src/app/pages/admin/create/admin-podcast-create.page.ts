@@ -1,11 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { AuthStateService } from '../../../services/auth-state.service';
 import { AdminConsoleShellComponent } from '../components/admin-console-shell.component';
-import { AdminEditorialSectionComponent } from '../components/admin-editorial-section.component';
 
 @Component({
   selector: 'app-admin-podcast-create-page',
-  imports: [AdminConsoleShellComponent, AdminEditorialSectionComponent],
+  imports: [AdminConsoleShellComponent],
   templateUrl: './admin-podcast-create.page.html',
   styles: [
     `
@@ -36,7 +35,18 @@ export class AdminPodcastCreatePage {
   readonly audioUploaded = signal(false);
   readonly uploadProgress = signal(68);
   readonly coverChanged = signal(false);
+  readonly coverUploaded = signal(false);
+  readonly coverPreview = signal<string | null>(null);
+  readonly coverFileName = signal('');
+  readonly previewOpen = signal(false);
   readonly status = signal('Rascunho');
+  readonly currentStep = signal(1);
+  readonly steps = [
+    { value: 1, title: 'Detalhes' },
+    { value: 2, title: 'Audio' },
+    { value: 3, title: 'Capa' },
+    { value: 4, title: 'Publicacao' },
+  ];
   readonly visibility = signal<'public' | 'premium' | 'private'>('public');
   readonly scheduled = signal(false);
   readonly scheduleDate = signal('');
@@ -44,7 +54,7 @@ export class AdminPodcastCreatePage {
   readonly toggle = (value: boolean) => !value;
 
   readonly progress = computed(() => {
-    const checks = [this.title(), this.category(), this.duration(), this.description(), this.audioUploaded(), this.coverChanged()];
+    const checks = [this.title(), this.category(), this.duration(), this.description(), this.audioUploaded(), this.coverUploaded()];
     return Math.round((checks.filter((value) => Boolean(String(value).trim())).length / checks.length) * 100);
   });
 
@@ -100,6 +110,49 @@ export class AdminPodcastCreatePage {
 
   publish(): void {
     this.status.set('Publicado');
+    this.previewOpen.set(false);
+  }
+
+  nextStep(): void {
+    this.currentStep.update((step) => Math.min(step + 1, this.steps.length));
+  }
+
+  previousStep(): void {
+    this.currentStep.update((step) => Math.max(step - 1, 1));
+  }
+
+  openPreview(): void {
+    this.previewOpen.set(true);
+    this.status.set('Em revisao');
+  }
+
+  closePreview(): void {
+    this.previewOpen.set(false);
+  }
+
+  onCoverSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.coverPreview.set(reader.result as string);
+      this.coverFileName.set(file.name);
+      this.coverUploaded.set(true);
+      this.coverChanged.set(true);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  clearCover(): void {
+    this.coverPreview.set(null);
+    this.coverFileName.set('');
+    this.coverUploaded.set(false);
+    this.coverChanged.set(false);
   }
 
   private eventValue(event: Event): string {

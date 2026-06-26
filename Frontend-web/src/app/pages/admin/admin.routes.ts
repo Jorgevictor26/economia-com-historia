@@ -15,7 +15,7 @@ import { AdminReportsPage } from './pages/reports/admin-reports.page';
 import { AdminSettingsPage } from './pages/settings/admin-settings.page';
 import { AdminStatisticsPage } from './pages/statistics/admin-statistics.page';
 import { AdminSubscriptionsPage } from './pages/subscriptions/admin-subscriptions.page';
-import { AdminUsersPage } from './pages/users/admin-users.page';
+import { AdminUsersPage } from './pages/users';
 
 interface AdminMetric {
   label: string;

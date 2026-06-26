@@ -16,6 +16,7 @@ export class AdminArticleCreatePage {
   readonly type = signal('Selecione o tipo');
   readonly readTime = signal('Selecione');
   readonly body = signal('');
+  readonly references = signal('');
   readonly visibility = signal<'publico' | 'analise' | 'privado'>('publico');
   readonly coverUploaded = signal(false);
   readonly coverPreview = signal<string | null>(null);
@@ -32,6 +33,7 @@ export class AdminArticleCreatePage {
       this.type() !== 'Selecione o tipo',
       this.readTime() !== 'Selecione',
       this.body().trim().length > 0,
+      this.references().trim().length > 0,
       this.coverUploaded(),
     ];
 
@@ -66,6 +68,10 @@ export class AdminArticleCreatePage {
 
   setBody(event: Event): void {
     this.body.set(this.eventValue(event));
+  }
+
+  setReferences(event: Event): void {
+    this.references.set(this.eventValue(event));
   }
 
   saveDraft(): void {

@@ -1,190 +1,233 @@
-    <app-admin-console-shell activeItem="contents">
-      <main class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <section class="min-w-0">
-          <header class="overflow-hidden rounded-[8px] border border-[#eadfe3] bg-white shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
-            <div class="grid gap-6 p-7 lg:grid-cols-[minmax(0,1fr)_330px]">
+<app-admin-console-shell activeItem="contents">
+  <main class="mx-auto grid max-w-6xl gap-5">
+    <section class="rounded-[8px] border border-[#ece7ea] bg-white px-8 py-7 shadow-[0_18px_45px_rgba(27,22,30,0.05)] max-md:px-5">
+      <header class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <a routerLink="/admin/contents" class="inline-flex items-center gap-2 text-[13px] font-semibold text-[#5f5861]">
+            <span aria-hidden="true" class="text-[18px] leading-none">&larr;</span>
+            Voltar a conteudos
+          </a>
+          <h1 class="mt-5 font-display text-[30px] font-extrabold leading-tight text-[#4a1425]">Texto com Jindungo</h1>
+        </div>
+
+        <ol class="flex w-full max-w-[760px] flex-wrap items-center gap-3 text-[12px] font-extrabold text-[#a9a1a6]">
+          @for (step of steps; track step.value) {
+            <li class="flex min-w-0 items-center gap-2" [class.text-[#7d193b]]="currentStep() === step.value">
+              <span class="grid size-7 shrink-0 place-items-center rounded-full border text-[12px]" [class.border-[#7d193b]]="currentStep() === step.value" [class.bg-[#7d193b]]="currentStep() === step.value" [class.text-white]="currentStep() === step.value" [class.border-[#d9d3d7]]="currentStep() !== step.value">{{ step.value }}</span>
+              <span class="truncate">{{ step.title }}</span>
+            </li>
+          }
+        </ol>
+      </header>
+
+      <form class="mt-8" (submit)="$event.preventDefault()">
+        @if (currentStep() === 1) {
+          <section class="rounded-[8px] border border-[#e5dde2] bg-[#fffdfc] p-6">
+            <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <a routerLink="/admin" class="inline-flex items-center gap-2 text-[13px] font-semibold text-[#5f5861]">
-                  <span aria-hidden="true" class="text-[18px] leading-none">&larr;</span>
-                  Voltar a conte&uacute;dos
-                </a>
-                <p class="mt-6 inline-flex items-center gap-2 rounded-[999px] bg-[#fff7df] px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#735c00]">
-                  <span class="material-icon" aria-hidden="true">workspace_premium</span>
-                  Conte&uacute;do premium
-                </p>
-                <h1 class="mt-4 font-display text-[32px] font-extrabold leading-tight text-[#5c1e2f]">Novo texto com Jindungo</h1>
-                <p class="mt-3 max-w-[680px] text-[14px] leading-6 text-[#534345]">
-                  Crie uma análise reservada para membros, com barreira de acesso, tags academicas e revisão editorial antes da publicacao.
-                </p>
+                <h2 class="text-[20px] font-extrabold text-[#5f0e28]">Conteudo</h2>
+                <p class="mt-2 text-[13px] leading-6 text-[#69616a]">Escreva o titulo, o resumo aberto e o corpo premium do texto.</p>
+              </div>
+              <span class="rounded-[999px] bg-[#fff7df] px-3 py-1 text-[11px] font-extrabold uppercase text-[#735c00]">{{ status() }}</span>
+            </div>
+
+            <div class="mt-5 overflow-hidden rounded-[8px] border border-[#ded8dd] bg-white">
+              <div class="flex min-h-12 flex-wrap items-center gap-2 border-b border-[#ebe5e8] px-4 text-[14px] text-[#4f4852]">
+                <button type="button" class="grid size-8 place-items-center rounded-[6px] font-extrabold hover:bg-[#f7edef]" aria-label="Negrito">B</button>
+                <button type="button" class="grid size-8 place-items-center rounded-[6px] italic hover:bg-[#f7edef]" aria-label="Italico">I</button>
+                <button type="button" class="grid size-8 place-items-center rounded-[6px] hover:bg-[#f7edef]" aria-label="Titulo">H1</button>
+                <button type="button" class="grid size-8 place-items-center rounded-[6px] hover:bg-[#f7edef]" aria-label="Citacao">&rdquo;</button>
+                <button type="button" class="grid size-8 place-items-center rounded-[6px] hover:bg-[#f7edef]" aria-label="Link">
+                  <span class="material-icon" aria-hidden="true">link</span>
+                </button>
+                <button type="button" class="grid size-8 place-items-center rounded-[6px] hover:bg-[#f7edef]" aria-label="Imagem">
+                  <span class="material-icon" aria-hidden="true">image</span>
+                </button>
               </div>
 
-              <section class="rounded-[8px] border border-[#e6dde1] bg-[#fbfaf7] p-4">
-                <p class="text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#8a8587]">Resumo editorial</p>
-                <h2 class="mt-2 font-display text-[20px] font-extrabold leading-tight text-[#3a232b]">Análise critica para subscritores</h2>
-                <div class="mt-4 grid grid-cols-2 gap-3 text-[12px]">
-                  <span class="rounded-[8px] bg-white px-3 py-2 text-[#534345]"><b class="block text-[#5c1e2f]">Acesso</b>Premium</span>
-                  <span class="rounded-[8px] bg-white px-3 py-2 text-[#534345]"><b class="block text-[#5c1e2f]">Estado</b>Rascunho</span>
-                  <span class="rounded-[8px] bg-white px-3 py-2 text-[#534345]"><b class="block text-[#5c1e2f]">Leitura</b>12 min</span>
-                  <span class="rounded-[8px] bg-white px-3 py-2 text-[#534345]"><b class="block text-[#5c1e2f]">Tags</b>4 ativas</span>
-                </div>
-              </section>
+              <div class="grid gap-0">
+                <input type="text" placeholder="Titulo do Jindungo..." maxlength="110" [value]="title()" (input)="setTitle($event)" class="border-0 px-6 pt-8 font-display text-[32px] font-extrabold leading-tight text-[#2c2729] outline-none placeholder:text-[#d6d3d5] max-md:text-[26px]" />
+                <textarea placeholder="Comece com o resumo aberto..." [value]="excerpt()" (input)="setExcerpt($event)" class="min-h-[96px] resize-y border-0 px-6 py-4 text-[14px] leading-6 text-[#6f686b] outline-none placeholder:text-[#c9c5c8]"></textarea>
+                <textarea placeholder="Escreva o conteudo premium aqui..." [value]="body()" (input)="setBody($event)" class="min-h-[240px] resize-y border-0 border-t border-[#f0e8eb] px-6 py-6 text-[15px] leading-7 text-[#2c2729] outline-none placeholder:text-[#c9c5c8]"></textarea>
+              </div>
             </div>
-          </header>
+          </section>
+        }
 
-          <section class="mt-6 grid gap-4 md:grid-cols-4">
-            @for (metric of metrics; track metric.label) {
-              <article class="rounded-[8px] border border-[#eadfe3] bg-white p-5 shadow-[0_12px_30px_rgba(27,22,30,0.045)]">
-                <div class="flex items-center justify-between gap-3">
-                  <span class="grid size-10 place-items-center rounded-[8px] bg-[#f7edef] text-[#8a1238]">
-                    <span class="material-icon" aria-hidden="true">{{ metric.icon }}</span>
-                  </span>
-                  <span class="text-[11px] font-extrabold uppercase text-[#8a8587]">{{ metric.badge }}</span>
-                </div>
-                <strong class="mt-4 block font-display text-[24px] font-extrabold leading-none text-[#5c1e2f]">{{ metric.value }}</strong>
-                <p class="mt-2 text-[13px] font-bold text-[#3a3236]">{{ metric.label }}</p>
-                <p class="mt-1 text-[12px] leading-5 text-[#6f686b]">{{ metric.description }}</p>
-              </article>
+        @if (currentStep() === 2) {
+          <section class="rounded-[8px] border border-[#e5dde2] bg-[#fffdfc] p-6">
+            <h2 class="text-[20px] font-extrabold text-[#5f0e28]">Pre-visualizacao da barreira de acesso</h2>
+            <p class="mt-2 text-[13px] leading-6 text-[#69616a]">Configure o bloco que os nao-subscritores veem depois dos primeiros paragrafos.</p>
+
+            <div class="mt-5 grid gap-4 md:grid-cols-2">
+              <label class="grid gap-2">
+                <span class="text-[13px] font-bold text-[#554d57]">Titulo da barreira</span>
+                <input type="text" [value]="barrierTitle()" (input)="setBarrierTitle($event)" class="h-12 rounded-[8px] border border-[#ded8dd] bg-white px-4 text-[14px] text-[#2c2729] outline-none focus:border-[#9b1640]" />
+              </label>
+              <label class="grid gap-2">
+                <span class="text-[13px] font-bold text-[#554d57]">Texto do botao</span>
+                <input type="text" value="Subscrever" readonly class="h-12 rounded-[8px] border border-[#ded8dd] bg-[#fbfaf7] px-4 text-[14px] text-[#6f686b]" />
+              </label>
+            </div>
+
+            <label class="mt-4 grid gap-2">
+              <span class="text-[13px] font-bold text-[#554d57]">Descricao da barreira</span>
+              <textarea [value]="barrierDescription()" (input)="setBarrierDescription($event)" class="min-h-[110px] resize-y rounded-[8px] border border-[#ded8dd] bg-white px-4 py-3 text-[14px] leading-6 text-[#2c2729] outline-none focus:border-[#9b1640]"></textarea>
+            </label>
+
+            <section class="mt-5 rounded-[8px] border border-[#eadfe3] bg-white p-6 text-center">
+              <span class="mx-auto grid size-12 place-items-center rounded-full bg-[#f7edef] text-[#5c1e2f]">
+                <span class="material-icon text-[28px]" aria-hidden="true">lock</span>
+              </span>
+              <h3 class="mt-4 font-display text-[20px] font-extrabold text-[#5c1e2f]">{{ barrierTitle() }}</h3>
+              <p class="mx-auto mt-2 max-w-[520px] text-[13px] leading-5 text-[#6f686b]">{{ barrierDescription() }}</p>
+              <button type="button" class="mt-5 h-10 rounded-[8px] bg-[#5c1e2f] px-6 text-[13px] font-extrabold text-white">Subscrever</button>
+            </section>
+          </section>
+        }
+
+        @if (currentStep() === 3) {
+          <section class="rounded-[8px] border border-[#e5dde2] bg-[#fffdfc] p-6">
+            <h2 class="text-[20px] font-extrabold text-[#5f0e28]">Definicoes</h2>
+
+            <div class="mt-5 grid gap-4 md:grid-cols-2">
+              <label class="grid gap-2">
+                <span class="text-[13px] font-bold text-[#554d57]">Controlo de acesso</span>
+                <select [value]="access()" (change)="access.set($any($event.target).value)" class="h-11 rounded-[8px] border border-[#ded8dd] bg-white px-3 text-[13px] text-[#534345] outline-none focus:border-[#9b1640]">
+                  @for (option of accessOptions; track option) {
+                    <option>{{ option }}</option>
+                  }
+                </select>
+              </label>
+
+              <label class="grid gap-2">
+                <span class="text-[13px] font-bold text-[#554d57]">Categoria</span>
+                <select [value]="category()" (change)="setCategory($event)" class="h-11 rounded-[8px] border border-[#ded8dd] bg-white px-3 text-[13px] text-[#534345] outline-none focus:border-[#9b1640]">
+                  @for (option of categoryOptions; track option) {
+                    <option>{{ option }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+
+            <section class="mt-5 grid gap-3">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <h3 class="text-[13px] font-bold text-[#554d57]">Tags academicas</h3>
+                <button type="button" (click)="addTag()" class="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#5c1e2f] bg-white px-4 text-[12px] font-extrabold text-[#5c1e2f]">Adicionar tag</button>
+              </div>
+
+              <div class="grid gap-3 md:grid-cols-3">
+                @for (tag of tags(); track $index; let i = $index) {
+                  <label class="flex min-h-11 items-center gap-2 rounded-[8px] border border-[#ded8dd] bg-white px-3">
+                    <input type="text" [value]="tag" (input)="setTag(i, $event)" class="min-w-0 flex-1 border-0 bg-transparent text-[13px] text-[#534345] outline-none" />
+                    <button type="button" (click)="removeTag(i)" class="grid size-7 place-items-center rounded-[6px] text-[#9b1c31]" aria-label="Remover tag">&times;</button>
+                  </label>
+                }
+              </div>
+            </section>
+          </section>
+        }
+
+        @if (currentStep() === 4) {
+          <section class="rounded-[8px] border border-[#e5dde2] bg-[#fffdfc] p-6">
+            <h2 class="text-[20px] font-extrabold text-[#5f0e28]">Imagem de capa <span class="text-[#8a8587]">(Opcional)</span></h2>
+            <p class="mt-2 text-[13px] leading-6 text-[#69616a]">Adicione uma imagem para destacar o texto com Jindungo.</p>
+
+            <label class="mt-6 grid min-h-[260px] w-full cursor-pointer place-items-center overflow-hidden rounded-[8px] border border-dashed border-[#cfc7ce] bg-white text-center transition hover:border-[#9b1640] hover:bg-[#fff8fa]">
+              <input type="file" accept="image/png,image/jpeg,image/webp" class="sr-only" (change)="onCoverSelected($event)" />
+              @if (coverPreview()) {
+                <span class="grid w-full gap-4 p-4">
+                  <img [src]="coverPreview()!" alt="Imagem de capa selecionada" class="mx-auto aspect-[16/7] w-full max-w-4xl rounded-[8px] object-cover" />
+                  <span class="text-[13px] font-extrabold text-[#4a1425]">{{ coverFileName() }}</span>
+                  <small class="text-[12px] text-[#958e97]">Clique para trocar</small>
+                </span>
+              } @else {
+                <span>
+                  <span class="material-icon mx-auto grid size-14 place-items-center rounded-[8px] bg-[#f7edef] text-[34px] text-[#8a1238]" aria-hidden="true">add_photo_alternate</span>
+                  <strong class="mt-4 block text-[14px] font-extrabold text-[#4a1425]">Adicionar imagem opcional</strong>
+                  <small class="mt-2 block text-[12px] text-[#958e97]">PNG, JPG ou WebP</small>
+                </span>
+              }
+            </label>
+
+            @if (coverUploaded()) {
+              <button type="button" (click)="clearCover()" class="mt-4 inline-flex h-10 items-center justify-center rounded-[8px] border border-[#eadfe3] px-4 text-[12px] font-extrabold text-[#6f686b] transition hover:border-[#40081a] hover:bg-[#f7edef] hover:text-[#40081a]">Remover imagem</button>
             }
           </section>
+        }
 
-          <form class="mt-6 grid gap-5" (submit)="$event.preventDefault()">
-            <section class="rounded-[8px] border border-[#eadfe3] bg-white p-6 shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
-              <div class="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h2 class="flex items-center gap-3 font-display text-[24px] font-extrabold text-[#5c1e2f]">
-                    <span class="material-icon" aria-hidden="true">edit_square</span>
-                    Conte&uacute;do
-                  </h2>
-                  <p class="mt-2 text-[13px] leading-6 text-[#6f686b]">Escreva o texto, defina o trecho aberto e controle o que fica reservado aos subscritores.</p>
-                </div>
-                <span class="rounded-[999px] bg-[#fff7df] px-3 py-1 text-[11px] font-extrabold uppercase text-[#735c00]">Estado: rascunho</span>
-              </div>
-
-              <div class="mt-5 overflow-hidden rounded-[8px] border border-[#ded8dd] bg-white">
-                <div class="flex min-h-12 flex-wrap items-center gap-2 border-b border-[#ebe5e8] px-4 text-[14px] text-[#4f4852]">
-                  <button type="button" class="grid size-8 place-items-center rounded-[6px] font-extrabold hover:bg-[#f7edef]" aria-label="Negrito">B</button>
-                  <button type="button" class="grid size-8 place-items-center rounded-[6px] italic hover:bg-[#f7edef]" aria-label="Italico">I</button>
-                  <button type="button" class="grid size-8 place-items-center rounded-[6px] hover:bg-[#f7edef]" aria-label="Titulo">H1</button>
-                  <button type="button" class="grid size-8 place-items-center rounded-[6px] hover:bg-[#f7edef]" aria-label="Citacao">&rdquo;</button>
-                  <button type="button" class="grid size-8 place-items-center rounded-[6px] hover:bg-[#f7edef]" aria-label="Link">
-                    <span class="material-icon" aria-hidden="true">link</span>
-                  </button>
-                  <button type="button" class="grid size-8 place-items-center rounded-[6px] hover:bg-[#f7edef]" aria-label="Imagem">
-                    <span class="material-icon" aria-hidden="true">image</span>
-                  </button>
-                  <span class="ml-auto"></span>
-                  <button type="button" class="grid size-8 place-items-center rounded-[6px] hover:bg-[#f7edef]" aria-label="Codigo">
-                    <span class="material-icon" aria-hidden="true">code</span>
-                  </button>
-                </div>
-
-                <div class="grid gap-0">
-                  <input
-                    type="text"
-                    placeholder="T&iacute;tulo do Jindungo..."
-                    maxlength="110"
-                    class="border-0 px-6 pt-8 font-display text-[32px] font-extrabold leading-tight text-[#2c2729] outline-none placeholder:text-[#d6d3d5] max-md:text-[26px]"
-                  />
-                  <textarea
-                    placeholder="Comece a sua an&aacute;lise acad&eacute;mica aqui..."
-                    class="min-h-[210px] resize-y border-0 px-6 py-6 text-[15px] leading-7 text-[#2c2729] outline-none placeholder:text-[#c9c5c8]"
-                  ></textarea>
-                </div>
-              </div>
-            </section>
-
-            <section class="rounded-[8px] border border-[#eadfe3] bg-white p-6 shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
-              <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h2 class="font-display text-[24px] font-extrabold text-[#5c1e2f]">Pre-visualizacao da barreira de acesso</h2>
-                  <p class="mt-2 text-[13px] leading-6 text-[#6f686b]">Este e o conteudo que os não-subscritores verao após os primeiros paragrafos.</p>
-                </div>
-                <span class="rounded-[999px] bg-[#fbfaf7] px-3 py-1 text-[11px] font-extrabold uppercase text-[#735c00]">Premium</span>
-              </div>
-
-              <article class="mt-5 rounded-[8px] border border-[#eadfe3] bg-[#fbfaf7] p-6">
-                <div class="grid min-h-[190px] place-items-center rounded-[8px] border border-[#eadfe3] bg-white px-6 text-center">
-                  <div>
-                    <span class="mx-auto grid size-12 place-items-center rounded-full bg-[#f7edef] text-[#5c1e2f]">
-                      <span class="material-icon text-[28px]" aria-hidden="true">lock</span>
-                    </span>
-                    <h3 class="mt-4 font-display text-[20px] font-extrabold text-[#5c1e2f]">Artigo exclusivo para membros</h3>
-                    <p class="mx-auto mt-2 max-w-[460px] text-[13px] leading-5 text-[#6f686b]">
-                      Para ler a análise completa e acessar o arquivo histórico do Economia com História, subscreva o Plano Premium.
-                    </p>
-                    <button type="button" class="mt-5 h-11 rounded-[8px] bg-[#5c1e2f] px-6 text-[13px] font-extrabold text-white shadow-[0_12px_24px_rgba(92,30,47,0.2)]">
-                      Subscrever plano premium
-                    </button>
-                  </div>
-                </div>
-              </article>
-            </section>
-          </form>
-        </section>
-
-        <aside class="grid content-start gap-5">
-          <section class="grid gap-3">
-            <button type="button" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] bg-[#5c1e2f] px-4 text-[14px] font-extrabold text-white shadow-[0_12px_24px_rgba(92,30,47,0.2)]">
+        @if (currentStep() === 5) {
+          <section class="rounded-[8px] border border-[#f3ddbf] bg-[#fff5e8] p-6 text-[#6f3d12]">
+            <h2 class="flex items-center gap-2 text-[18px] font-extrabold">
               <span class="material-icon" aria-hidden="true">workspace_premium</span>
-              Publicar como premium
-            </button>
-            <button type="button" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#5c1e2f] bg-white px-4 text-[14px] font-extrabold text-[#5c1e2f]">
-              <span class="material-icon" aria-hidden="true">save</span>
-              Guardar rascunho
-            </button>
-            <p class="text-center text-[11px] text-[#8a8587]">Ultima edicao ha 2 minutos</p>
-          </section>
-
-          <section class="rounded-[8px] border border-[#eadfe3] bg-white p-5 shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
-            <h2 class="flex items-center gap-2 font-display text-[18px] font-extrabold text-[#5c1e2f]">
-              <span class="material-icon" aria-hidden="true">shield</span>
-              Controlo de acesso
+              Revisao e publicacao
             </h2>
-            <div class="mt-4 grid gap-3">
-              @for (option of accessOptions; track option.label) {
-                <label class="flex min-h-[48px] items-center gap-3 rounded-[8px] border px-3 text-[13px] font-semibold text-[#534345]" [class.border-[#d4af37]]="option.checked" [class.bg-[#fff9e8]]="option.checked" [class.border-[#eadfe3]]="!option.checked">
-                  <input type="radio" name="access" [checked]="option.checked" class="accent-bordeaux" />
-                  {{ option.label }}
-                </label>
-              }
-            </div>
-          </section>
+            <p class="mt-3 text-[13px] leading-6 text-[#68451e]">Abra a pre-visualizacao em modal antes de publicar o texto premium.</p>
 
-          <section class="rounded-[8px] border border-[#eadfe3] bg-white p-5 shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
-            <h2 class="font-display text-[18px] font-extrabold text-[#5c1e2f]">Categoria e tags</h2>
-            <label class="mt-4 grid gap-2">
-              <span class="text-[12px] font-bold text-[#534345]">Categoria</span>
-              <select class="h-11 rounded-[8px] border border-[#ded8dd] bg-white px-3 text-[13px] text-[#534345] outline-none focus:border-[#5c1e2f]">
-                <option>Jindungo (Análise)</option>
-                <option>Economia critica</option>
-                <option>História económica</option>
-              </select>
-            </label>
-            <div class="mt-4">
-              <p class="text-[12px] font-bold text-[#534345]">Tags academicas</p>
-              <div class="mt-3 flex flex-wrap gap-2">
-                @for (tag of tags; track tag) {
-                  <span class="rounded-[999px] bg-[#f7edef] px-3 py-1 text-[11px] font-extrabold text-[#8a1238]">{{ tag }}</span>
-                }
-                <button type="button" class="rounded-[999px] border border-[#eadfe3] bg-white px-3 py-1 text-[11px] font-extrabold text-[#5c1e2f]">+ Adicionar</button>
-              </div>
+            <div class="mt-5 grid gap-3 sm:grid-cols-3">
+              <button type="button" (click)="openPreview()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#9b1640] bg-white px-4 text-[14px] font-extrabold text-[#9b1640]">
+                <span class="material-icon" aria-hidden="true">visibility</span>
+                Pre-visualizar
+              </button>
+              <button type="button" (click)="saveDraft()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#9b1640] bg-white px-4 text-[14px] font-extrabold text-[#9b1640]">
+                <span class="material-icon" aria-hidden="true">save</span>
+                Guardar rascunho
+              </button>
+              <button type="button" (click)="publish()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] bg-[#8a1238] px-4 text-[14px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.22)]">
+                <span class="material-icon" aria-hidden="true">publish</span>
+                Publicar premium
+              </button>
             </div>
           </section>
+        }
 
-          <section class="rounded-[8px] border border-[#eadfe3] bg-white p-5 shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
-            <h2 class="font-display text-[18px] font-extrabold text-[#5c1e2f]">Imagem de capa</h2>
-            <div class="mt-4 overflow-hidden rounded-[8px] bg-[#211a17]">
-              <img
-                src="https://images.unsplash.com/photo-1588165171080-c89acfa5ee83?auto=format&fit=crop&w=520&q=80"
-                alt="Pimentas vermelhas sobre superficie clara"
-                class="aspect-[4/3] w-full object-cover"
-              />
+        <footer class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[#efe8eb] pt-5">
+          <button type="button" (click)="previousStep()" [disabled]="currentStep() === 1" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#d8cfd3] bg-white px-5 text-[13px] font-extrabold text-[#6f686b] disabled:cursor-not-allowed disabled:opacity-45">Anterior</button>
+          @if (currentStep() < steps.length) {
+            <button type="button" (click)="nextStep()" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#8a1238] px-6 text-[13px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.18)]">Seguinte</button>
+          }
+        </footer>
+      </form>
+    </section>
+  </main>
+
+  @if (previewOpen()) {
+    <section class="fixed inset-0 z-[120] grid place-items-center bg-[#160912]/70 p-4" role="dialog" aria-modal="true" aria-labelledby="jindungo-preview-title">
+      <article class="flex max-h-[90dvh] w-[min(1000px,94vw)] flex-col overflow-hidden rounded-[8px] bg-white shadow-[0_28px_90px_rgba(0,0,0,0.28)]">
+        <header class="flex min-h-16 items-center justify-between gap-4 border-b border-[#eadfe3] px-6">
+          <h2 id="jindungo-preview-title" class="font-display text-[20px] font-extrabold text-[#4a1425]">Pre-visualizacao do Jindungo</h2>
+          <button type="button" (click)="closePreview()" class="grid size-10 place-items-center rounded-[8px] border border-[#eadfe3] text-[22px] font-bold text-[#5c1e2f]" aria-label="Fechar">&times;</button>
+        </header>
+
+        <div class="min-h-0 flex-1 overflow-y-auto bg-[#fbfaf7] px-6 py-7">
+          <article class="mx-auto max-w-3xl bg-white p-6">
+            @if (coverPreview()) {
+              <img [src]="coverPreview()!" alt="Imagem de capa do Jindungo" class="aspect-[16/7] w-full rounded-[8px] object-cover" />
+            }
+            <div class="mt-5 flex flex-wrap gap-2">
+              <span class="rounded-[999px] bg-[#f7edef] px-3 py-1 text-[11px] font-extrabold uppercase text-[#40081a]">{{ category() }}</span>
+              <span class="rounded-[999px] bg-[#fff7df] px-3 py-1 text-[11px] font-extrabold uppercase text-[#735c00]">{{ access() }}</span>
             </div>
-            <button type="button" class="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[8px] border border-[#5c1e2f] bg-white px-4 text-[13px] font-extrabold text-[#5c1e2f]">
-              <span class="material-icon" aria-hidden="true">image</span>
-              Alterar imagem de capa
-            </button>
-          </section>
-        </aside>
-      </main>
-    </app-admin-console-shell>
+            <h1 class="mt-5 font-display text-[34px] font-extrabold leading-tight text-[#2c2729]">{{ previewTitle() }}</h1>
+            <p class="mt-4 border-l-4 border-[#8a1238] pl-4 text-[15px] leading-7 text-[#5f575b]">{{ previewExcerpt() }}</p>
+            <div class="mt-7 whitespace-pre-line text-[15px] leading-7 text-[#2c2729]">{{ previewBody() }}</div>
+
+            <section class="mt-8 border-t border-[#d4af37] pt-6 text-center">
+              <span class="mx-auto grid size-12 place-items-center rounded-full bg-[#f7edef] text-[#5c1e2f]">
+                <span class="material-icon text-[28px]" aria-hidden="true">lock</span>
+              </span>
+              <h2 class="mt-4 font-display text-[20px] font-extrabold text-[#5c1e2f]">{{ barrierTitle() }}</h2>
+              <p class="mx-auto mt-2 max-w-[520px] text-[13px] leading-5 text-[#6f686b]">{{ barrierDescription() }}</p>
+              <button type="button" class="mt-5 h-10 rounded-[8px] bg-[#5c1e2f] px-6 text-[13px] font-extrabold text-white">Subscrever</button>
+            </section>
+          </article>
+        </div>
+
+        <footer class="flex flex-wrap items-center justify-end gap-3 border-t border-[#eadfe3] bg-white px-6 py-4">
+          <button type="button" (click)="closePreview()" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#40081a] bg-white px-5 text-[13px] font-extrabold text-[#40081a]">Fechar</button>
+          <button type="button" (click)="publish()" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#40081a] px-6 text-[13px] font-extrabold text-white">Publicar premium</button>
+        </footer>
+      </article>
+    </section>
+  }
+</app-admin-console-shell>

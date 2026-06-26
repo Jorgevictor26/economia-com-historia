@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:economica_com_historia/theme/app_colors.dart';
+
+import '../core/exceptions/app_exceptions.dart';
+import '../services/forum_service.dart';
+import '../theme/app_colors.dart';
 
 class CriarSalaDebateScreen extends StatefulWidget {
   const CriarSalaDebateScreen({super.key});
@@ -11,9 +14,11 @@ class CriarSalaDebateScreen extends StatefulWidget {
 class _CriarSalaDebateScreenState extends State<CriarSalaDebateScreen> {
   final _nomeController = TextEditingController();
   final _descricaoController = TextEditingController();
-  String? _categoriaSeleccionada;
+  final _service = ForumService();
+  String? _categoriaSelecionada;
   bool _isPublico = true;
   bool _aceitouDiretrizes = false;
+  bool _isLoading = false;
 
   static const _categorias = [
     'Economia Angolana',
@@ -31,14 +36,54 @@ class _CriarSalaDebateScreenState extends State<CriarSalaDebateScreen> {
     super.dispose();
   }
 
+  Future<void> _criar() async {
+    final nome = _nomeController.text.trim();
+    final descricao = _descricaoController.text.trim();
+    if (nome.isEmpty || _categoriaSelecionada == null || !_aceitouDiretrizes) {
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      await _service.createForum(
+        name: nome,
+        description: descricao.isEmpty ? null : descricao,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Fórum criado e pendente de aprovação.'),
+          backgroundColor: AppColors.primary,
+        ),
+      );
+      Navigator.maybePop(context);
+    } on AppException catch (e) {
+      if (mounted) _showSnackBar(e.message);
+    } catch (_) {
+      if (mounted) _showSnackBar('Erro ao criar fórum.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: AppColors.primary),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final podeCriar =
+        _aceitouDiretrizes &&
+        _nomeController.text.trim().isNotEmpty &&
+        _categoriaSelecionada != null;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
-            _AppBar(),
+            const _AppBar(),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -65,25 +110,25 @@ class _CriarSalaDebateScreenState extends State<CriarSalaDebateScreen> {
                       ),
                     ),
                     const Divider(color: Color(0xFFEEE8E9), height: 24),
-                    const SizedBox(height: 4),
-                    _RotuloCampo(label: 'Nome da Sala'),
+                    const _RotuloCampo(label: 'Nome da Sala'),
                     const SizedBox(height: 8),
                     _CampoTexto(
                       controller: _nomeController,
                       hint: 'Ex: Impactos da Industrialização em Luanda',
                       maxLines: 1,
+                      onChanged: (_) => setState(() {}),
                     ),
                     const SizedBox(height: 20),
-                    _RotuloCampo(label: 'Categoria'),
+                    const _RotuloCampo(label: 'Categoria'),
                     const SizedBox(height: 8),
                     _DropdownCategoria(
-                      valor: _categoriaSeleccionada,
+                      valor: _categoriaSelecionada,
                       opcoes: _categorias,
-                      onChanged: (v) =>
-                          setState(() => _categoriaSeleccionada = v),
+                      onChanged: (value) =>
+                          setState(() => _categoriaSelecionada = value),
                     ),
                     const SizedBox(height: 20),
-                    _RotuloCampo(label: 'Descrição'),
+                    const _RotuloCampo(label: 'Descrição'),
                     const SizedBox(height: 8),
                     _CampoTexto(
                       controller: _descricaoController,
@@ -92,11 +137,11 @@ class _CriarSalaDebateScreenState extends State<CriarSalaDebateScreen> {
                       maxLines: 5,
                     ),
                     const SizedBox(height: 20),
-                    _RotuloCampo(label: 'Privacidade'),
+                    const _RotuloCampo(label: 'Privacidade'),
                     const SizedBox(height: 8),
                     _SeletorPrivacidade(
                       isPublico: _isPublico,
-                      onChanged: (v) => setState(() => _isPublico = v),
+                      onChanged: (value) => setState(() => _isPublico = value),
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -118,13 +163,47 @@ class _CriarSalaDebateScreenState extends State<CriarSalaDebateScreen> {
                 ),
               ),
             ),
-            _BotoesAcao(
-              podecriar:
-                  _aceitouDiretrizes &&
-                  _nomeController.text.isNotEmpty &&
-                  _categoriaSeleccionada != null,
-              onCriar: () => Navigator.maybePop(context),
-              onCancelar: () => Navigator.maybePop(context),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: podeCriar && !_isLoading ? _criar : null,
+                      icon: Icon(
+                        _isLoading
+                            ? Icons.hourglass_empty_rounded
+                            : Icons.forum_outlined,
+                        size: 18,
+                      ),
+                      label: Text(_isLoading ? 'A criar...' : 'Criar Sala'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        disabledBackgroundColor: const Color(0xFFEEE8E9),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: () => Navigator.maybePop(context),
+                    child: const Text(
+                      'Cancelar',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textMedium,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -134,6 +213,8 @@ class _CriarSalaDebateScreenState extends State<CriarSalaDebateScreen> {
 }
 
 class _AppBar extends StatelessWidget {
+  const _AppBar();
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -158,24 +239,12 @@ class _AppBar extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           const Text(
-            'Fórum',
+          'Fórum',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: AppColors.textDark,
             ),
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: AppColors.textDark,
-            ),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.search_rounded, color: AppColors.textDark),
           ),
         ],
       ),
@@ -205,34 +274,59 @@ class _CampoTexto extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
   final int maxLines;
+  final ValueChanged<String>? onChanged;
 
   const _CampoTexto({
     required this.controller,
     required this.hint,
     required this.maxLines,
+    this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isMultiline = maxLines > 1;
     return TextField(
       controller: controller,
       maxLines: maxLines,
+      onChanged: onChanged,
       style: const TextStyle(fontSize: 14, color: AppColors.textDark),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(fontSize: 14, color: AppColors.textLight),
         filled: true,
         fillColor: Colors.white,
-        border: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFEEE8E9)),
+        border: isMultiline
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(0),
+                borderSide: const BorderSide(color: Color(0xFFEEE8E9)),
+              )
+            : const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFFEEE8E9)),
+              ),
+        enabledBorder: isMultiline
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(0),
+                borderSide: const BorderSide(color: Color(0xFFEEE8E9)),
+              )
+            : const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFFEEE8E9)),
+              ),
+        focusedBorder: isMultiline
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(0),
+                borderSide: const BorderSide(
+                  color: AppColors.primary,
+                  width: 1.5,
+                ),
+              )
+            : const UnderlineInputBorder(
+                borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+              ),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: isMultiline ? 14 : 0,
+          vertical: isMultiline ? 14 : 10,
         ),
-        enabledBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFEEE8E9)),
-        ),
-        focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
-        ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 10),
         isDense: true,
       ),
     );
@@ -253,7 +347,6 @@ class _DropdownCategoria extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: Color(0xFFEEE8E9))),
       ),
@@ -267,14 +360,14 @@ class _DropdownCategoria extends StatelessWidget {
           isExpanded: true,
           icon: const Icon(
             Icons.keyboard_arrow_down_rounded,
-            color: AppColors.textMedium,
+            color: AppColors.primary,
           ),
           items: opcoes
               .map(
-                (o) => DropdownMenuItem(
-                  value: o,
+                (opcao) => DropdownMenuItem(
+                  value: opcao,
                   child: Text(
-                    o,
+                    opcao,
                     style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.textDark,
@@ -294,30 +387,39 @@ class _SeletorPrivacidade extends StatelessWidget {
   final bool isPublico;
   final ValueChanged<bool> onChanged;
 
-  const _SeletorPrivacidade({required this.isPublico, required this.onChanged});
+  const _SeletorPrivacidade({
+    required this.isPublico,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _OpcaoPrivacidade(
-            icone: Icons.public_rounded,
-            label: 'Público',
-            ativo: isPublico,
-            onTap: () => onChanged(true),
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEEEFF1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _OpcaoPrivacidade(
+              icone: Icons.public_rounded,
+              label: 'Público',
+              ativo: isPublico,
+              onTap: () => onChanged(true),
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _OpcaoPrivacidade(
-            icone: Icons.lock_outline_rounded,
-            label: 'Privado',
-            ativo: !isPublico,
-            onTap: () => onChanged(false),
+          Expanded(
+            child: _OpcaoPrivacidade(
+              icone: Icons.lock_outline_rounded,
+              label: 'Privado',
+              ativo: !isPublico,
+              onTap: () => onChanged(false),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -341,29 +443,25 @@ class _OpcaoPrivacidade extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: ativo ? AppColors.primary : const Color(0xFFEEE8E9),
-            width: ativo ? 1.5 : 1,
-          ),
-          color: ativo ? AppColors.primary.withOpacity(0.05) : Colors.white,
+          color: ativo ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icone,
+              size: 16,
               color: ativo ? AppColors.primary : AppColors.textMedium,
-              size: 18,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
                 color: ativo ? AppColors.primary : AppColors.textMedium,
               ),
             ),
@@ -387,9 +485,9 @@ class _CheckDiretrizes extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: valor
-            ? AppColors.primary.withOpacity(0.05)
+            ? AppColors.primary.withValues(alpha: 0.05)
             : const Color(0xFFF7F3F4),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: valor ? AppColors.primary : const Color(0xFFEEE8E9),
           width: valor ? 1.5 : 1,
@@ -415,70 +513,11 @@ class _CheckDiretrizes extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Concordo com as diretrizes acadêmicas da comunidade e comprometo-me a moderar o debate de forma construtiva e respeitosa.',
+              'Concordo com as diretrizes academicas da comunidade.',
               style: TextStyle(
                 fontSize: 13,
-                color: valor
-                    ? AppColors.primary
-                    : AppColors.textMedium, // ← texto muda também
+                color: valor ? AppColors.primary : AppColors.textMedium,
                 height: 1.5,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BotoesAcao extends StatelessWidget {
-  final bool podecriar;
-  final VoidCallback onCriar;
-  final VoidCallback onCancelar;
-
-  const _BotoesAcao({
-    required this.podecriar,
-    required this.onCriar,
-    required this.onCancelar,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-      child: Column(
-        children: [
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton.icon(
-              onPressed: podecriar ? onCriar : null,
-              icon: const Icon(Icons.forum_outlined, size: 18),
-              label: const Text('Criar Sala'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                disabledBackgroundColor: const Color(0xFFEEE8E9),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: onCancelar,
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textMedium,
               ),
             ),
           ),

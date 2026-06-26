@@ -49,13 +49,13 @@ class OnboardingPage extends StatelessWidget {
         Image.asset(
           data.imagemAsset,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) {
+          errorBuilder: (_, _, _) {
             return Container(color: const Color(0xFFF3EEEE));
           },
         ),
 
         // ───────────────── OVERLAY ─────────────────
-        Container(color: Colors.white.withOpacity(0.48)),
+        Container(color: Colors.white.withValues(alpha: 0.48)),
 
         // ───────────────── CONTENT ─────────────────
         SafeArea(

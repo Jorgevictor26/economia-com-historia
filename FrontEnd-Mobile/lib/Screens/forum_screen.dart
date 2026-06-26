@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:economica_com_historia/theme/app_colors.dart';
-import 'package:economica_com_historia/screens/sala_de_debate_screen.dart';
-import 'package:economica_com_historia/screens/criar_sala_debate_screen.dart';
-import 'package:economica_com_historia/widgets/app_bar_principal.dart';
+import 'package:provider/provider.dart';
+
+import '../core/exceptions/app_exceptions.dart';
+import '../core/utils/formatters.dart';
+import '../core/widgets/api_state_widgets.dart';
+import '../models/forum.dart';
+import '../service/perfil_service.dart';
+import '../services/forum_service.dart';
+import '../theme/app_colors.dart';
+import '../widgets/app_bar_principal.dart';
+import 'criar_sala_debate_screen.dart';
+import 'sala_de_debate_screen.dart';
 
 class ForumScreen extends StatefulWidget {
   const ForumScreen({super.key});
@@ -12,88 +20,88 @@ class ForumScreen extends StatefulWidget {
 }
 
 class _ForumScreenState extends State<ForumScreen> {
-  int _filtroSelecionado = 0;
-  final _filtros = ['Públicos', 'Privados', 'Seguidos'];
-
-  static const _salas = [
-    _SalaItem(
-      titulo: 'Agronegócio e Desenvolvimento',
-      membros: '856 membros',
-      tempo: 'há 12 min',
-      isPrivado: false,
-      destaque: false,
-    ),
-    _SalaItem(
-      titulo: 'Conselho Académico Especial',
-      membros: '24 membros',
-      tempo: 'ontem',
-      isPrivado: true,
-      destaque: false,
-    ),
-    _SalaItem(
-      titulo: 'Microeconomia das ZEEs',
-      membros: '2.1k membros',
-      tempo: 'agora',
-      isPrivado: false,
-      destaque: false,
-    ),
-    _SalaItem(
-      titulo: 'História da Rota da Seda',
-      membros: '442 membros',
-      tempo: 'há 4h',
-      isPrivado: false,
-      destaque: false,
-    ),
-  ];
+  final _service = ForumService();
+  bool _isLoading = true;
+  String? _error;
+  List<Forum> _forums = [];
 
   @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final forums = await _service.getForums();
+      if (!mounted) return;
+      setState(() => _forums = forums);
+    } on AppException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Erro ao carregar foruns.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final canCreate = context.watch<PerfilService>().isAuthenticated;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppBarPrincipal(
         titulo: 'Fórum',
         mostrarFavoritos: true,
-      ), // ← SUBSTITUIU _AppBar()
+        mostrarPerfil: true,
+        mostrarVoltar: false,
+      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const CriarSalaDebateScreen()),
-        ),
+        onPressed: () async {
+          if (!canCreate) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Inicia sessão para criar um fórum.'),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: AppColors.primary,
+              ),
+            );
+            return;
+          }
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CriarSalaDebateScreen()),
+          );
+          if (mounted) _load();
+        },
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add_rounded, color: Colors.white),
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: _load,
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _FiltrosRow(
-                filtros: _filtros,
-                selecionado: _filtroSelecionado,
-                onSelect: (i) => setState(() => _filtroSelecionado = i),
-              ),
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                const SizedBox(height: 24),
-                _SectionHeader(),
-                const SizedBox(height: 14),
-                _DebateDestaque(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const SalaDeDebateScreen(),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 28),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const SizedBox(height: 24),
+                  const _SectionHeader(),
+                  const SizedBox(height: 14),
+                  if (_isLoading)
+                    const LoadingState(message: 'A carregar foruns...')
+                  else if (_error != null)
+                    ErrorState(message: _error!, onRetry: _load)
+                  else if (_forums.isEmpty)
+                    const EmptyState(message: 'Nenhum fórum disponivel.')
+                  else ...[
+                    _DebateDestaque(forum: _forums.first),
+                    const SizedBox(height: 28),
                     const Text(
                       'Salas de Debate',
                       style: TextStyle(
@@ -102,140 +110,23 @@ class _ForumScreenState extends State<ForumScreen> {
                         color: AppColors.textDark,
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {},
-                      child: Row(
-                        children: const [
-                          Text(
-                            'Ver todos',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          SizedBox(width: 2),
-                          Icon(
-                            Icons.chevron_right_rounded,
-                            color: AppColors.primary,
-                            size: 16,
-                          ),
-                        ],
-                      ),
-                    ),
+                    const SizedBox(height: 14),
+                    ..._forums.map((forum) => _SalaCard(forum: forum)),
                   ],
-                ),
-                const SizedBox(height: 14),
-                ..._salas.map(
-                  (s) => _SalaCard(
-                    sala: s,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const SalaDeDebateScreen(),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 80),
-              ]),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AppBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.maybePop(context),
-            child: const Icon(
-              Icons.arrow_back_rounded,
-              color: AppColors.primary,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Text(
-            'Fórum',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
-            ),
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: AppColors.textDark,
-            ),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.search_rounded, color: AppColors.textDark),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FiltrosRow extends StatelessWidget {
-  final List<String> filtros;
-  final int selecionado;
-  final ValueChanged<int> onSelect;
-
-  const _FiltrosRow({
-    required this.filtros,
-    required this.selecionado,
-    required this.onSelect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: List.generate(filtros.length, (i) {
-        final ativo = i == selecionado;
-        return Padding(
-          padding: EdgeInsets.only(right: i < filtros.length - 1 ? 10 : 0),
-          child: GestureDetector(
-            onTap: () => onSelect(i),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                color: ativo ? AppColors.primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: ativo ? AppColors.primary : const Color(0xFFD8C1C4),
-                ),
-              ),
-              child: Text(
-                filtros[i],
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: ativo ? Colors.white : AppColors.textMedium,
-                ),
+                  const SizedBox(height: 80),
+                ]),
               ),
             ),
-          ),
-        );
-      }),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class _SectionHeader extends StatelessWidget {
+  const _SectionHeader();
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -265,144 +156,100 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _DebateDestaque extends StatelessWidget {
-  final VoidCallback onTap;
+  final Forum forum;
 
-  const _DebateDestaque({required this.onTap});
+  const _DebateDestaque({required this.forum});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: SizedBox(
-          height: 180,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // IMAGEM (camada inferior)
-              Image.asset(
-                'assets/images/História_da_Moeda.png',
-                fit: BoxFit.cover,
-                alignment: Alignment.center,
-                errorBuilder: (_, __, ___) =>
-                    Container(color: AppColors.primaryDark),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => SalaDeDebateScreen(forum: forum)),
+      ),
+      child: Container(
+        height: 180,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD1AF45),
+                borderRadius: BorderRadius.circular(10),
               ),
-
-              // OVERLAY BORDÔ (camada intermédia)
-              Container(color: const Color(0xFF601722).withOpacity(0.48)),
-
-              // CONTEÚDO (camada superior)
-              Positioned(
-                top: 16,
-                left: 16,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD1AF45),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Text(
-                    'HISTÓRIA MONETÁRIA',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
+              child: const Text(
+                'FÓRUM APROVADO',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: 0.5,
                 ),
               ),
-
-              Positioned(
-                left: 16,
-                right: 16,
-                bottom: 18,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'A Evolução do Kwanza no\nContexto Regional',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        height: 1.15,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    Row(
-                      children: const [
-                        Icon(
-                          Icons.people_outline_rounded,
-                          size: 15,
-                          color: Colors.white70,
-                        ),
-                        SizedBox(width: 5),
-                        Text(
-                          '1.2k participantes',
-                          style: TextStyle(fontSize: 12, color: Colors.white70),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              forum.name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                height: 1.15,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(
+                  Icons.forum_outlined,
+                  size: 15,
+                  color: Colors.white70,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  '${forum.topicsCount} tópicos',
+                  style: const TextStyle(fontSize: 12, color: Colors.white70),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _SalaItem {
-  final String titulo;
-  final String membros;
-  final String tempo;
-  final bool isPrivado;
-  final bool destaque;
-
-  const _SalaItem({
-    required this.titulo,
-    required this.membros,
-    required this.tempo,
-    required this.isPrivado,
-    required this.destaque,
-  });
-}
-
 class _SalaCard extends StatelessWidget {
-  final _SalaItem sala;
-  final VoidCallback onTap;
+  final Forum forum;
 
-  const _SalaCard({required this.sala, required this.onTap});
+  const _SalaCard({required this.forum});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => SalaDeDebateScreen(forum: forum)),
+      ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: sala.destaque
-                ? AppColors.primary.withOpacity(0.4)
-                : const Color(0xFFEEE8E9),
-            width: sala.destaque ? 1.5 : 1,
-          ),
+          border: Border.all(color: const Color(0xFFEEE8E9)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -414,32 +261,25 @@ class _SalaCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          sala.titulo,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                      if (sala.isPrivado) ...[const SizedBox(width: 6)],
-                    ],
+                  Text(
+                    forum.name,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
                       const Icon(
-                        Icons.people_outline_rounded,
+                        Icons.forum_outlined,
                         size: 13,
                         color: AppColors.textLight,
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        sala.membros,
+                        '${forum.topicsCount} topicos',
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textMedium,
@@ -453,7 +293,7 @@ class _SalaCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        sala.tempo,
+                        timeAgo(forum.createdAt),
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textMedium,
@@ -464,6 +304,7 @@ class _SalaCard extends StatelessWidget {
                 ],
               ),
             ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.textLight),
           ],
         ),
       ),

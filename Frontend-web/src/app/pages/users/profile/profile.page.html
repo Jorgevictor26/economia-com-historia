@@ -7,9 +7,9 @@
         <div class="profile-identity">
           <label class="profile-avatar" aria-label="Alterar foto de perfil">
             @if (displayedAvatarUrl()) {
-              <img [src]="displayedAvatarUrl()" [alt]="profileName()" />
+            <img [src]="displayedAvatarUrl()" [alt]="profileName()" />
             } @else {
-              <span class="profile-initials" aria-hidden="true">{{ initials() }}</span>
+            <span class="profile-initials" aria-hidden="true">{{ initials() }}</span>
             }
             <input type="file" accept="image/*" (change)="onPhotoSelected($event, true)" />
           </label>
@@ -19,10 +19,10 @@
 
         <nav class="profile-menu">
           @for (item of profileMenu; track item.label) {
-            <a [routerLink]="item.route" [class.active]="item.active">
-              <span class="profile-menu-icon" aria-hidden="true">{{ item.icon }}</span>
-              {{ item.label }}
-            </a>
+          <a [routerLink]="item.route" [class.active]="item.active">
+            <span class="profile-menu-icon" aria-hidden="true">{{ item.icon }}</span>
+            {{ item.label }}
+          </a>
           }
           <a routerLink="/auth/login" class="profile-menu-logout" (click)="auth.logout()">
             <span class="profile-menu-icon" aria-hidden="true">logout</span>
@@ -33,242 +33,240 @@
 
       <section class="profile-form-panel">
         @if (isLearningSection) {
-          <header class="profile-form-header">
-            <h1>Meu aprendizado</h1>
-            <span>Continue os seus módulos e acompanhe o avanço por domínio.</span>
-          </header>
+        <header class="profile-form-header">
+          <h1>Meu aprendizado</h1>
+          <span>Continue os seus módulos e acompanhe o avanço por domínio.</span>
+        </header>
 
-          <section class="profile-section-grid">
-            <app-learning-progress [learning]="dashboard.learning" />
-            <app-progress-domains [domains]="dashboard.domains" />
-          </section>
+        <section class="profile-section-grid">
+          <app-learning-progress [learning]="dashboard.learning" />
+          <app-progress-domains [domains]="dashboard.domains" />
+        </section>
         } @else if (isAchievementsSection) {
-          <header class="profile-form-header">
-            <h1>Minhas conquistas</h1>
-            <span>Veja medalhas, certificados e marcos conquistados na plataforma.</span>
-          </header>
+        <header class="profile-form-header">
+          <h1>Minhas conquistas</h1>
+          <span>Veja medalhas, certificados e marcos conquistados na plataforma.</span>
+        </header>
 
-          <section class="profile-section-grid">
-            <app-achievements [achievements]="dashboard.achievements" [rankingAchievements]="dashboard.rankingAchievements" />
-          </section>
+        <section class="profile-section-grid">
+          <app-achievements [achievements]="dashboard.achievements"
+            [rankingAchievements]="dashboard.rankingAchievements" />
+        </section>
         } @else if (isHistorySection) {
-          <header class="profile-form-header">
-            <h1>Histórico</h1>
-            <span>Retome conteúdos, quizzes e materiais consultados recentemente.</span>
-          </header>
+        <header class="profile-form-header">
+          <h1>Histórico</h1>
+          <span>Retome conteúdos, quizzes e materiais consultados recentemente.</span>
+        </header>
 
-          <section class="profile-history-list">
-            @for (item of historyItems; track item.title) {
-              <a [routerLink]="item.route">
-                <span class="profile-menu-icon" aria-hidden="true">history</span>
-                <strong>{{ item.title }}</strong>
-                <small>{{ item.detail }}</small>
-              </a>
-            }
-          </section>
+        <section class="profile-history-list">
+          @for (item of historyItems; track item.title) {
+          <a [routerLink]="item.route">
+            <span class="profile-menu-icon" aria-hidden="true">history</span>
+            <strong>{{ item.title }}</strong>
+            <small>{{ item.detail }}</small>
+          </a>
+          }
+        </section>
 
         } @else if (isSupportSection) {
-          <header class="profile-form-header">
-            <h1>Suporte</h1>
-            <span>Encontre ajuda para a sua conta, aprendizagem e acesso aos conteúdos.</span>
-          </header>
+        <header class="profile-form-header">
+          <h1>Suporte</h1>
+          <span>Encontre ajuda para a sua conta, aprendizagem e acesso aos conteúdos.</span>
+        </header>
 
-          <section class="profile-support-panel">
-            <a routerLink="/app/forums">
-              <span class="profile-menu-icon" aria-hidden="true">forum</span>
-              <strong>Abrir fórum de suporte</strong>
-              <small>Faça perguntas e acompanhe respostas da comunidade.</small>
-            </a>
-            <a routerLink="/app/notifications">
-              <span class="profile-menu-icon" aria-hidden="true">notifications</span>
-              <strong>Ver notificações</strong>
-              <small>Consulte avisos importantes sobre a sua conta.</small>
-            </a>
-          </section>
+        <section class="profile-support-panel">
+          <a routerLink="/app/forums">
+            <span class="profile-menu-icon" aria-hidden="true">forum</span>
+            <strong>Abrir fórum de suporte</strong>
+            <small>Faça perguntas e acompanhe respostas da comunidade.</small>
+          </a>
+          <a routerLink="/app/notifications">
+            <span class="profile-menu-icon" aria-hidden="true">notifications</span>
+            <strong>Ver notificações</strong>
+            <small>Consulte avisos importantes sobre a sua conta.</small>
+          </a>
+        </section>
         } @else if (isSecuritySection) {
-          <header class="profile-form-header">
-            <h1>Conta</h1>
-            <span>Edite as suas configurações de conta e altere a sua palavra-passe aqui.</span>
-          </header>
+        <header class="profile-form-header">
+          <h1>Conta</h1>
+          <span>Edite as suas configurações de conta e altere a sua palavra-passe aqui.</span>
+        </header>
 
-          <form class="account-form" (submit)="$event.preventDefault()">
-            <section class="account-section" aria-labelledby="account-email-title">
+        <form class="account-form" (submit)="$event.preventDefault()">
+          <section class="account-section" aria-labelledby="account-email-title">
+            <label class="account-field">
+              <span id="account-email-title">E-mail:</span>
+              <div class="account-email-row">
+                <input type="email" [value]="'Seu endereço de e-mail é ' + profileEmail()" readonly />
+                <button type="button" aria-label="Editar e-mail">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
+                  </svg>
+                </button>
+              </div>
+            </label>
+            <div class="field-stack">
               <label class="account-field">
-                <span id="account-email-title">E-mail:</span>
-                <div class="account-email-row">
-                  <input type="email" [value]="'Seu endereço de e-mail é ' + profileEmail()" readonly />
-                  <button type="button" aria-label="Editar e-mail">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M12 20h9" />
-                      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
-                    </svg>
-                  </button>
-                </div>
+                <span>Nova palavra-passe</span>
+                <input type="password" placeholder="Digite a nova palavra-passe" autocomplete="new-password" />
               </label>
-            </section>
-
-            <section class="account-section" aria-labelledby="account-password-title">
-              <h2 id="account-password-title">Alterar palavra-passe</h2>
-              <div class="field-stack">
-                <label class="account-field">
-                  <span>Nova palavra-passe</span>
-                  <input type="password" placeholder="Digite a nova palavra-passe" autocomplete="new-password" />
-                </label>
-
-                <label class="account-field">
-                  <span>Confirmar nova palavra-passe</span>
-                  <input type="password" placeholder="Confirme a nova palavra-passe" autocomplete="new-password" />
-                </label>
-              </div>
-
-              <div class="form-actions">
-                <button type="submit">Alterar a palavra-passe</button>
-              </div>
-            </section>
-          </form>
-        } @else if (isNotificationPreferencesSection) {
-          <header class="profile-form-header">
-            <h1>Preferências de notificação</h1>
-            <span>Escolha como deseja receber novidades, resumos e alertas da plataforma.</span>
-          </header>
-
-          <section class="notification-preferences-panel" aria-labelledby="notification-preferences-title">
-            <div class="notification-preferences-card">
-              <label class="notification-preference-row">
-                <span>
-                  <strong>Resumo Semanal de Economia</strong>
-                  <small>Receba as análises históricas mais importantes da semana.</small>
-                </span>
-                <input type="checkbox" checked />
-              </label>
-
-              <label class="notification-preference-row">
-                <span>
-                  <strong>Alertas de Novos Conteúdos</strong>
-                  <small>Notificações imediatas sobre novos módulos e conteúdos.</small>
-                </span>
-                <input type="checkbox" />
+              <br>
+              <label class="account-field">
+                <span>Confirmar nova palavra-passe</span>
+                <input type="password" placeholder="Confirme a nova palavra-passe" autocomplete="new-password" />
               </label>
             </div>
+
+            <div class="form-actions">
+              <button type="submit">Salvar Alterações</button>
+            </div>
           </section>
+        </form>
+        } @else if (isNotificationPreferencesSection) {
+        <header class="profile-form-header">
+          <h1>Preferências de notificação</h1>
+          <span>Escolha como deseja receber novidades, resumos e alertas da plataforma.</span>
+        </header>
+
+        <section class="notification-preferences-panel" aria-labelledby="notification-preferences-title">
+          <div class="notification-preferences-card">
+            <label class="notification-preference-row">
+              <span>
+                <strong>Resumo Semanal de Economia</strong>
+                <small>Receba as análises históricas mais importantes da semana.</small>
+              </span>
+              <input type="checkbox" checked />
+            </label>
+
+            <label class="notification-preference-row">
+              <span>
+                <strong>Alertas de Novos Conteúdos</strong>
+                <small>Notificações imediatas sobre novos módulos e conteúdos.</small>
+              </span>
+              <input type="checkbox" />
+            </label>
+          </div>
+        </section>
         } @else if (isPhotoSection) {
-          <header class="profile-form-header">
-            <h1>Foto</h1>
-            <span>Escolha uma imagem clara para aparecer no seu perfil e na comunidade.</span>
-          </header>
+        <header class="profile-form-header">
+          <h1>Foto</h1>
+          <span>Escolha uma imagem clara para aparecer no seu perfil e na comunidade.</span>
+        </header>
 
-          <form class="photo-form" (submit)="$event.preventDefault(); savePhoto()">
-            <section class="photo-editor-card" aria-labelledby="photo-preview">
-              <div class="photo-preview-wrap">
-                <div class="photo-preview-box">
-                  @if (displayedAvatarUrl()) {
-                    <img [src]="displayedAvatarUrl()" [alt]="profileName()" />
-                  } @else {
-                    <span class="photo-preview-initials">{{ initials() }}</span>
-                  }
-                </div>
-
-                <label class="photo-change-button">
-                  <span class="profile-menu-icon" aria-hidden="true">photo_camera</span>
-                  Alterar foto
-                  <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
-                </label>
-              </div>
-
-              <div class="photo-editor-copy">
-                <h2 id="photo-preview">Foto de perfil</h2>
-                <p>{{ selectedPhotoName() || 'Nenhum arquivo selecionado' }}</p>
-
-                @if (photoSaveMessage()) {
-                  <p class="photo-success">
-                    <span class="profile-menu-icon" aria-hidden="true">check_circle</span>
-                    {{ photoSaveMessage() }}
-                  </p>
-                }
-
-                <div class="form-actions">
-                  <button type="submit" [disabled]="!selectedPhotoPreviewUrl()">Salvar foto</button>
-                </div>
-              </div>
-            </section>
-          </form>
-        } @else {
-          <header class="profile-form-header">
-            <h1>Perfil</h1>
-            <span>Adicione informações sobre si e personalize como aparece na comunidade Economia com História.</span>
-          </header>
-
-          <form class="profile-form profile-form-with-photo" (submit)="$event.preventDefault(); saveProfile(profileNameInput.value, profileEmailInput.value, profileBioInput.value)">
-            <section class="profile-photo-column" aria-label="Foto de perfil">
-              <div class="profile-photo-large">
+        <form class="photo-form" (submit)="$event.preventDefault(); savePhoto()">
+          <section class="photo-editor-card" aria-labelledby="photo-preview">
+            <div class="photo-preview-wrap">
+              <div class="photo-preview-box">
                 @if (displayedAvatarUrl()) {
-                  <img [src]="displayedAvatarUrl()" [alt]="profileName()" />
+                <img [src]="displayedAvatarUrl()" [alt]="profileName()" />
                 } @else {
-                  <span class="photo-preview-initials">{{ initials() }}</span>
+                <span class="photo-preview-initials">{{ initials() }}</span>
                 }
               </div>
 
-              <label class="photo-change-button inline-photo-button">
+              <label class="photo-change-button">
                 <span class="profile-menu-icon" aria-hidden="true">photo_camera</span>
                 Alterar foto
                 <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
               </label>
+            </div>
+
+            <div class="photo-editor-copy">
+              <h2 id="photo-preview">Foto de perfil</h2>
+              <p>{{ selectedPhotoName() || 'Nenhum arquivo selecionado' }}</p>
 
               @if (photoSaveMessage()) {
-                <p class="photo-success">
-                  <span class="profile-menu-icon" aria-hidden="true">check_circle</span>
-                  {{ photoSaveMessage() }}
-                </p>
+              <p class="photo-success">
+                <span class="profile-menu-icon material-symbols-outlined" aria-hidden="true">
+                  check
+                </span>
+                {{ photoSaveMessage() }}
+              </p>
               }
-            </section>
-
-            <section class="profile-fields-column">
-              <div class="field-grid">
-                <label>
-                  <span>Nome</span>
-                  <input #profileNameInput type="text" [value]="profileName()" autocomplete="name" />
-                </label>
-
-                <label>
-                  <span>E-mail</span>
-                  <input #profileEmailInput type="email" [value]="profileEmail()" autocomplete="email" />
-                </label>
-              </div>
-
-              <section class="form-block" aria-labelledby="bio-data">
-                <h2 id="bio-data">Biografia</h2>
-                <div class="bio-editor">
-                  <div class="editor-toolbar" aria-hidden="true">
-                    <strong>B</strong>
-                    <i>I</i>
-                  </div>
-                  <textarea #profileBioInput rows="5" placeholder="Sem biografia">{{ profileDescription() }}</textarea>
-                </div>
-              </section>
 
               <div class="form-actions">
-                <button type="submit" [disabled]="isSavingProfile()">
-                  {{ isSavingProfile() ? 'A salvar...' : 'Salvar mudanças' }}
-                </button>
-                @if (selectedPhotoPreviewUrl()) {
-                  <button type="button" class="secondary-action" (click)="savePhoto()">Salvar foto</button>
-                }
+                <button type="submit" [disabled]="!selectedPhotoPreviewUrl()">Salvar foto</button>
               </div>
+            </div>
+          </section>
+        </form>
+        } @else {
+        <header class="profile-form-header">
+          <h1>Perfil</h1>
+          <span>Adicione informações sobre si e personalize como aparece na comunidade Economia com História.</span>
+        </header>
 
-              @if (profileSaveMessage()) {
-                <p class="field-help text-[#2f6f46]">{{ profileSaveMessage() }}</p>
+        <form class="profile-form profile-form-with-photo"
+          (submit)="$event.preventDefault(); saveProfile(profileNameInput.value, profileEmailInput.value, profileBioInput.value)">
+          <section class="profile-photo-column" aria-label="Foto de perfil">
+            <div class="profile-photo-large">
+              @if (displayedAvatarUrl()) {
+              <img [src]="displayedAvatarUrl()" [alt]="profileName()" />
+              } @else {
+              <span class="photo-preview-initials">{{ initials() }}</span>
               }
+            </div>
 
-              @if (profileSaveError()) {
-                <p class="field-help text-[#9b1c31]">{{ profileSaveError() }}</p>
-              }
+            <label class="photo-change-button inline-photo-button">
+              <span class="profile-menu-icon" aria-hidden="true">photo_camera</span>
+              Alterar foto
+              <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
+            </label>
+
+            @if (photoSaveMessage()) {
+            <p class="photo-success">
+              <span class="profile-menu-icon" aria-hidden="true">check_circle</span>
+              {{ photoSaveMessage() }}
+            </p>
+            }
+          </section>
+
+          <section class="profile-fields-column">
+            <div class="field-grid">
+              <label>
+                <span>Nome</span>
+                <input #profileNameInput type="text" [value]="profileName()" autocomplete="name" />
+              </label>
+
+              <label>
+                <span>E-mail</span>
+                <input #profileEmailInput type="email" [value]="profileEmail()" autocomplete="email" />
+              </label>
+            </div>
+
+            <section class="form-block" aria-labelledby="bio-data">
+              <h2 id="bio-data">Biografia</h2>
+              <div class="bio-editor">
+                <div class="editor-toolbar" aria-hidden="true">
+                  <strong>B</strong>
+                  <i>I</i>
+                </div>
+                <textarea #profileBioInput rows="5" placeholder="Sem biografia">{{ profileDescription() }}</textarea>
+              </div>
             </section>
-          </form>
+
+            <div class="form-actions">
+              <button type="submit" [disabled]="isSavingProfile()">
+                {{ isSavingProfile() ? 'A salvar...' : 'Salvar mudanças' }}
+              </button>
+              @if (selectedPhotoPreviewUrl()) {
+              <button type="button" class="secondary-action" (click)="savePhoto()">Salvar foto</button>
+              }
+            </div>
+
+            @if (profileSaveMessage()) {
+            <p class="field-help text-[#2f6f46]">{{ profileSaveMessage() }}</p>
+            }
+
+            @if (profileSaveError()) {
+            <p class="field-help text-[#9b1c31]">{{ profileSaveError() }}</p>
+            }
+          </section>
+        </form>
         }
       </section>
     </section>
   </main>
 
-  <app-public-footer />
-  <app-back-to-top />
 </section>

@@ -11,10 +11,7 @@ class PodcastScreen extends StatefulWidget {
 }
 
 class _PodcastScreenState extends State<PodcastScreen> {
-  int _filtroSelecionado = 0;
   int? _categoriaSelecionada;
-
-  final List<String> _filtros = ['Todos', 'Recentes', 'Antigos'];
 
   static const List<_PodcastItem> _podcasts = [
     _PodcastItem(
@@ -22,45 +19,63 @@ class _PodcastScreenState extends State<PodcastScreen> {
       autor: 'Angolano Errante',
       duracao: '45 min',
       imagemAsset: 'assets/images/microfone.png',
+      categoria: 'História Económica',
     ),
     _PodcastItem(
       titulo: 'Ciclos de Commodities',
       autor: 'Prof. Almeida',
       duracao: '32 min',
       imagemAsset: 'assets/images/Ciclos_de_commodities.png',
+      categoria: 'Mercados',
     ),
     _PodcastItem(
       titulo: 'A Herança Colonial',
       autor: 'Dr. Mbaku',
       duracao: '58 min',
       imagemAsset: 'assets/images/A_herança_colonial.png',
+      categoria: 'História Económica',
     ),
     _PodcastItem(
       titulo: 'Futuro Digital Africano',
       autor: 'Inovação Academy',
       duracao: '27 min',
       imagemAsset: 'assets/images/Futuro_digital_colonial.png',
+      categoria: 'Geopolítica',
     ),
     _PodcastItem(
       titulo: 'Navegação e Comércio',
       autor: 'Arquivo Histórico',
       duracao: '41 min',
       imagemAsset: 'assets/images/Navegação_e_Comercio.png',
+      categoria: 'Entrevistas',
     ),
     _PodcastItem(
       titulo: 'Microeconomia Local',
       autor: 'Vozes do Mercado',
       duracao: '19 min',
       imagemAsset: 'assets/images/Microeconomia_Colonial.png',
+      categoria: 'Mercados',
     ),
   ];
 
   final List<String> _categorias = [
+    'Todos',
     'História Económica',
     'Mercados',
     'Entrevistas',
     'Geopolítica',
   ];
+
+  // ── Getter para filtrar podcasts ─────────────────────────────
+  List<_PodcastItem> get _podcastsFiltrados {
+    if (_categoriaSelecionada == null) {
+      return _podcasts;
+    }
+    final categoriaSelecionada = _categorias[_categoriaSelecionada!];
+    return _podcasts
+        .where((podcast) => podcast.categoria == categoriaSelecionada)
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,66 +90,10 @@ class _PodcastScreenState extends State<PodcastScreen> {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: PodcastLayout.pagePadding,
-                ),
-                child: _FiltroPodcasts(
-                  filtros: _filtros,
-                  selecionado: _filtroSelecionado,
-                  onSelected: (index) {
-                    setState(() {
-                      _filtroSelecionado = index;
-                    });
-                  },
-                ),
-              ),
-            ),
-
+            // ── Espaçamento entre AppBar e Filtro ─────────────────
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: PodcastLayout.pagePadding,
-              ),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: PodcastLayout.cardSpacing,
-                    ),
-                    child: _PodcastCard(
-                      item: _podcasts[index],
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const PodcastSelecionadoScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                }, childCount: _podcasts.length),
-              ),
-            ),
-
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(20, 12, 20, 12),
-                child: Text(
-                  'CATEGORIAS RÁPIDAS',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textLight,
-                    letterSpacing: .8,
-                  ),
-                ),
-              ),
-            ),
-
+            // ── FILTRO DE CATEGORIAS (MOVIDO PARA O TOPO) ────────
             SliverToBoxAdapter(
               child: SizedBox(
                 height: 44,
@@ -144,13 +103,22 @@ class _PodcastScreenState extends State<PodcastScreen> {
                   itemCount: _categorias.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (_, index) {
-                    final selecionado = _categoriaSelecionada == index;
+                    final selecionado =
+                        (index == 0 && _categoriaSelecionada == null) ||
+                        (_categoriaSelecionada == index);
 
                     return InkWell(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(10),
                       onTap: () {
                         setState(() {
-                          _categoriaSelecionada = index;
+                          if (index == 0) {
+                            // "Todos" sempre mostra todos os podcasts
+                            _categoriaSelecionada = null;
+                          } else {
+                            // Outras categorias fazem toggle normal
+                            _categoriaSelecionada =
+                                _categoriaSelecionada == index ? null : index;
+                          }
                         });
                       },
                       child: AnimatedContainer(
@@ -163,27 +131,59 @@ class _PodcastScreenState extends State<PodcastScreen> {
                           color: selecionado
                               ? AppColors.primary
                               : Colors.transparent,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: selecionado
                                 ? AppColors.primary
                                 : const Color(0xFFD8C1C4),
                           ),
                         ),
-                        child: Text(
-                          _categorias[index],
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: selecionado
-                                ? Colors.white
-                                : AppColors.textMedium,
+                        child: Center(
+                          child: Text(
+                            _categorias[index],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: selecionado
+                                  ? Colors.white
+                                  : AppColors.textMedium,
+                            ),
                           ),
                         ),
                       ),
                     );
                   },
                 ),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+
+            // ── LISTA DE PODCASTS FILTRADOS ──────────────────────
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: PodcastLayout.pagePadding,
+              ),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      bottom: PodcastLayout.cardSpacing,
+                    ),
+                    child: _PodcastCard(
+                      item: _podcastsFiltrados[index],
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PodcastSelecionadoScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }, childCount: _podcastsFiltrados.length),
               ),
             ),
 
@@ -202,68 +202,19 @@ class PodcastLayout {
   static const double cardSpacing = 16;
 }
 
-class _FiltroPodcasts extends StatelessWidget {
-  final List<String> filtros;
-  final int selecionado;
-  final ValueChanged<int> onSelected;
-
-  const _FiltroPodcasts({
-    required this.filtros,
-    required this.selecionado,
-    required this.onSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 44,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: filtros.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (_, index) {
-          final ativo = selecionado == index;
-
-          return InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () => onSelected(index),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: ativo ? AppColors.primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: ativo ? AppColors.primary : const Color(0xFFD8C1C4),
-                ),
-              ),
-              child: Text(
-                filtros[index],
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: ativo ? Colors.white : AppColors.textMedium,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
 class _PodcastItem {
   final String titulo;
   final String autor;
   final String duracao;
   final String imagemAsset;
+  final String categoria;
 
   const _PodcastItem({
     required this.titulo,
     required this.autor,
     required this.duracao,
     required this.imagemAsset,
+    required this.categoria,
   });
 }
 

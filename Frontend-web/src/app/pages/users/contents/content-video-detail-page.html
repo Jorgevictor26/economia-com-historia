@@ -121,12 +121,14 @@
               <span>Partilhar</span>
             </button>
 
-            <button type="button" class="inline-flex items-center gap-1" (click)="requireLogin($event, 'guardar')">
+            <button type="button" class="inline-flex items-center gap-1" (click)="saveVideoContent($event)">
               <span class="material-symbols-outlined text-[14px]">bookmark_add</span>
-              <span>Guardar</span>
             </button>
           </div>
         </div>
+        @if (saveStatus()) {
+        <p class="mt-3 text-[12px] font-semibold text-[#5c1e2f]">{{ saveStatus() }}</p>
+        }
       </section>
 
       <section class="mt-10 max-w-[720px]">
@@ -156,10 +158,6 @@
                 <span class="text-[10px] text-[#777]">{{ comment.time }}</span>
               </div>
               <p class="mt-1 text-[13px] leading-5 text-[#1f1a1c]">{{ comment.text }}</p>
-              <div class="mt-3 flex gap-6 text-[10px] text-[#5f575b]">
-                <button type="button" class="content-action" (click)="requireLogin($event, 'denunciar')"><img
-                    src="/assets/icons/report.png" alt="" /><span>Denunciar</span></button>
-              </div>
             </div>
           </div>
           }

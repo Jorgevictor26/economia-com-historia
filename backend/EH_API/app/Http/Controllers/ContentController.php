@@ -86,6 +86,9 @@ class ContentController extends Controller
             ], 403);
         }
 
+        $content = $this->service->registerView($content);
+        $content->loadCount(['reactions', 'comments']);
+
         $content->setAttribute('liked_by_me', (bool) $request->user('sanctum')?->id && $content->reactions()
             ->where('user_id', $request->user('sanctum')->id)
             ->where('reaction_type', 'like')

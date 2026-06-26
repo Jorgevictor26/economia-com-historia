@@ -214,7 +214,7 @@ class _FiltrosRow extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
                 color: ativo ? AppColors.primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: ativo ? AppColors.primary : const Color(0xFFD8C1C4),
                 ),

@@ -8,6 +8,7 @@ import { CategoryService } from '../../../services/category.service';
 import { BackendComment, CommentService } from '../../../services/comment.service';
 import { BackendContent, ContentPagination, ContentService } from '../../../services/content.service';
 import { ContentTypeService } from '../../../services/content-type.service';
+import { CommentReportReason, CommentReportService } from '../../../services/comment-report.service';
 import { QuizService } from '../../../services/quiz.service';
 import { ReactionService } from '../../../services/reaction.service';
 import { SavedContentService } from '../../../services/saved-content.service';
@@ -33,6 +34,7 @@ interface ContentDetail {
   reactionsCount: number;
   commentsCount: number;
   likedByMe: boolean;
+  viewsCount: number;
 }
 
 interface CommentView {
@@ -50,6 +52,12 @@ interface CommentReplyView {
   authorInitials: string;
   text: string;
   createdAt?: string | null;
+}
+
+interface CommentReportTarget {
+  id: string;
+  author: string;
+  text: string;
 }
 
 interface VideoDetail {
@@ -701,6 +709,7 @@ export class ContentListPage implements OnInit {
 export class ContentDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly commentService = inject(CommentService);
+  private readonly commentReportService = inject(CommentReportService);
   private readonly contentService = inject(ContentService);
   private readonly quizService = inject(QuizService);
   private readonly reactionService = inject(ReactionService);
@@ -716,9 +725,16 @@ export class ContentDetailPage {
   readonly isSavingReaction = signal(false);
   readonly isSavingContent = signal(false);
   readonly isCommentComposerOpen = signal(false);
+  readonly replyingToCommentId = signal<string | null>(null);
   readonly shareMenuOpen = signal(false);
   readonly commentError = signal('');
   readonly commentSuccess = signal('');
+  readonly reportTarget = signal<CommentReportTarget | null>(null);
+  readonly reportReason = signal<CommentReportReason>('offensive_comment');
+  readonly reportDescription = signal('');
+  readonly reportError = signal('');
+  readonly reportSuccess = signal('');
+  readonly isSubmittingReport = signal(false);
   readonly reactionError = signal('');
   readonly saveStatus = signal('');
   readonly shareStatus = signal('');
@@ -741,10 +757,12 @@ export class ContentDetailPage {
 
     try {
       const content = await this.contentService.getById(id);
-      this.detail.set(this.toContentDetail(content));
+      const detail = this.toContentDetail(content);
+      this.detail.set(detail);
+      this.reactionCount.set(detail.reactionsCount);
+      this.likedByMe.set(detail.likedByMe);
       await Promise.all([
         this.loadComments(String(content.id)),
-        this.loadReactionCount(String(content.id)),
       ]);
     } finally {
       this.isLoading.set(false);
@@ -764,6 +782,19 @@ export class ContentDetailPage {
     }
 
     this.isCommentComposerOpen.set(true);
+  }
+
+  toggleReplyComposer(event: Event, commentId: string): void {
+    if (!this.auth.isAuthenticated()) {
+      this.requireLogin(event, 'responder');
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.commentError.set('');
+    this.commentSuccess.set('');
+    this.replyingToCommentId.set(this.replyingToCommentId() === commentId ? null : commentId);
   }
 
   async react(event: Event): Promise<void> {
@@ -827,7 +858,7 @@ export class ContentDetailPage {
     this.shareMenuOpen.set(!this.shareMenuOpen());
   }
 
-  async shareTo(platform: 'native' | 'whatsapp' | 'linkedin' | 'facebook' | 'x' | 'copy', event?: Event): Promise<void> {
+  async shareTo(platform: 'native' | 'whatsapp' | 'linkedin' | 'facebook' | 'instagram' | 'x' | 'copy', event?: Event): Promise<void> {
     event?.preventDefault();
     event?.stopPropagation();
 
@@ -854,6 +885,13 @@ export class ContentDetailPage {
     if (platform === 'copy') {
       await navigator.clipboard?.writeText(url);
       this.shareStatus.set('Link copiado.');
+      return;
+    }
+
+    if (platform === 'instagram') {
+      await navigator.clipboard?.writeText(url);
+      this.shareStatus.set('Link copiado para partilhar no Instagram.');
+      window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
       return;
     }
 
@@ -912,9 +950,74 @@ export class ContentDetailPage {
       await this.commentService.reply(commentId, reply);
       await this.loadComments(contentId);
       this.commentSuccess.set('Resposta publicada com sucesso.');
+      this.replyingToCommentId.set(null);
     } catch {
       this.commentError.set('Não foi possível publicar a resposta.');
     }
+  }
+
+  openReportModal(event: Event, comment: CommentView): void {
+    if (!this.auth.isAuthenticated()) {
+      this.requireLogin(event, 'denunciar comentário');
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.reportTarget.set({
+      id: comment.id,
+      author: comment.author,
+      text: comment.text,
+    });
+    this.reportReason.set('offensive_comment');
+    this.reportDescription.set('');
+    this.reportError.set('');
+    this.reportSuccess.set('');
+  }
+
+  closeReportModal(): void {
+    this.reportTarget.set(null);
+    this.reportError.set('');
+  }
+
+  updateReportReason(event: Event): void {
+    this.reportReason.set((event.target as HTMLSelectElement).value as CommentReportReason);
+  }
+
+  updateReportDescription(event: Event): void {
+    this.reportDescription.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  async submitCommentReport(): Promise<void> {
+    const target = this.reportTarget();
+
+    if (!target || this.isSubmittingReport()) {
+      return;
+    }
+
+    this.isSubmittingReport.set(true);
+    this.reportError.set('');
+    this.reportSuccess.set('');
+
+    try {
+      await this.commentReportService.create(target.id, this.reportReason(), this.reportDescription());
+      this.reportSuccess.set('Comentário denunciado. A equipa vai rever.');
+      this.reportTarget.set(null);
+    } catch (error) {
+      this.reportError.set(error instanceof Error ? this.translateReportError(error.message) : 'Não foi possível enviar a denúncia.');
+    } finally {
+      this.isSubmittingReport.set(false);
+    }
+  }
+
+  private translateReportError(message: string): string {
+    const translations: Record<string, string> = {
+      'You cannot report your own comment': 'Não podes denunciar o teu próprio comentário.',
+      'You have already reported this comment': 'Já denunciaste este comentário.',
+      'Comment not found': 'Comentário não encontrado.',
+    };
+
+    return translations[message] ?? message;
   }
 
   private async loadComments(contentId: string): Promise<void> {
@@ -937,7 +1040,7 @@ export class ContentDetailPage {
     }
   }
 
-  private currentShareUrl(): string {
+  currentShareUrl(): string {
     return window.location.href.split('#')[0];
   }
 
@@ -995,7 +1098,15 @@ export class ContentDetailPage {
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
       likedByMe: Boolean(content.liked_by_me),
+      viewsCount: Number(content.views_count ?? 0),
     };
+  }
+
+  formatCompactNumber(value: number | null | undefined): string {
+    return new Intl.NumberFormat('pt-AO', {
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    }).format(value ?? 0);
   }
 
   private buildMeta(createdAt: string | null | undefined, contentType: string): string {
@@ -1041,7 +1152,9 @@ export class ContentDetailPage {
 })
 export class ContentVideoDetailPage {
   private readonly route = inject(ActivatedRoute);
+  private readonly savedContentService = inject(SavedContentService);
   readonly auth = inject(AuthStateService);
+  readonly saveStatus = signal('');
 
   readonly video = computed(() => {
     const id = this.route.snapshot.params['id'] ?? 'video-cafe';
@@ -1143,6 +1256,29 @@ export class ContentVideoDetailPage {
       '_blank',
       'noopener,noreferrer',
     );
+  }
+
+  async saveVideoContent(event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.auth.isAuthenticated()) {
+      this.auth.requireLoginFor('guardar');
+      return;
+    }
+
+    const contentId = this.route.snapshot.params['id'];
+
+    if (!contentId) {
+      return;
+    }
+
+    try {
+      await this.savedContentService.save(contentId);
+      this.saveStatus.set('Conteúdo guardado.');
+    } catch {
+      this.saveStatus.set('Não foi possível guardar este conteúdo.');
+    }
   }
 }
 

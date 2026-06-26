@@ -4,6 +4,7 @@ import { AdminConsoleShellComponent } from '../../components/admin-console-shell
 
 @Component({
   selector: 'app-admin-statistics-page',
+  standalone: true,
   imports: [RouterLink, AdminConsoleShellComponent],
   templateUrl: './admin-statistics.page.html',
 })

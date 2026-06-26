@@ -1,18 +1,10 @@
 <app-admin-console-shell activeItem="reports">
   <section class="mx-auto grid max-w-6xl gap-5">
-    <header class="flex flex-wrap items-center justify-between gap-4">
-      <h1 class="font-display text-[30px] font-extrabold leading-tight text-[#8f4058]">Denuncias</h1>
-    </header>
+    <app-admin-page-header title="Denuncias" />
 
     <section class="grid gap-4 md:grid-cols-4">
       @for (metric of metrics; track metric.label) {
-        <article class="rounded-[8px] border border-[#eee7ea] bg-white p-5 shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
-          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#5f575b]">{{ metric.label }}</span>
-          <strong class="mt-2 block text-[24px] font-extrabold leading-none" [style.color]="metricColor(metric.tone)">{{ metric.value }}</strong>
-          <span class="mt-4 block h-0.5 w-full bg-[#ece7ea]">
-            <span class="block h-full w-2/3" [style.background]="metricColor(metric.tone)"></span>
-          </span>
-        </article>
+        <app-admin-metric-card [label]="metric.label" [value]="metric.value" [accent]="metricColor(metric.tone)" [showProgress]="true" />
       }
     </section>
 

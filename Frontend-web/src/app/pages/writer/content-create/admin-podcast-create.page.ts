@@ -1,14 +1,32 @@
-import { Component, computed, signal } from '@angular/core';
-import { AdminConsoleShellComponent } from '../components/admin-console-shell.component';
-import { AdminEditorialSectionComponent } from '../components/admin-editorial-section.component';
+import { Component, computed, inject, signal } from '@angular/core';
+import { AuthStateService } from '../../../services/auth-state.service';
+import { AdminConsoleShellComponent } from '../../admin/components/admin-console-shell.component';
 
 @Component({
   selector: 'app-admin-podcast-create-page',
-  imports: [AdminConsoleShellComponent, AdminEditorialSectionComponent],
+  imports: [AdminConsoleShellComponent],
   templateUrl: './admin-podcast-create.page.html',
-  styleUrl: './admin-podcast-create.page.scss',
+  styles: [
+    `
+      .material-icon {
+        display: inline-grid;
+        place-items: center;
+        font-family: 'Material Symbols Outlined';
+        font-size: 20px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 1;
+        text-transform: none;
+        white-space: nowrap;
+        font-feature-settings: 'liga';
+        -webkit-font-feature-settings: 'liga';
+        font-variation-settings: 'FILL' 0, 'wght' 430, 'GRAD' 0, 'opsz' 24;
+      }
+    `,
+  ],
 })
 export class AdminPodcastCreatePage {
+  readonly auth = inject(AuthStateService);
   readonly title = signal('');
   readonly category = signal('Economia');
   readonly playlist = signal('');
@@ -17,7 +35,18 @@ export class AdminPodcastCreatePage {
   readonly audioUploaded = signal(false);
   readonly uploadProgress = signal(68);
   readonly coverChanged = signal(false);
+  readonly coverUploaded = signal(false);
+  readonly coverPreview = signal<string | null>(null);
+  readonly coverFileName = signal('');
+  readonly previewOpen = signal(false);
   readonly status = signal('Rascunho');
+  readonly currentStep = signal(1);
+  readonly steps = [
+    { value: 1, title: 'Detalhes' },
+    { value: 2, title: 'Audio' },
+    { value: 3, title: 'Capa' },
+    { value: 4, title: 'Publicacao' },
+  ];
   readonly visibility = signal<'public' | 'premium' | 'private'>('public');
   readonly scheduled = signal(false);
   readonly scheduleDate = signal('');
@@ -25,12 +54,12 @@ export class AdminPodcastCreatePage {
   readonly toggle = (value: boolean) => !value;
 
   readonly progress = computed(() => {
-    const checks = [this.title(), this.category(), this.duration(), this.description(), this.audioUploaded(), this.coverChanged()];
+    const checks = [this.title(), this.category(), this.duration(), this.description(), this.audioUploaded(), this.coverUploaded()];
     return Math.round((checks.filter((value) => Boolean(String(value).trim())).length / checks.length) * 100);
   });
 
   readonly previewTitle = computed(() => this.title().trim() || 'O Impacto das Rotas Comerciais no Seculo XVII');
-  readonly previewDescription = computed(() => this.description().trim() || 'Episodio sobre redes comerciais, circulacao monetaria e memoria social, preparado para publicacao com contexto historico e leitura economica.');
+  readonly previewDescription = computed(() => this.description().trim() || 'Episodio sobre redes comerciais, circulacao monetaria e memoria social, preparado para publicacao com contexto histórico e leitura económica.');
   readonly durationLabel = computed(() => this.duration().trim() || '28 min');
   readonly visibilityLabel = computed(() => this.visibilityOptions.find((option) => option.value === this.visibility())?.plainLabel ?? 'Publico');
 
@@ -38,7 +67,7 @@ export class AdminPodcastCreatePage {
     { icon: 'graphic_eq', value: '68%', label: 'Audio processado', badge: 'Upload', description: 'Ficheiro carregado e em validacao tecnica.' },
     { icon: 'schedule', value: '28 min', label: 'Duracao prevista', badge: 'Aluno', description: 'Tempo estimado para escuta completa.' },
     { icon: 'library_music', value: 'Serie 1', label: 'Playlist', badge: 'Acervo', description: 'Episodio ligado a uma colecao editorial.' },
-    { icon: 'verified_user', value: '72%', label: 'Pronto para revisao', badge: 'Editor', description: 'Checklist editorial parcialmente concluida.' },
+    { icon: 'verified_user', value: '72%', label: 'Pronto para revisão', badge: 'Editor', description: 'Checklist editorial parcialmente concluida.' },
   ];
 
   get validationChecklist() {
@@ -81,9 +110,55 @@ export class AdminPodcastCreatePage {
 
   publish(): void {
     this.status.set('Publicado');
+    this.previewOpen.set(false);
+  }
+
+  nextStep(): void {
+    this.currentStep.update((step) => Math.min(step + 1, this.steps.length));
+  }
+
+  previousStep(): void {
+    this.currentStep.update((step) => Math.max(step - 1, 1));
+  }
+
+  openPreview(): void {
+    this.previewOpen.set(true);
+    this.status.set('Em revisao');
+  }
+
+  closePreview(): void {
+    this.previewOpen.set(false);
+  }
+
+  onCoverSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.coverPreview.set(reader.result as string);
+      this.coverFileName.set(file.name);
+      this.coverUploaded.set(true);
+      this.coverChanged.set(true);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  clearCover(): void {
+    this.coverPreview.set(null);
+    this.coverFileName.set('');
+    this.coverUploaded.set(false);
+    this.coverChanged.set(false);
   }
 
   private eventValue(event: Event): string {
     return (event.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).value;
   }
 }
+
+
+

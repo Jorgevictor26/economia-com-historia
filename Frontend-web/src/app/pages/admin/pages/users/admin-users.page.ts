@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { UserRole } from '../../../../models/user.model';
 import { AuthStateService } from '../../../../services/auth-state.service';
 import { AdminConsoleShellComponent } from '../../components/admin-console-shell.component';
+import { AdminPageHeaderComponent } from '../../shared/components';
 
 interface ManagedUser {
   name: string;
@@ -15,7 +16,8 @@ interface ManagedUser {
 
 @Component({
   selector: 'app-admin-users-page',
-  imports: [AdminConsoleShellComponent],
+  standalone: true,
+  imports: [AdminConsoleShellComponent, AdminPageHeaderComponent],
   templateUrl: './admin-users.page.html',
 })
 export class AdminUsersPage {

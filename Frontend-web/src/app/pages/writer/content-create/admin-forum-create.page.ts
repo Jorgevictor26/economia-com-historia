@@ -1,5 +1,5 @@
 import { Component, computed, signal } from '@angular/core';
-import { AdminConsoleShellComponent } from '../components/admin-console-shell.component';
+import { AdminConsoleShellComponent } from '../../admin/components/admin-console-shell.component';
 
 @Component({
   selector: 'app-admin-forum-create-page',

@@ -1,6 +1,6 @@
 import { Component, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AdminConsoleShellComponent } from '../components/admin-console-shell.component';
+import { AdminConsoleShellComponent } from '../../admin/components/admin-console-shell.component';
 
 @Component({
   selector: 'app-admin-jindungo-create-page',

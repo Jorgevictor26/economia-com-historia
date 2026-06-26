@@ -1,15 +1,13 @@
 <app-admin-console-shell activeItem="users">
   <section class="mx-auto grid max-w-6xl gap-5">
-    <header class="flex flex-wrap items-center justify-between gap-4">
-      <h1 class="font-display text-[30px] font-extrabold leading-tight text-[#8f4058]">Gestao de Admins</h1>
-
+    <app-admin-page-header title="Gestao de Admins">
       @if (auth.isSuperAdmin()) {
         <button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-[6px] bg-[#5c1e2f] px-5 text-[13px] font-extrabold text-white shadow-[0_12px_28px_rgba(92,30,47,0.18)] transition hover:bg-[#6f263a]">
           <span class="material-symbols-outlined text-[18px]" aria-hidden="true">person_add</span>
           Adicionar Admin
         </button>
       }
-    </header>
+    </app-admin-page-header>
 
     <section class="grid gap-3">
       <div class="grid gap-3 md:grid-cols-[minmax(220px,1fr)_minmax(180px,0.65fr)_minmax(180px,0.65fr)_auto]">

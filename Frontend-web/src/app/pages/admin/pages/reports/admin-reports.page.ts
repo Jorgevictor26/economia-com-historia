@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { AdminConsoleShellComponent } from '../../components/admin-console-shell.component';
+import { AdminMetricCardComponent, AdminPageHeaderComponent } from '../../shared/components';
 
 interface ReportMetric {
   label: string;
@@ -31,7 +32,7 @@ interface ActivityLog {
 @Component({
   selector: 'app-admin-reports-page',
   standalone: true,
-  imports: [AdminConsoleShellComponent],
+  imports: [AdminConsoleShellComponent, AdminMetricCardComponent, AdminPageHeaderComponent],
   templateUrl: './admin-reports.page.html',
 })
 export class AdminReportsPage {

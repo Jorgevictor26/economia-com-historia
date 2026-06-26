@@ -5,6 +5,7 @@ import { AdminConsoleShellComponent } from '../../components/admin-console-shell
 
 @Component({
   selector: 'app-admin-contents-page',
+  standalone: true,
   imports: [RouterLink, AdminConsoleShellComponent],
   templateUrl: './admin-contents.page.html',
 })

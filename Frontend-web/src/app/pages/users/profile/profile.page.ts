@@ -1,21 +1,17 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthStateService } from '../../../services/auth-state.service';
-import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
-import { PublicFooterComponent } from '../../shared/public-footer/public-footer.component';
+import { ProfileService } from '../../../services/profile.service';
 import { PublicNavbarComponent } from '../../shared/public-navbar/public-navbar.component';
 import { AchievementsComponent } from './components/achievements/achievements.component';
 import { LearningProgressComponent } from './components/learning-progress/learning-progress.component';
 import { ProgressDomainsComponent } from './components/progress-domains/progress-domains.component';
-import { ProfileService } from '../../../services/profile.service';
 
 @Component({
   selector: 'app-profile-page',
   imports: [
     RouterLink,
     PublicNavbarComponent,
-    PublicFooterComponent,
-    BackToTopComponent,
     AchievementsComponent,
     LearningProgressComponent,
     ProgressDomainsComponent,

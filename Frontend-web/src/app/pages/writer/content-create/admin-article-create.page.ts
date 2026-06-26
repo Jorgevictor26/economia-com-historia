@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthStateService } from '../../../services/auth-state.service';
-import { AdminConsoleShellComponent } from '../components/admin-console-shell.component';
+import { AdminConsoleShellComponent } from '../../admin/components/admin-console-shell.component';
 
 @Component({
   selector: 'app-admin-article-create-page',

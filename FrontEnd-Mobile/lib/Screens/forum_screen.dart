@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:economica_com_historia/theme/app_colors.dart';
-import 'package:economica_com_historia/Screens/sala_de_debate_screen.dart';
-import 'package:economica_com_historia/Screens/criar_sala_debate_screen.dart';
+import 'package:economica_com_historia/screens/sala_de_debate_screen.dart';
+import 'package:economica_com_historia/screens/criar_sala_debate_screen.dart';
 import 'package:economica_com_historia/widgets/app_bar_principal.dart';
 
 class ForumScreen extends StatefulWidget {
@@ -42,7 +42,7 @@ class _ForumScreenState extends State<ForumScreen> {
       membros: '442 membros',
       tempo: 'há 4h',
       isPrivado: false,
-      destaque: true,
+      destaque: false,
     ),
   ];
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:economica_com_historia/theme/app_colors.dart';
-import 'package:economica_com_historia/Screens/podcast_selecionado_screen.dart';
+import 'package:economica_com_historia/screens/podcast_selecionado_screen.dart';
 import 'package:economica_com_historia/widgets/app_bar_principal.dart';
 
 class PodcastScreen extends StatefulWidget {

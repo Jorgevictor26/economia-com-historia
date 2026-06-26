@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../widgets/auth_widgets.dart';
 import '../theme/app_colors.dart';
-import '../screens/repor_palavra_passe.dart';
+import 'repor_palavra_passe.dart';
 
 class EsqueceuSenhaScreen extends StatefulWidget {
   const EsqueceuSenhaScreen({super.key});

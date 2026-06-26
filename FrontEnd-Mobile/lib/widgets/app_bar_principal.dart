@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
-import '../Screens/notificacoes_screen.dart';
-import '../Screens/favoritos_screen.dart';
-import 'package:economica_com_historia/Screens/favoritos_screen.dart';
+import '../screens/notificacoes_screen.dart';
+import '../screens/favoritos_screen.dart';
+import 'package:economica_com_historia/screens/favoritos_screen.dart';
 import 'search_modal.dart';
 
 class AppBarPrincipal extends StatelessWidget implements PreferredSizeWidget {

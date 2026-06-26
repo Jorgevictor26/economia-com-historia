@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:economica_com_historia/theme/app_colors.dart';
-import 'package:economica_com_historia/Screens/home_screen.dart';
-import 'package:economica_com_historia/Screens/explorar_conteudo_screen.dart';
-import 'package:economica_com_historia/Screens/selecao_quiz_screen.dart';
-import 'package:economica_com_historia/Screens/forum_screen.dart';
-import 'package:economica_com_historia/Screens/podcast_screen.dart'; // ← NOVA
-import 'package:economica_com_historia/Screens/perfil_screen.dart';
-import 'package:economica_com_historia/Screens/podcast_screen.dart';
+import 'package:economica_com_historia/screens/home_screen.dart';
+import 'package:economica_com_historia/screens/explorar_conteudo_screen.dart';
+import 'package:economica_com_historia/screens/selecao_quiz_screen.dart';
+import 'package:economica_com_historia/screens/forum_screen.dart';
+import 'package:economica_com_historia/screens/podcast_screen.dart'; // ← NOVA
+import 'package:economica_com_historia/screens/perfil_screen.dart';
+import 'package:economica_com_historia/screens/podcast_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});

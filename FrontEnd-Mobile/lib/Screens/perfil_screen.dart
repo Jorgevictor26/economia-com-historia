@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:economica_com_historia/theme/app_colors.dart';
-import 'package:economica_com_historia/Screens/editar_perfil_screen.dart';
+import 'package:economica_com_historia/screens/editar_perfil_screen.dart';
 import 'package:economica_com_historia/widgets/app_bar_principal.dart';
 import 'package:economica_com_historia/screens/login_screen.dart';
+import 'package:economica_com_historia/service/perfil_service.dart';
+import 'package:provider/provider.dart';
 
 class PerfilScreen extends StatelessWidget {
   const PerfilScreen({super.key});
@@ -12,13 +14,11 @@ class PerfilScreen extends StatelessWidget {
       titulo: 'Comércio Trans-Saariano',
       proxima: 'As Rotas de Sal e Ouro',
       progresso: 0.75,
-      icone: Icons.account_balance_outlined,
     ),
     _CursoProgresso(
       titulo: 'Moedas Coloniais em Angola',
       proxima: 'O Real Português',
       progresso: 0.33,
-      icone: Icons.savings_outlined,
     ),
   ];
 
@@ -63,31 +63,43 @@ class PerfilScreen extends StatelessWidget {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 const SizedBox(height: 8),
-                _CabecalhoPerfil(),
+                // ── CABEÇALHO COM NOME E BIO ──────────────────────
+                Consumer<PerfilService>(
+                  builder: (_, perfilService, __) => _CabecalhoPerfil(
+                    nome: perfilService.nome,
+                    bio: perfilService.bio,
+                  ),
+                ),
                 const SizedBox(height: 16),
-                Center(
-                  child: SizedBox(
-                    height: 44,
-                    width: 160,
-                    child: ElevatedButton.icon(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const EditarPerfilScreen(),
+                // ── BOTÃO EDITAR ──────────────────────────────────
+                Consumer<PerfilService>(
+                  builder: (_, perfilService, __) => Center(
+                    child: SizedBox(
+                      height: 44,
+                      width: 160,
+                      child: ElevatedButton.icon(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => EditarPerfilScreen(
+                              nomeInicial: perfilService.nome,
+                              bioInicial: perfilService.bio,
+                            ),
+                          ),
                         ),
-                      ),
-                      icon: const Icon(Icons.edit_outlined, size: 16),
-                      label: const Text('Editar Perfil'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                        textStyle: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                        icon: const Icon(Icons.edit_outlined, size: 16),
+                        label: const Text('Editar Perfil'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                          textStyle: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
@@ -141,6 +153,11 @@ class PerfilScreen extends StatelessWidget {
 }
 
 class _CabecalhoPerfil extends StatelessWidget {
+  final String nome;
+  final String bio;
+
+  const _CabecalhoPerfil({required this.nome, required this.bio});
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -155,7 +172,7 @@ class _CabecalhoPerfil extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: Image.asset(
-              '/images/Imagem_perfil.png',
+              'assets/images/Imagem_perfil.png',
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
                 color: const Color(0xFFEEE8E9),
@@ -169,19 +186,28 @@ class _CabecalhoPerfil extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
-          'Estudante Académico',
-          style: TextStyle(
+        Text(
+          nome,
+          style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w800,
             color: AppColors.textDark,
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
-          'Investigador de História Económica',
-          style: TextStyle(fontSize: 13, color: AppColors.textMedium),
-        ),
+        if (bio.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              bio,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textMedium,
+                height: 1.45,
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -260,13 +286,11 @@ class _CursoProgresso {
   final String titulo;
   final String proxima;
   final double progresso;
-  final IconData icone;
 
   const _CursoProgresso({
     required this.titulo,
     required this.proxima,
     required this.progresso,
-    required this.icone,
   });
 }
 
@@ -286,15 +310,6 @@ class _CursoCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0EAEA),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(curso.icone, color: AppColors.primary, size: 22),
-          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

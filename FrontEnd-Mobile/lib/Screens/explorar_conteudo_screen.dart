@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:economica_com_historia/theme/app_colors.dart';
 import 'package:economica_com_historia/widgets/app_bar_principal.dart';
-import 'package:economica_com_historia/Screens/conteudo_screen.dart';
+import 'package:economica_com_historia/screens/conteudo_screen.dart';
 
 class ExplorarConteudoScreen extends StatefulWidget {
   const ExplorarConteudoScreen({super.key});

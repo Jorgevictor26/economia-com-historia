@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:economica_com_historia/theme/app_colors.dart';
-import 'package:economica_com_historia/Screens/praticar_quiz_screen.dart';
+import 'package:economica_com_historia/screens/praticar_quiz_screen.dart';
 import 'package:economica_com_historia/widgets/app_bar_principal.dart';
 
 class SelecaoQuizScreen extends StatefulWidget {

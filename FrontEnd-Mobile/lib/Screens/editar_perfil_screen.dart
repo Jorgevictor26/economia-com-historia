@@ -4,9 +4,18 @@ import 'package:economica_com_historia/widgets/app_bar_principal.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:economica_com_historia/screens/repor_palavra_passe.dart';
+import 'package:economica_com_historia/service/perfil_service.dart';
+import 'package:provider/provider.dart';
 
 class EditarPerfilScreen extends StatefulWidget {
-  const EditarPerfilScreen({super.key});
+  final String nomeInicial;
+  final String bioInicial;
+
+  const EditarPerfilScreen({
+    super.key,
+    this.nomeInicial = 'Estudante Académico',
+    this.bioInicial = 'Investigador de História Económica',
+  });
 
   @override
   State<EditarPerfilScreen> createState() => _EditarPerfilScreenState();
@@ -77,11 +86,8 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
     );
   }
 
-  final _nomeController = TextEditingController(text: 'Estudante Académico');
-  final _bioController = TextEditingController(
-    text:
-        'Estudante de Economia apaixonado pela história de Angola e pelo desenvolvimento económico sustentável.',
-  );
+  late final _nomeController = TextEditingController(text: widget.nomeInicial);
+  late final _bioController = TextEditingController(text: widget.bioInicial);
 
   bool _perfilPublico = true;
   bool _mostrarLocalizacao = false;
@@ -128,7 +134,11 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              _CampoTexto(controller: _nomeController, maxLines: 1),
+              _CampoTexto(
+                controller: _nomeController,
+                maxLines: 1,
+                maxCaracteres: 50,
+              ),
               const SizedBox(height: 16),
               const Text(
                 'Biografia',
@@ -139,7 +149,11 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              _CampoTexto(controller: _bioController, maxLines: 4),
+              _CampoTexto(
+                controller: _bioController,
+                maxLines: 4,
+                maxCaracteres: 150,
+              ),
               const SizedBox(height: 28),
               Row(
                 children: const [
@@ -213,6 +227,37 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
                 label: 'Preferências de Notificação',
                 onTap: () {},
               ),
+
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Provider.of<PerfilService>(
+                      context,
+                      listen: false,
+                    ).atualizarPerfil(
+                      _nomeController.text,
+                      _bioController.text,
+                    );
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  child: const Text('Guardar Alterações'),
+                ),
+              ),
+
               const SizedBox(height: 32),
             ],
           ),
@@ -299,14 +344,20 @@ class _FotoPerfil extends StatelessWidget {
 class _CampoTexto extends StatelessWidget {
   final TextEditingController controller;
   final int maxLines;
+  final int maxCaracteres;
 
-  const _CampoTexto({required this.controller, required this.maxLines});
+  const _CampoTexto({
+    required this.controller,
+    required this.maxLines,
+    this.maxCaracteres = 9999,
+  });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
+      maxLength: maxCaracteres,
       style: const TextStyle(fontSize: 14, color: AppColors.textDark),
       decoration: InputDecoration(
         filled: true,

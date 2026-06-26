@@ -237,7 +237,7 @@ class _BolhaMensagem extends StatelessWidget {
               child: Row(
                 children: [
                   const Icon(
-                    Icons.thumb_up_outlined,
+                    Icons.favorite_border_rounded,
                     size: 15,
                     color: AppColors.textLight,
                   ),

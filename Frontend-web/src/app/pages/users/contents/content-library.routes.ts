@@ -1155,6 +1155,8 @@ export class VideoContentDetailPage {
   private readonly savedContentService = inject(SavedContentService);
   readonly auth = inject(AuthStateService);
   readonly saveStatus = signal('');
+  readonly videoLiked = signal(false);
+  readonly isVideoCommentComposerOpen = signal(false);
 
   readonly video = computed(() => {
     const id = this.route.snapshot.params['id'] ?? 'video-cafe';
@@ -1236,6 +1238,28 @@ export class VideoContentDetailPage {
     event.preventDefault();
     event.stopPropagation();
     this.auth.requireLoginFor(operation);
+  }
+
+  likeVideo(event: Event): void {
+    if (!this.auth.isAuthenticated()) {
+      this.requireLogin(event, 'gostar');
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.videoLiked.update((liked) => !liked);
+  }
+
+  openVideoCommentComposer(event: Event): void {
+    if (!this.auth.isAuthenticated()) {
+      this.requireLogin(event, 'comentar');
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.isVideoCommentComposerOpen.set(true);
   }
 
   share(event: Event): void {

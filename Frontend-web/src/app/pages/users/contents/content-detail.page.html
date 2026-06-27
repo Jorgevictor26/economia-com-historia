@@ -103,22 +103,29 @@
           </a>
         </div>
         }
-        <div class="relative flex flex-wrap items-center justify-between gap-5 text-[12px] text-[#616161]">
+        <div class="relative flex flex-wrap items-center justify-between gap-5 border-y border-[#E0E0E0] py-4 text-[12px] text-[#616161]">
           <div class="flex flex-wrap items-center gap-8">
-            <button type="button" class="content-action" [disabled]="isSavingReaction()" (click)="react($event)">
-              <span class="material-symbols-outlined text-[20px] leading-none" [class.text-[#8A3F50]]="likedByMe()">favorite</span>
-              <span [class.text-[#8A3F50]]="likedByMe()">{{ reactionCount() }}</span>
+            <button type="button" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]" [disabled]="isSavingReaction()" (click)="react($event)">
+              <span class="material-symbols-outlined text-[26px] leading-none" [class.text-[#8A3F50]]="likedByMe()">favorite</span>
+              <span>Gostar</span>
             </button>
-            <button type="button" class="content-action" (click)="openCommentComposer($event)">
-              <img src="/assets/icons/comment.png" alt="" />
-              <span>{{ comments().length }}</span>
+            <button type="button" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]" (click)="openCommentComposer($event)">
+              <span class="material-symbols-outlined text-[26px] leading-none">chat_bubble</span>
+              <span>Comentar</span>
             </button>
+            <button type="button" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]" (click)="toggleShareMenu($event)">
+              <span class="material-symbols-outlined text-[26px] leading-none">share</span>
+              <span>Partilhar</span>
+            </button>
+            <a [routerLink]="['/app/forums']" [queryParams]="{ content: detail()?.id }" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]">
+              <span class="material-symbols-outlined text-[26px] leading-none">forum</span>
+              <span>Criar f&oacute;rum</span>
+            </a>
           </div>
-          <div class="flex flex-wrap items-center gap-8">
-            <button type="button" class="content-action" (click)="toggleShareMenu($event)">
-              <img src="/assets/icons/share.png" alt="" />
-            </button>
-          </div>
+          <button type="button" class="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#9E9E9E] transition hover:text-[#5C1E2F]" [disabled]="isSavingContent()" (click)="saveContent($event)">
+            <span class="material-symbols-outlined text-[24px] leading-none">outlined_flag</span>
+            <span>Guardar</span>
+          </button>
           @if (shareMenuOpen()) {
           <div class="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4">
             <section class="w-full max-w-[470px] rounded-[8px] bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
@@ -361,6 +368,5 @@
     </aside>
   </main>
 
-  <app-public-footer />
   <app-back-to-top />
 </section>

@@ -14,6 +14,7 @@ import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.com
   templateUrl: './user-forums.page.html',
 })
 export class UserForumsPage {
+  private readonly route = inject(ActivatedRoute);
   readonly auth = inject(AuthStateService);
   readonly contentService = inject(ContentService);
   readonly forumService = inject(ForumService);
@@ -37,6 +38,24 @@ export class UserForumsPage {
   readonly visibleResources = computed(() =>
     this.showAllResources() ? this.contentService.contents() : this.selectedResources(),
   );
+
+  ngOnInit(): void {
+    const contentId = this.route.snapshot.queryParamMap.get('content');
+
+    if (!contentId) {
+      return;
+    }
+
+    this.selectedContentIds.set([contentId]);
+    this.showAllResources.set(false);
+
+    if (this.auth.isAuthenticated()) {
+      this.createModalOpen.set(true);
+      return;
+    }
+
+    this.auth.requireLoginFor('criar discuss\u00e3o');
+  }
 
   openCreateModal(): void {
     if (!this.auth.isAuthenticated()) {
@@ -158,6 +177,9 @@ export class UserForumDetailPage {
   private readonly route = inject(ActivatedRoute);
   readonly auth = inject(AuthStateService);
   readonly forumService = inject(ForumService);
+  readonly likedByMe = signal(false);
+  readonly commentComposerOpen = signal(false);
+  readonly forumFeedback = signal('');
 
   readonly room = computed(() => {
     const roomId = this.route.snapshot.paramMap.get('id');
@@ -182,6 +204,75 @@ export class UserForumDetailPage {
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase())
       .join('') || 'EH';
+  }
+
+  requireLogin(event: Event, operation: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.auth.requireLoginFor(operation);
+  }
+
+  likeForum(event: Event): void {
+    if (!this.auth.isAuthenticated()) {
+      this.requireLogin(event, 'gostar do f\u00f3rum');
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.likedByMe.update((liked) => !liked);
+    this.forumFeedback.set('');
+  }
+
+  openCommentComposer(event: Event): void {
+    if (!this.auth.isAuthenticated()) {
+      this.requireLogin(event, 'comentar no f\u00f3rum');
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.commentComposerOpen.set(true);
+    this.forumFeedback.set('');
+  }
+
+  async shareForum(event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const room = this.room();
+    const url = window.location.href.split('#')[0];
+    const title = `${room?.name ?? 'F\u00f3rum'} - Economia com Hist\u00f3ria`;
+
+    if (navigator.share) {
+      await navigator.share({ title, url }).catch(() => undefined);
+      return;
+    }
+
+    await navigator.clipboard?.writeText(url);
+    this.forumFeedback.set('Link do f\u00f3rum copiado.');
+  }
+
+  saveForum(event: Event): void {
+    if (!this.auth.isAuthenticated()) {
+      this.requireLogin(event, 'guardar f\u00f3rum');
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.forumFeedback.set('F\u00f3rum guardado.');
+  }
+
+  reportForum(event: Event): void {
+    if (!this.auth.isAuthenticated()) {
+      this.requireLogin(event, 'denunciar f\u00f3rum');
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.forumFeedback.set('Den\u00fancia enviada. A equipa vai rever.');
   }
 }
 

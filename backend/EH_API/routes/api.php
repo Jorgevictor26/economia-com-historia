@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\RegisterController;
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\CommentReplyController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\ContentMediaController;
 use App\Http\Controllers\ContentTypeController;
@@ -74,7 +75,11 @@ Route::prefix('v1')->group(function () {
 
         // COMMENTS
         Route::post('/comments', [CommentController::class, 'store']);
+        Route::put('/comments/{id}', [CommentController::class, 'update']);
+        Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
         Route::post('/comments/{commentId}/reply', [CommentController::class, 'replyToComment']);
+        Route::put('/comments/replies/{id}', [CommentReplyController::class, 'update']);
+        Route::delete('/comments/replies/{id}', [CommentReplyController::class, 'destroy']);
 
         // REACTIONS
         Route::post('/reactions', [ReactionController::class, 'store']);

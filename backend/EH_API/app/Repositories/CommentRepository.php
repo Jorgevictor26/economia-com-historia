@@ -34,6 +34,11 @@ class CommentRepository
         return Comment::find($id);
     }
 
+    public function findReplyById(int $id): ?CommentReply
+    {
+        return CommentReply::find($id);
+    }
+
     public function hide(Comment $comment): Comment
     {
         if ($comment->hidden_at === null) {
@@ -43,8 +48,27 @@ class CommentRepository
         return $comment->fresh();
     }
 
+    public function update(Comment $comment, array $data): Comment
+    {
+        $comment->update($data);
+
+        return $comment->fresh();
+    }
+
+    public function updateReply(CommentReply $reply, array $data): CommentReply
+    {
+        $reply->update($data);
+
+        return $reply->fresh();
+    }
+
     public function createReply(array $data): CommentReply
     {
         return CommentReply::create($data);
+    }
+
+    public function deleteReply(CommentReply $reply): bool
+    {
+        return (bool) $reply->delete();
     }
 }

@@ -10,7 +10,9 @@ use App\Services\CommentService;
 
 use App\DTOs\Comment\CreateCommentDTO;
 use App\DTOs\Comment\ReplyCommentDTO;
+use App\DTOs\Comment\UpdateCommentDTO;
 use App\Http\Requests\Comment\ReplyCommentRequest;
+use App\Http\Requests\Comment\UpdateCommentRequest;
 
 class CommentController extends Controller
 {
@@ -60,5 +62,56 @@ class CommentController extends Controller
             'message' => 'Reply created successfully',
             'data' => $reply
         ], 201);
+    }
+
+    public function update(UpdateCommentRequest $request, int $id)
+    {
+        $comment = $this->service->getById($id);
+
+        if (! $comment) {
+            return response()->json([
+                'message' => 'Comment not found'
+            ], 404);
+        }
+
+        try {
+            $comment = $this->service->update(
+                $comment,
+                UpdateCommentDTO::fromArray($request->validated()),
+                $request->user()
+            );
+        } catch (\Illuminate\Auth\Access\AuthorizationException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 403);
+        }
+
+        return response()->json([
+            'message' => 'Comment updated successfully',
+            'data' => $comment,
+        ]);
+    }
+
+    public function destroy(Request $request, int $id)
+    {
+        $comment = $this->service->getById($id);
+
+        if (! $comment) {
+            return response()->json([
+                'message' => 'Comment not found'
+            ], 404);
+        }
+
+        try {
+            $this->service->delete($comment, $request->user());
+        } catch (\Illuminate\Auth\Access\AuthorizationException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 403);
+        }
+
+        return response()->json([
+            'message' => 'Comment deleted successfully',
+        ]);
     }
 }

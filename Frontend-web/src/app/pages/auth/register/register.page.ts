@@ -27,6 +27,8 @@ export class RegisterPage {
   readonly photoPreviewUrl = signal('');
   readonly feedbackMessage = signal('');
   readonly completionPulse = signal(false);
+  readonly passwordVisible = signal(false);
+  readonly confirmPasswordVisible = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     fullName: ['', [Validators.required, Validators.minLength(3)]],
@@ -63,6 +65,14 @@ export class RegisterPage {
       (control.touched || this.form.controls.password.touched || this.submitted())
     );
   });
+
+  togglePasswordVisibility(): void {
+    this.passwordVisible.update((visible) => !visible);
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.confirmPasswordVisible.update((visible) => !visible);
+  }
 
   async submit(): Promise<void> {
     this.submitted.set(true);
@@ -149,6 +159,7 @@ export class RegisterPage {
 
     if (biography) {
       payload.bio = biography;
+      payload.biography = biography;
     }
 
     this.isLoading.set(true);

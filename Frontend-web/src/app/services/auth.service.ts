@@ -29,6 +29,7 @@ export interface RegisterPayload {
   password_confirmation: string;
   photo?: string;
   bio?: string;
+  biography?: string;
 }
 
 export interface ForgotPasswordPayload {

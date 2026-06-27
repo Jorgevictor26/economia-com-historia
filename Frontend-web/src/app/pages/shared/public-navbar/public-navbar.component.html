@@ -1,13 +1,13 @@
-<header class="public-navbar sticky top-0 z-40 border-b border-[#ffffff] bg-[#ffffff]">
+<header class="public-navbar sticky top-0 z-40 border-b border-[#fff] bg-[#fff]">
   <div class="fluid-container flex min-h-[58px] flex-wrap items-center gap-4">
     <a [routerLink]="homeRoute()"
-      class="flex shrink-0 items-center gap-2 font-display text-[15px] font-extrabold text-[#8a4055]">
+      class="flex shrink-0 items-center gap-2 font-display text-[15px] font-extrabold text-[#8A3F50]">
       <img src="/auth-logo.png" alt="Economia com História" class="h-[24px] w-auto" />
       <span [class.hidden]="menuOpen()">Economia com História</span>
     </a>
 
     <nav
-      class="mx-auto hidden min-w-0 items-center gap-8 overflow-x-auto text-[14px] font-semibold text-[#2c2729] md:flex">
+      class="mx-auto hidden min-w-0 items-center gap-8 overflow-x-auto text-[14px] font-semibold text-[#212121] md:flex">
       @for (item of navItems(); track item.label) {
       <a [routerLink]="item.route" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: item.exact }"
         class="public-navbar-link">
@@ -19,7 +19,7 @@
     <div class="ml-auto hidden shrink-0 items-center gap-3 md:flex">
       @if (auth.canWriteContent()) {
       <a routerLink="/admin/contents/create"
-        class="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white transition hover:bg-[#471525]">Publicar</a>
+        class="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white transition hover:bg-[#5C1E2F]">Publicar</a>
       }
 
       @if (auth.isAuthenticated()) {
@@ -90,13 +90,13 @@
       <a routerLink="/auth/login"
         class="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#5c1e2f] px-5 text-[13px] font-bold text-[#5c1e2f]">Entrar</a>
       <a routerLink="/auth/register"
-        class="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white transition hover:bg-[#471525]">Criar
+        class="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white transition hover:bg-[#5C1E2F]">Criar
         conta</a>
       }
     </div>
 
     <button type="button"
-      class="ml-auto grid size-10 place-items-center rounded-[8px] border border-[#e3d4d8] text-[#5c1e2f] md:hidden"
+      class="ml-auto grid size-10 place-items-center rounded-[8px] border border-[#E0E0E0] text-[#5c1e2f] md:hidden"
       aria-label="Abrir menu" (click)="openMenu()">
       <span class="grid gap-1.5">
         <i class="block h-0.5 w-5 bg-current"></i>
@@ -111,19 +111,19 @@
   [class.opacity-100]="menuOpen()" [class.opacity-0]="!menuOpen()" [class.pointer-events-auto]="menuOpen()"
   [class.pointer-events-none]="!menuOpen()" aria-label="Fechar menu" (click)="closeMenu()"></button>
 <aside
-  class="fixed inset-y-0 left-0 z-[90] flex w-[min(300px,86vw)] flex-col overflow-y-auto bg-[#ffffff] p-5 shadow-2xl transition-transform duration-300 ease-out md:hidden"
+  class="fixed inset-y-0 left-0 z-[90] flex w-[min(300px,86vw)] flex-col overflow-y-auto bg-[#fff] p-5 shadow-2xl transition-transform duration-300 ease-out md:hidden"
   [class.translate-x-0]="menuOpen()" [class.-translate-x-full]="!menuOpen()">
   <div class="flex items-center justify-between gap-4">
-    <a [routerLink]="homeRoute()" class="flex items-center gap-2 font-display text-[14px] font-extrabold text-[#8a4055]"
+    <a [routerLink]="homeRoute()" class="flex items-center gap-2 font-display text-[14px] font-extrabold text-[#8A3F50]"
       (click)="closeMenu()">
       <img src="/auth-logo.png" alt="Economia com História" class="h-[24px] w-auto" />
     </a>
     <button type="button"
-      class="grid size-9 place-items-center rounded-[8px] border border-[#e3d4d8] text-[20px] text-[#5c1e2f]"
+      class="grid size-9 place-items-center rounded-[8px] border border-[#E0E0E0] text-[20px] text-[#5c1e2f]"
       aria-label="Fechar menu" (click)="closeMenu()">×</button>
   </div>
 
-  <nav class="mt-6 grid gap-2 text-[14px] font-semibold text-[#2c2729]">
+  <nav class="mt-6 grid gap-2 text-[14px] font-semibold text-[#212121]">
     @for (item of navItems(); track item.label) {
     <a [routerLink]="item.route" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: item.exact }"
       class="public-navbar-drawer-link" (click)="closeMenu()">
@@ -132,7 +132,7 @@
     }
   </nav>
 
-  <div class="mt-5 grid gap-3 border-t border-[#ece7e4] pt-5">
+  <div class="mt-5 grid gap-3 border-t border-[#E0E0E0] pt-5">
     @if (auth.canWriteContent()) {
     <a routerLink="/admin/contents/create"
       class="inline-flex h-10 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white"
@@ -148,10 +148,10 @@
       (click)="closeMenu()">Perfil</a>
     } @else {
     <a routerLink="/auth/login"
-      class="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#5c1e2f] px-5 text-[13px] font-bold text-[#5c1e2f] transition-colors duration-300 hover:bg-[#f9ecef] hover:text-[#40081a]"
+      class="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#5c1e2f] px-5 text-[13px] font-bold text-[#5c1e2f] transition-colors duration-300 hover:bg-[#F2E6E9] hover:text-[#5C1E2F]"
       (click)="closeMenu()">Entrar</a>
     <a routerLink="/auth/register"
-      class="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white transition-colors duration-300 hover:bg-[#40081a] hover:shadow-md"
+      class="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white transition-colors duration-300 hover:bg-[#5C1E2F] hover:shadow-md"
       (click)="closeMenu()">Criar conta</a>
     }
   </div>

@@ -2,6 +2,93 @@
   display: block;
 }
 
+.google-login-button {
+  display: inline-flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 7px;
+  background: #fff;
+  color: #333;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.google-login-button:hover {
+  border-color: #5c1e2f;
+  box-shadow: 0 12px 26px rgb(92 30 47 / 0.1);
+  transform: translateY(-1px);
+}
+
+.google-login-button span {
+  display: grid;
+  width: 1.35rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  background: #f5f5f5;
+  color: #5c1e2f;
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+.password-control {
+  position: relative;
+  display: block;
+}
+
+.password-control input {
+  height: 46px;
+  width: 100%;
+  border: 1px solid #d9d9d9;
+  border-radius: 7px;
+  background: #fff;
+  color: #333;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  outline: none;
+  padding-inline: 1rem 2.75rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.password-control input::placeholder {
+  color: #c8c8c8;
+}
+
+.password-control input:focus {
+  border-color: #5c1e2f;
+  box-shadow: 0 0 0 4px rgb(92 30 47 / 0.1);
+}
+
+.password-control button {
+  position: absolute;
+  right: 0.8rem;
+  top: 50%;
+  display: inline-flex;
+  width: 1.6rem;
+  height: 1.6rem;
+  transform: translateY(-50%);
+  align-items: center;
+  justify-content: center;
+  color: #777;
+}
+
+.password-control svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

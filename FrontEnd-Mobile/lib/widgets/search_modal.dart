@@ -1,21 +1,36 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+
+import '../core/exceptions/app_exceptions.dart';
+import '../core/utils/formatters.dart';
+import '../models/content.dart';
+import '../models/forum.dart';
+import '../models/quiz.dart';
+import '../screens/conteudo_screen.dart';
+import '../screens/podcast_selecionado_screen.dart';
+import '../screens/praticar_quiz_screen.dart';
+import '../screens/sala_de_debate_screen.dart';
+import '../services/content_service.dart';
+import '../services/forum_service.dart';
+import '../services/quiz_service.dart';
 import '../theme/app_colors.dart';
 
-/// Abre o modal de pesquisa a partir de qualquer tela.
-/// Uso: SearchModal.show(context);
 class SearchModal {
   static void show(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const _SearchModalContent(),
+      builder: (_) => _SearchModalContent(parentContext: context),
     );
   }
 }
 
 class _SearchModalContent extends StatefulWidget {
-  const _SearchModalContent();
+  final BuildContext parentContext;
+
+  const _SearchModalContent({required this.parentContext});
 
   @override
   State<_SearchModalContent> createState() => _SearchModalContentState();
@@ -24,65 +39,134 @@ class _SearchModalContent extends StatefulWidget {
 class _SearchModalContentState extends State<_SearchModalContent> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
+  final _contentService = ContentService();
+  final _forumService = ForumService();
+  final _quizService = QuizService();
+
+  Timer? _debounce;
   String _query = '';
-
-  // Sugestões recentes (mock — substituir por dados reais)
-  static const _recentes = [
-    'Ciclos Económicos Angola',
-    'Reino do Kongo',
-    'Balança Comercial',
-    'Inflação pós-independência',
-  ];
-
-  // Resultados mock filtrados
-  static const _todosResultados = [
-    _ResultadoItem(
-      tipo: 'Artigo',
-      titulo: 'O Impacto do Café na Balança Comercial Angolana',
-      subtitulo: 'Módulo 4 · 15 min leitura',
-      icone: Icons.article_outlined,
-    ),
-    _ResultadoItem(
-      tipo: 'Módulo',
-      titulo: 'Ciclos Económicos na África Subsariana',
-      subtitulo: 'Módulo 4 · 80% concluído',
-      icone: Icons.menu_book_outlined,
-    ),
-    _ResultadoItem(
-      tipo: 'Fórum',
-      titulo: 'Debate: Influência holandesa em Luanda',
-      subtitulo: 'História Geral de Angola · há 2h',
-      icone: Icons.forum_outlined,
-    ),
-    _ResultadoItem(
-      tipo: 'Quiz',
-      titulo: 'Quiz: Rotas Comerciais do Kongo',
-      subtitulo: 'Módulo 2 · 10 perguntas',
-      icone: Icons.quiz_outlined,
-    ),
-  ];
-
-  List<_ResultadoItem> get _resultadosFiltrados {
-    if (_query.isEmpty) return [];
-    return _todosResultados
-        .where((r) => r.titulo.toLowerCase().contains(_query.toLowerCase()))
-        .toList();
-  }
+  bool _isLoading = false;
+  String? _error;
+  List<_ResultadoItem> _resultados = [];
 
   @override
   void initState() {
     super.initState();
-    // Foco automático ao abrir
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
+      if (mounted) _focusNode.requestFocus();
     });
   }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    final query = value.trim();
+    setState(() {
+      _query = query;
+      _error = null;
+      if (query.length < 2) {
+        _resultados = [];
+        _isLoading = false;
+      }
+    });
+
+    if (query.length < 2) return;
+    _debounce = Timer(const Duration(milliseconds: 350), () => _buscar(query));
+  }
+
+  Future<void> _buscar(String query) async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final contents = await _contentService.getContents(search: query);
+      final forums = await _forumService.getForums(search: query);
+      final quizzes = await _quizService.getQuizzes(search: query);
+      if (!mounted || _query != query) return;
+
+      final lowerQuery = query.toLowerCase();
+      final forumMatches = forums.where((forum) {
+        return forum.name.toLowerCase().contains(lowerQuery) ||
+            (forum.description ?? '').toLowerCase().contains(lowerQuery);
+      });
+
+      setState(() {
+        _resultados = [
+          ...contents.data.map(_contentResult),
+          ...forumMatches.map(_forumResult),
+          ...quizzes.data.map(_quizResult),
+        ];
+      });
+    } on AppException catch (e) {
+      if (mounted && _query == query) setState(() => _error = e.message);
+    } catch (_) {
+      if (mounted && _query == query) {
+        setState(() => _error = 'Não foi possível concluir a pesquisa.');
+      }
+    } finally {
+      if (mounted && _query == query) setState(() => _isLoading = false);
+    }
+  }
+
+  _ResultadoItem _contentResult(Content content) {
+    final type = content.contentType?.name ?? 'Conteudo';
+    final subtitleParts = [
+      if (content.category?.name != null) content.category!.name,
+      readTime(content.content ?? content.summary),
+    ];
+    return _ResultadoItem(
+      tipo: type,
+      titulo: content.title,
+      subtitulo: subtitleParts.join(' - '),
+      icone: content.isPodcast
+          ? Icons.podcasts_rounded
+          : Icons.article_outlined,
+      onTap: () => _open(
+        content.isPodcast
+            ? PodcastSelecionadoScreen(
+                contentId: content.id,
+                initialContent: content,
+              )
+            : ConteudoScreen(contentId: content.id, initialContent: content),
+      ),
+    );
+  }
+
+  _ResultadoItem _forumResult(Forum forum) {
+    return _ResultadoItem(
+      tipo: 'Forum',
+      titulo: forum.name,
+      subtitulo:
+          '${forum.topicsCount} topico${forum.topicsCount == 1 ? '' : 's'}',
+      icone: Icons.forum_outlined,
+      onTap: () => _open(SalaDeDebateScreen(forum: forum)),
+    );
+  }
+
+  _ResultadoItem _quizResult(Quiz quiz) {
+    return _ResultadoItem(
+      tipo: 'Quiz',
+      titulo: quiz.title,
+      subtitulo:
+          '${quiz.questionsCount} pergunta${quiz.questionsCount == 1 ? '' : 's'}',
+      icone: Icons.quiz_outlined,
+      onTap: () => _open(PraticarQuizScreen(quiz: quiz)),
+    );
+  }
+
+  void _open(Widget screen) {
+    final navigator = Navigator.of(widget.parentContext);
+    Navigator.of(context).pop();
+    navigator.push(MaterialPageRoute(builder: (_) => screen));
   }
 
   @override
@@ -98,7 +182,6 @@ class _SearchModalContentState extends State<_SearchModalContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Handle ───────────────────────────────────────────────
           Center(
             child: Container(
               margin: const EdgeInsets.only(top: 12, bottom: 8),
@@ -110,8 +193,6 @@ class _SearchModalContentState extends State<_SearchModalContent> {
               ),
             ),
           ),
-
-          // ── Campo de pesquisa ─────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Row(
@@ -141,13 +222,14 @@ class _SearchModalContentState extends State<_SearchModalContent> {
                           child: TextField(
                             controller: _searchController,
                             focusNode: _focusNode,
-                            onChanged: (val) => setState(() => _query = val),
+                            onChanged: _onSearchChanged,
                             style: const TextStyle(
                               fontSize: 15,
                               color: AppColors.textDark,
                             ),
                             decoration: const InputDecoration(
-                              hintText: 'Pesquisar módulos, artigos, fóruns...',
+                              hintText:
+                                  'Pesquisar conteudos, forums, quizzes...',
                               hintStyle: TextStyle(
                                 fontSize: 14,
                                 color: AppColors.textLight,
@@ -161,7 +243,7 @@ class _SearchModalContentState extends State<_SearchModalContent> {
                           GestureDetector(
                             onTap: () {
                               _searchController.clear();
-                              setState(() => _query = '');
+                              _onSearchChanged('');
                             },
                             child: const Padding(
                               padding: EdgeInsets.symmetric(horizontal: 12),
@@ -176,9 +258,7 @@ class _SearchModalContentState extends State<_SearchModalContent> {
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 10),
-
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: const Text(
@@ -193,10 +273,7 @@ class _SearchModalContentState extends State<_SearchModalContent> {
               ],
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // ── Conteúdo principal ────────────────────────────────────
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.only(
@@ -204,15 +281,12 @@ class _SearchModalContentState extends State<_SearchModalContent> {
                 right: 16,
                 bottom: bottomInset + 24,
               ),
-              child: _query.isEmpty
-                  ? _RecentesSection(
-                      recentes: _recentes,
-                      onTap: (termo) {
-                        _searchController.text = termo;
-                        setState(() => _query = termo);
-                      },
-                    )
-                  : _ResultadosSection(resultados: _resultadosFiltrados),
+              child: _ResultadosSection(
+                query: _query,
+                isLoading: _isLoading,
+                error: _error,
+                resultados: _resultados,
+              ),
             ),
           ),
         ],
@@ -221,182 +295,55 @@ class _SearchModalContentState extends State<_SearchModalContent> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SECÇÃO: PESQUISAS RECENTES
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _RecentesSection extends StatelessWidget {
-  final List<String> recentes;
-  final void Function(String) onTap;
-
-  const _RecentesSection({required this.recentes, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Pesquisas recentes',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textDark,
-              ),
-            ),
-            GestureDetector(
-              onTap: () {},
-              child: const Text(
-                'Limpar',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 12),
-
-        ...recentes.map(
-          (termo) => GestureDetector(
-            onTap: () => onTap(termo),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.history_rounded,
-                    size: 18,
-                    color: AppColors.textLight,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      termo,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textMedium,
-                      ),
-                    ),
-                  ),
-                  const Icon(
-                    Icons.north_west_rounded,
-                    size: 16,
-                    color: AppColors.textLight,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 24),
-
-        // Sugestões de categorias
-        const Text(
-          'Explorar por categoria',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textDark,
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: const [
-            _CategoriaChip(label: 'Módulos', icone: Icons.menu_book_outlined),
-            _CategoriaChip(label: 'Artigos', icone: Icons.article_outlined),
-            _CategoriaChip(label: 'Fóruns', icone: Icons.forum_outlined),
-            _CategoriaChip(label: 'Quiz', icone: Icons.quiz_outlined),
-            _CategoriaChip(label: 'Podcasts', icone: Icons.headphones_outlined),
-            _CategoriaChip(
-              label: 'Vídeos',
-              icone: Icons.play_circle_outline_rounded,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _CategoriaChip extends StatelessWidget {
-  final String label;
-  final IconData icone;
-
-  const _CategoriaChip({required this.label, required this.icone});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {},
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.borderSoft, width: 1.2),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icone, size: 15, color: AppColors.primary),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SECÇÃO: RESULTADOS
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _ResultadosSection extends StatelessWidget {
+  final String query;
+  final bool isLoading;
+  final String? error;
   final List<_ResultadoItem> resultados;
 
-  const _ResultadosSection({required this.resultados});
+  const _ResultadosSection({
+    required this.query,
+    required this.isLoading,
+    required this.error,
+    required this.resultados,
+  });
 
   @override
   Widget build(BuildContext context) {
-    if (resultados.isEmpty) {
+    if (query.isEmpty) {
+      return const _CenteredMessage(
+        icon: Icons.search_rounded,
+        message: 'Digite pelo menos 2 caracteres para pesquisar.',
+      );
+    }
+
+    if (query.length < 2) {
+      return const _CenteredMessage(
+        icon: Icons.keyboard_rounded,
+        message: 'Continue a digitar para pesquisar.',
+      );
+    }
+
+    if (isLoading) {
       return const Padding(
         padding: EdgeInsets.only(top: 48),
         child: Center(
-          child: Column(
-            children: [
-              Icon(
-                Icons.search_off_rounded,
-                size: 48,
-                color: AppColors.borderSoft,
-              ),
-              SizedBox(height: 12),
-              Text(
-                'Nenhum resultado encontrado.',
-                style: TextStyle(fontSize: 14, color: AppColors.textLight),
-              ),
-            ],
-          ),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
+      );
+    }
+
+    if (error != null) {
+      return _CenteredMessage(
+        icon: Icons.error_outline_rounded,
+        message: error!,
+      );
+    }
+
+    if (resultados.isEmpty) {
+      return const _CenteredMessage(
+        icon: Icons.search_off_rounded,
+        message: 'Nenhum resultado encontrado.',
       );
     }
 
@@ -414,17 +361,46 @@ class _ResultadosSection extends StatelessWidget {
   }
 }
 
+class _CenteredMessage extends StatelessWidget {
+  final IconData icon;
+  final String message;
+
+  const _CenteredMessage({required this.icon, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 48),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(icon, size: 48, color: AppColors.borderSoft),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14, color: AppColors.textLight),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ResultadoItem {
   final String tipo;
   final String titulo;
   final String subtitulo;
   final IconData icone;
+  final VoidCallback onTap;
 
   const _ResultadoItem({
     required this.tipo,
     required this.titulo,
     required this.subtitulo,
     required this.icone,
+    required this.onTap,
   });
 }
 
@@ -436,7 +412,7 @@ class _ResultadoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: item.onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
@@ -468,6 +444,8 @@ class _ResultadoTile extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     item.subtitulo,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textLight,
@@ -481,7 +459,7 @@ class _ResultadoTile extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: AppColors.borderSoft,
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
                 item.tipo,

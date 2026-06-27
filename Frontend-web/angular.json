@@ -29,7 +29,7 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css"]
+            "styles": ["src/styles.css", "src/app/pages/users/profile/profile.page.scss"]
           },
           "configurations": {
             "production": {

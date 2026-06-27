@@ -1,138 +1,219 @@
 import 'package:flutter/material.dart';
-import 'package:economica_com_historia/theme/app_colors.dart';
-import 'package:economica_com_historia/Screens/editar_perfil_screen.dart';
-import 'package:economica_com_historia/widgets/app_bar_principal.dart';
-import 'package:economica_com_historia/screens/login_screen.dart';
+import 'package:provider/provider.dart';
 
-class PerfilScreen extends StatelessWidget {
+import '../core/exceptions/app_exceptions.dart';
+import '../core/utils/formatters.dart';
+import '../core/widgets/api_state_widgets.dart';
+import '../models/quiz.dart';
+import '../models/user.dart';
+import '../service/perfil_service.dart';
+import '../services/quiz_service.dart';
+import '../theme/app_colors.dart';
+import '../widgets/app_bar_principal.dart';
+import 'editar_perfil_screen.dart';
+import 'login_screen.dart';
+
+class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
 
-  static const _cursos = [
-    _CursoProgresso(
-      titulo: 'Comércio Trans-Saariano',
-      proxima: 'As Rotas de Sal e Ouro',
-      progresso: 0.75,
-      icone: Icons.account_balance_outlined,
-    ),
-    _CursoProgresso(
-      titulo: 'Moedas Coloniais em Angola',
-      proxima: 'O Real Português',
-      progresso: 0.33,
-      icone: Icons.savings_outlined,
-    ),
-  ];
+  @override
+  State<PerfilScreen> createState() => _PerfilScreenState();
+}
 
-  static const _conquistas = [
-    _Conquista(
-      label: 'Primeira Lição',
-      icone: Icons.star_outline_rounded,
-      desbloqueada: true,
-    ),
-    _Conquista(
-      label: 'Arquivista',
-      icone: Icons.folder_special_outlined,
-      desbloqueada: true,
-    ),
-    _Conquista(
-      label: 'Orador',
-      icone: Icons.record_voice_over_outlined,
-      desbloqueada: true,
-    ),
-    _Conquista(
-      label: 'Bibliotecário',
-      icone: Icons.menu_book_outlined,
-      desbloqueada: false,
-    ),
-  ];
+class _PerfilScreenState extends State<PerfilScreen> {
+  final _quizService = QuizService();
+  bool _isLoadingResults = true;
+  String? _error;
+  List<UserQuizResult> _results = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  Future<void> _load() async {
+    final perfil = context.read<PerfilService>();
+    if (!perfil.isAuthenticated) {
+      setState(() {
+        _isLoadingResults = false;
+        _error = null;
+        _results = [];
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoadingResults = true;
+      _error = null;
+    });
+
+    try {
+      await perfil.carregarPerfil();
+      final response = await _quizService.getMyResults();
+      if (!mounted) return;
+      setState(() => _results = response.data);
+    } on AppException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Erro ao carregar perfil.');
+    } finally {
+      if (mounted) setState(() => _isLoadingResults = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final perfil = context.watch<PerfilService>();
+    final user = perfil.usuario;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppBarPrincipal(
         mostrarFavoritos: true,
         titulo: 'Perfil',
-        mostrarVoltar: false,
+        mostrarVoltar: true,
         mostrarNotificacoes: true,
         mostrarPesquisa: true,
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                const SizedBox(height: 8),
-                _CabecalhoPerfil(),
-                const SizedBox(height: 16),
-                Center(
-                  child: SizedBox(
-                    height: 44,
-                    width: 160,
-                    child: ElevatedButton.icon(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const EditarPerfilScreen(),
-                        ),
-                      ),
-                      icon: const Icon(Icons.edit_outlined, size: 16),
-                      label: const Text('Editar Perfil'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                        textStyle: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: _load,
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const SizedBox(height: 8),
+                  if (!perfil.isAuthenticated)
+                    _LoginPrompt(
+                      onLogin: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LoginScreen(),
+                          ),
+                        );
+                      },
+                    )
+                  else ...[
+                    _CabecalhoPerfil(user: user),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: SizedBox(
+                        height: 44,
+                        width: 160,
+                        child: ElevatedButton.icon(
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => EditarPerfilScreen(
+                                nomeInicial: user?.name,
+                                bioInicial: user?.bio,
+                              ),
+                            ),
+                          ).then((_) => _load()),
+                          icon: const Icon(Icons.edit_outlined, size: 16),
+                          label: const Text('Editar Perfil'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                            textStyle: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                _EstatisticasCard(),
-                const SizedBox(height: 24),
-                const Text(
-                  'Progresso dos Cursos',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Acompanha os teus módulos ativos',
-                  style: TextStyle(fontSize: 12, color: AppColors.textMedium),
-                ),
-                const SizedBox(height: 14),
-                ..._cursos.map((c) => _CursoCard(curso: c)),
-                const SizedBox(height: 24),
-                const Text(
-                  'Conquistas',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: _conquistas
-                      .map((c) => _ConquistaItem(conquista: c))
-                      .toList(),
-                ),
-                const SizedBox(height: 32),
-                // ── Logout ───────────────────────────────────────────────
-                _LogoutButton(),
-                const SizedBox(height: 32),
-              ]),
+                    const SizedBox(height: 20),
+                    const _EstatisticasCard(),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Progresso dos Cursos',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Acompanha os teus módulos ativos.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textMedium,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    if (_isLoadingResults)
+                      const SizedBox(
+                        height: 180,
+                        child: LoadingState(message: 'A carregar progresso...'),
+                      )
+                    else if (_error != null)
+                      SizedBox(
+                        height: 180,
+                        child: ErrorState(message: _error!, onRetry: _load),
+                      )
+                    else if (_results.isEmpty)
+                      const SizedBox(
+                        height: 180,
+                        child: EmptyState(
+                          message: 'Ainda não há progresso registado.',
+                          icon: Icons.quiz_outlined,
+                        ),
+                      )
+                    else
+                      ..._results.map((result) => _ResultadoQuizCard(result)),
+                  ],
+                  const SizedBox(height: 32),
+                ]),
+              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LoginPrompt extends StatelessWidget {
+  final VoidCallback onLogin;
+
+  const _LoginPrompt({required this.onLogin});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFEEE8E9)),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.person_outline, color: AppColors.primary, size: 42),
+          const SizedBox(height: 12),
+          const Text(
+            'Inicia sessao para ver e editar o teu perfil.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppColors.textMedium, height: 1.4),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: onLogin,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Iniciar sessao'),
           ),
         ],
       ),
@@ -141,8 +222,15 @@ class PerfilScreen extends StatelessWidget {
 }
 
 class _CabecalhoPerfil extends StatelessWidget {
+  final User? user;
+
+  const _CabecalhoPerfil({required this.user});
+
   @override
   Widget build(BuildContext context) {
+    final name = user?.name ?? 'Utilizador';
+    final bio = user?.bio ?? '';
+
     return Column(
       children: [
         Container(
@@ -154,40 +242,72 @@ class _CabecalhoPerfil extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(14),
-            child: Image.asset(
-              '/images/Imagem_perfil.png',
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                color: const Color(0xFFEEE8E9),
-                child: const Icon(
-                  Icons.person_rounded,
-                  size: 40,
-                  color: AppColors.textLight,
-                ),
-              ),
-            ),
+            child: user?.photo == null || user!.photo!.isEmpty
+                ? Container(
+                    color: const Color(0xFFEEE8E9),
+                    child: Center(
+                      child: Text(
+                        initials(name),
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  )
+                : Image.network(
+                    user!.photo!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => Container(
+                      color: const Color(0xFFEEE8E9),
+                      child: const Icon(
+                        Icons.person_rounded,
+                        size: 40,
+                        color: AppColors.textLight,
+                      ),
+                    ),
+                  ),
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
-          'Estudante Académico',
-          style: TextStyle(
+        Text(
+          name,
+          style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w800,
             color: AppColors.textDark,
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
-          'Investigador de História Económica',
-          style: TextStyle(fontSize: 13, color: AppColors.textMedium),
+        Text(
+          user?.email ?? '',
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 12, color: AppColors.textLight),
         ),
+        if (bio.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              bio,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textMedium,
+                height: 1.45,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
 }
 
 class _EstatisticasCard extends StatelessWidget {
+  const _EstatisticasCard();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -199,11 +319,15 @@ class _EstatisticasCard extends StatelessWidget {
       child: IntrinsicHeight(
         child: Row(
           children: [
-            _StatItem(label: 'RANKING', valor: '#14', sublabel: 'Luanda'),
+            const _StatItem(label: 'RANKING', valor: '--', sublabel: 'Geral'),
             const VerticalDivider(color: Color(0xFFEEE8E9), width: 1),
-            _StatItem(label: 'NÍVEL', valor: '4', sublabel: 'Académico'),
+            const _StatItem(
+              label: 'NÍVEL',
+              valor: 'Nível 1',
+              sublabel: 'Académico',
+            ),
             const VerticalDivider(color: Color(0xFFEEE8E9), width: 1),
-            _StatItem(label: 'PONTOS', valor: '2,850', sublabel: 'XP'),
+            const _StatItem(label: 'PONTOS', valor: '0', sublabel: 'XP'),
           ],
         ),
       ),
@@ -239,8 +363,11 @@ class _StatItem extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             valor,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w800,
               color: AppColors.primary,
             ),
@@ -248,6 +375,7 @@ class _StatItem extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             sublabel,
+            textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 11, color: AppColors.textMedium),
           ),
         ],
@@ -256,247 +384,52 @@ class _StatItem extends StatelessWidget {
   }
 }
 
-class _CursoProgresso {
-  final String titulo;
-  final String proxima;
-  final double progresso;
-  final IconData icone;
+class _ResultadoQuizCard extends StatelessWidget {
+  final UserQuizResult result;
 
-  const _CursoProgresso({
-    required this.titulo,
-    required this.proxima,
-    required this.progresso,
-    required this.icone,
-  });
-}
-
-class _CursoCard extends StatelessWidget {
-  final _CursoProgresso curso;
-
-  const _CursoCard({required this.curso});
+  const _ResultadoQuizCard(this.result);
 
   @override
   Widget build(BuildContext context) {
+    final quizTitle = result.quiz?.title ?? 'Quiz #${result.quizId}';
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFEEE8E9)),
       ),
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0EAEA),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(curso.icone, color: AppColors.primary, size: 22),
-          ),
+          const Icon(Icons.quiz_outlined, color: AppColors.primary),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      curso.titulo,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                    Text(
-                      '${(curso.progresso * 100).toInt()}%',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: curso.progresso,
-                    minHeight: 5,
-                    backgroundColor: const Color(0xFFEEE8E9),
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      Color(0xFF4CAF50),
-                    ),
+                Text(
+                  quizTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textDark,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Próxima: ${curso.proxima}',
+                  '${result.score}/${result.totalQuestions} - ${result.percentage.toStringAsFixed(0)}% - ${timeAgo(result.completedAt)}',
                   style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textLight,
+                    fontSize: 12,
+                    color: AppColors.textMedium,
                   ),
                 ),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _Conquista {
-  final String label;
-  final IconData icone;
-  final bool desbloqueada;
-
-  const _Conquista({
-    required this.label,
-    required this.icone,
-    required this.desbloqueada,
-  });
-}
-
-class _ConquistaItem extends StatelessWidget {
-  final _Conquista conquista;
-
-  const _ConquistaItem({required this.conquista});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            color: conquista.desbloqueada
-                ? (conquista.label.contains('Arquiv')
-                      ? const Color(0xFFFFF8E1)
-                      : const Color(0xFFF0EAEA))
-                : const Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: conquista.desbloqueada
-                  ? (conquista.label.contains('Arquiv')
-                        ? const Color(0xFFB5933A)
-                        : AppColors.primary.withOpacity(0.3))
-                  : const Color(0xFFEEE8E9),
-            ),
-          ),
-          child: Icon(
-            conquista.icone,
-            color: conquista.desbloqueada
-                ? (conquista.label.contains('Arquiv')
-                      ? const Color(0xFFB5933A)
-                      : AppColors.primary)
-                : AppColors.textLight.withOpacity(0.4),
-            size: 26,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          conquista.label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-            color: conquista.desbloqueada
-                ? AppColors.textDark
-                : AppColors.textLight.withOpacity(0.5),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _LogoutButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: const Text(
-              'Terminar Sessão',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textDark,
-              ),
-            ),
-            content: const Text(
-              'Tens a certeza que queres sair da tua conta?',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textMedium,
-                height: 1.5,
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text(
-                  'Cancelar',
-                  style: TextStyle(
-                    color: AppColors.textMedium,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(ctx); // fecha o dialog
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    (route) => false,
-                  );
-                },
-                child: const Text(
-                  'Sair',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFEEE8E9)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.logout_rounded, size: 18, color: AppColors.primary),
-            SizedBox(width: 8),
-            Text(
-              'Terminar Sessão',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

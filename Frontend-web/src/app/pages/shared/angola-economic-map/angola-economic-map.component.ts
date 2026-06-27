@@ -21,32 +21,32 @@ interface MapArea {
   templateUrl: './angola-economic-map.component.html',
   styles: `
     :host { display: block; }
-    .admin-map { display: grid; grid-template-columns: minmax(320px, 406px) 1fr; min-height: 680px; overflow: hidden; border: 1px solid #c8d6d6; border-radius: 8px; background: #020606; }
+    .admin-map { display: grid; grid-template-columns: minmax(320px, 406px) 1fr; min-height: 680px; overflow: hidden; border: 1px solid #E0E0E0; border-radius: 8px; background: #212121; }
     .panel { z-index: 2; background: #fff; box-shadow: 10px 0 24px rgb(0 0 0 / .22); }
-    .search { display: grid; grid-template-columns: 1fr auto auto; align-items: center; min-height: 52px; margin: 12px 14px; border-radius: 26px; padding-inline: 20px 12px; box-shadow: 0 2px 8px rgb(42 47 49 / .28); color: #3c4043; }
-    .panel-body > p { margin: 10px 22px 4px; color: #00778a; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-    h2 { margin: 0 22px 16px; color: #202124; font-size: 1.55rem; line-height: 1.2; }
+    .search { display: grid; grid-template-columns: 1fr auto auto; align-items: center; min-height: 52px; margin: 12px 14px; border-radius: 26px; padding-inline: 20px 12px; box-shadow: 0 2px 8px rgb(42 47 49 / .28); color: #616161; }
+    .panel-body > p { margin: 10px 22px 4px; color: #2A9D8F; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    h2 { margin: 0 22px 16px; color: #212121; font-size: 1.55rem; line-height: 1.2; }
     .actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; border-block: 1px solid #e0e0e0; padding: 14px 16px 16px; }
-    .actions button { display: grid; justify-items: center; gap: 7px; color: #006f7e; font-size: .72rem; font-weight: 700; text-align: center; }
-    .actions span { display: grid; width: 40px; aspect-ratio: 1; place-items: center; border-radius: 999px; background: #d6f3fa; }
+    .actions button { display: grid; justify-items: center; gap: 7px; color: #2A9D8F; font-size: .72rem; font-weight: 700; text-align: center; }
+    .actions span { display: grid; width: 40px; aspect-ratio: 1; place-items: center; border-radius: 999px; background: #F5F5F5; }
     section { border-bottom: 1px solid #e0e0e0; padding: 16px 22px 18px; }
-    h3 { color: #202124; font-size: 1rem; font-weight: 800; }
-    section p { margin-top: 12px; color: #1f1f1f; font-size: .88rem; line-height: 1.55; }
+    h3 { color: #212121; font-size: 1rem; font-weight: 800; }
+    section p { margin-top: 12px; color: #212121; font-size: .88rem; line-height: 1.55; }
     .list { display: grid; gap: 8px; margin-top: 12px; }
-    .list button { display: flex; min-height: 42px; align-items: center; justify-content: space-between; border: 1px solid #dde3e4; border-radius: 6px; padding-inline: 12px; color: #3c4043; text-align: left; }
-    .map-board { position: relative; min-height: 680px; overflow: hidden; background: #000; }
+    .list button { display: flex; min-height: 42px; align-items: center; justify-content: space-between; border: 1px solid #E0E0E0; border-radius: 6px; padding-inline: 12px; color: #616161; text-align: left; }
+    .map-board { position: relative; min-height: 680px; overflow: hidden; background: #212121; }
     svg { width: 100%; height: 100%; min-height: 680px; cursor: grab; }
     g { transition: transform 220ms ease; transform-origin: center; }
-    .province { fill: #aed1ef; stroke: #06231f; stroke-width: 5; vector-effect: non-scaling-stroke; cursor: pointer; transition: fill 160ms ease; }
-    .province:hover, .province.active { fill: #8ebfe5; }
-    .province-label { fill: #050b12; font-size: 28px; font-weight: 800; text-anchor: middle; cursor: pointer; user-select: none; }
+    .province { fill: #E6D5B8; stroke: #212121; stroke-width: 5; vector-effect: non-scaling-stroke; cursor: pointer; transition: fill 160ms ease; }
+    .province:hover, .province.active { fill: #C48A96; }
+    .province-label { fill: #212121; font-size: 28px; font-weight: 800; text-anchor: middle; cursor: pointer; user-select: none; }
     .sub-area { cursor: pointer; }
-    .sub-area circle { fill: #007c8c; stroke: #fff; stroke-width: 4; vector-effect: non-scaling-stroke; }
-    .sub-area.active circle { fill: #b3261e; }
-    .sub-area text { fill: #06100f; font-size: 18px; font-weight: 800; paint-order: stroke; stroke: #d9edf9; stroke-width: 5px; }
+    .sub-area circle { fill: #2A9D8F; stroke: #fff; stroke-width: 4; vector-effect: non-scaling-stroke; }
+    .sub-area.active circle { fill: #8A3F50; }
+    .sub-area text { fill: #212121; font-size: 18px; font-weight: 800; paint-order: stroke; stroke: #F2E6E9; stroke-width: 5px; }
     .zoom-control { position: absolute; right: 18px; bottom: 18px; display: grid; overflow: hidden; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgb(0 0 0 / .25); }
-    .zoom-control button { display: grid; width: 42px; aspect-ratio: 1; place-items: center; border-bottom: 1px solid #e0e0e0; color: #3c4043; }
-    .zoom-level { position: absolute; left: 18px; bottom: 18px; border-radius: 6px; background: rgb(255 255 255 / .92); padding: 8px 12px; color: #253033; font-size: .8rem; font-weight: 800; }
+    .zoom-control button { display: grid; width: 42px; aspect-ratio: 1; place-items: center; border-bottom: 1px solid #e0e0e0; color: #616161; }
+    .zoom-level { position: absolute; left: 18px; bottom: 18px; border-radius: 6px; background: rgb(255 255 255 / .92); padding: 8px 12px; color: #212121; font-size: .8rem; font-weight: 800; }
     @media (max-width: 900px) {
       .admin-map { grid-template-columns: 1fr; }
       .panel { order: 2; }

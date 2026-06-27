@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
-import '../widgets/auth_widgets.dart';
+
+import '../core/exceptions/app_exceptions.dart';
+import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
+import '../widgets/auth_widgets.dart';
+import 'login_screen.dart';
 
 class ReporPalavraPasseScreen extends StatefulWidget {
-  const ReporPalavraPasseScreen({super.key});
+  final String? emailInicial;
+
+  const ReporPalavraPasseScreen({super.key, this.emailInicial});
 
   @override
   State<ReporPalavraPasseScreen> createState() =>
@@ -11,65 +17,81 @@ class ReporPalavraPasseScreen extends StatefulWidget {
 }
 
 class _ReporPalavraPasseScreenState extends State<ReporPalavraPasseScreen> {
-  final TextEditingController _novaSenhaController = TextEditingController();
-  final TextEditingController _confirmarSenhaController =
-      TextEditingController();
+  late final TextEditingController _emailController;
+  final _tokenController = TextEditingController();
+  final _novaSenhaController = TextEditingController();
+  final _confirmarSenhaController = TextEditingController();
+  final _authService = AuthService();
 
   bool _novaSenhaVisivel = false;
   bool _confirmarSenhaVisivel = false;
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController(text: widget.emailInicial ?? '');
+  }
+
+  @override
   void dispose() {
+    _emailController.dispose();
+    _tokenController.dispose();
     _novaSenhaController.dispose();
     _confirmarSenhaController.dispose();
     super.dispose();
   }
 
   Future<void> _handleEnviar() async {
+    final email = _emailController.text.trim();
+    final token = _tokenController.text.trim();
     final novaSenha = _novaSenhaController.text;
     final confirmar = _confirmarSenhaController.text;
 
-    if (novaSenha.isEmpty || confirmar.isEmpty) {
+    if (email.isEmpty ||
+        token.isEmpty ||
+        novaSenha.isEmpty ||
+        confirmar.isEmpty) {
       _showSnackBar('Por favor, preencha todos os campos.');
       return;
     }
-
     if (novaSenha.length < 8) {
-      _showSnackBar('A palavra-passe deve ter no mínimo 8 caracteres.');
+      _showSnackBar('A palavra-passe deve ter no minimo 8 caracteres.');
       return;
     }
-
-    if (!RegExp(r'^(?=.*[a-zA-Z])(?=.*\d).{8,}$').hasMatch(novaSenha)) {
-      _showSnackBar('A palavra-passe deve conter letras e números.');
-      return;
-    }
-
     if (novaSenha != confirmar) {
-      _showSnackBar('As palavras-passe não coincidem.');
+      _showSnackBar('As palavras-passe nao coincidem.');
       return;
     }
 
     setState(() => _isLoading = true);
-
     try {
-      // TODO: Integrar com o serviço de autenticação
-      await Future.delayed(const Duration(seconds: 2));
-      if (mounted) {
-        _showSnackBar('Palavra-passe redefinida com sucesso!', isSuccess: true);
-      }
+      await _authService.resetPassword(
+        email: email,
+        token: token,
+        password: novaSenha,
+      );
+      if (!mounted) return;
+      _showSnackBar('Palavra-passe redefinida com sucesso!');
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    } on AppException catch (e) {
+      if (mounted) _showSnackBar(e.message);
     } catch (_) {
-      if (mounted) _showSnackBar('Ocorreu um erro. Tente novamente.');
+      if (mounted) _showSnackBar('Erro inesperado. Tente novamente.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _showSnackBar(String message, {bool isSuccess = false}) {
+  void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isSuccess ? AppColors.primary : AppColors.primary,
+        backgroundColor: AppColors.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -85,7 +107,7 @@ class _ReporPalavraPasseScreenState extends State<ReporPalavraPasseScreen> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight:
@@ -95,21 +117,15 @@ class _ReporPalavraPasseScreenState extends State<ReporPalavraPasseScreen> {
             ),
             child: IntrinsicHeight(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center, // ← era stretch
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 48),
-
-                  // ── Ícone + Título ──────────────────────────────────────
                   const AuthHeader(title: 'Repor Palavra-passe'),
-
                   const SizedBox(height: 12),
-
-                  // ── Texto descritivo ────────────────────────────────────
                   SizedBox(
                     width: contentWidth,
                     child: const Text(
-                      'Defina uma nova palavra-passe para a sua conta.',
-                      textAlign: TextAlign.left,
+                      'Use o token recebido por e-mail para definir uma nova palavra-passe.',
                       style: TextStyle(
                         fontSize: 14,
                         color: AppColors.textMedium,
@@ -117,20 +133,32 @@ class _ReporPalavraPasseScreenState extends State<ReporPalavraPasseScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 32),
-
-                  // ── Campos + Botão dentro de um bloco com largura fixa ──
                   SizedBox(
                     width: contentWidth,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const FieldLabel(label: 'E-MAIL'),
+                        const SizedBox(height: 8),
+                        AppTextField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          hintText: 'exemplo@universidade.ao',
+                        ),
+                        const SizedBox(height: 20),
+                        const FieldLabel(label: 'TOKEN'),
+                        const SizedBox(height: 8),
+                        AppTextField(
+                          controller: _tokenController,
+                          hintText: 'Token recebido por e-mail',
+                        ),
+                        const SizedBox(height: 20),
                         const FieldLabel(label: 'NOVA PALAVRA-PASSE'),
                         const SizedBox(height: 8),
                         AppTextField(
                           controller: _novaSenhaController,
-                          hintText: '••••••••',
+                          hintText: 'Palavra-passe',
                           keyboardType: TextInputType.visiblePassword,
                           obscureText: !_novaSenhaVisivel,
                           suffixIcon: IconButton(
@@ -146,24 +174,12 @@ class _ReporPalavraPasseScreenState extends State<ReporPalavraPasseScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 6),
-
-                        const Text(
-                          'Mínimo de 8 caracteres (letras e números).',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textLight,
-                            height: 1.4,
-                          ),
-                        ),
-
                         const SizedBox(height: 20),
-
                         const FieldLabel(label: 'CONFIRMAR PALAVRA-PASSE'),
                         const SizedBox(height: 8),
                         AppTextField(
                           controller: _confirmarSenhaController,
-                          hintText: '••••••••',
+                          hintText: 'Confirmar palavra-passe',
                           keyboardType: TextInputType.visiblePassword,
                           obscureText: !_confirmarSenhaVisivel,
                           suffixIcon: IconButton(
@@ -180,10 +196,7 @@ class _ReporPalavraPasseScreenState extends State<ReporPalavraPasseScreen> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 28),
-
-                        // ── Botão ──────────────────────────────────────────
                         SizedBox(
                           width: double.infinity,
                           height: 52,
@@ -192,16 +205,10 @@ class _ReporPalavraPasseScreenState extends State<ReporPalavraPasseScreen> {
                             style: FilledButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               disabledBackgroundColor: AppColors.primary
-                                  .withOpacity(0.6),
+                                  .withValues(alpha: 0.6),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
-                              ),
-                              textStyle: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.3,
-                                fontFamily: 'Poppins',
                               ),
                             ),
                             child: _isLoading
@@ -219,13 +226,9 @@ class _ReporPalavraPasseScreenState extends State<ReporPalavraPasseScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
                   const Center(child: BackToLoginLink()),
-
                   const Spacer(),
-
                   const FooterSection(),
                   const SizedBox(height: 24),
                 ],

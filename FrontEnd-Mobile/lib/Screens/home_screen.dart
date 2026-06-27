@@ -1,77 +1,66 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../core/exceptions/app_exceptions.dart';
+import '../core/utils/formatters.dart';
+import '../core/widgets/api_state_widgets.dart';
+import '../models/content.dart';
+import '../models/forum.dart';
+import '../service/perfil_service.dart';
+import '../services/content_service.dart';
+import '../services/forum_service.dart';
 import '../theme/app_colors.dart';
-import 'package:economica_com_historia/widgets/app_bar_principal.dart';
-// ─────────────────────────────────────────────────────────────────────────────
-// MODELS
-// ─────────────────────────────────────────────────────────────────────────────
+import '../widgets/app_bar_principal.dart';
+import 'conteudo_screen.dart';
 
-class ModuloItem {
-  final String modulo;
-  final String titulo;
-  final double progresso;
-  final String imagemAsset;
+class HomeScreen extends StatefulWidget {
+  final VoidCallback? onIrParaForum;
 
-  const ModuloItem({
-    required this.modulo,
-    required this.titulo,
-    required this.progresso,
-    required this.imagemAsset,
-  });
+  const HomeScreen({super.key, this.onIrParaForum});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class ForumPost {
-  final String avatar;
-  final String forum;
-  final String tempo;
-  final String mensagem;
+class _HomeScreenState extends State<HomeScreen> {
+  final _contentService = ContentService();
+  final _forumService = ForumService();
 
-  const ForumPost({
-    required this.avatar,
-    required this.forum,
-    required this.tempo,
-    required this.mensagem,
-  });
-}
+  bool _isLoading = true;
+  String? _error;
+  List<Content> _contents = [];
+  List<Forum> _forums = [];
+  String? _filtroSelecionado;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HOME SCREEN
-// ─────────────────────────────────────────────────────────────────────────────
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  // Dados mock — substituir por provider/bloc conforme a arquitetura do projeto
-  static const _modulos = [
-    ModuloItem(
-      modulo: 'MÓDULO 4',
-      titulo: 'Ciclos Económicos na África Subsariana',
-      progresso: 0.80,
-      imagemAsset: 'images/macroeconomia_card.png',
-    ),
-    ModuloItem(
-      modulo: 'MÓDULO 2',
-      titulo: 'Rotas Comerciais do Antigo Reino do Kongo',
-      progresso: 0.35,
-      imagemAsset: 'images/historia_card.png',
-    ),
-  ];
-
-  static const _forumPosts = [
-    ForumPost(
-      avatar: 'M',
-      forum: 'Mercados Emergentes',
-      tempo: 'há 5 min',
-      mensagem: 'Quais as previsões para a inflação no próximo trimestre?',
-    ),
-    ForumPost(
-      avatar: 'H',
-      forum: 'História Geral de Angola',
-      tempo: 'há 2h',
-      mensagem: 'Debate: A influência holandesa na economia de Luanda.',
-    ),
-  ];
-
-  static const _filtros = ['Artigos', 'Vídeos', 'Podcasts', 'Jindungo'];
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final results = await Future.wait([
+        _contentService.getContents(),
+        _forumService.getForums(),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _contents = (results[0] as dynamic).data as List<Content>;
+        _forums = results[1] as List<Forum>;
+      });
+    } on AppException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Erro ao carregar dados.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,164 +69,172 @@ class HomeScreen extends StatelessWidget {
       appBar: const AppBarPrincipal(
         titulo: 'Home',
         mostrarFavoritos: true,
-      ), // ← SUBSTITUIU o _HomeAppBar()
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                const SizedBox(height: 20),
-
-                // ── Saudação ─────────────────────────────────────────
-                _GreetingSection(),
-
-                const SizedBox(height: 20),
-
-                // ── Progresso semanal ────────────────────────────────
-                _WeeklyProgressCard(),
-
-                const SizedBox(height: 28),
-
-                // ── Continuar a Estudar ──────────────────────────────
-                _SectionHeader(
-                  title: 'Continuar a Estudar',
-                  actionLabel: 'Ver tudo',
-                  onAction: () {},
-                  titleColor: AppColors.primary,
-                ),
-                const SizedBox(height: 14),
-                _ModulosRow(modulos: _modulos),
-
-                const SizedBox(height: 28),
-
-                // ── Explorar Conteúdo ────────────────────────────────
-                const Text(
-                  'Explorar Conteúdo',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _FiltrosRow(filtros: _filtros),
-
-                const SizedBox(height: 28),
-
-                // ── Destaques do Dia ─────────────────────────────────
-                const Text(
-                  'Destaques do Dia',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                _DestaqueCard(),
-
-                const SizedBox(height: 28),
-
-                // ── Comunidade ───────────────────────────────────────
-                _SectionHeader(
-                  title: 'Comunidade',
-                  actionLabel: 'Fóruns que segues',
-                  onAction: () {},
-                  actionIsLabel: true,
-                  titleColor: AppColors.primary,
-                ),
-                const SizedBox(height: 14),
-                ..._forumPosts.map((post) => _ForumPostTile(post: post)),
-
-                const SizedBox(height: 32),
-              ]),
-            ),
-          ),
-        ],
+        mostrarPerfil: true,
+      ),
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: _load,
+        child: _buildBody(),
       ),
     );
   }
-}
-// ─────────────────────────────────────────────────────────────────────────────
-// APP BAR
-// ─────────────────────────────────────────────────────────────────────────────
 
-class _HomeAppBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      child: Row(
-        children: [
-          const Text(
-            'Home',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primary,
-            ),
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const LoadingState(message: 'A carregar conteúdos...');
+    }
+    if (_error != null) {
+      return ListView(
+        children: [ErrorState(message: _error!, onRetry: _load)],
+      );
+    }
+
+    final conteudosVisiveis = _conteudosFiltrados;
+    final destaque = conteudosVisiveis.isNotEmpty
+        ? conteudosVisiveis.first
+        : null;
+    final recentes = conteudosVisiveis.take(4).toList();
+
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              const SizedBox(height: 20),
+              const _GreetingSection(),
+              const SizedBox(height: 20),
+              _SessionCard(
+                totalConteudos: _contents.length,
+                totalForuns: _forums.length,
+              ),
+              const SizedBox(height: 28),
+              _SectionHeader(
+                title: 'Continuar a Estudar',
+                actionLabel: 'Ver tudo',
+                onAction: () {},
+              ),
+              const SizedBox(height: 14),
+              if (recentes.isEmpty)
+                const EmptyState(message: 'Ainda não há conteúdos disponíveis.')
+              else
+                _ContentsRow(contents: recentes),
+              const SizedBox(height: 28),
+              const Text(
+                'Explorar Conteúdo',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _FiltrosRow(
+                filtros: const ['Texto', 'Vídeo', 'Podcast', 'Jindungo'],
+                selecionado: _filtroSelecionado,
+                onSelect: _selecionarFiltro,
+              ),
+              const SizedBox(height: 28),
+              const Text(
+                'Destaques do Dia',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(height: 14),
+              if (destaque == null)
+                const EmptyState(message: 'Ainda não há destaques disponíveis.')
+              else
+                _DestaqueCard(content: destaque),
+              const SizedBox(height: 28),
+              _SectionHeader(
+                title: 'Comunidade',
+                actionLabel: 'Ver foruns',
+                onAction: () {
+                  widget.onIrParaForum?.call();
+                },
+              ),
+              const SizedBox(height: 14),
+              if (_forums.isEmpty)
+                const EmptyState(message: 'Ainda não há fóruns disponíveis.')
+              else
+                ..._forums.take(3).map((forum) => _ForumTile(forum: forum)),
+              const SizedBox(height: 32),
+            ]),
           ),
-
-          const Spacer(),
-
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: AppColors.textDark,
-              size: 24,
-            ),
-          ),
-
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.search_rounded,
-              color: AppColors.textDark,
-              size: 24,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
-}
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SAUDAÇÃO
-// ─────────────────────────────────────────────────────────────────────────────
+  List<Content> get _conteudosFiltrados {
+    final filtro = _filtroSelecionado;
+    if (filtro == null) return _contents;
+    final filtroNormalizado = _normalizarFiltro(filtro);
+    return _contents.where((content) {
+      final slug = content.typeSlug.toLowerCase();
+      final nome = (content.contentType?.name ?? '').toLowerCase();
+      if (filtroNormalizado == 'podcast') return content.isPodcast;
+      if (filtroNormalizado == 'jindungo') return content.isJindungo;
+      return slug == filtroNormalizado || nome == filtroNormalizado;
+    }).toList();
+  }
+
+  void _selecionarFiltro(String filtro) {
+    setState(() {
+      _filtroSelecionado = _filtroSelecionado == filtro ? null : filtro;
+    });
+  }
+
+  String _normalizarFiltro(String filtro) {
+    return filtro
+        .toLowerCase()
+        .replaceAll('í', 'i')
+        .replaceAll('é', 'e')
+        .replaceAll('ê', 'e');
+  }
+}
 
 class _GreetingSection extends StatelessWidget {
+  const _GreetingSection();
+
   @override
   Widget build(BuildContext context) {
+    final perfil = context.watch<PerfilService>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
+      children: [
         Text(
-          'Olá, Maria Marta',
-          style: TextStyle(
+          'Olá, ${perfil.nome}',
+          style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w700,
             color: AppColors.primary,
           ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
-          'Sua jornada intelectual continua hoje.',
-          style: TextStyle(fontSize: 13.5, color: AppColors.textMedium),
+          perfil.isAuthenticated
+              ? 'A tua jornada intelectual continua hoje.'
+              : 'Podes explorar conteúdos publicos sem conta.',
+          style: const TextStyle(fontSize: 13.5, color: AppColors.textMedium),
         ),
       ],
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CARD DE PROGRESSO SEMANAL
-// ─────────────────────────────────────────────────────────────────────────────
-class _WeeklyProgressCard extends StatelessWidget {
+class _SessionCard extends StatelessWidget {
+  final int totalConteudos;
+  final int totalForuns;
+
+  const _SessionCard({required this.totalConteudos, required this.totalForuns});
+
   @override
   Widget build(BuildContext context) {
+    final perfil = context.watch<PerfilService>();
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -246,68 +243,21 @@ class _WeeklyProgressCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.borderSoft, width: 1),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Flexible(
-                child: Text(
-                  'Meta semanal: 12h',
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
-                  ),
-                ),
-              ),
-              SizedBox(width: 8),
-              Text(
-                '75% concluído',
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: 0.75,
-              minHeight: 7,
-              backgroundColor: AppColors.borderSoft,
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                AppColors.primary,
+          const Icon(Icons.insights_rounded, color: AppColors.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              perfil.isAuthenticated
+                  ? '$totalConteudos conteúdos e $totalForuns foruns disponiveis para ${perfil.role}.'
+                  : '$totalConteudos conteúdos publicos disponiveis.',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textDark,
               ),
             ),
-          ),
-
-          const SizedBox(height: 8),
-
-          Row(
-            children: const [
-              Icon(
-                Icons.trending_up_rounded,
-                size: 13,
-                color: AppColors.textLight,
-              ),
-              SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  'Estás a estudar 15% mais do que na semana passada.',
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                  style: TextStyle(fontSize: 11.5, color: AppColors.textLight),
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -315,37 +265,28 @@ class _WeeklyProgressCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SECTION HEADER
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _SectionHeader extends StatelessWidget {
   final String title;
   final String actionLabel;
   final VoidCallback onAction;
-  final bool actionIsLabel;
-  final Color titleColor;
 
   const _SectionHeader({
     required this.title,
     required this.actionLabel,
     required this.onAction,
-    this.actionIsLabel = false,
-    required this.titleColor,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           title,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w700,
-            color: titleColor,
+            color: AppColors.primary,
           ),
         ),
         GestureDetector(
@@ -360,14 +301,12 @@ class _SectionHeader extends StatelessWidget {
                   color: AppColors.primary,
                 ),
               ),
-              if (!actionIsLabel) ...[
-                const SizedBox(width: 4),
-                const Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 15,
-                  color: AppColors.primary,
-                ),
-              ],
+              const SizedBox(width: 4),
+              const Icon(
+                Icons.arrow_forward_rounded,
+                size: 15,
+                color: AppColors.primary,
+              ),
             ],
           ),
         ),
@@ -376,12 +315,10 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ROW DE MÓDULOS (scroll horizontal)
-// ─────────────────────────────────────────────────────────────────────────────
-class _ModulosRow extends StatelessWidget {
-  final List<ModuloItem> modulos;
-  const _ModulosRow({required this.modulos});
+class _ContentsRow extends StatelessWidget {
+  final List<Content> contents;
+
+  const _ContentsRow({required this.contents});
 
   @override
   Widget build(BuildContext context) {
@@ -390,129 +327,56 @@ class _ModulosRow extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        itemCount: modulos.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 14),
-        itemBuilder: (context, index) => _ModuloCard(item: modulos[index]),
+        itemCount: contents.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 14),
+        itemBuilder: (context, index) => _ContentCard(content: contents[index]),
       ),
     );
   }
 }
 
-class _ModuloCard extends StatelessWidget {
-  final ModuloItem item;
-  const _ModuloCard({required this.item});
+class _ContentCard extends StatelessWidget {
+  final Content content;
+
+  const _ContentCard({required this.content});
 
   @override
   Widget build(BuildContext context) {
     final cardWidth = (MediaQuery.of(context).size.width - 54) / 2;
-
     return GestureDetector(
-      onTap: () {},
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ConteudoScreen(contentId: content.id),
+        ),
+      ),
       child: SizedBox(
         width: cardWidth,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
           children: [
-            // Imagem com badge
-            SizedBox(
-              height: 105,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      'assets/${item.imagemAsset}',
-                      width: double.infinity,
-                      height: 105,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        height: 105,
-                        decoration: BoxDecoration(
-                          color: AppColors.borderSoft,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.image_outlined,
-                            color: AppColors.textLight,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(12),
-                          bottomRight: Radius.circular(12),
-                        ),
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.65),
-                          ],
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              item.modulo,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white70,
-                                letterSpacing: 0.4,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            '${(item.progresso * 100).toInt()}%',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 6),
-
             ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: item.progresso,
-                minHeight: 4,
-                backgroundColor: AppColors.borderSoft,
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  AppColors.primary,
-                ),
+              borderRadius: BorderRadius.circular(12),
+              child: AppNetworkImage(
+                url: content.displayImage,
+                width: double.infinity,
+                height: 105,
+                fit: BoxFit.cover,
               ),
             ),
-
-            const SizedBox(height: 6),
-
+            const SizedBox(height: 8),
             Text(
-              item.titulo,
+              content.contentType?.name.toUpperCase() ?? 'CONTEUDO',
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              content.title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
@@ -528,64 +392,70 @@ class _ModuloCard extends StatelessWidget {
     );
   }
 }
-// ─────────────────────────────────────────────────────────────────────────────
-// FILTROS (chips de conteúdo)
-// ─────────────────────────────────────────────────────────────────────────────
 
-class _FiltrosRow extends StatefulWidget {
+class _FiltrosRow extends StatelessWidget {
   final List<String> filtros;
+  final String? selecionado;
+  final ValueChanged<String> onSelect;
 
-  const _FiltrosRow({required this.filtros});
-
-  @override
-  State<_FiltrosRow> createState() => _FiltrosRowState();
-}
-
-class _FiltrosRowState extends State<_FiltrosRow> {
-  int _selected = 0;
+  const _FiltrosRow({
+    required this.filtros,
+    required this.selecionado,
+    required this.onSelect,
+  });
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: List.generate(widget.filtros.length, (i) {
-          final isActive = i == _selected;
-          return GestureDetector(
-            onTap: () => setState(() => _selected = i),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              margin: const EdgeInsets.only(right: 10),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isActive ? AppColors.primary : AppColors.surface,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: isActive ? AppColors.primary : AppColors.borderSoft,
-                  width: 1.2,
+        children: filtros
+            .map(
+              (filtro) => GestureDetector(
+                onTap: () => onSelect(filtro),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.only(right: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: selecionado == filtro
+                        ? AppColors.primary
+                        : AppColors.surface,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: selecionado == filtro
+                          ? AppColors.primary
+                          : AppColors.borderSoft,
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Text(
+                    filtro,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: selecionado == filtro
+                          ? Colors.white
+                          : AppColors.textMedium,
+                    ),
+                  ),
                 ),
               ),
-              child: Text(
-                widget.filtros[i],
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isActive ? Colors.white : AppColors.textMedium,
-                ),
-              ),
-            ),
-          );
-        }),
+            )
+            .toList(),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DESTAQUE DO DIA
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _DestaqueCard extends StatelessWidget {
+  final Content content;
+
+  const _DestaqueCard({required this.content});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -593,128 +463,94 @@ class _DestaqueCard extends StatelessWidget {
         color: AppColors.primary,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -10,
-            top: -10,
-            child: Opacity(
-              opacity: 0.08,
-              child: Icon(
-                Icons.monetization_on_rounded,
-                size: 140,
-                color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFB5933A),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                (content.contentType?.name ?? 'Recomendado').toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
-
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 12),
+            Text(
+              content.title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                height: 1.35,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
               children: [
-                // Badge recomendado
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFB5933A),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Text(
-                    'RECOMENDADO',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
+                const Icon(
+                  Icons.access_time_rounded,
+                  size: 14,
+                  color: Colors.white70,
                 ),
-
-                const SizedBox(height: 12),
-
-                const Text(
-                  'O Impacto do Café na Balança Comercial Angolana (1960-1974)',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    height: 1.35,
-                  ),
+                const SizedBox(width: 4),
+                Text(
+                  readTime(content.content),
+                  style: const TextStyle(fontSize: 12, color: Colors.white70),
                 ),
-
-                const SizedBox(height: 14),
-
-                // Metadados
-                Row(
-                  children: const [
-                    Icon(
-                      Icons.access_time_rounded,
-                      size: 14,
-                      color: Colors.white70,
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      '15 min leitura',
-                      style: TextStyle(fontSize: 12, color: Colors.white70),
-                    ),
-                    SizedBox(width: 16),
-                    Icon(
-                      Icons.remove_red_eye_outlined,
-                      size: 14,
-                      color: Colors.white70,
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      '2.4k vistas',
-                      style: TextStyle(fontSize: 12, color: Colors.white70),
-                    ),
-                  ],
+                const SizedBox(width: 16),
+                const Icon(
+                  Icons.remove_red_eye_outlined,
+                  size: 14,
+                  color: Colors.white70,
                 ),
-
-                const SizedBox(height: 16),
-
-                // Botão
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white54, width: 1.2),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      textStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Poppins',
-                      ),
-                    ),
-                    child: const Text('Ler Artigo Completo'),
-                  ),
+                const SizedBox(width: 4),
+                Text(
+                  '${content.viewsCount} vistas',
+                  style: const TextStyle(fontSize: 12, color: Colors.white70),
                 ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ConteudoScreen(contentId: content.id),
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white54, width: 1.2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: const Text('Abrir Conteúdo'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// FORUM POST TILE
-// ─────────────────────────────────────────────────────────────────────────────
+class _ForumTile extends StatelessWidget {
+  final Forum forum;
 
-class _ForumPostTile extends StatelessWidget {
-  final ForumPost post;
-
-  const _ForumPostTile({required this.post});
+  const _ForumTile({required this.forum});
 
   @override
   Widget build(BuildContext context) {
@@ -723,16 +559,15 @@ class _ForumPostTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar + fórum + tempo
           Row(
             children: [
               CircleAvatar(
                 radius: 16,
                 backgroundColor: AppColors.primary,
                 child: Text(
-                  post.avatar,
+                  initials(forum.user?.name ?? forum.name),
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
@@ -741,7 +576,7 @@ class _ForumPostTile extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  post.forum,
+                  forum.name,
                   style: const TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
@@ -750,7 +585,7 @@ class _ForumPostTile extends StatelessWidget {
                 ),
               ),
               Text(
-                post.tempo,
+                timeAgo(forum.createdAt),
                 style: const TextStyle(
                   fontSize: 11.5,
                   color: AppColors.textLight,
@@ -758,47 +593,38 @@ class _ForumPostTile extends StatelessWidget {
               ),
             ],
           ),
-
-          const SizedBox(height: 8),
-
-          // Mensagem
-          Text(
-            post.mensagem,
-            style: const TextStyle(
-              fontSize: 13.5,
-              color: AppColors.textMedium,
-              height: 1.45,
+          if ((forum.description ?? '').isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              forum.description!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13.5,
+                color: AppColors.textMedium,
+                height: 1.45,
+              ),
             ),
-          ),
-
+          ],
           const SizedBox(height: 10),
-
-          // Ações
           Row(
             children: [
-              GestureDetector(
-                onTap: () {},
-                child: const Icon(
-                  Icons.chat_bubble_outline_rounded,
-                  size: 18,
-                  color: AppColors.textLight,
-                ),
+              const Icon(
+                Icons.forum_outlined,
+                size: 18,
+                color: AppColors.textLight,
               ),
-              const SizedBox(width: 16),
-              GestureDetector(
-                onTap: () {},
-                child: const Icon(
-                  Icons.favorite_border_rounded,
-                  size: 18,
+              const SizedBox(width: 6),
+              Text(
+                '${forum.topicsCount} topicos',
+                style: const TextStyle(
+                  fontSize: 12,
                   color: AppColors.textLight,
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 14),
-
-          // Divisor
           const Divider(color: AppColors.borderSoft, thickness: 1, height: 1),
         ],
       ),

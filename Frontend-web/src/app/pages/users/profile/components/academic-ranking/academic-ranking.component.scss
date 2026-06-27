@@ -1,6 +1,6 @@
 .ranking-card {
   height: 100%;
-  border: 1px solid #ebe7e9;
+  border: 1px solid #F2E6E9;
   background: #fff;
   padding: 1rem;
   box-shadow: 0 16px 40px rgb(22 19 21 / 0.045);
@@ -22,13 +22,13 @@ strong {
   display: block;
   margin-top: 0.25rem;
   color: #5c1e2f;
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 42px;
   line-height: 1;
 }
 
 small {
-  color: #777;
+  color: #9E9E9E;
   font-size: 11px;
 }
 
@@ -41,7 +41,7 @@ table {
 
 td {
   padding: 0.7rem 0.45rem;
-  border-top: 1px solid #f0ecee;
+  border-top: 1px solid #E0E0E0;
 }
 
 td:last-child {
@@ -50,7 +50,7 @@ td:last-child {
 }
 
 tr.current {
-  background: #fff8e6;
+  background: #F5F5F5;
   color: #5c1e2f;
   font-weight: 700;
 }

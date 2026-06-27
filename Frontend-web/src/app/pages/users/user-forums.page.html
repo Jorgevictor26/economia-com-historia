@@ -1,0 +1,193 @@
+    <section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
+      <app-public-navbar />
+
+      <main class="fluid-container grid gap-12 pb-14 pt-8 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+        <section>
+          <div class="mb-2 flex items-center gap-3">
+            <span class="rounded-[4px] bg-[#d4af37] px-3 py-1 text-[9px] font-extrabold uppercase tracking-[0.08em] text-[#5c1e2f]">Tópico em Destaque</span>
+            <span class="text-[11px] text-[#616161]">Iniciado há 2 dias</span>
+          </div>
+
+          <div class="mb-5 flex items-start justify-between gap-6">
+            <h1 class="font-display max-w-[700px] text-[25px] font-extrabold leading-tight text-[#5c1e2f]">
+              Impacto das Políticas Fiscais no Sector Agrícola (2010-2024)
+            </h1>
+            <div class="flex items-center gap-2 pt-1 text-[#616161]">
+              <span class="size-7 rounded-[8px] bg-[#E0E0E0]"></span>
+              <span class="size-7 rounded-[8px] bg-[#E0E0E0]"></span>
+              <span class="grid size-7 place-items-center rounded-full bg-[#5c1e2f] text-[9px] font-extrabold text-white">+12</span>
+            </div>
+          </div>
+
+          <article class="pt-5">
+            <div class="flex items-start gap-4">
+              <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=120&q=80" alt="Dr. Manuel Bento" class="size-11 shrink-0 rounded-[5px] object-cover" />
+              <div class="min-w-0 flex-1">
+                <div class="mb-2 flex flex-wrap items-center gap-3">
+                  <h2 class="text-[13px] font-medium text-[#5c1e2f]">Dr. Manuel Bento</h2>
+                  <span class="rounded-[2px] bg-[#d4af37] px-2 py-0.5 text-[8px] font-extrabold uppercase text-[#5c1e2f]">Investigador Sénior</span>
+                  <span class="text-[10px] text-[#9E9E9E]">Hoje às 10:45</span>
+                </div>
+
+                <div class="rounded-[5px] border border-[#E0E0E0] bg-[#F5F5F5] px-5 py-4 shadow-[0_1px_2px_rgba(22,19,21,0.02)]">
+                  <p class="text-[13px] leading-6 text-[#616161]">
+                    Caros colegas, proponho que iniciemos este debate analisando os incentivos fiscais introduzidos em 2017. Na minha
+                    perspectiva, a aplicação destes não considerou as assimetrias regionais, favorecendo maioritariamente o polo
+                    industrial de Luanda em detrimento das províncias do Huambo e Bié.
+                  </p>
+
+                  <div class="mt-5 flex max-w-[365px] items-center gap-3 rounded-[4px] border border-[#E0E0E0] bg-[#F2E6E9] p-3">
+                    <span class="grid size-8 place-items-center rounded-[3px] bg-[#5c1e2f] text-[12px] text-white">□</span>
+                    <div>
+                      <p class="text-[10px] font-extrabold text-[#212121]">Relatorio_Fiscal_2017.pdf</p>
+                      <p class="mt-0.5 text-[9px] text-[#9E9E9E]">2.4 MB · PDF</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-3 flex flex-wrap items-center gap-5 text-[10px] text-[#616161]">
+                  <button type="button" (click)="requireLogin($event, 'responder')">Responder</button>
+                  <button type="button" class="content-action" (click)="requireLogin($event, 'partilhar')">
+                    <img src="/assets/icons/share.png" alt="" />
+                    <span>Partilhar (12)</span>
+                  </button>
+                  <button type="button" class="content-action" (click)="requireLogin($event, 'comentar')">
+                    <img src="/assets/icons/comment.png" alt="" />
+                    <span>24</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <div class="ml-[62px] mt-5 border-l-2 border-[#BDBDBD] pl-5 pb-4">
+            <article>
+              <div class="flex items-start gap-4">
+                <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=120&q=80" alt="Dra. Ana Paula" class="size-9 shrink-0 rounded-[5px] object-cover" />
+                <div class="min-w-0 flex-1">
+                  <div class="mb-2 flex flex-wrap items-center gap-3">
+                    <h3 class="text-[12px] font-medium text-[#5c1e2f]">Dra. Ana Paula</h3>
+                    <span class="rounded-[2px] bg-[#F2E6E9] px-2 py-0.5 text-[8px] font-extrabold uppercase text-[#5c1e2f]">Membro Mestre</span>
+                    <span class="text-[10px] text-[#9E9E9E]">Hoje às 11:02</span>
+                  </div>
+                  <div class="max-w-[690px] rounded-[5px] border border-[#E0E0E0] bg-[#F5F5F5] px-5 py-4 shadow-[0_1px_2px_rgba(22,19,21,0.02)]">
+                    <p class="text-[12px] leading-6 text-[#616161]">
+                      Concordo plenamente, Dr. Manuel. Se observarmos os dados da página 14 do relatório anexado, a taxa de
+                      execução orçamental nas províncias do interior foi 40% inferior à capital.
+                    </p>
+                  </div>
+                  <div class="mt-3 flex flex-wrap items-center gap-5 text-[10px] text-[#616161]">
+                    <button type="button" (click)="requireLogin($event, 'responder')">Responder</button>
+                    <button type="button" class="content-action text-[#8A3F50]" (click)="requireLogin($event, 'comentar')">
+                      <img src="/assets/icons/comment.png" alt="" />
+                      <span>4</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="my-7 border-t border-[#F2E6E9] text-center">
+            <span class="-mt-3 inline-grid size-6 place-items-center bg-[#F5F5F5] text-[13px] text-[#9E9E9E]">□</span>
+          </div>
+
+          <article class="grid grid-cols-[44px_minmax(0,1fr)] gap-4">
+            <div class="grid size-11 place-items-center rounded-[8px] bg-[#d4af37] text-[12px] font-extrabold text-[#5c1e2f]">JS</div>
+            <div>
+              <div class="mb-2 flex flex-wrap items-center gap-3">
+                <h3 class="text-[13px] font-medium text-[#5c1e2f]">João Santos</h3>
+                <span class="rounded-[2px] bg-[#5c1e2f] px-2 py-0.5 text-[8px] font-extrabold uppercase text-white">Moderador</span>
+                <span class="text-[10px] text-[#9E9E9E]">Hoje às 12:30</span>
+              </div>
+              <div class="rounded-[5px] border border-[#E0E0E0] bg-[#F5F5F5] px-5 py-4 shadow-[0_1px_2px_rgba(22,19,21,0.02)]">
+                <p class="text-[12px] leading-6 text-[#616161]">
+                  Excelente progresso no debate. Gostaria de convidar os participantes a focarem-se agora na transição para o
+                  mercado livre de combustíveis que ocorreu no ano passado. Como isso impactou os custos logísticos dos vossos
+                  estudos de caso?
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <div class="mt-20 bg-[#F5F5F5] px-14 py-8">
+            <form class="w-full max-w-[625px] bg-white p-0 shadow-[0_1px_2px_rgba(22,19,21,0.02)]">
+              <div class="flex h-10 items-center gap-4 rounded-t-[4px] border border-[#E0E0E0] border-b-0 px-4 text-[13px] text-[#616161]">
+                <button type="button">↔</button>
+                <button type="button">▣</button>
+                <button type="button">○</button>
+              </div>
+              <textarea
+                class="h-[92px] w-full resize-none border border-[#E0E0E0] bg-white p-4 text-[12px] outline-none placeholder:text-[#9E9E9E] focus:border-[#8A3F50]"
+                placeholder="Escreva a sua contribuição acadêmica..."
+              ></textarea>
+              <div class="-mt-px flex items-center justify-between rounded-b-[4px] border border-[#E0E0E0] bg-[#F5F5F5] px-4 py-3">
+                <span class="text-[9px] text-[#9E9E9E]">Pressione Ctrl + Enter para enviar</span>
+                <button type="button" class="h-9 rounded-[2px] bg-[#5C1E2F] px-5 text-[11px] font-extrabold text-white">Enviar Mensagem ▷</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <aside class="hidden lg:block">
+          <div class="sticky top-[82px] min-h-[610px] bg-transparent px-3 py-1">
+            <h2 class="font-display text-[16px] font-medium text-[#5c1e2f]">Sobre este Debate</h2>
+            <p class="mt-5 max-w-[245px] text-[12px] leading-6 text-[#616161]">
+              Exploração das ramificações económicas das reformas fiscais angolanas na última década, com foco específico na
+              sustentabilidade agrícola e diversificação do PIB.
+            </p>
+
+            <div class="mt-9">
+              <h3 class="mb-4 text-[10px] font-medium uppercase tracking-[0.18em] text-[#5c1e2f]">Moderador Principal</h3>
+              <div class="flex max-w-[250px] items-center gap-4 rounded-[4px] border border-[#E0E0E0] bg-[#F5F5F5] p-4">
+                <div class="grid size-11 place-items-center rounded-[8px] bg-[#5c1e2f] text-[13px] font-extrabold text-white">JS</div>
+                <div>
+                  <p class="text-[12px] font-extrabold text-[#212121]">João Santos</p>
+                  <p class="text-[10px] text-[#9E9E9E]">Especialista em Macroeconomia</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-9">
+              <h3 class="mb-4 text-[10px] font-medium uppercase tracking-[0.18em] text-[#5c1e2f]">Participantes Ativos (42)</h3>
+              <div class="flex gap-3">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Participante" class="size-[58px] rounded-[2px] object-cover" />
+                <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=120&q=80" alt="Participante" class="size-[58px] rounded-[2px] object-cover" />
+                <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=120&q=80" alt="Participante" class="size-[58px] rounded-[2px] object-cover" />
+                <span class="grid size-[58px] place-items-center rounded-[2px] bg-[#F2E6E9] text-[12px] font-medium text-[#616161]">+38</span>
+              </div>
+            </div>
+
+            <div class="mt-9">
+              <h3 class="mb-4 text-[10px] font-medium uppercase tracking-[0.18em] text-[#5c1e2f]">Recursos Partilhados</h3>
+              <ul class="grid gap-4 text-[12px] text-[#616161]">
+                <li class="flex items-center gap-3"><span class="text-[16px] leading-none">↔</span>Base de Dados Agrícolas FAO</li>
+                <li class="flex items-center gap-3"><span class="text-[16px] leading-none">▤</span>Lei de Bases do Investimento</li>
+                <li class="flex items-center gap-3"><span class="text-[16px] leading-none">♧</span>Tabela_Excel_2023.xlsx</li>
+              </ul>
+            </div>
+
+            <div class="mt-9">
+              <h3 class="mb-4 text-[10px] font-medium uppercase tracking-[0.18em] text-[#5c1e2f]">Salas</h3>
+              <div class="grid gap-3">
+                @for (room of forumService.rooms(); track room.id) {
+                  <article class="rounded-[4px] border border-[#E0E0E0] bg-[#F5F5F5] p-4">
+                    <div class="flex items-center justify-between gap-3">
+                      <h4 class="text-[12px] font-extrabold text-[#212121]">{{ room.name }}</h4>
+                      <span class="text-[9px] font-bold uppercase text-[#8A3F50]">{{ room.visibility === 'public' ? 'Público' : 'Privado' }}</span>
+                    </div>
+                    <p class="mt-2 text-[10px] leading-4 text-[#616161]">{{ room.description }}</p>
+                    @if (!auth.canAccessForum(room.id, room.visibility)) {
+                      <p class="mt-3 text-[10px] font-bold text-[#8A3F50]">Acesso apenas por convite.</p>
+                    }
+                  </article>
+                }
+              </div>
+            </div>
+          </div>
+        </aside>
+      </main>
+
+      <app-public-footer />
+      <app-back-to-top />
+    </section>

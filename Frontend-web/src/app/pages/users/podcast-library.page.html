@@ -1,0 +1,338 @@
+<section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
+  <app-public-navbar />
+
+  <main class="mx-auto max-w-[1140px] px-5 pb-16 pt-8 lg:px-8">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+    <section
+      class="grid gap-5 bg-white p-4 shadow-[0_18px_36px_rgba(44,39,41,0.06)] md:p-4">
+      <div class="podcast-mic min-h-[260px] rounded-[3px] shadow-[0_18px_34px_rgba(44,39,41,0.18)] md:min-h-[360px]" role="img"
+        aria-label="Capa do episódio"></div>
+
+      <div class="min-w-0 px-0 py-1 md:px-8 md:pb-6">
+        <h1
+          class="font-display max-w-[760px] text-[28px] font-extrabold leading-[1.12] text-[#5C1E2F] lg:text-[38px]">
+          Ep. 24: A Herança do Império Lunda
+        </h1>
+        <p class="mt-4 max-w-[760px] text-[13px] leading-5 text-[#616161]">
+          Uma análise profunda sobre a organização económica e política de um dos maiores impérios da história angolana,
+          e como o seu legado molda o comércio regional até aos dias de hoje.
+        </p>
+        <div class="mt-5 border-[#E0E0E0] bg-white px-3 py-4">
+          <div class="mx-auto max-w-[560px]">
+            <div class="h-2 overflow-hidden rounded-full bg-[#F2E6E9]" aria-hidden="true">
+              <div class="h-full w-[30%] rounded-full bg-[#5C1E2F]"></div>
+            </div>
+            <div class="mt-3 flex items-center justify-between text-[13px] font-medium text-[#616161]">
+              <span>12:00</span>
+              <span>-34:20</span>
+            </div>
+          </div>
+
+          <div class="mx-auto mt-4 grid max-w-[560px] grid-cols-5 items-center gap-4">
+            <button type="button"
+              class="grid size-11 place-items-center text-[#9E9E9E] transition hover:text-[#5c1e2f]"
+              aria-label="Reprodução aleatória">
+              <span class="material-symbols-outlined text-[34px]" aria-hidden="true">shuffle</span>
+            </button>
+            <button type="button"
+              class="grid size-12 place-items-center text-[#212121] transition hover:text-[#5c1e2f]"
+              aria-label="Episódio anterior">
+              <span class="material-symbols-outlined text-[42px]" aria-hidden="true">skip_previous</span>
+            </button>
+            <button type="button"
+              class="mx-auto grid size-[50px] place-items-center rounded-full bg-[#5C1E2F] text-white shadow-[0_18px_34px_rgba(104,26,49,0.28)] transition hover:bg-[#5C1E2F]"
+              aria-label="Reproduzir episódio">
+              <span class="material-symbols-outlined text-[58px]" aria-hidden="true">play_arrow</span>
+            </button>
+            <button type="button"
+              class="grid size-12 place-items-center text-[#212121] transition hover:text-[#5c1e2f]"
+              aria-label="Próximo episódio">
+              <span class="material-symbols-outlined text-[42px]" aria-hidden="true">skip_next</span>
+            </button>
+            <button type="button"
+              class="grid size-11 place-items-center text-[#9E9E9E] transition hover:text-[#5c1e2f]"
+              aria-label="Repetir episódio">
+              <span class="material-symbols-outlined text-[34px]" aria-hidden="true">repeat</span>
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-[#E0E0E0] pt-4 text-[11px] text-[#616161]">
+          <div class="flex flex-wrap gap-5">
+            <button type="button" class="content-action font-semibold">
+              <span class="material-symbols-outlined text-[17px]" aria-hidden="true">favorite</span>
+              <span>Gostar</span>
+            </button>
+            <button type="button" class="content-action" (click)="openCommentComposer()">
+              <span class="material-symbols-outlined text-[17px]" aria-hidden="true">chat_bubble</span>
+              <span>Comentar</span>
+            </button>
+            <button type="button" class="content-action">
+              <span class="material-symbols-outlined text-[17px]" aria-hidden="true">share</span>
+              <span>Partilhar</span>
+            </button>
+          </div>
+          <div class="flex flex-wrap items-center gap-5">
+            
+            <button type="button"
+              class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-[0.08em] text-[#9E9E9E]">
+              <span class="material-symbols-outlined text-[15px]" aria-hidden="true">flag</span>
+             Guardar
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+      <aside class="lg:pt-0">
+        <div class="grid gap-6">
+          <section class="border border-[#E0E0E0] bg-white px-6 py-6 text-center">
+            <div
+              class="mx-auto grid size-[70px] place-items-center rounded-[8px] bg-[#F2E6E9] font-display text-[20px] font-extrabold text-[#8A3F50]">
+              MC
+            </div>
+            <h2 class="mt-5 font-display text-[13px] font-medium text-[#5c1e2f]">Dr. Manuel Cassule</h2>
+            <p class="mt-1 text-[11px] font-semibold text-[#D4AF37]">Doutorado em História Económica</p>
+            <p class="mx-auto mt-2 max-w-[170px] text-[9px] leading-[1.35] text-[#616161]">
+              Investigador sénior na Universidade Agostinho Neto, especialista em sistemas políticos pré-coloniais da
+              África Central.
+            </p>
+            <div class="mt-5 flex justify-center gap-4 text-[#616161]">
+              <button type="button" class="cursor-pointer hover:text-[#5C1E2F]" aria-label="Partilhar perfil">
+                <span class="material-symbols-outlined text-[24px] leading-none">share</span>
+              </button>
+              <button type="button" class="cursor-pointer hover:text-[#5C1E2F]" aria-label="Guardar perfil">
+                <span class="material-symbols-outlined text-[24px] leading-none">bookmark</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="border-t border-[#E0E0E0] pt-6">
+            <h2 class="font-display text-[17px] font-medium text-[#5c1e2f]">Relacionados</h2>
+
+            <a routerLink="/app/podcasts" class="mt-5 grid grid-cols-[86px_minmax(0,1fr)] gap-3">
+              <div class="podcast-radio row-span-2 h-[58px] w-full rounded-[4px]" role="img"
+                aria-label="Capa do episódio A Economia do Reino do Kongo"></div>
+              <p class="mt-2 text-[10px] font-bold uppercase text-[#D4AF37]">Episódio 21</p>
+              <h3 class="col-start-2 mt-1 line-clamp-2 text-[12px] font-bold leading-4 text-[#212121]">
+                A Economia do Reino do Kongo
+              </h3>
+            </a>
+
+            <a routerLink="/app/podcasts" class="mt-4 grid grid-cols-[86px_minmax(0,1fr)] gap-3">
+              <div class="podcast-wave row-span-2 h-[58px] w-full rounded-[4px]" role="img"
+                aria-label="Capa do episódio Rainha Ginga: Diplomacia e Guerra"></div>
+              <p class="mt-2 text-[10px] font-bold uppercase text-[#D4AF37]">Episódio 18</p>
+              <h3 class="col-start-2 mt-1 line-clamp-2 text-[12px] font-bold leading-4 text-[#212121]">
+                Rainha Ginga: Diplomacia e Guerra
+              </h3>
+            </a>
+          </section>
+        </div>
+      </aside>
+    </div>
+
+    <div class="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+      <article class="min-w-0">
+        <section class="border-t-2 border-[#d4af37] bg-white p-7 shadow-sm">
+          <h2 class="flex items-center gap-2 font-display text-[20px] font-extrabold text-[#5c1e2f]">
+            <span class="material-symbols-outlined text-[20px]" aria-hidden="true">emoji_objects</span>
+            Pontos Chave
+          </h2>
+          <div class="mt-7 grid gap-x-10 gap-y-6 sm:grid-cols-2">
+            <div class="grid grid-cols-[36px_minmax(0,1fr)] gap-3">
+              <span class="text-[15px] font-extrabold text-[#D4AF37]">01</span>
+              <p class="text-[13px] leading-6 text-[#616161]">
+                A estrutura de tributação Lunda e a sua eficiência no comércio de marfim e borracha.
+              </p>
+            </div>
+            <div class="grid grid-cols-[36px_minmax(0,1fr)] gap-3">
+              <span class="text-[15px] font-extrabold text-[#D4AF37]">02</span>
+              <p class="text-[13px] leading-6 text-[#616161]">
+                O papel das rotas de caravanas na integração económica da África Central.
+              </p>
+            </div>
+            <div class="grid grid-cols-[36px_minmax(0,1fr)] gap-3">
+              <span class="text-[15px] font-extrabold text-[#D4AF37]">03</span>
+              <p class="text-[13px] leading-6 text-[#616161]">
+                Diplomacia e comércio: a relação com os reinos vizinhos e potências europeias.
+              </p>
+            </div>
+            <div class="grid grid-cols-[36px_minmax(0,1fr)] gap-3">
+              <span class="text-[15px] font-extrabold text-[#D4AF37]">04</span>
+              <p class="text-[13px] leading-6 text-[#616161]">
+                A sucessão política como mecanismo de estabilidade económica de longo prazo.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-10 border-t border-[#E0E0E0] pt-9">
+          <h2 class="text-[14px] font-medium text-[#5c1e2f]">Comentários (3)</h2>
+
+          @if (isCommentComposerOpen()) {
+          <div class="mt-6 flex gap-4">
+            <span class="size-9 rounded-[10px] bg-[#E0E0E0]"></span>
+            <div class="min-w-0 flex-1">
+              <textarea
+                class="h-[96px] w-full resize-none border border-[#E0E0E0] bg-[#F5F5F5] p-5 text-[13px] outline-none placeholder:text-[#BDBDBD] focus:border-[#8A3F50]"
+                placeholder="Partilhe a sua reflexão académica..."></textarea>
+              <div class="-mt-px text-right">
+                <button type="button" class="h-10 bg-[#5C1E2F] px-6 text-[12px] font-bold text-white">
+                  Publicar
+                </button>
+              </div>
+            </div>
+          </div>
+          }
+
+          <div class="mt-9 grid gap-7">
+            <div class="flex gap-4">
+              <span class="grid size-9 place-items-center rounded-[8px] bg-[#E0E0E0] text-[11px] font-bold text-[#9E9E9E]">
+                AL
+              </span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-3">
+                  <p class="text-[13px] font-extrabold text-[#5c1e2f]">Ana Paula Lourenço</p>
+                  <span class="text-[10px] text-[#9E9E9E]">Há 2 horas</span>
+                </div>
+                <p class="mt-1 text-[13px] leading-5 text-[#212121]">
+                  Excelente análise sobre a fiscalidade Lunda. É impressionante notar as semelhanças com modelos de
+                  integração regional que discutimos hoje em dia na SADC.
+                </p>
+                <div class="mt-3 flex gap-6 text-[10px] text-[#616161]">
+                  <button type="button" class="content-action">
+                    <img src="/assets/icons/like.png" alt="" />
+                    <span>Gostar</span>
+                  </button>
+                  <button type="button">Responder</button>
+                  <button type="button" class="font-semibold text-[#5c1e2f]" (click)="toggleReplies('ana-paula')">
+                    Respostas (1)
+                  </button>
+                  <button type="button" class="content-action">
+                    <img src="/assets/icons/report.png" alt="" />
+                    <span>Denunciar</span>
+                  </button>
+                </div>
+
+                @if (areRepliesOpen('ana-paula')) {
+                <div class="mt-6 flex gap-4 border-l border-[#E0E0E0] pl-7">
+                  <span
+                    class="grid size-7 place-items-center rounded-[7px] bg-[#E0E0E0] text-[9px] font-bold text-[#9E9E9E]">
+                    PG
+                  </span>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-3">
+                      <p class="text-[12px] font-medium text-[#5c1e2f]">Pedro Gonçalves</p>
+                      <span class="text-[10px] text-[#9E9E9E]">Há 1 hora</span>
+                    </div>
+                    <p class="mt-1 text-[12px] leading-5 text-[#212121]">
+                      Concordo, Ana. O Dr. Cassule foi muito feliz ao ligar a segurança das rotas ao título de Mwant
+                      Yav. Demonstra uma maturidade institucional incrível.
+                    </p>
+                    <div class="mt-3 flex gap-6 text-[10px] text-[#616161]">
+                      <button type="button" class="content-action">
+                        <img src="/assets/icons/like.png" alt="" />
+                        <span>Gostar</span>
+                      </button>
+                      <button type="button" class="content-action">
+                        <img src="/assets/icons/report.png" alt="" />
+                        <span>Denunciar</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                }
+              </div>
+            </div>
+
+            <div class="flex gap-4">
+              <span class="grid size-9 place-items-center rounded-[8px] bg-[#E0E0E0] text-[11px] font-bold text-[#9E9E9E]">
+                JB
+              </span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-3">
+                  <p class="text-[13px] font-extrabold text-[#5c1e2f]">Joaquim Bento</p>
+                  <span class="text-[10px] text-[#9E9E9E]">Há 5 horas</span>
+                </div>
+                <p class="mt-1 text-[13px] leading-5 text-[#212121]">
+                  Gostaria de saber mais sobre a influência do marfim especificamente na relação com os reinos a sul.
+                  Fica o pedido para um próximo episódio.
+                </p>
+                <div class="mt-3 flex gap-6 text-[10px] text-[#616161]">
+                  <button type="button" class="content-action">
+                    <img src="/assets/icons/like.png" alt="" />
+                    <span>Gostar</span>
+                  </button>
+                  <button type="button">Responder</button>
+                  <button type="button" class="content-action">
+                    <img src="/assets/icons/report.png" alt="" />
+                    <span>Denunciar</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="mt-8 text-[12px] font-extrabold text-[#5c1e2f]">
+            Carregar mais comentários
+            <span class="material-symbols-outlined ml-1 align-middle text-[16px]"
+              aria-hidden="true">keyboard_arrow_down</span>
+          </button>
+        </section>
+      </article>
+
+      <aside class="hidden">
+        <div class="grid gap-6">
+          <section class="border border-[#E0E0E0] bg-white px-6 py-6 text-center">
+            <div
+              class="mx-auto grid size-[70px] place-items-center rounded-[8px] bg-[#F2E6E9] font-display text-[20px] font-extrabold text-[#8A3F50]">
+              MC
+            </div>
+            <h2 class="mt-5 font-display text-[13px] font-medium text-[#5c1e2f]">Dr. Manuel Cassule</h2>
+            <p class="mt-1 text-[11px] font-semibold text-[#D4AF37]">Doutorado em História Económica</p>
+            <p class="mx-auto mt-2 max-w-[170px] text-[9px] leading-[1.35] text-[#616161]">
+              Investigador sénior na Universidade Agostinho Neto, especialista em sistemas políticos pré-coloniais da
+              África Central.
+            </p>
+            <div class="mt-5 flex justify-center gap-4 text-[#616161]">
+              <button type="button" class="cursor-pointer hover:text-[#5C1E2F]" aria-label="Partilhar perfil">
+                <span class="material-symbols-outlined text-[24px] leading-none">share</span>
+              </button>
+              <button type="button" class="cursor-pointer hover:text-[#5C1E2F]" aria-label="Guardar perfil">
+                <span class="material-symbols-outlined text-[24px] leading-none">bookmark</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="border-t border-[#E0E0E0] pt-6">
+            <h2 class="font-display text-[17px] font-medium text-[#5c1e2f]">Relacionados</h2>
+
+            <a routerLink="/app/podcasts" class="mt-5 grid grid-cols-[86px_minmax(0,1fr)] gap-3">
+              <div class="podcast-radio row-span-2 h-[58px] w-full rounded-[4px]" role="img"
+                aria-label="Capa do episódio A Economia do Reino do Kongo"></div>
+              <p class="mt-2 text-[10px] font-bold uppercase text-[#D4AF37]">Episódio 21</p>
+              <h3 class="col-start-2 mt-1 line-clamp-2 text-[12px] font-bold leading-4 text-[#212121]">
+                A Economia do Reino do Kongo
+              </h3>
+            </a>
+
+            <a routerLink="/app/podcasts" class="mt-4 grid grid-cols-[86px_minmax(0,1fr)] gap-3">
+              <div class="podcast-wave row-span-2 h-[58px] w-full rounded-[4px]" role="img"
+                aria-label="Capa do episódio Rainha Ginga: Diplomacia e Guerra"></div>
+              <p class="mt-2 text-[10px] font-bold uppercase text-[#D4AF37]">Episódio 18</p>
+              <h3 class="col-start-2 mt-1 line-clamp-2 text-[12px] font-bold leading-4 text-[#212121]">
+                Rainha Ginga: Diplomacia e Guerra
+              </h3>
+            </a>
+          </section>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <app-public-footer />
+  <app-back-to-top />
+</section>
+

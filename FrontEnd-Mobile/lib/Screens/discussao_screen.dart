@@ -1,8 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:economica_com_historia/theme/app_colors.dart';
+
+import '../core/exceptions/app_exceptions.dart';
+import '../core/utils/formatters.dart';
+import '../core/widgets/api_state_widgets.dart';
+import '../models/comment.dart';
+import '../models/content.dart';
+import '../services/content_service.dart';
+import '../theme/app_colors.dart';
 
 class DiscussaoScreen extends StatefulWidget {
-  const DiscussaoScreen({super.key});
+  final Content? content;
+  final int? contentId;
+  final String? title;
+
+  const DiscussaoScreen({super.key, this.content, this.contentId, this.title});
 
   @override
   State<DiscussaoScreen> createState() => _DiscussaoScreenState();
@@ -10,41 +21,79 @@ class DiscussaoScreen extends StatefulWidget {
 
 class _DiscussaoScreenState extends State<DiscussaoScreen> {
   final _comentarioController = TextEditingController();
+  final _service = ContentService();
 
-  static const _comentarios = [
-    _Comentario(
-      iniciais: 'AM',
-      nome: 'Dr. Agostinho Manuel',
-      tempo: 'há 2h',
-      texto:
-          'Este artigo clarifica muito bem a transição entre as moedas tradicionais (Nzimbu) e as primeiras introduções coloniais. Seria interessante aprofundar a relação diplomática de Mbanza Kongo com as potências europeias da época.',
-      likes: 12,
-      temAvatar: false,
-    ),
-    _Comentario(
-      iniciais: 'IC',
-      nome: 'Isabel Castro',
-      tempo: 'há 45m',
-      texto:
-          'Concordo plenamente, Doutor. Existem registos na Torre do Tombo que detalham essas trocas de embaixadores que muitas vezes são ignoradas nos manuais escolares.',
-      likes: 5,
-      temAvatar: true,
-    ),
-    _Comentario(
-      iniciais: 'JN',
-      nome: 'Joaquim Neto',
-      tempo: 'há 5h',
-      texto:
-          'Como é que os mercados regionais reagiram à introdução de metais preciosos como reserva de valor em substituição dos bens de consumo diretos?',
-      likes: 8,
-      temAvatar: false,
-    ),
-  ];
+  bool _isLoading = true;
+  bool _isSending = false;
+  String? _error;
+  List<Comment> _comentarios = [];
+
+  int get _contentId => widget.contentId ?? widget.content?.id ?? 0;
+  String get _title => widget.title ?? widget.content?.title ?? 'Discussao';
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
 
   @override
   void dispose() {
     _comentarioController.dispose();
     super.dispose();
+  }
+
+  Future<void> _load() async {
+    if (_contentId == 0) {
+      setState(() {
+        _isLoading = false;
+        _error = 'Conteudo invalido.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final comments = await _service.getComments(_contentId);
+      if (!mounted) return;
+      setState(() => _comentarios = comments);
+    } on AppException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Erro ao carregar comentarios.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _enviarComentario() async {
+    final texto = _comentarioController.text.trim();
+    if (texto.isEmpty || _isSending) return;
+    setState(() => _isSending = true);
+    try {
+      await _service.addComment(contentId: _contentId, comment: texto);
+      _comentarioController.clear();
+      await _load();
+    } on AppException catch (e) {
+      if (mounted) _showSnackBar(e.message);
+    } catch (_) {
+      if (mounted) _showSnackBar('Erro ao enviar comentario.');
+    } finally {
+      if (mounted) setState(() => _isSending = false);
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -54,21 +103,39 @@ class _DiscussaoScreenState extends State<DiscussaoScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            _AppBar(),
-            _CabecalhoArtigo(),
+            const _AppBar(),
+            _CabecalhoArtigo(title: _title, count: _comentarios.length),
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                itemCount: _comentarios.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 4),
-                itemBuilder: (_, i) =>
-                    _ComentarioTile(comentario: _comentarios[i]),
+              child: RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: _load,
+                child: _isLoading
+                    ? const LoadingState(message: 'A carregar comentarios...')
+                    : _error != null
+                    ? ListView(
+                        children: [
+                          ErrorState(message: _error!, onRetry: _load),
+                        ],
+                      )
+                    : _comentarios.isEmpty
+                    ? const EmptyState(message: 'Ainda nao ha comentarios.')
+                    : ListView.separated(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        itemCount: _comentarios.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 4),
+                        itemBuilder: (_, i) =>
+                            _ComentarioTile(comentario: _comentarios[i]),
+                      ),
               ),
             ),
-            _BarraComentario(controller: _comentarioController),
+            _BarraComentario(
+              controller: _comentarioController,
+              isSending: _isSending,
+              onSend: _enviarComentario,
+            ),
           ],
         ),
       ),
@@ -77,6 +144,8 @@ class _DiscussaoScreenState extends State<DiscussaoScreen> {
 }
 
 class _AppBar extends StatelessWidget {
+  const _AppBar();
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -93,18 +162,12 @@ class _AppBar extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           const Text(
-            'Discussão',
+            'Discussao',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: AppColors.primary,
             ),
-          ),
-          const Spacer(),
-          const Icon(
-            Icons.more_vert_rounded,
-            color: AppColors.textMedium,
-            size: 22,
           ),
         ],
       ),
@@ -113,6 +176,11 @@ class _AppBar extends StatelessWidget {
 }
 
 class _CabecalhoArtigo extends StatelessWidget {
+  final String title;
+  final int count;
+
+  const _CabecalhoArtigo({required this.title, required this.count});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -123,19 +191,21 @@ class _CabecalhoArtigo extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           Text(
-            'A Evolução do Comércio no Reino do Kongo',
-            style: TextStyle(
+            title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
               color: AppColors.textDark,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
-            '24 comentários',
-            style: TextStyle(fontSize: 13, color: AppColors.textMedium),
+            '$count comentarios',
+            style: const TextStyle(fontSize: 13, color: AppColors.textMedium),
           ),
         ],
       ),
@@ -143,37 +213,31 @@ class _CabecalhoArtigo extends StatelessWidget {
   }
 }
 
-class _Comentario {
-  final String iniciais;
-  final String nome;
-  final String tempo;
-  final String texto;
-  final int likes;
-  final bool temAvatar;
-
-  const _Comentario({
-    required this.iniciais,
-    required this.nome,
-    required this.tempo,
-    required this.texto,
-    required this.likes,
-    required this.temAvatar,
-  });
-}
-
 class _ComentarioTile extends StatelessWidget {
-  final _Comentario comentario;
+  final Comment comentario;
 
   const _ComentarioTile({required this.comentario});
 
   @override
   Widget build(BuildContext context) {
+    final name = comentario.user?.name ?? 'Utilizador';
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Avatar(iniciais: comentario.iniciais, temFoto: comentario.temAvatar),
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: AppColors.primary,
+            child: Text(
+              initials(name),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -182,16 +246,19 @@ class _ComentarioTile extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      comentario.nome,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textDark,
+                    Expanded(
+                      child: Text(
+                        name,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textDark,
+                        ),
                       ),
                     ),
                     Text(
-                      comentario.tempo,
+                      timeAgo(comentario.createdAt),
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.textLight,
@@ -201,45 +268,29 @@ class _ComentarioTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  comentario.texto,
+                  comentario.comment,
                   style: const TextStyle(
                     fontSize: 13.5,
                     color: AppColors.textMedium,
                     height: 1.5,
                   ),
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.favorite_border_rounded,
-                      size: 16,
-                      color: AppColors.textLight,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${comentario.likes}',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textLight,
+                if (comentario.replies.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  ...comentario.replies.map(
+                    (reply) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8, left: 12),
+                      child: Text(
+                        '${reply.user?.name ?? 'Utilizador'}: ${reply.reply}',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          color: AppColors.textMedium,
+                          height: 1.4,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 20),
-                    const Icon(
-                      Icons.chat_bubble_outline_rounded,
-                      size: 15,
-                      color: AppColors.textLight,
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      'Responder',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textLight,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -249,55 +300,16 @@ class _ComentarioTile extends StatelessWidget {
   }
 }
 
-class _Avatar extends StatelessWidget {
-  final String iniciais;
-  final bool temFoto;
-
-  const _Avatar({required this.iniciais, required this.temFoto});
-
-  @override
-  Widget build(BuildContext context) {
-    if (temFoto) {
-      return CircleAvatar(
-        radius: 18,
-        backgroundColor: const Color(0xFFEEE8E9),
-        child: ClipOval(
-          child: Image.asset(
-            'assets/images/Imagem_perfil.png',
-            width: 36,
-            height: 36,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Text(
-              iniciais,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-    return CircleAvatar(
-      radius: 18,
-      backgroundColor: AppColors.primary,
-      child: Text(
-        iniciais,
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-}
-
 class _BarraComentario extends StatelessWidget {
   final TextEditingController controller;
+  final bool isSending;
+  final VoidCallback onSend;
 
-  const _BarraComentario({required this.controller});
+  const _BarraComentario({
+    required this.controller,
+    required this.isSending,
+    required this.onSend,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -314,7 +326,7 @@ class _BarraComentario extends StatelessWidget {
               controller: controller,
               style: const TextStyle(fontSize: 14, color: AppColors.textDark),
               decoration: InputDecoration(
-                hintText: 'Adicionar comentário...',
+                hintText: 'Adicionar comentario...',
                 hintStyle: const TextStyle(
                   fontSize: 14,
                   color: AppColors.textLight,
@@ -329,26 +341,24 @@ class _BarraComentario extends StatelessWidget {
                   horizontal: 16,
                   vertical: 10,
                 ),
-                suffixIcon: const Icon(
-                  Icons.image_outlined,
-                  color: AppColors.textLight,
-                  size: 20,
-                ),
               ),
             ),
           ),
           const SizedBox(width: 10),
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.send_rounded,
-              color: Colors.white,
-              size: 18,
+          GestureDetector(
+            onTap: isSending ? null : onSend,
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: isSending ? AppColors.textLight : AppColors.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                isSending ? Icons.hourglass_empty_rounded : Icons.send_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
             ),
           ),
         ],

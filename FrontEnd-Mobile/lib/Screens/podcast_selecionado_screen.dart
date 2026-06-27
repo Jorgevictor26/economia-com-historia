@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:economica_com_historia/theme/app_colors.dart';
+
+import '../core/exceptions/app_exceptions.dart';
+import '../core/utils/formatters.dart';
+import '../core/widgets/api_state_widgets.dart';
+import '../models/content.dart';
+import '../services/content_service.dart';
+import '../theme/app_colors.dart';
 
 class PodcastSelecionadoScreen extends StatefulWidget {
-  const PodcastSelecionadoScreen({super.key});
+  final int? contentId;
+  final Content? initialContent;
+
+  const PodcastSelecionadoScreen({
+    super.key,
+    this.contentId,
+    this.initialContent,
+  });
 
   @override
   State<PodcastSelecionadoScreen> createState() =>
@@ -10,113 +23,188 @@ class PodcastSelecionadoScreen extends StatefulWidget {
 }
 
 class _PodcastSelecionadoScreenState extends State<PodcastSelecionadoScreen> {
+  final _podcastService = PodcastService();
   bool _isPlaying = false;
-  double _progresso = 12 / 46.33;
+  double _progresso = 0;
+  bool _isLoading = true;
+  String? _error;
+  Content? _content;
+  List<Content> _maisPodcasts = [];
 
-  static const _maisPodcasts = [
-    _MiniPodcast(
-      titulo: 'Economia sem Makas',
-      autor: 'Helena Panzo',
-      info: 'Hoje • 23 min',
-      imagemAsset: 'assets/images/Microeconomia_Colonial.png',
-    ),
-    _MiniPodcast(
-      titulo: 'Economia sem Makas',
-      autor: 'Helena Panzo',
-      info: 'Hoje • 23 min',
-      imagemAsset: 'assets/images/Microeconomia_Colonial.png',
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _content = widget.initialContent;
+    _load();
+  }
+
+  Future<void> _load() async {
+    final id = widget.contentId ?? widget.initialContent?.id;
+    if (id == null || id == 0) {
+      setState(() {
+        _isLoading = false;
+        _error = 'Podcast invalido.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final podcast = await _podcastService.getPodcast(id);
+      final more = await _podcastService.getPodcasts();
+      if (!mounted) return;
+      setState(() {
+        _content = podcast;
+        _maisPodcasts = more.data
+            .where((item) => item.id != podcast.id)
+            .take(3)
+            .toList();
+      });
+    } on AppException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Erro ao carregar podcast.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final content = _content;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
-            _AppBar(),
+            const _AppBar(),
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _CapaPlayer(),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _isLoading
+                  ? const LoadingState(message: 'A carregar podcast...')
+                  : _error != null
+                  ? ErrorState(message: _error!, onRetry: _load)
+                  : content == null
+                  ? const EmptyState(message: 'Podcast nao encontrado.')
+                  : SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 16),
-                          const Text(
-                            'As ruas do Lubango',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textDark,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'TEM A PALAVRA',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
-                              letterSpacing: 0.6,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _BarraProgresso(
-                            progresso: _progresso,
-                            onChanged: (v) => setState(() => _progresso = v),
-                          ),
-                          const SizedBox(height: 6),
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '12:00',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textLight,
+                          _CapaPlayer(content: content),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 16),
+                                Text(
+                                  content.title,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textDark,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                '-34:20',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textLight,
+                                const SizedBox(height: 4),
+                                Text(
+                                  content.author?.name.toUpperCase() ??
+                                      content.contentType?.name.toUpperCase() ??
+                                      'PODCAST',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primary,
+                                    letterSpacing: 0.6,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          _Controlos(
-                            isPlaying: _isPlaying,
-                            onPlayPause: () =>
-                                setState(() => _isPlaying = !_isPlaying),
-                          ),
-                          const SizedBox(height: 28),
-                          const Text(
-                            'Mais Podcasts',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textDark,
+                                if ((content.summary ?? '').isNotEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    content.summary!,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.textMedium,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 16),
+                                _BarraProgresso(
+                                  progresso: _progresso,
+                                  onChanged: (v) =>
+                                      setState(() => _progresso = v),
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      '00:00',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textLight,
+                                      ),
+                                    ),
+                                    Text(
+                                      content.displayAudio == null
+                                          ? 'audio indisponivel'
+                                          : readTime(content.content),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textLight,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                _Controlos(
+                                  isPlaying: _isPlaying,
+                                  audioAvailable: content.displayAudio != null,
+                                  onPlayPause: () =>
+                                      setState(() => _isPlaying = !_isPlaying),
+                                ),
+                                const SizedBox(height: 28),
+                                const Text(
+                                  'Mais Podcasts',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                if (_maisPodcasts.isEmpty)
+                                  const EmptyState(
+                                    message:
+                                        'Ainda não há outros podcasts disponíveis.',
+                                    icon: Icons.podcasts_outlined,
+                                  )
+                                else
+                                  ..._maisPodcasts.map(
+                                    (podcast) => _MiniPodcastTile(
+                                      item: podcast,
+                                      onTap: () => Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              PodcastSelecionadoScreen(
+                                                contentId: podcast.id,
+                                                initialContent: podcast,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                const SizedBox(height: 32),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 14),
-                          ..._maisPodcasts.map(
-                            (p) => _MiniPodcastTile(item: p),
-                          ),
-                          const SizedBox(height: 32),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
@@ -126,6 +214,8 @@ class _PodcastSelecionadoScreenState extends State<PodcastSelecionadoScreen> {
 }
 
 class _AppBar extends StatelessWidget {
+  const _AppBar();
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -156,6 +246,10 @@ class _AppBar extends StatelessWidget {
 }
 
 class _CapaPlayer extends StatelessWidget {
+  final Content content;
+
+  const _CapaPlayer({required this.content});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -165,9 +259,10 @@ class _CapaPlayer extends StatelessWidget {
         child: SizedBox(
           height: 300,
           width: double.infinity,
-          child: Image.asset(
-            'assets/images/As_ruas_de_Lubango.png',
+          child: AppNetworkImage(
+            url: content.displayImage,
             fit: BoxFit.cover,
+            fallbackIcon: Icons.podcasts_rounded,
           ),
         ),
       ),
@@ -199,17 +294,20 @@ class _BarraProgresso extends StatelessWidget {
 
 class _Controlos extends StatelessWidget {
   final bool isPlaying;
+  final bool audioAvailable;
   final VoidCallback onPlayPause;
 
-  const _Controlos({required this.isPlaying, required this.onPlayPause});
+  const _Controlos({
+    required this.isPlaying,
+    required this.audioAvailable,
+    required this.onPlayPause,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.shuffle_rounded, color: AppColors.textLight, size: 22),
-        const SizedBox(width: 28),
         const Icon(
           Icons.skip_previous_rounded,
           color: AppColors.textDark,
@@ -217,12 +315,12 @@ class _Controlos extends StatelessWidget {
         ),
         const SizedBox(width: 20),
         GestureDetector(
-          onTap: onPlayPause,
+          onTap: audioAvailable ? onPlayPause : null,
           child: Container(
             width: 56,
             height: 56,
-            decoration: const BoxDecoration(
-              color: AppColors.primary,
+            decoration: BoxDecoration(
+              color: audioAvailable ? AppColors.primary : AppColors.textLight,
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -238,94 +336,75 @@ class _Controlos extends StatelessWidget {
           color: AppColors.textDark,
           size: 32,
         ),
-        const SizedBox(width: 28),
-        const Icon(Icons.repeat_rounded, color: AppColors.textLight, size: 22),
       ],
     );
   }
 }
 
-class _MiniPodcast {
-  final String titulo;
-  final String autor;
-  final String info;
-  final String imagemAsset;
-
-  const _MiniPodcast({
-    required this.titulo,
-    required this.autor,
-    required this.info,
-    required this.imagemAsset,
-  });
-}
-
 class _MiniPodcastTile extends StatelessWidget {
-  final _MiniPodcast item;
+  final Content item;
+  final VoidCallback onTap;
 
-  const _MiniPodcastTile({required this.item});
+  const _MiniPodcastTile({required this.item, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.asset(
-              item.imagemAsset,
-              width: 52,
-              height: 52,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: AppNetworkImage(
+                url: item.displayImage,
                 width: 52,
                 height: 52,
-                color: const Color(0xFFEEE8E9),
-                child: const Icon(
-                  Icons.podcasts_rounded,
-                  color: AppColors.textLight,
-                ),
+                fallbackIcon: Icons.podcasts_rounded,
               ),
             ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.titulo,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  '${item.autor} • ${item.info}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textMedium,
+                  const SizedBox(height: 3),
+                  Text(
+                    '${item.author?.name ?? 'Podcast EH'} - ${readTime(item.content)}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textMedium,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFD8C1C4)),
-              shape: BoxShape.circle,
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFD8C1C4)),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.play_arrow_rounded,
+                color: AppColors.primary,
+                size: 18,
+              ),
             ),
-            child: const Icon(
-              Icons.play_arrow_rounded,
-              color: AppColors.primary,
-              size: 18,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

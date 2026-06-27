@@ -58,6 +58,21 @@
                   {{ room.activeDebates }} debates ativos
                 </span>
               </div>
+<<<<<<< HEAD
+            </section>
+
+            @if (createFeedback()) {
+              <p class="rounded-[6px] bg-[#F2E6E9] px-4 py-3 text-[12px] font-bold text-[#5C1E2F]">{{ createFeedback() }}</p>
+            }
+            @if (forumError()) {
+              <p class="rounded-[6px] bg-[#FFF1F3] px-4 py-3 text-[12px] font-bold text-[#B42318]">{{ forumError() }}</p>
+            }
+
+            <div class="flex flex-wrap justify-end gap-4">
+              <button type="reset" class="h-12 px-6 text-[12px] font-extrabold text-[#616161]">Cancelar</button>
+              <button type="submit" class="h-12 bg-[#5C1E2F] px-10 text-[12px] font-extrabold text-white">Criar Sala de Debate</button>
+=======
+>>>>>>> a41e593e4dc497c1a33dd70919279eaeee49d67e
             </div>
 
             <div class="mt-auto flex items-center justify-between gap-3 border-t border-[#E0E0E0] bg-white px-6 py-4">

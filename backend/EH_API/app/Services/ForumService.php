@@ -19,8 +19,14 @@ class ForumService
             'user_id' => $dto->userId,
             'name' => $dto->name,
             'description' => $dto->description,
+            'rules' => $dto->rules,
+            'category' => $dto->category,
+            'image_url' => $dto->imageUrl,
+            'visibility' => $dto->visibility,
+            'content_permission' => $dto->contentPermission,
+            'allow_attachments' => $dto->allowAttachments,
             'status' => 'pending',
-        ]);
+        ], $dto->contentIds);
     }
 
     public function getAll(array $filters = [])

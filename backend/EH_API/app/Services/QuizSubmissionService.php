@@ -50,7 +50,7 @@ class QuizSubmissionService
             throw new UnprocessableEntityHttpException('All answers must belong to this quiz');
         }
 
-        return DB::transaction(function () use ($dto, $questionsById, $totalQuestions): array {
+        return DB::transaction(function () use ($dto, $questionsById, $totalQuestions, $quiz): array {
             $savedAnswers = collect();
             $score = 0;
 
@@ -74,6 +74,7 @@ class QuizSubmissionService
             }
 
             $percentage = round(($score / $totalQuestions) * 100, 2);
+            $earnedXp = $score * (int) $quiz->xp_per_question;
             $result = $this->results->create(
                 (new QuizResultDTO(
                     quizId: $dto->quizId,
@@ -81,6 +82,7 @@ class QuizSubmissionService
                     score: $score,
                     totalQuestions: $totalQuestions,
                     percentage: $percentage,
+                    earnedXp: $earnedXp,
                 ))->toArray()
             );
 
@@ -104,6 +106,11 @@ class QuizSubmissionService
     public function myResults(int $userId): LengthAwarePaginator
     {
         return $this->results->byUser($userId);
+    }
+
+    public function myStats(int $userId): array
+    {
+        return $this->results->statsByUser($userId);
     }
 
     private function validateTimeLimit(?int $timeLimit, string $startedAt): void
@@ -130,6 +137,7 @@ class QuizSubmissionService
             'score' => $result->score,
             'total_questions' => $result->total_questions,
             'percentage' => (float) $result->percentage,
+            'earned_xp' => $result->earned_xp,
             'correct_answers' => $correctAnswers,
             'wrong_answers' => $wrongAnswers,
             'answers' => $answers->values(),

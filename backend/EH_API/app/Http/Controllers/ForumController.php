@@ -35,7 +35,14 @@ class ForumController extends Controller
         $forum = $this->service->create(new CreateForumDTO(
             $request->user()->id,
             $request->string('name')->toString(),
-            $request->input('description')
+            $request->input('description'),
+            $request->input('rules'),
+            $request->input('category'),
+            $request->input('image'),
+            $request->input('visibility', 'public'),
+            $request->input('content_permission', 'public'),
+            (bool) $request->boolean('allow_attachments'),
+            $request->input('content_ids', [])
         ));
 
         return response()->json([

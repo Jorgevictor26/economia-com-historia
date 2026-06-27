@@ -12,7 +12,8 @@ export interface Quiz {
   title: string;
   topic: string;
   summary: string;
-  difficulty: 'Inicial' | 'Intermédio' | 'Avançado';
+  coverUrl?: string | null;
+  difficulty: 'facil' | 'medio' | 'dificil';
   xp: number;
   streakReward: number;
   estimatedMinutes: number;

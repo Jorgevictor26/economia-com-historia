@@ -65,7 +65,8 @@ interface VideoDetail {
   title: string;
   date: string;
   duration: string;
-  frameUrl: string;
+  frameUrl?: string;
+  videoUrl?: string;
   author: string;
   authorInitials: string;
   authorRole: string;
@@ -1152,15 +1153,21 @@ export class ContentDetailPage {
 })
 export class VideoContentDetailPage {
   private readonly route = inject(ActivatedRoute);
+  private readonly contentService = inject(ContentService);
   private readonly savedContentService = inject(SavedContentService);
   readonly auth = inject(AuthStateService);
   readonly saveStatus = signal('');
+<<<<<<< HEAD
   readonly videoLiked = signal(false);
   readonly isVideoCommentComposerOpen = signal(false);
+=======
+  readonly isLoading = signal(false);
+  readonly loadError = signal('');
+  readonly loadedVideo = signal<VideoDetail | null>(null);
+>>>>>>> cabea4c6700a88336a57fa01f0452073cdfb0690
 
   readonly video = computed(() => {
-    const id = this.route.snapshot.params['id'] ?? 'video-cafe';
-    return this.videos.find((item) => item.id === id) ?? this.videos[0];
+    return this.loadedVideo() ?? this.videos[0];
   });
 
   readonly relatedResearch: RelatedResearch[] = [
@@ -1234,6 +1241,37 @@ export class VideoContentDetailPage {
     },
   ];
 
+  constructor() {
+    void this.loadVideo();
+  }
+
+  private async loadVideo(): Promise<void> {
+    const id = this.route.snapshot.params['id'];
+
+    if (!id) {
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.loadError.set('');
+
+    try {
+      const content = await this.contentService.getById(id);
+      const contentTypeSlug = this.normalizeText(content.content_type?.slug ?? content.content_type?.name ?? '');
+
+      if (contentTypeSlug && contentTypeSlug !== 'video') {
+        this.loadError.set('Este conteúdo não é um vídeo.');
+        return;
+      }
+
+      this.loadedVideo.set(this.toVideoDetail(content));
+    } catch {
+      this.loadError.set('Não foi possível carregar este vídeo.');
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
   requireLogin(event: Event, operation: string): void {
     event.preventDefault();
     event.stopPropagation();
@@ -1303,6 +1341,58 @@ export class VideoContentDetailPage {
     } catch {
       this.saveStatus.set('Não foi possível guardar este conteúdo.');
     }
+  }
+
+  private toVideoDetail(content: BackendContent): VideoDetail {
+    const authorName = content.author?.name ?? content.user?.name ?? 'Equipa editorial';
+    const createdAt = content.created_at ? new Date(content.created_at) : null;
+
+    return {
+      id: String(content.id),
+      title: content.title,
+      date: createdAt && !Number.isNaN(createdAt.getTime())
+        ? createdAt.toLocaleDateString('pt-AO', { day: '2-digit', month: 'long', year: 'numeric' })
+        : 'Data indisponível',
+      duration: this.extractDuration(content.content) ?? '00:00',
+      frameUrl: content.image ?? content.image_url ?? undefined,
+      videoUrl: content.video ?? content.video_url ?? undefined,
+      author: authorName,
+      authorInitials: this.initials(authorName),
+      authorRole: 'Autor',
+      summary: content.summary || this.toPlainText(content.content) || 'Sem resumo disponível.',
+      quote: this.toPlainText(content.content) || content.summary || '',
+    };
+  }
+
+  private extractDuration(content: string | null | undefined): string | null {
+    const value = content?.match(/<strong>Duracao:<\/strong>\s*([^<]+)/i)?.[1]?.trim();
+
+    return value || null;
+  }
+
+  private toPlainText(value: string | null | undefined): string {
+    return (value ?? '').replace(/<[^>]*>/g, '').trim();
+  }
+
+  private initials(name: string): string {
+    return name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('') || 'EH';
+  }
+
+  private normalizeText(value: string): string {
+    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  }
+
+  isDirectVideoUrl(url: string | undefined): boolean {
+    if (!url) {
+      return false;
+    }
+
+    return /(\.(mp4|mov|webm)(\?|$))|\/storage\//i.test(url);
   }
 }
 

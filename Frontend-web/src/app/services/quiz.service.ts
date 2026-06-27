@@ -1,138 +1,236 @@
-import { Injectable, signal } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { inject, Injectable, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { Quiz } from '../models/quiz.model';
+
+interface BackendUser {
+  id: number | string;
+  name: string;
+}
+
+interface BackendContent {
+  id: number | string;
+  title: string;
+  summary?: string | null;
+  category?: { id: number | string; name: string } | null;
+}
+
+export interface BackendQuestion {
+  id: number | string;
+  question: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_option: 'a' | 'b' | 'c' | 'd';
+  explanation?: string | null;
+}
+
+export interface BackendQuiz {
+  id: number | string;
+  title: string;
+  description?: string | null;
+  cover_url?: string | null;
+  difficulty?: 'facil' | 'medio' | 'dificil' | null;
+  xp_per_question?: number | null;
+  time_limit?: number | null;
+  questions_count?: number;
+  user?: BackendUser | null;
+  content?: BackendContent | null;
+  questions?: BackendQuestion[];
+}
+
+interface PaginatedResponse<T> {
+  data: T[];
+}
+
+interface BackendQuizStats {
+  score: number;
+  completed_quizzes: number;
+  completed_quiz_ids: Array<number | string>;
+}
+
+interface BackendQuizResultsResponse extends PaginatedResponse<BackendQuizResult> {
+  stats?: BackendQuizStats;
+}
+
+interface BackendQuizResult {
+  quiz_id: number | string;
+  score: number;
+  total_questions: number;
+  percentage: string | number;
+  earned_xp?: number | null;
+  quiz?: BackendQuiz | null;
+}
+
+export interface CreateQuizPayload {
+  content_id: number | string;
+  title: string;
+  description?: string | null;
+  cover_url?: string | null;
+  difficulty: 'facil' | 'medio' | 'dificil';
+  xp_per_question: 10 | 15 | 20;
+  time_limit?: number | null;
+}
+
+export interface CreateQuestionPayload {
+  question: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_option: 'a' | 'b' | 'c' | 'd';
+  explanation?: string | null;
+}
+
+export interface SubmitQuizPayload {
+  started_at: string;
+  answers: Array<{
+    question_id: number | string;
+    selected_option: 'a' | 'b' | 'c' | 'd';
+  }>;
+}
+
+export interface QuizSubmitResult {
+  score: number;
+  total_questions: number;
+  percentage: number;
+  earned_xp: number;
+}
+
+export interface QuizUserStats {
+  score: number;
+  completedQuizzes: number;
+  completedQuizIds: string[];
+}
 
 @Injectable({ providedIn: 'root' })
 export class QuizService {
-  readonly quizzes = signal<Quiz[]>([
-    {
-      id: 'angola-mercados',
-      title: 'Mercados, inflação e Kwanza',
-      topic: 'Economia',
-      summary: 'Teste conceitos essenciais sobre preços, moeda e regulação económica em Angola.',
-      difficulty: 'Inicial',
-      xp: 40,
-      streakReward: 1,
-      estimatedMinutes: 4,
-      relatedContent: {
-        id: 'politica-monetaria-angola',
-        title: 'Análise da Política Monetária de Angola',
-        category: 'Economia monetária',
-        route: '/app/contents/politica-monetaria-angola',
-      },
-      questions: [
-        {
-          id: 'q1',
-          prompt: 'Qual conceito descreve a subida geral e sustentada dos preços?',
-          options: ['Inflação', 'Exportação', 'Poupança', 'Crédito'],
-          answerIndex: 0,
-          explanation: 'Inflação é o aumento persistente do nível geral de preços, reduzindo o poder de compra da moeda.',
-          contentLocation: 'Secção "Inflação e poder de compra" do conteúdo sobre política monetária.',
-        },
-        {
-          id: 'q2',
-          prompt: 'Quando o banco central sobe taxas de juro, o efeito esperado sobre o crédito é:',
-          options: ['Crédito mais caro', 'Crédito gratuito', 'Mais moeda sem custo', 'Fim das importações'],
-          answerIndex: 0,
-          explanation: 'Taxas de juro mais altas tendem a encarecer o crédito e a reduzir a procura por financiamento.',
-          contentLocation: 'Bloco "Instrumentos de regulação" do conteúdo relacionado.',
-        },
-        {
-          id: 'q3',
-          prompt: 'Qual instituição está diretamente associada à política monetária em Angola?',
-          options: ['Banco Nacional de Angola', 'Assembleia Nacional', 'Tribunal Supremo', 'Administração Municipal'],
-          answerIndex: 0,
-          explanation: 'O Banco Nacional de Angola é a autoridade monetária responsável por instrumentos como taxas e liquidez.',
-          contentLocation: 'Introdução do conteúdo "Análise da Política Monetária de Angola".',
-        },
-      ],
-    },
-    {
-      id: 'cafe-dende',
-      title: 'Café, dendém e dependência',
-      topic: 'História económica',
-      summary: 'Reforce a leitura sobre ciclos produtivos, monocultura e impactos sociais no território angolano.',
-      difficulty: 'Intermédio',
-      xp: 55,
-      streakReward: 2,
-      estimatedMinutes: 5,
-      relatedContent: {
-        id: 'caso-agro',
-        title: 'Diversificação Económica: O Caso da Agro-Indústria',
-        category: 'Agro-indústria',
-        route: '/app/contents/caso-agro',
-      },
-      questions: [
-        {
-          id: 'q1',
-          prompt: 'Por que a dependência de uma cultura de exportação pode ser arriscada?',
-          options: ['Expõe a economia a choques de preço', 'Elimina custos logísticos', 'Garante sempre pleno emprego', 'Impede qualquer crise externa'],
-          answerIndex: 0,
-          explanation: 'Quando uma economia depende de poucos produtos, oscilações externas podem afetar receitas, emprego e investimento.',
-          contentLocation: 'Parte "Riscos da concentração produtiva" no texto sobre agro-indústria.',
-        },
-        {
-          id: 'q2',
-          prompt: 'A diversificação económica procura principalmente:',
-          options: ['Ampliar setores produtivos', 'Fechar mercados locais', 'Eliminar agricultura', 'Substituir estudo histórico'],
-          answerIndex: 0,
-          explanation: 'Diversificar é reduzir dependências e fortalecer vários setores capazes de gerar valor e resiliência.',
-          contentLocation: 'Secção "Diversificação e resiliência" do conteúdo relacionado.',
-        },
-        {
-          id: 'q3',
-          prompt: 'No contexto agrícola, cadeias de valor significam:',
-          options: ['Etapas da produção até ao mercado', 'Apenas o preço final', 'Uma lista de impostos', 'Um método de votação'],
-          answerIndex: 0,
-          explanation: 'Cadeias de valor incluem produção, transformação, transporte, distribuição e venda.',
-          contentLocation: 'Quadro "Da produção ao mercado" no texto relacionado.',
-        },
-      ],
-    },
-    {
-      id: 'reino-kongo',
-      title: 'Rotas comerciais do Reino do Kongo',
-      topic: 'História',
-      summary: 'Identifique redes comerciais, diplomacia regional e formas tradicionais de circulação de valor.',
-      difficulty: 'Avançado',
-      xp: 70,
-      streakReward: 3,
-      estimatedMinutes: 6,
-      relatedContent: {
-        id: 'evolucao-comercio-kongo',
-        title: 'A Evolução do Comércio no Reino do Kongo',
-        category: 'Economias pré-coloniais',
-        route: '/app/contents/evolucao-comercio-kongo',
-      },
-      questions: [
-        {
-          id: 'q1',
-          prompt: 'As rotas comerciais pré-coloniais eram importantes porque:',
-          options: ['Ligavam mercados, autoridade política e diplomacia', 'Impediam qualquer troca regional', 'Eram apenas estradas militares', 'Substituíam todas as formas de governo'],
-          answerIndex: 0,
-          explanation: 'As redes de troca também sustentavam alianças, circulação de bens e influência política.',
-          contentLocation: 'Secção "Rotas, poder e diplomacia" do conteúdo sobre o Kongo.',
-        },
-        {
-          id: 'q2',
-          prompt: 'Uma leitura histórica da economia deve considerar:',
-          options: ['Tempo, território e relações sociais', 'Somente números recentes', 'Apenas opiniões pessoais', 'Só produtos importados'],
-          answerIndex: 0,
-          explanation: 'Contexto histórico evita interpretações isoladas e ajuda a ligar dados a instituições e sociedades.',
-          contentLocation: 'Introdução metodológica do conteúdo relacionado.',
-        },
-        {
-          id: 'q3',
-          prompt: 'O comércio tradicional pode revelar:',
-          options: ['Formas locais de organização económica', 'Ausência total de mercados', 'Fim da diplomacia', 'Economia sem pessoas'],
-          answerIndex: 0,
-          explanation: 'As práticas comerciais mostram instituições, confiança, especialização e integração regional.',
-          contentLocation: 'Conclusão do texto "A Evolução do Comércio no Reino do Kongo".',
-        },
-      ],
-    },
-  ]);
+  private readonly http = inject(HttpClient);
+
+  readonly quizzes = signal<Quiz[]>([]);
+  readonly userStats = signal<QuizUserStats>({
+    score: 0,
+    completedQuizzes: 0,
+    completedQuizIds: [],
+  });
+
+  async loadAll(search = ''): Promise<Quiz[]> {
+    let params = new HttpParams();
+
+    if (search.trim()) {
+      params = params.set('search', search.trim());
+    }
+
+    const response = await firstValueFrom(this.http.get<BackendQuiz[] | PaginatedResponse<BackendQuiz>>('/quizzes', { params }));
+    const quizzes = (Array.isArray(response) ? response : response.data).map((quiz) => this.toQuiz(quiz));
+
+    this.quizzes.set(quizzes);
+
+    return quizzes;
+  }
+
+  async getById(id: string | number): Promise<Quiz> {
+    const quiz = await firstValueFrom(this.http.get<BackendQuiz>(`/quizzes/${id}`));
+    return this.toQuiz(quiz);
+  }
+
+  async create(payload: CreateQuizPayload): Promise<BackendQuiz> {
+    const response = await firstValueFrom(this.http.post<{ data: BackendQuiz }>('/quizzes', payload));
+
+    return response.data;
+  }
+
+  async createQuestion(quizId: string | number, payload: CreateQuestionPayload): Promise<BackendQuestion> {
+    const response = await firstValueFrom(this.http.post<{ data: BackendQuestion }>(`/quizzes/${quizId}/questions`, payload));
+
+    return response.data;
+  }
+
+  async submit(quizId: string | number, payload: SubmitQuizPayload): Promise<QuizSubmitResult> {
+    const response = await firstValueFrom(this.http.post<{ data: QuizSubmitResult }>(`/quizzes/${quizId}/submit`, payload));
+
+    return response.data;
+  }
+
+  async loadMyStats(): Promise<QuizUserStats> {
+    const response = await firstValueFrom(this.http.get<BackendQuizResultsResponse>('/my-results'));
+    const results = response.data;
+    const completedQuizIds = response.stats
+      ? response.stats.completed_quiz_ids.map((quizId) => String(quizId))
+      : [...new Set(results.map((result) => String(result.quiz_id)))];
+    const score = response.stats?.score ?? results.reduce((total, result) => total + (result.earned_xp ?? 0), 0);
+    const stats = {
+      score,
+      completedQuizzes: response.stats?.completed_quizzes ?? completedQuizIds.length,
+      completedQuizIds,
+    };
+
+    this.userStats.set(stats);
+
+    return stats;
+  }
 
   findQuiz(id: string | null | undefined): Quiz | undefined {
     return this.quizzes().find((quiz) => quiz.id === id);
+  }
+
+  private toQuiz(quiz: BackendQuiz): Quiz {
+    const questions = quiz.questions ?? [];
+    const content = quiz.content;
+    const totalQuestions = questions.length || quiz.questions_count || 0;
+
+    return {
+      id: String(quiz.id),
+      title: quiz.title,
+      topic: content?.category?.name ?? 'Quiz',
+      summary: quiz.description || content?.summary || 'Teste os seus conhecimentos sobre este conteudo.',
+      coverUrl: quiz.cover_url ?? null,
+      difficulty: this.toDifficulty(quiz.difficulty, quiz.time_limit),
+      xp: (quiz.xp_per_question ?? this.xpPerQuestionFromTimeLimit(quiz.time_limit)) * Math.max(totalQuestions, 1),
+      streakReward: 0,
+      estimatedMinutes: quiz.time_limit ?? Math.max(totalQuestions * 2, 1),
+      relatedContent: {
+        id: String(content?.id ?? ''),
+        title: content?.title ?? 'Conteudo relacionado',
+        category: content?.category?.name ?? 'Conteudo',
+        route: content?.id ? `/app/contents/${content.id}` : '/app/contents',
+      },
+      questions: questions.map((question) => this.toQuestion(question, content)),
+    };
+  }
+
+  private toQuestion(question: BackendQuestion, content?: BackendContent | null): Quiz['questions'][number] {
+    const optionKeys = ['a', 'b', 'c', 'd'] as const;
+    const answerIndex = optionKeys.indexOf(question.correct_option);
+
+    return {
+      id: String(question.id),
+      prompt: question.question,
+      options: [question.option_a, question.option_b, question.option_c, question.option_d],
+      answerIndex: Math.max(answerIndex, 0),
+      explanation: question.explanation ?? '',
+      contentLocation: content?.title ?? 'Conteudo relacionado',
+    };
+  }
+
+  private toDifficulty(difficulty?: BackendQuiz['difficulty'], timeLimit?: number | null): Quiz['difficulty'] {
+    if (difficulty === 'facil' || difficulty === 'medio' || difficulty === 'dificil') {
+      return difficulty;
+    }
+
+    if (!timeLimit || timeLimit <= 5) {
+      return 'facil';
+    }
+
+    if (timeLimit <= 10) {
+      return 'medio';
+    }
+
+    return 'dificil';
+  }
+
+  private xpPerQuestionFromTimeLimit(timeLimit: number | null | undefined): number {
+    return !timeLimit || timeLimit <= 5 ? 10 : timeLimit <= 10 ? 15 : 20;
   }
 }

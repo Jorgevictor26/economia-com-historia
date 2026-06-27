@@ -7,23 +7,38 @@
 
         <div class="group relative aspect-video bg-[#212121]">
 
-          <!-- Thumbnail -->
-          <img [src]="video().frameUrl" [alt]="video().title" class="h-full w-full object-cover" />
+          @if (video().videoUrl && isDirectVideoUrl(video().videoUrl)) {
+            <video class="h-full w-full object-cover" [poster]="video().frameUrl" controls>
+              <source [src]="video().videoUrl" />
+            </video>
+          } @else {
+            @if (video().frameUrl) {
+              <img [src]="video().frameUrl" [alt]="video().title" class="h-full w-full object-cover" />
+            } @else {
+              <div class="grid h-full place-items-center bg-[#2A1B22]">
+                <span class="font-display text-[48px] font-extrabold text-white/70">{{ video().authorInitials }}</span>
+              </div>
+            }
+          }
 
           <!-- Overlay -->
-          <div class="absolute inset-0 bg-black/20 transition group-hover:bg-black/10"></div>
+          @if (!video().videoUrl || !isDirectVideoUrl(video().videoUrl)) {
+            <div class="absolute inset-0 bg-black/20 transition group-hover:bg-black/10"></div>
+          }
 
           <!-- Play Central -->
+          @if (!video().videoUrl || !isDirectVideoUrl(video().videoUrl)) {
           <div class="absolute inset-0 flex items-center justify-center">
 
-            <button type="button"
+            <a [href]="video().videoUrl || null" target="_blank" rel="noopener noreferrer"
               class="grid h-15 w-15 place-items-center rounded-full bg-black/70 text-white backdrop-blur-md transition duration-300 hover:scale-110 hover:bg-[#8A3F50]">
               <span class="material-symbols-outlined text-[50px]">
                 play_arrow
               </span>
-            </button>
+            </a>
 
           </div>
+          }
 
           <!-- Título -->
           <div class="absolute left-6 top-6 max-w-[70%]">
@@ -37,6 +52,7 @@
             </p>
 
           </div>
+          @if (!video().videoUrl || !isDirectVideoUrl(video().videoUrl)) {
           <div
             class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/70 to-transparent px-4 pb-3 pt-12">
 
@@ -90,8 +106,16 @@
               </div>
             </div>
           </div>
+          }
         </div>
       </section>
+
+      @if (isLoading()) {
+        <p class="mt-4 text-[13px] font-semibold text-[#616161]">A carregar vídeo...</p>
+      }
+      @if (loadError()) {
+        <p class="mt-4 text-[13px] font-bold text-[#B42318]">{{ loadError() }}</p>
+      }
 
       <div class="mt-7 flex flex-wrap items-center gap-3 text-[14px] text-[#616161]">
         <h1

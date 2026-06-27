@@ -59,10 +59,8 @@
               <select [value]="category()" (change)="setCategory($event)"
                 class="h-11 cursor-pointer rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#9E9E9E] outline-none transition hover:border-[#BDBDBD] focus:border-[#8A3F50]">
                 <option>Selecione uma categoria</option>
-                <option>Economia</option>
-                <option>Hist&oacute;ria</option>
-                @if (auth.canCreateJindungo()) {
-                <option>Textos com Jindungo</option>
+                @for (category of categories(); track category.id) {
+                <option>{{ category.name }}</option>
                 }
               </select>
             </label>
@@ -207,15 +205,20 @@
             <a routerLink="/admin/contents"
               class="inline-flex h-11 items-center justify-center rounded-[8px] px-5 text-[13px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]">Cancelar</a>
             <button type="button" (click)="saveDraft()"
-              class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#5C1E2F] bg-white px-5 text-[13px] font-extrabold text-[#5C1E2F] transition hover:bg-[#F2E6E9]">Guardar
+              [disabled]="isSaving()"
+              class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#5C1E2F] bg-white px-5 text-[13px] font-extrabold text-[#5C1E2F] transition hover:bg-[#F2E6E9] disabled:cursor-not-allowed disabled:opacity-50">Guardar
               rascunho</button>
             <button type="button" (click)="openPreview()"
               class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#5C1E2F] bg-white px-5 text-[13px] font-extrabold text-[#5C1E2F] transition hover:bg-[#F2E6E9]">Pr&eacute;-visualizar</button>
             <button type="button" (click)="publish()"
-              class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5C1E2F] px-6 text-[13px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.18)] transition hover:bg-[#5C1E2F] hover:shadow-[0_12px_28px_rgba(64,8,26,0.22)]">Publicar
+              [disabled]="isSaving()"
+              class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5C1E2F] px-6 text-[13px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.18)] transition hover:bg-[#5C1E2F] hover:shadow-[0_12px_28px_rgba(64,8,26,0.22)] disabled:cursor-not-allowed disabled:opacity-50">Publicar
               artigo</button>
           </div>
         </div>
+        @if (formError()) {
+        <p class="mt-3 text-right text-[13px] font-bold text-[#B42318]">{{ formError() }}</p>
+        }
         }
       </form>
     </section>
@@ -279,7 +282,8 @@
         <button type="button" (click)="closePreview()"
           class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#5C1E2F] bg-white px-5 text-[13px] font-extrabold text-[#5C1E2F] transition hover:bg-[#F2E6E9]">Fechar</button>
         <button type="button" (click)="publish()"
-          class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5C1E2F] px-6 text-[13px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.18)] transition hover:bg-[#5C1E2F] hover:shadow-[0_12px_28px_rgba(64,8,26,0.22)]">Publicar
+          [disabled]="isSaving()"
+          class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5C1E2F] px-6 text-[13px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.18)] transition hover:bg-[#5C1E2F] hover:shadow-[0_12px_28px_rgba(64,8,26,0.22)] disabled:cursor-not-allowed disabled:opacity-50">Publicar
           artigo</button>
       </footer>
     </article>

@@ -44,8 +44,11 @@ class QuizAnswerController extends Controller
 
     public function myResults(Request $request): JsonResponse
     {
-        return response()->json(
-            $this->submissions->myResults($request->user()->id)
-        );
+        $userId = $request->user()->id;
+
+        return response()->json([
+            ...$this->submissions->myResults($userId)->toArray(),
+            'stats' => $this->submissions->myStats($userId),
+        ]);
     }
 }

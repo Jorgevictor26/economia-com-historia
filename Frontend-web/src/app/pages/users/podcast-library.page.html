@@ -5,56 +5,67 @@
     <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
     <section
       class="grid gap-5 bg-white p-4 shadow-[0_18px_36px_rgba(44,39,41,0.06)] md:p-4">
-      <div class="podcast-mic min-h-[260px] rounded-[3px] shadow-[0_18px_34px_rgba(44,39,41,0.18)] md:min-h-[360px]" role="img"
-        aria-label="Capa do episódio"></div>
+      @if (currentPodcast().coverUrl) {
+        <img [src]="currentPodcast().coverUrl!" [alt]="'Capa de ' + currentPodcast().title" class="min-h-[260px] w-full rounded-[3px] object-cover shadow-[0_18px_34px_rgba(44,39,41,0.18)] md:h-[360px]" />
+      } @else {
+        <div class="podcast-mic min-h-[260px] rounded-[3px] shadow-[0_18px_34px_rgba(44,39,41,0.18)] md:min-h-[360px]" role="img"
+          aria-label="Capa do episódio"></div>
+      }
 
       <div class="min-w-0 px-0 py-1 md:px-8 md:pb-6">
         <h1
           class="font-display max-w-[760px] text-[28px] font-extrabold leading-[1.12] text-[#5C1E2F] lg:text-[38px]">
-          Ep. 24: A Herança do Império Lunda
+          {{ currentPodcast().title }}
         </h1>
         <p class="mt-4 max-w-[760px] text-[13px] leading-5 text-[#616161]">
-          Uma análise profunda sobre a organização económica e política de um dos maiores impérios da história angolana,
-          e como o seu legado molda o comércio regional até aos dias de hoje.
+          {{ currentPodcast().description }}
         </p>
         <div class="mt-5 border-[#E0E0E0] bg-white px-3 py-4">
-          <div class="mx-auto max-w-[560px]">
-            <div class="h-2 overflow-hidden rounded-full bg-[#F2E6E9]" aria-hidden="true">
-              <div class="h-full w-[30%] rounded-full bg-[#5C1E2F]"></div>
+          @if (currentPodcast().audioUrl) {
+            <audio class="mx-auto block w-full max-w-[560px]" [src]="currentPodcast().audioUrl!" controls preload="metadata"></audio>
+          } @else {
+            <div class="mx-auto max-w-[560px] rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-4 py-5 text-center text-[12px] font-bold text-[#8A3F50]">
+              Audio ainda nao disponivel para este podcast.
             </div>
-            <div class="mt-3 flex items-center justify-between text-[13px] font-medium text-[#616161]">
-              <span>12:00</span>
-              <span>-34:20</span>
-            </div>
-          </div>
+          }
 
-          <div class="mx-auto mt-4 grid max-w-[560px] grid-cols-5 items-center gap-4">
-            <button type="button"
-              class="grid size-11 place-items-center text-[#9E9E9E] transition hover:text-[#5c1e2f]"
-              aria-label="Reprodução aleatória">
-              <span class="material-symbols-outlined text-[34px]" aria-hidden="true">shuffle</span>
-            </button>
-            <button type="button"
-              class="grid size-12 place-items-center text-[#212121] transition hover:text-[#5c1e2f]"
-              aria-label="Episódio anterior">
-              <span class="material-symbols-outlined text-[42px]" aria-hidden="true">skip_previous</span>
-            </button>
-            <button type="button"
-              class="mx-auto grid size-[50px] place-items-center rounded-full bg-[#5C1E2F] text-white shadow-[0_18px_34px_rgba(104,26,49,0.28)] transition hover:bg-[#5C1E2F]"
-              aria-label="Reproduzir episódio">
-              <span class="material-symbols-outlined text-[58px]" aria-hidden="true">play_arrow</span>
-            </button>
-            <button type="button"
-              class="grid size-12 place-items-center text-[#212121] transition hover:text-[#5c1e2f]"
-              aria-label="Próximo episódio">
-              <span class="material-symbols-outlined text-[42px]" aria-hidden="true">skip_next</span>
-            </button>
-            <button type="button"
-              class="grid size-11 place-items-center text-[#9E9E9E] transition hover:text-[#5c1e2f]"
-              aria-label="Repetir episódio">
-              <span class="material-symbols-outlined text-[34px]" aria-hidden="true">repeat</span>
-            </button>
-          </div>
+          @if (isLoading()) {
+            <p class="mt-3 text-center text-[12px] font-bold text-[#9E9E9E]">A carregar podcast...</p>
+          }
+
+          @if (loadError()) {
+            <p class="mt-3 text-center text-[12px] font-bold text-[#8A3F50]">{{ loadError() }}</p>
+          }
+
+          @if (!currentPodcast().audioUrl) {
+            <div class="mx-auto mt-4 grid max-w-[560px] grid-cols-5 items-center gap-4">
+              <button type="button"
+                class="grid size-11 place-items-center text-[#9E9E9E] transition hover:text-[#5c1e2f]"
+                aria-label="Reprodução aleatória">
+                <span class="material-symbols-outlined text-[34px]" aria-hidden="true">shuffle</span>
+              </button>
+              <button type="button"
+                class="grid size-12 place-items-center text-[#212121] transition hover:text-[#5c1e2f]"
+                aria-label="Episódio anterior">
+                <span class="material-symbols-outlined text-[42px]" aria-hidden="true">skip_previous</span>
+              </button>
+              <button type="button"
+                class="mx-auto grid size-[50px] place-items-center rounded-full bg-[#5C1E2F] text-white shadow-[0_18px_34px_rgba(104,26,49,0.28)] transition hover:bg-[#5C1E2F]"
+                aria-label="Reproduzir episódio">
+                <span class="material-symbols-outlined text-[58px]" aria-hidden="true">play_arrow</span>
+              </button>
+              <button type="button"
+                class="grid size-12 place-items-center text-[#212121] transition hover:text-[#5c1e2f]"
+                aria-label="Próximo episódio">
+                <span class="material-symbols-outlined text-[42px]" aria-hidden="true">skip_next</span>
+              </button>
+              <button type="button"
+                class="grid size-11 place-items-center text-[#9E9E9E] transition hover:text-[#5c1e2f]"
+                aria-label="Repetir episódio">
+                <span class="material-symbols-outlined text-[34px]" aria-hidden="true">repeat</span>
+              </button>
+            </div>
+          }
         </div>
 
         <div
@@ -90,10 +101,10 @@
           <section class="border border-[#E0E0E0] bg-white px-6 py-6 text-center">
             <div
               class="mx-auto grid size-[70px] place-items-center rounded-[8px] bg-[#F2E6E9] font-display text-[20px] font-extrabold text-[#8A3F50]">
-              MC
+              {{ currentPodcast().authorInitials }}
             </div>
-            <h2 class="mt-5 font-display text-[13px] font-medium text-[#5c1e2f]">Dr. Manuel Cassule</h2>
-            <p class="mt-1 text-[11px] font-semibold text-[#D4AF37]">Doutorado em História Económica</p>
+            <h2 class="mt-5 font-display text-[13px] font-medium text-[#5c1e2f]">{{ currentPodcast().authorName }}</h2>
+            <p class="mt-1 text-[11px] font-semibold text-[#D4AF37]">{{ currentPodcast().category }} · {{ currentPodcast().duration }}</p>
             <p class="mx-auto mt-2 max-w-[170px] text-[9px] leading-[1.35] text-[#616161]">
               Investigador sénior na Universidade Agostinho Neto, especialista em sistemas políticos pré-coloniais da
               África Central.
@@ -334,4 +345,3 @@
 
   <app-back-to-top />
 </section>
-

@@ -14,6 +14,12 @@ class Forum extends Model
         'user_id',
         'name',
         'description',
+        'rules',
+        'category',
+        'image_url',
+        'visibility',
+        'content_permission',
+        'allow_attachments',
         'status',
         'reviewed_by',
         'reviewed_at',
@@ -21,6 +27,7 @@ class Forum extends Model
 
     protected $casts = [
         'reviewed_at' => 'datetime',
+        'allow_attachments' => 'boolean',
     ];
 
     public function user()
@@ -36,5 +43,11 @@ class Forum extends Model
     public function topics(): HasMany
     {
         return $this->hasMany(ForumTopic::class);
+    }
+
+    public function contents()
+    {
+        return $this->belongsToMany(Content::class, 'content_forum')
+            ->withTimestamps();
     }
 }

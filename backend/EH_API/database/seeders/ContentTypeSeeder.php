@@ -21,6 +21,11 @@ class ContentTypeSeeder extends Seeder
                 'description' => 'Conteudos em formato audiovisual.',
             ],
             [
+                'name' => 'Podcast',
+                'slug' => 'podcast',
+                'description' => 'Episodios em formato audio.',
+            ],
+            [
                 'name' => 'Jindungo',
                 'slug' => 'jindungo',
                 'description' => 'Conteudos especiais com analise aprofundada.',

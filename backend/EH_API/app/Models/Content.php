@@ -96,4 +96,11 @@ class Content extends Model
             get: fn (?string $value): ?string => $this->video_url ?? $value,
         );
     }
+
+    protected function audio(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value): ?string => $this->audio_url ?? $value,
+        );
+    }
 }

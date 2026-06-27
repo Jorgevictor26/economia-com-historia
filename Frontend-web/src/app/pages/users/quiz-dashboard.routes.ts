@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink, Routes } from '@angular/router';
 import { AuthStateService } from '../../services/auth-state.service';
-import { QuizService } from '../../services/quiz.service';
+import { QuizService, QuizSubmitResult } from '../../services/quiz.service';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
@@ -15,6 +15,20 @@ export class QuizDashboardPage {
   readonly auth = inject(AuthStateService);
   readonly searchTerm = signal('');
   readonly selectedLevel = signal('Todos');
+<<<<<<< HEAD
+  readonly isLoading = signal(false);
+  readonly loadError = signal('');
+  readonly levelFilters = ['Todos', 'Fácil', 'Médio', 'Difícil'];
+  readonly userQuizStats = computed(() => {
+    const stats = this.quizService.userStats();
+
+    return [
+      { label: 'Pontuação', value: `${stats.score} XP`, icon: 'military_tech' },
+      { label: 'Ranking', value: '#8', icon: 'leaderboard' },
+      { label: 'Quiz Completados', value: `${stats.completedQuizzes}`, icon: 'trophy' },
+    ];
+  });
+=======
   readonly quizPage = signal(1);
   readonly quizzesPerPage = 4;
   readonly levelFilters = ['Todos', 'Iniciante', 'Interm\u00e9dio', 'Avan\u00e7ado'];
@@ -23,6 +37,7 @@ export class QuizDashboardPage {
     { label: 'Ranking', value: '#8', icon: 'leaderboard' },
     { label: 'Quiz Completados', value: '14', icon: 'trophy' },
   ];
+>>>>>>> a41e593e4dc497c1a33dd70919279eaeee49d67e
   readonly topFive = [
     { position: 1, name: 'Isabel Marques', score: 1960 },
     { position: 2, name: 'Carlos Tchipia', score: 1840 },
@@ -31,82 +46,27 @@ export class QuizDashboardPage {
     { position: 5, name: 'L\u00edria B\u00e1', score: 1650 },
   ];
 
-  readonly quizCards = [
-    {
-      quizId: 'reino-kongo',
-      area: 'Hist\u00f3ria Imperial',
-      level: 'Interm\u00e9dio',
-      icon: 'castle',
-      title: 'O Reino do Congo e a Diplomacia Europeia',
-      summary: 'Analise duas institui\u00e7\u00f5es diplom\u00e1ticas entre a corte do Manicongo e as pot\u00eancias europeias.',
-      coverImage: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=900&q=80',
-      coverAlt: 'Arquitetura hist\u00f3rica em pedra',
-      progress: 40,
-      questions: 12,
-      action: 'Continuar',
-      accent: 'green',
-    },
-    {
-      quizId: 'angola-mercados',
-      area: 'Macroeconomia',
-      level: 'Avan\u00e7ado',
-      icon: 'analytics',
-      title: 'Pol\u00edticas Monet\u00e1rias no P\u00f3s-Independ\u00eancia',
-      summary: 'Estude sobre a transi\u00e7\u00e3o cambial e a estabiliza\u00e7\u00e3o do Kwanza nos primeiros anos.',
-      coverImage: '/assets/bna-hero.jpg',
-      coverAlt: 'Banco Nacional de Angola',
-      progress: 0,
-      questions: 20,
-      action: 'Iniciar',
-      accent: 'wine',
-    },
-    {
-      quizId: 'cafe-dende',
-      area: 'Sociedade & Economia',
-      level: 'Iniciante',
-      icon: 'groups',
-      title: 'Demografia e Mercados Locais',
-      summary: 'Como os movimentos migrat\u00f3rios internos moldaram o com\u00e9rcio informal e as redes de troca.',
-      progress: 100,
-      questions: 0,
-      action: 'Rever',
-      accent: 'green',
-    },
-    {
-      quizId: 'cafe-dende',
-      area: 'Hist\u00f3ria Econ\u00f3mica',
-      level: 'Interm\u00e9dio',
-      icon: 'route',
-      title: 'O Caminho de Ferro de Benguela',
-      summary: 'O impacto do CFB na estrutura mineira do Katanga e no desenvolvimento regional do Lobito.',
-      coverImage: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=900&q=80',
-      coverAlt: 'Comboio em linha ferrovi\u00e1ria',
-      progress: 15,
-      questions: 18,
-      action: 'Continuar',
-      accent: 'green',
-    },
-    {
-      quizId: 'reino-kongo',
-      area: 'Institui\u00e7\u00f5es',
-      level: 'Avan\u00e7ado',
-      icon: 'account_balance',
-      title: 'Arquitetura das Institui\u00e7\u00f5es Coloniais',
-      summary: 'Exame cr\u00edtico sobre a forma\u00e7\u00e3o do aparelho administrativo e seu legado na governan\u00e7a.',
-      progress: 0,
-      questions: 25,
-      action: 'Iniciar',
-      accent: 'wine',
-    },
-  ];
-
   readonly featuredQuiz = computed(() => this.quizService.quizzes()[1] ?? this.quizService.quizzes()[0]);
-  readonly availableChallenges = computed(() => this.quizCards.filter((quiz) => quiz.progress < 100).slice(0, 3));
+  readonly quizCards = computed(() => this.quizService.quizzes().map((quiz, index) => ({
+    quizId: quiz.id,
+    area: quiz.topic,
+    level: this.levelLabel(quiz.difficulty),
+    icon: 'quiz',
+    title: quiz.title,
+    summary: quiz.summary,
+    coverImage: quiz.coverUrl ?? '',
+    coverAlt: quiz.title,
+    progress: this.quizService.userStats().completedQuizIds.includes(quiz.id) ? 100 : 0,
+    questions: this.questionCount(quiz),
+    action: 'Iniciar',
+    accent: index % 2 === 0 ? 'green' : 'wine',
+  })));
+  readonly availableChallenges = computed(() => this.quizCards().filter((quiz) => quiz.progress < 100).slice(0, 3));
   readonly filteredQuizzes = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
     const level = this.selectedLevel();
 
-    return this.quizCards.filter((quiz) => {
+    return this.quizCards().filter((quiz) => {
       const matchesTerm = !term || [quiz.title, quiz.summary, quiz.area, quiz.level]
         .join(' ')
         .toLowerCase()
@@ -144,9 +104,54 @@ export class QuizDashboardPage {
     this.quizPage.update((page) => Math.min(this.quizTotalPages(), page + 1));
   }
 
+  constructor() {
+    void this.loadQuizzes();
+  }
+
   clearSearch(): void {
     this.searchTerm.set('');
     this.quizPage.set(1);
+  }
+
+  private async loadQuizzes(): Promise<void> {
+    this.isLoading.set(true);
+    this.loadError.set('');
+
+    try {
+      await this.quizService.loadAll();
+    } catch {
+      this.loadError.set('Nao foi possivel carregar os quizzes.');
+    } finally {
+      this.isLoading.set(false);
+    }
+
+    if (this.auth.isAuthenticated()) {
+      try {
+        await this.quizService.loadMyStats();
+      } catch {
+        this.quizService.userStats.set({ score: 0, completedQuizzes: 0, completedQuizIds: [] });
+      }
+    }
+  }
+
+  private levelLabel(level: 'facil' | 'medio' | 'dificil'): string {
+    const labels = {
+      facil: 'Fácil',
+      medio: 'Médio',
+      dificil: 'Difícil',
+    };
+
+    return labels[level];
+  }
+
+  private questionCount(quiz: { questions: unknown[]; xp: number; difficulty: 'facil' | 'medio' | 'dificil' }): number {
+    if (quiz.questions.length) {
+      return quiz.questions.length;
+    }
+
+    const xpPerQuestion = quiz.difficulty === 'facil' ? 10 : quiz.difficulty === 'medio' ? 15 : 20;
+
+    return Math.max(Math.round(quiz.xp / xpPerQuestion), 0);
   }
 }
 
@@ -160,19 +165,32 @@ export class QuizPlayPage {
   readonly quizService = inject(QuizService);
   readonly auth = inject(AuthStateService);
 
-  readonly quiz = computed(() => this.quizService.findQuiz(this.route.snapshot.paramMap.get('id')));
+  readonly quiz = signal(this.quizService.findQuiz(this.route.snapshot.paramMap.get('id')));
   readonly currentIndex = signal(0);
   readonly selectedIndex = signal<number | null>(null);
   readonly answered = signal(false);
   readonly correctCount = signal(0);
   readonly finished = signal(false);
   readonly isCorrect = signal(false);
+  readonly isLoading = signal(false);
+  readonly submitError = signal('');
+  readonly submitResult = signal<QuizSubmitResult | null>(null);
+  readonly selectedAnswers = signal<Array<{ question_id: string; selected_option: 'a' | 'b' | 'c' | 'd' }>>([]);
+  readonly startedAt = new Date().toISOString();
 
   readonly totalQuestions = computed(() => this.quiz()?.questions.length ?? 0);
   readonly currentQuestion = computed(() => this.quiz()!.questions[this.currentIndex()]);
   readonly progressPercent = computed(() => (this.totalQuestions() ? (this.correctCount() / this.totalQuestions()) * 100 : 0));
   readonly correctAnswer = computed(() => this.currentQuestion().options[this.currentQuestion().answerIndex]);
-  readonly earnedXp = computed(() => Math.round(((this.correctCount() / Math.max(this.totalQuestions(), 1)) * (this.quiz()?.xp ?? 0))));
+  readonly earnedXp = computed(() => this.submitResult()?.earned_xp ?? Math.round(((this.correctCount() / Math.max(this.totalQuestions(), 1)) * (this.quiz()?.xp ?? 0))));
+
+  constructor() {
+    const id = this.route.snapshot.paramMap.get('id');
+
+    if (id) {
+      void this.loadQuiz(id);
+    }
+  }
 
   selectOption(index: number): void {
     if (!this.answered()) {
@@ -192,12 +210,21 @@ export class QuizPlayPage {
     if (correct) {
       this.correctCount.update((count) => count + 1);
     }
+
+    this.selectedAnswers.update((answers) => [
+      ...answers.filter((answer) => answer.question_id !== this.currentQuestion().id),
+      {
+        question_id: this.currentQuestion().id,
+        selected_option: (['a', 'b', 'c', 'd'] as const)[selected],
+      },
+    ]);
     this.playFeedbackSound(correct);
   }
 
-  nextQuestion(): void {
+  async nextQuestion(): Promise<void> {
     if (this.currentIndex() + 1 >= this.totalQuestions()) {
       this.finished.set(true);
+      await this.submitQuiz();
       return;
     }
 
@@ -205,6 +232,39 @@ export class QuizPlayPage {
     this.selectedIndex.set(null);
     this.answered.set(false);
     this.isCorrect.set(false);
+  }
+
+  private async loadQuiz(id: string): Promise<void> {
+    this.isLoading.set(true);
+
+    try {
+      this.quiz.set(await this.quizService.getById(id));
+    } catch {
+      this.quiz.set(undefined);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  private async submitQuiz(): Promise<void> {
+    const quiz = this.quiz();
+
+    if (!quiz) {
+      return;
+    }
+
+    this.submitError.set('');
+
+    try {
+      const result = await this.quizService.submit(quiz.id, {
+        started_at: this.startedAt,
+        answers: this.selectedAnswers(),
+      });
+      this.submitResult.set(result);
+      await this.quizService.loadMyStats();
+    } catch {
+      this.submitError.set('Nao foi possivel enviar o resultado do quiz.');
+    }
   }
 
   private playFeedbackSound(correct: boolean): void {

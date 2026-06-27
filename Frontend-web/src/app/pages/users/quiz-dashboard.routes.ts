@@ -15,6 +15,7 @@ export class QuizDashboardPage {
   readonly auth = inject(AuthStateService);
   readonly searchTerm = signal('');
   readonly selectedLevel = signal('Todos');
+<<<<<<< HEAD
   readonly isLoading = signal(false);
   readonly loadError = signal('');
   readonly levelFilters = ['Todos', 'Fácil', 'Médio', 'Difícil'];
@@ -27,6 +28,16 @@ export class QuizDashboardPage {
       { label: 'Quiz Completados', value: `${stats.completedQuizzes}`, icon: 'trophy' },
     ];
   });
+=======
+  readonly quizPage = signal(1);
+  readonly quizzesPerPage = 4;
+  readonly levelFilters = ['Todos', 'Iniciante', 'Interm\u00e9dio', 'Avan\u00e7ado'];
+  readonly userQuizStats = [
+    { label: 'Pontua\u00e7\u00e3o', value: '1.240 XP', icon: 'military_tech' },
+    { label: 'Ranking', value: '#8', icon: 'leaderboard' },
+    { label: 'Quiz Completados', value: '14', icon: 'trophy' },
+  ];
+>>>>>>> a41e593e4dc497c1a33dd70919279eaeee49d67e
   readonly topFive = [
     { position: 1, name: 'Isabel Marques', score: 1960 },
     { position: 2, name: 'Carlos Tchipia', score: 1840 },
@@ -65,6 +76,33 @@ export class QuizDashboardPage {
       return matchesTerm && matchesLevel;
     });
   });
+  readonly quizTotalPages = computed(() => Math.max(1, Math.ceil(this.filteredQuizzes().length / this.quizzesPerPage)));
+  readonly currentQuizPage = computed(() => Math.min(this.quizPage(), this.quizTotalPages()));
+  readonly paginatedQuizzes = computed(() => {
+    const start = (this.currentQuizPage() - 1) * this.quizzesPerPage;
+
+    return this.filteredQuizzes().slice(start, start + this.quizzesPerPage);
+  });
+  readonly hasPreviousQuizPage = computed(() => this.currentQuizPage() > 1);
+  readonly hasNextQuizPage = computed(() => this.currentQuizPage() < this.quizTotalPages());
+
+  updateSearch(event: Event): void {
+    this.searchTerm.set((event.target as HTMLInputElement).value);
+    this.quizPage.set(1);
+  }
+
+  selectLevel(event: Event): void {
+    this.selectedLevel.set((event.target as HTMLSelectElement).value);
+    this.quizPage.set(1);
+  }
+
+  goToPreviousQuizPage(): void {
+    this.quizPage.update((page) => Math.max(1, page - 1));
+  }
+
+  goToNextQuizPage(): void {
+    this.quizPage.update((page) => Math.min(this.quizTotalPages(), page + 1));
+  }
 
   constructor() {
     void this.loadQuizzes();
@@ -72,6 +110,7 @@ export class QuizDashboardPage {
 
   clearSearch(): void {
     this.searchTerm.set('');
+    this.quizPage.set(1);
   }
 
   private async loadQuizzes(): Promise<void> {

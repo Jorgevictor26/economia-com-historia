@@ -11,7 +11,7 @@
       </div>
 
       <div
-        class="mt-7 grid gap-4 rounded-[12px] border border-[#E0E0E0] bg-white p-3 md:grid-cols-[minmax(0,1.7fr)_minmax(190px,0.85fr)_minmax(190px,0.85fr)]">
+        class="mt-7 grid gap-4 rounded-[12px] border border-[#E0E0E0] bg-white p-3 md:grid-cols-[minmax(0,1.7fr)_minmax(190px,0.85fr)]">
         <!-- Pesquisa -->
         <label
           class="flex min-h-[40px] items-center gap-2 rounded-[8px] bg-[#F5F5F5] px-3 text-[#9E9E9E] cursor-pointer">
@@ -43,23 +43,24 @@
           </span>
         </label>
 
-        <!-- Tipo de conteúdo -->
-        <label class="relative flex min-h-[40px] items-center gap-2 rounded-[8px] bg-[#F5F5F5] px-3 cursor-pointer">
-          <span class="material-symbols-outlined text-[#5C1E2F]">video_library</span>
-          <select
-            class="h-full w-full appearance-none rounded-[8px] bg-transparent px-2 pr-8 text-[13px] font-semibold text-[#212121] outline-none cursor-pointer"
-            [value]="selectedContentTypeFilter()" (change)="selectContentTypeFilter($any($event.target).value)">
-            @for (filter of contentTypeFilters(); track filter) {
-            <option [value]="filter">{{ filter === 'Todos os formatos' ? 'Todos os tipos' : filter }}</option>
-            }
-          </select>
-          <!-- Ícone dropdown -->
-          <span class="pointer-events-none absolute right-3 text-[#5C1E2F]">
-            <span class="material-symbols-outlined">arrow_drop_down</span>
-          </span>
-        </label>
       </div>
 
+      <div class="mt-5 flex flex-wrap gap-3">
+        @for (filter of contentTypeFilters(); track filter) {
+        <button
+          type="button"
+          class="inline-flex min-h-11 items-center justify-center rounded-[8px] border px-5 text-[13px] font-extrabold shadow-[0_8px_18px_rgba(33,33,33,0.04)] transition hover:border-[#8A3F50] hover:text-[#8A3F50]"
+          [class.border-[#5C1E2F]]="selectedContentTypeFilter() === filter"
+          [class.bg-[#5C1E2F]]="selectedContentTypeFilter() === filter"
+          [class.text-white]="selectedContentTypeFilter() === filter"
+          [class.border-[#E0E0E0]]="selectedContentTypeFilter() !== filter"
+          [class.bg-white]="selectedContentTypeFilter() !== filter"
+          [class.text-[#616161]]="selectedContentTypeFilter() !== filter"
+          (click)="selectContentTypeFilter(filter)">
+          {{ filter === 'Todos os formatos' ? 'Todos' : filter }}
+        </button>
+        }
+      </div>
 
     </section>
 
@@ -128,27 +129,17 @@
     }
 
     <div class="mt-8 flex flex-col items-center gap-2">
-      <div
-        class="inline-grid min-h-[18px] overflow-hidden rounded-full border border-[#E0E0E0] bg-white shadow-[0_8px_18px_rgba(64,8,26,0.06)] sm:grid-cols-[120px_50px_120px]">
-        <!-- Botão anterior -->
-        <button type="button"
-          class="flex items-center justify-center gap-1 px-3 text-[13px] font-semibold text-[#5C1E2F] transition hover:bg-[#F5F5F5] disabled:cursor-not-allowed disabled:text-[#BDBDBD]"
-          [disabled]="!hasPreviousPage() || isLoadingContents()" (click)="goToPreviousPage()">
+      <div class="eh-pagination">
+        <button type="button" class="eh-pagination-button" [disabled]="!hasPreviousPage() || isLoadingContents()" (click)="goToPreviousPage()">
           <span class="text-[16px] leading-none" aria-hidden="true">&larr;</span>
           Anterior
         </button>
 
-        <!-- Página atual -->
-        <div class="grid place-items-center border-x border-[#E0E0E0] px-2">
-          <span class="grid size-8 place-items-center rounded-[8px] bg-[#5C1E2F] text-[14px] font-bold text-white">
-            {{ pagination().currentPage }}
-          </span>
+        <div class="eh-pagination-current">
+          {{ pagination().currentPage }}
         </div>
 
-        <!-- Botão próximo -->
-        <button type="button"
-          class="flex items-center justify-center gap-1 px-3 text-[13px] font-semibold text-[#5C1E2F] transition hover:bg-[#F5F5F5] disabled:cursor-not-allowed disabled:text-[#BDBDBD]"
-          [disabled]="!hasMoreContents() || isLoadingContents()" (click)="goToNextPage()">
+        <button type="button" class="eh-pagination-button" [disabled]="!hasMoreContents() || isLoadingContents()" (click)="goToNextPage()">
           Próximo
           <span class="text-[16px] leading-none" aria-hidden="true">&rarr;</span>
         </button>
@@ -158,6 +149,5 @@
 
   </main>
 
-  <app-public-footer />
   <app-back-to-top />
 </section>

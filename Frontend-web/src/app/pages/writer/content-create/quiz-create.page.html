@@ -181,9 +181,20 @@
                   <small class="text-[12px] text-[#9E9E9E]">Clique para trocar</small>
                 </span>
               } @else {
+<<<<<<< HEAD
                 <span>
                   <span class="material-icon mx-auto grid size-14 place-items-center rounded-[8px] bg-[#F2E6E9] text-[34px] text-[#8A3F50]" aria-hidden="true">add_photo_alternate</span>
                   <strong class="mt-4 block text-[14px] font-extrabold text-[#5C1E2F]">Adicionar capa opcional</strong>
+=======
+                <span class="grid w-full gap-4 p-4">
+                  <span class="default-category-cover mx-auto aspect-video w-full max-w-3xl rounded-[8px]">
+                    <span>
+                      <strong>{{ defaultCoverLabel() }}</strong>
+                      <small>Quiz</small>
+                    </span>
+                  </span>
+                  <strong class="mt-4 block text-[14px] font-extrabold text-[#5C1E2F]">Adicionar foto opcional</strong>
+>>>>>>> a41e593e4dc497c1a33dd70919279eaeee49d67e
                   <small class="mt-2 block text-[12px] text-[#9E9E9E]">PNG, JPG ou WebP</small>
                 </span>
               }
@@ -245,7 +256,18 @@
         <div class="min-h-0 flex-1 overflow-y-auto bg-[#F5F5F5] px-6 py-7">
           <article class="mx-auto max-w-4xl bg-white p-6">
             @if (coverPreview()) {
+<<<<<<< HEAD
               <img [src]="coverPreview()!" alt="Capa do quiz" class="aspect-video w-full rounded-[8px] object-cover" />
+=======
+              <img [src]="coverPreview()!" alt="Foto do quiz" class="aspect-video w-full rounded-[8px] object-cover" />
+            } @else {
+              <div class="default-category-cover aspect-video w-full rounded-[8px]">
+                <span>
+                  <strong>{{ defaultCoverLabel() }}</strong>
+                  <small>Quiz</small>
+                </span>
+              </div>
+>>>>>>> a41e593e4dc497c1a33dd70919279eaeee49d67e
             }
             <h1 class="font-display text-[28px] font-extrabold text-[#5C1E2F]">{{ title() || 'Novo quiz' }}</h1>
             <p class="mt-2 text-[13px] leading-6 text-[#616161]">{{ description() || 'Sem descricao.' }}</p>

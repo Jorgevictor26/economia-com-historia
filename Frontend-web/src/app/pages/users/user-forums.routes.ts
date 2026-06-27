@@ -1,31 +1,32 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { Routes } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, Routes } from '@angular/router';
 import { Content } from '../../models/content.model';
 import { AuthStateService } from '../../services/auth-state.service';
 import { ContentService } from '../../services/content.service';
 import { BackendForum, ForumService } from '../../services/forum.service';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
-import { PublicFooterComponent } from '../shared/public-footer/public-footer.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
 @Component({
   selector: 'app-user-forums-page',
   standalone: true,
-  imports: [PublicNavbarComponent, PublicFooterComponent, BackToTopComponent],
+  imports: [RouterLink, PublicNavbarComponent, BackToTopComponent],
   templateUrl: './user-forums.page.html',
 })
 export class UserForumsPage {
   readonly auth = inject(AuthStateService);
   readonly contentService = inject(ContentService);
   readonly forumService = inject(ForumService);
+  private readonly router = inject(Router);
 
-  readonly categories = ['Economia', 'História', 'Jindungo', 'Podcast'];
+  readonly categories = ['Economia', 'Hist\u00f3ria', 'Jindungo', 'Podcast'];
   readonly selectedCategory = signal(this.categories[0]);
   readonly privacy = signal<'public' | 'private'>('public');
   readonly protectedByPassword = signal(false);
   readonly inviteEmails = signal<string[]>([]);
   readonly selectedContentIds = signal<string[]>(['1', '2']);
   readonly showAllResources = signal(false);
+  readonly createModalOpen = signal(false);
   readonly createFeedback = signal('');
   readonly resourceError = signal(false);
   readonly forumError = signal('');
@@ -42,10 +43,19 @@ export class UserForumsPage {
     this.showAllResources() ? this.contentService.contents() : this.selectedResources(),
   );
 
-  requireLogin(event: Event, operation: string): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.auth.requireLoginFor(operation);
+  openCreateModal(): void {
+    if (!this.auth.isAuthenticated()) {
+      this.auth.requireLoginFor('criar discuss\u00e3o');
+      return;
+    }
+
+    this.createFeedback.set('');
+    this.resourceError.set(false);
+    this.createModalOpen.set(true);
+  }
+
+  closeCreateModal(): void {
+    this.createModalOpen.set(false);
   }
 
   setPrivacy(privacy: 'public' | 'private'): void {
@@ -76,7 +86,7 @@ export class UserForumsPage {
 
   async createDebateRoom(titleInput: HTMLInputElement, objectiveInput: HTMLTextAreaElement): Promise<void> {
     if (!this.auth.isAuthenticated()) {
-      this.auth.requireLoginFor('criar sala de debate');
+      this.auth.requireLoginFor('criar discuss\u00e3o');
       return;
     }
 
@@ -87,10 +97,11 @@ export class UserForumsPage {
     this.resourceError.set(!linkedContents.length);
 
     if (!title || !objective || !linkedContents.length) {
-      this.createFeedback.set('Preencha o título, o objetivo e vincule pelo menos um conteúdo da plataforma.');
+      this.createFeedback.set('Preencha o t\u00edtulo, o objetivo e vincule pelo menos um conte\u00fado da plataforma.');
       return;
     }
 
+<<<<<<< HEAD
     try {
       await this.forumService.create({
         name: title,
@@ -149,6 +160,37 @@ export class UserForumsPage {
         meta: content.category?.name ?? '',
       })),
     };
+=======
+    const room = this.forumService.createRoom({
+      name: title,
+      category: this.selectedCategory(),
+      objective,
+      visibility: this.privacy(),
+      inviteEmails: this.inviteEmails(),
+      protectedByPassword: this.protectedByPassword(),
+      linkedContents,
+    });
+
+    titleInput.value = '';
+    objectiveInput.value = '';
+    this.inviteEmails.set([]);
+    this.selectedContentIds.set(['1', '2']);
+    this.privacy.set('public');
+    this.protectedByPassword.set(false);
+    this.showAllResources.set(false);
+    this.createFeedback.set('Discuss\u00e3o criada e vinculada aos conte\u00fados selecionados.');
+    this.createModalOpen.set(false);
+    void this.router.navigate(['/app/forums', room.id]);
+  }
+
+  roomInitials(name: string): string {
+    return name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('') || 'EH';
+>>>>>>> a41e593e4dc497c1a33dd70919279eaeee49d67e
   }
 
   private toLinkedContent(content: Content) {
@@ -162,8 +204,8 @@ export class UserForumsPage {
 
   private contentTypeLabel(type: Content['type']): string {
     const labels: Record<Content['type'], string> = {
-      historia: 'Artigo Académico',
-      economia: 'Artigo Académico',
+      historia: 'Artigo Acad\u00e9mico',
+      economia: 'Artigo Acad\u00e9mico',
       podcast: 'Podcast',
       jindungo: 'Jindungo',
     };
@@ -172,4 +214,44 @@ export class UserForumsPage {
   }
 }
 
-export const USER_FORUMS_ROUTES: Routes = [{ path: '', component: UserForumsPage }];
+@Component({
+  selector: 'app-user-forum-detail-page',
+  standalone: true,
+  imports: [RouterLink, PublicNavbarComponent, BackToTopComponent],
+  templateUrl: './user-forum-detail.page.html',
+})
+export class UserForumDetailPage {
+  private readonly route = inject(ActivatedRoute);
+  readonly auth = inject(AuthStateService);
+  readonly forumService = inject(ForumService);
+
+  readonly room = computed(() => {
+    const roomId = this.route.snapshot.paramMap.get('id');
+
+    return this.forumService.rooms().find((room) => room.id === roomId) ?? null;
+  });
+
+  readonly accessNotice = computed(() => {
+    const room = this.room();
+
+    if (!room || room.visibility !== 'private' || this.auth.canAccessForum(room.id, room.visibility)) {
+      return '';
+    }
+
+    return 'Este f\u00f3rum \u00e9 privado. Precisa de convite ou palavra-passe para participar.';
+  });
+
+  roomInitials(name: string): string {
+    return name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('') || 'EH';
+  }
+}
+
+export const USER_FORUMS_ROUTES: Routes = [
+  { path: '', component: UserForumsPage },
+  { path: ':id', component: UserForumDetailPage },
+];

@@ -92,7 +92,7 @@ interface VideoComment {
 
 @Component({
   selector: 'app-content-library-page',
-  imports: [PublicNavbarComponent, PublicFooterComponent, BackToTopComponent, ContentCardComponent],
+  imports: [PublicNavbarComponent, BackToTopComponent, ContentCardComponent],
   templateUrl: './content-library.page.html'
 })
 export class ContentLibraryPage implements OnInit {

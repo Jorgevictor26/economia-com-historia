@@ -68,6 +68,7 @@ export class VideoCreatePage {
   readonly previewTitle = computed(() => this.title().trim() || 'A Economia Angolana no Seculo XVII');
   readonly previewSummary = computed(() => this.summary().trim() || 'O resumo para alunos aparece aqui como descricao curta da videoaula.');
   readonly durationLabel = computed(() => `${this.duration() || '45'} min`);
+  readonly defaultFrameLabel = computed(() => this.previewTitle());
 
   readonly metrics = [
     { icon: 'link', value: 'URL', label: 'Fonte selecionada', badge: 'Origem', description: 'Pode alternar entre link externo e upload.' },

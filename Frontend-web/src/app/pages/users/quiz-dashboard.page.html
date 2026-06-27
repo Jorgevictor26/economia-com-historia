@@ -12,8 +12,7 @@
           <span class="material-symbols-outlined text-[#5C1E2F]">search</span>
           <input
             class="w-full cursor-pointer bg-transparent text-[13px] text-[#212121] outline-none placeholder:text-[#9E9E9E]"
-            type="text" placeholder="Pesquisar quizzes..." [value]="searchTerm()"
-            (input)="searchTerm.set($any($event.target).value)" />
+            type="text" placeholder="Pesquisar quizzes..." [value]="searchTerm()" (input)="updateSearch($event)" />
           @if (searchTerm()) {
           <button type="button" class="ml-2 text-[#5C1E2F] hover:text-[#8A3F50]" (click)="clearSearch()">
             <span class="material-symbols-outlined">close</span>
@@ -25,7 +24,7 @@
           <span class="material-symbols-outlined text-[#5C1E2F]">filter_list</span>
           <select
             class="h-full w-full cursor-pointer appearance-none rounded-[8px] bg-transparent px-2 pr-8 text-[13px] font-semibold text-[#212121] outline-none"
-            [value]="selectedLevel()" (change)="selectedLevel.set($any($event.target).value)">
+            [value]="selectedLevel()" (change)="selectLevel($event)">
             @for (level of levelFilters; track level) {
             <option [value]="level">{{ level === 'Todos' ? 'Todos os n&iacute;veis' : level }}</option>
             }
@@ -36,6 +35,7 @@
         </label>
       </div>
 
+<<<<<<< HEAD
       <div class="mt-6 grid gap-5">
         @if (loadError()) {
           <p class="rounded-[8px] border border-[#E6D5B8] bg-white px-4 py-3 text-[12px] font-bold text-[#8A3F50]">{{ loadError() }}</p>
@@ -70,28 +70,70 @@
             }
           </div>
         </section>
+=======
+      <div class="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <article class="rounded-[8px] border border-[#E0E0E0] bg-white p-5 lg:self-start">
+          <div class="flex flex-col divide-y divide-[#E0E0E0]">
+            @for (stat of userQuizStats; track stat.label) {
+            <section class="flex items-center gap-3 py-4 first:pt-0 last:pb-0">
+              <span class="material-symbols-outlined text-[24px] text-[#5C1E2F]">
+                {{ stat.icon }}
+              </span>
+>>>>>>> a41e593e4dc497c1a33dd70919279eaeee49d67e
 
-        <section class="bg-white p-4">
-          <h2 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">Desafios</h2>
-          <div class="mt-3 grid gap-2">
-            @for (challenge of availableChallenges(); track challenge.title) {
-            @if (auth.isAuthenticated()) {
-            <a [routerLink]="[challenge.quizId, 'play']" class="block py-1 hover:text-[#5c1e2f]">
-              <span class="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#D4AF37]">{{ challenge.level
-                }}</span>
-              <strong class="block truncate text-[12px] leading-5 text-[#5c1e2f]">{{ challenge.title }}</strong>
-            </a>
-            } @else {
-            <button type="button" class="block w-full py-1 text-left hover:text-[#5c1e2f]"
-              (click)="auth.requireLoginFor('fazer quiz')">
-              <span class="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#D4AF37]">{{ challenge.level
-                }}</span>
-              <strong class="block truncate text-[12px] leading-5 text-[#5c1e2f]">{{ challenge.title }}</strong>
-            </button>
-            }
+              <div class="min-w-0">
+                <p class="truncate text-[11px] font-medium text-[#212121]">
+                  {{ stat.label }}
+                </p>
+
+                <strong class="font-number block text-[18px] font-extrabold leading-none text-[#212121]">
+                  {{ stat.value }}
+                </strong>
+              </div>
+            </section>
             }
           </div>
-        </section>
+        </article>
+
+        <aside class="grid gap-4">
+          <section class="bg-white p-4">
+            <h2 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">Top 5</h2>
+            <div class="mt-3 grid gap-2">
+              @for (student of topFive; track student.position) {
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex min-w-0 items-center gap-2">
+                  <span
+                    class="grid size-6 shrink-0 place-items-center rounded-[6px] text-[10px] font-extrabold text-[#5c1e2f]">{{
+                    student.position }}</span>
+                  <span class="truncate text-[12px] font-bold text-[#212121]">{{ student.name }}</span>
+                </div>
+                <strong class="text-[12px] text-[#D4AF37]">{{ student.score }} XP</strong>
+              </div>
+              }
+            </div>
+          </section>
+
+          <section class="bg-white p-4">
+            <h2 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">Desafios</h2>
+            <div class="mt-3 grid gap-2">
+              @for (challenge of availableChallenges(); track challenge.title) {
+              @if (auth.isAuthenticated()) {
+              <a [routerLink]="[challenge.quizId, 'play']" class="block py-1 hover:text-[#5c1e2f]">
+                <span class="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#D4AF37]">{{ challenge.level
+                  }}</span>
+                <strong class="block truncate text-[12px] leading-5 text-[#5c1e2f]">{{ challenge.title }}</strong>
+              </a>
+              } @else {
+              <button type="button" class="block w-full py-1 text-left hover:text-[#5c1e2f]"
+                (click)="auth.requireLoginFor('fazer quiz')">
+                <span class="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#D4AF37]">{{ challenge.level
+                  }}</span>
+                <strong class="block truncate text-[12px] leading-5 text-[#5c1e2f]">{{ challenge.title }}</strong>
+              </button>
+              }
+              }
+            </div>
+          </section>
         </aside>
       </div>
     </section>
@@ -100,30 +142,41 @@
 
 
       <div class="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-        @for (quiz of filteredQuizzes(); track quiz.title) {
+        @for (quiz of paginatedQuizzes(); track quiz.title) {
         <article
           class="group flex min-h-[318px] flex-col overflow-hidden rounded-[18px] border border-[#E0E0E0] bg-white shadow-[0_16px_40px_rgba(64,8,26,0.07)] transition duration-300 hover:-translate-y-1 hover:border-[#E6D5B8] hover:shadow-[0_22px_55px_rgba(64,8,26,0.14)]">
           @if (quiz.coverImage) {
           <figure class="relative h-40 overflow-hidden bg-[#F2E6E9]">
-            <img
-              class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              [src]="quiz.coverImage"
-              [alt]="quiz.coverAlt || quiz.title"
-              loading="lazy" />
-            <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(64,8,26,0.04)_0%,rgba(64,8,26,0.5)_100%)]"></div>
+            <img class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              [src]="quiz.coverImage" [alt]="quiz.coverAlt || quiz.title" loading="lazy" />
+            <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(64,8,26,0.04)_0%,rgba(64,8,26,0.5)_100%)]">
+            </div>
             <figcaption
               class="absolute left-4 top-4 rounded-full bg-white/92 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5c1e2f] shadow-sm backdrop-blur">
               {{ quiz.level }}
             </figcaption>
+          </figure>
+          } @else {
+          <figure class="relative h-40 overflow-hidden bg-[#F2E6E9]">
+            <div class="default-category-cover">
+              <span>
+                <strong>{{ quiz.area }}</strong>
+                <small>{{ quiz.level }}</small>
+              </span>
+            </div>
           </figure>
           }
 
           <div class="flex flex-1 flex-col px-6 pb-5 pt-5" [class.border-[#2a9d8f]]="quiz.accent === 'green'"
             [class.border-[#8A3F50]]="quiz.accent === 'wine'">
             <div class="flex items-start justify-between gap-4">
-              <span class="rounded-full bg-[#F2E6E9] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#D4AF37]">{{ quiz.area }}</span>
+              <span
+                class="rounded-full bg-[#F2E6E9] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#D4AF37]">{{
+                quiz.area }}</span>
               @if (!quiz.coverImage) {
-              <span class="rounded-full bg-[#F2E6E9] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5c1e2f]">{{ quiz.level }}</span>
+              <span
+                class="rounded-full bg-[#F2E6E9] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5c1e2f]">{{
+                quiz.level }}</span>
               }
             </div>
 
@@ -151,11 +204,11 @@
             </span>
 
             @if (auth.isAuthenticated()) {
-            <a [routerLink]="[quiz.quizId, 'play']" class="inline-flex min-h-9 items-center rounded-full bg-[#5c1e2f] px-4 text-[12px] font-extrabold text-white transition hover:bg-[#5C1E2F]">{{
+            <a [routerLink]="[quiz.quizId, 'play']" class="eh-card-action">{{
               quiz.action }}</a>
             } @else {
-            <button type="button" class="inline-flex min-h-9 items-center rounded-full bg-[#5c1e2f] px-4 text-[12px] font-extrabold text-white transition hover:bg-[#5C1E2F]"
-              (click)="auth.requireLoginFor('fazer quiz')">{{ quiz.action }}</button>
+            <button type="button" class="eh-card-action" (click)="auth.requireLoginFor('fazer quiz')">{{ quiz.action
+              }}</button>
             }
           </div>
         </article>
@@ -178,6 +231,26 @@
             <p class="mt-1 text-[12px] text-[#BDBDBD]">Pr&oacute;ximos temas: A Era do Petr&oacute;leo</p>
           </div>
         </article>
+      </div>
+
+      <div class="mt-8 flex flex-col items-center gap-2">
+        <div class="eh-pagination">
+          <button type="button" class="eh-pagination-button" [disabled]="!hasPreviousQuizPage()"
+            (click)="goToPreviousQuizPage()">
+            <span class="text-[16px] leading-none" aria-hidden="true">&larr;</span>
+            Anterior
+          </button>
+
+          <div class="eh-pagination-current">
+            {{ currentQuizPage() }}
+          </div>
+
+          <button type="button" class="eh-pagination-button" [disabled]="!hasNextQuizPage()"
+            (click)="goToNextQuizPage()">
+            Próximo
+            <span class="text-[16px] leading-none" aria-hidden="true">&rarr;</span>
+          </button>
+        </div>
       </div>
     </section>
   </main>

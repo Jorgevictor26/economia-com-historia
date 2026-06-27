@@ -71,6 +71,15 @@
           Imagem associada ao conteúdo.
         </figcaption>
       </figure>
+      } @else {
+      <figure class="mt-7">
+        <div class="default-category-cover h-[310px] w-full rounded-[8px]">
+          <span>
+            <strong>{{ detail()?.category || 'Conteúdo' }}</strong>
+            <small>{{ detail()?.contentType || 'Texto' }}</small>
+          </span>
+        </div>
+      </figure>
       }
 
       @if (isLoading()) {

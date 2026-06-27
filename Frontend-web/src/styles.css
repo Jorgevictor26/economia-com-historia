@@ -937,6 +937,147 @@
     color: #8A3F50;
   }
 
+  .eh-card-action {
+    display: inline-flex;
+    min-height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px !important;
+    background: #5c1e2f;
+    padding-inline: 1rem;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    line-height: 1;
+    transition: background-color 160ms ease, transform 160ms ease;
+  }
+
+  .eh-card-action:hover {
+    background: #8A3F50;
+    color: #fff;
+  }
+
+  .eh-pagination {
+    display: inline-grid;
+    min-height: 2.75rem;
+    overflow: hidden;
+    border: 1px solid #E0E0E0;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 8px 18px rgb(64 8 26 / 0.06);
+    grid-template-columns: minmax(6.5rem, 1fr) 3rem minmax(6.5rem, 1fr);
+  }
+
+  .eh-pagination-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding-inline: 0.85rem;
+    color: #9E9E9E;
+    font-size: 0.82rem;
+    font-weight: 800;
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+
+  .eh-pagination-button:not(:disabled) {
+    color: #616161;
+  }
+
+  .eh-pagination-button:not(:disabled):hover {
+    background: #F5F5F5;
+    color: #8A3F50;
+  }
+
+  .eh-pagination-button:disabled {
+    cursor: not-allowed;
+    color: #BDBDBD;
+  }
+
+  .eh-pagination-current {
+    display: grid;
+    place-items: center;
+    border-inline: 1px solid #E0E0E0;
+    color: #5c1e2f;
+    font-family: var(--font-number);
+    font-size: 1rem;
+    font-weight: 900;
+  }
+
+  .default-category-cover,
+  .default-video-frame {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    height: 100%;
+    min-height: 100%;
+    place-items: center;
+    overflow: hidden;
+    background:
+      linear-gradient(135deg, rgb(92 30 47 / 0.92), rgb(138 63 80 / 0.86)),
+      #5c1e2f;
+    color: #fff;
+    text-align: center;
+  }
+
+  .default-category-cover::before {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 18% 18%, rgb(212 175 55 / 0.28), transparent 28%),
+      radial-gradient(circle at 78% 74%, rgb(242 230 233 / 0.18), transparent 34%),
+      repeating-linear-gradient(135deg, transparent 0 16px, rgb(255 255 255 / 0.06) 16px 17px);
+    content: "";
+    z-index: -1;
+  }
+
+  .default-category-cover strong {
+    max-width: 78%;
+    color: inherit;
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 3vw, 2.15rem);
+    font-weight: 900;
+    line-height: 1.05;
+  }
+
+  .default-category-cover small,
+  .default-video-frame small {
+    margin-top: 0.55rem;
+    color: rgb(255 255 255 / 0.78);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .default-video-frame {
+    background:
+      linear-gradient(180deg, rgb(33 33 33 / 0.08), rgb(33 33 33 / 0.74)),
+      repeating-linear-gradient(90deg, #212121 0 14px, #2a1a20 14px 28px, #5c1e2f 28px 42px);
+  }
+
+  .default-video-frame::before {
+    position: absolute;
+    inset: 12%;
+    border: 1px solid rgb(255 255 255 / 0.28);
+    border-radius: 8px;
+    content: "";
+  }
+
+  .default-video-play {
+    display: grid;
+    width: 3.4rem;
+    aspect-ratio: 1;
+    place-items: center;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.92);
+    color: #5c1e2f;
+    font-family: "Material Symbols Outlined";
+    font-size: 2rem;
+    font-feature-settings: "liga";
+    -webkit-font-feature-settings: "liga";
+  }
+
   .content-filter-button:hover {
     border-color: #8A3F50;
     background: #F2E6E9;

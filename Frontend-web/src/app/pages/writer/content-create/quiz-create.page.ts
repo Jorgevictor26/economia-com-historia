@@ -29,6 +29,7 @@ export class QuizCreatePage {
   readonly aiPrompt = signal('');
   readonly manualQuestion = signal('');
   readonly manualKind = signal('Múltipla escolha');
+  readonly category = signal('Economia');
   readonly selectedDifficulty = signal('Médio');
   readonly manualXp = signal(15);
   readonly manualCorrectOption = signal('A');
@@ -52,6 +53,7 @@ export class QuizCreatePage {
   readonly toggle = (value: boolean) => !value;
 
   readonly progress = computed(() => Math.min(100, Math.round((this.previewQuestions().length / 8) * 100)));
+  readonly defaultCoverLabel = computed(() => this.category().trim() || 'Quiz');
 
   readonly metrics = [
     { icon: 'format_list_numbered', value: '8', label: 'Numero de perguntas', badge: 'IA', description: 'Quantidade sugerida para avaliacao curta.' },

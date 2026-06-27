@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { Routes } from '@angular/router';
+import { RouterLink, Routes } from '@angular/router';
 import { Content } from '../../models/content.model';
 import { AuthStateService } from '../../services/auth-state.service';
 import { ContentService } from '../../services/content.service';
@@ -11,7 +11,7 @@ import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.com
 @Component({
   selector: 'app-user-forums-page',
   standalone: true,
-  imports: [PublicNavbarComponent, PublicFooterComponent, BackToTopComponent],
+  imports: [RouterLink, PublicNavbarComponent, PublicFooterComponent, BackToTopComponent],
   templateUrl: './user-forums.page.html',
 })
 export class UserForumsPage {
@@ -26,8 +26,15 @@ export class UserForumsPage {
   readonly inviteEmails = signal<string[]>([]);
   readonly selectedContentIds = signal<string[]>(['1', '2']);
   readonly showAllResources = signal(false);
+  readonly createModalOpen = signal(false);
   readonly createFeedback = signal('');
   readonly resourceError = signal(false);
+  readonly selectedRoomId = signal(this.forumService.rooms()[0]?.id ?? '');
+  readonly accessNotice = signal('');
+
+  readonly selectedRoom = computed(
+    () => this.forumService.rooms().find((room) => room.id === this.selectedRoomId()) ?? this.forumService.rooms()[0] ?? null,
+  );
 
   readonly selectedResources = computed(() =>
     this.contentService.contents().filter((content) => this.selectedContentIds().includes(content.id)),
@@ -41,6 +48,42 @@ export class UserForumsPage {
     event.preventDefault();
     event.stopPropagation();
     this.auth.requireLoginFor(operation);
+  }
+
+  openCreateModal(): void {
+    if (!this.auth.isAuthenticated()) {
+      this.auth.requireLoginFor('criar discussão');
+      return;
+    }
+
+    this.createFeedback.set('');
+    this.resourceError.set(false);
+    this.createModalOpen.set(true);
+  }
+
+  closeCreateModal(): void {
+    this.createModalOpen.set(false);
+  }
+
+  isSelectedRoom(roomId: string): boolean {
+    return this.selectedRoom()?.id === roomId;
+  }
+
+  selectRoom(roomId: string): void {
+    const room = this.forumService.rooms().find((item) => item.id === roomId);
+
+    if (!room) {
+      return;
+    }
+
+    this.selectedRoomId.set(roomId);
+
+    if (!this.auth.canAccessForum(room.id, room.visibility)) {
+      this.accessNotice.set('Este fórum é privado. Precisa de convite ou palavra-passe para participar.');
+      return;
+    }
+
+    this.accessNotice.set('');
   }
 
   setPrivacy(privacy: 'public' | 'private'): void {
@@ -71,7 +114,7 @@ export class UserForumsPage {
 
   createDebateRoom(titleInput: HTMLInputElement, objectiveInput: HTMLTextAreaElement): void {
     if (!this.auth.isAuthenticated()) {
-      this.auth.requireLoginFor('criar sala de debate');
+      this.auth.requireLoginFor('criar discussão');
       return;
     }
 
@@ -86,7 +129,7 @@ export class UserForumsPage {
       return;
     }
 
-    this.forumService.createRoom({
+    const room = this.forumService.createRoom({
       name: title,
       category: this.selectedCategory(),
       objective,
@@ -103,7 +146,18 @@ export class UserForumsPage {
     this.privacy.set('public');
     this.protectedByPassword.set(false);
     this.showAllResources.set(false);
-    this.createFeedback.set('Sala de debate criada e vinculada aos conteúdos selecionados.');
+    this.selectedRoomId.set(room.id);
+    this.createFeedback.set('Discussão criada e vinculada aos conteúdos selecionados.');
+    this.createModalOpen.set(false);
+  }
+
+  roomInitials(name: string): string {
+    return name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('') || 'EH';
   }
 
   private toLinkedContent(content: Content) {

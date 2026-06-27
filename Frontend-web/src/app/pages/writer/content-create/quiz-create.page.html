@@ -137,8 +137,13 @@
                   <small class="text-[12px] text-[#9E9E9E]">Clique para trocar</small>
                 </span>
               } @else {
-                <span>
-                  <span class="material-icon mx-auto grid size-14 place-items-center rounded-[8px] bg-[#F2E6E9] text-[34px] text-[#8A3F50]" aria-hidden="true">add_photo_alternate</span>
+                <span class="grid w-full gap-4 p-4">
+                  <span class="default-category-cover mx-auto aspect-video w-full max-w-3xl rounded-[8px]">
+                    <span>
+                      <strong>{{ defaultCoverLabel() }}</strong>
+                      <small>Quiz</small>
+                    </span>
+                  </span>
                   <strong class="mt-4 block text-[14px] font-extrabold text-[#5C1E2F]">Adicionar foto opcional</strong>
                   <small class="mt-2 block text-[12px] text-[#9E9E9E]">PNG, JPG ou WebP</small>
                 </span>
@@ -205,6 +210,13 @@
           <article class="mx-auto max-w-4xl bg-white p-6">
             @if (coverPreview()) {
               <img [src]="coverPreview()!" alt="Foto do quiz" class="aspect-video w-full rounded-[8px] object-cover" />
+            } @else {
+              <div class="default-category-cover aspect-video w-full rounded-[8px]">
+                <span>
+                  <strong>{{ defaultCoverLabel() }}</strong>
+                  <small>Quiz</small>
+                </span>
+              </div>
             }
             <div class="mt-5 grid gap-3 sm:grid-cols-4">
               @for (stat of quickStats; track stat.label) {

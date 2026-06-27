@@ -15,6 +15,8 @@ export class QuizDashboardPage {
   readonly auth = inject(AuthStateService);
   readonly searchTerm = signal('');
   readonly selectedLevel = signal('Todos');
+  readonly quizPage = signal(1);
+  readonly quizzesPerPage = 4;
   readonly levelFilters = ['Todos', 'Iniciante', 'Interm\u00e9dio', 'Avan\u00e7ado'];
   readonly userQuizStats = [
     { label: 'Pontua\u00e7\u00e3o', value: '1.240 XP', icon: 'military_tech' },
@@ -114,9 +116,37 @@ export class QuizDashboardPage {
       return matchesTerm && matchesLevel;
     });
   });
+  readonly quizTotalPages = computed(() => Math.max(1, Math.ceil(this.filteredQuizzes().length / this.quizzesPerPage)));
+  readonly currentQuizPage = computed(() => Math.min(this.quizPage(), this.quizTotalPages()));
+  readonly paginatedQuizzes = computed(() => {
+    const start = (this.currentQuizPage() - 1) * this.quizzesPerPage;
+
+    return this.filteredQuizzes().slice(start, start + this.quizzesPerPage);
+  });
+  readonly hasPreviousQuizPage = computed(() => this.currentQuizPage() > 1);
+  readonly hasNextQuizPage = computed(() => this.currentQuizPage() < this.quizTotalPages());
+
+  updateSearch(event: Event): void {
+    this.searchTerm.set((event.target as HTMLInputElement).value);
+    this.quizPage.set(1);
+  }
+
+  selectLevel(event: Event): void {
+    this.selectedLevel.set((event.target as HTMLSelectElement).value);
+    this.quizPage.set(1);
+  }
+
+  goToPreviousQuizPage(): void {
+    this.quizPage.update((page) => Math.max(1, page - 1));
+  }
+
+  goToNextQuizPage(): void {
+    this.quizPage.update((page) => Math.min(this.quizTotalPages(), page + 1));
+  }
 
   clearSearch(): void {
     this.searchTerm.set('');
+    this.quizPage.set(1);
   }
 }
 

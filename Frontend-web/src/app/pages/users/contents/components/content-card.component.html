@@ -1,24 +1,27 @@
-    <article class="group flex h-full min-h-[472px] flex-col overflow-hidden rounded-[8px] border border-[#E6D5B8]/55 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <article class="group flex h-full min-h-[318px] flex-col overflow-hidden rounded-[18px] border border-[#E0E0E0] bg-white shadow-[0_16px_40px_rgba(64,8,26,0.07)] transition duration-300 hover:-translate-y-1 hover:border-[#E6D5B8] hover:shadow-[0_22px_55px_rgba(64,8,26,0.14)]">
       <a [routerLink]="contentRoute" class="flex h-full flex-col">
-        <div class="relative h-56 overflow-hidden bg-[#F2E6E9]">
+        <div class="relative h-40 overflow-hidden bg-[#F2E6E9]">
           @if (content.imageUrl) {
             <img
               [src]="content.imageUrl"
               [alt]="content.title"
-              class="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+              class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
               [class.brightness-[0.55]]="content.premium && !canReadPremium"
             />
           } @else {
-            <div class="grid h-full place-items-center bg-[#F5F5F5]">
-              <span class="font-display text-[42px] font-extrabold text-[#E6D5B8]">{{ content.authorInitials }}</span>
+            <div class="default-category-cover">
+              <span>
+                <strong>{{ content.premium ? 'Jindungo' : content.category }}</strong>
+                <small>{{ content.contentType }}</small>
+              </span>
             </div>
           }
 
           <div class="absolute left-4 top-4 flex flex-wrap gap-2">
-            <span class="rounded-[4px] bg-[#5C1E2F]/92 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-white backdrop-blur-sm">
+            <span class="rounded-full bg-white/92 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5c1e2f] shadow-sm backdrop-blur">
               {{ content.premium ? 'Jindungo' : content.category }}
             </span>
-            <span class="rounded-[4px] bg-white/92 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#5c1e2f] backdrop-blur-sm">
+            <span class="rounded-full bg-[#F2E6E9]/95 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#D4AF37] shadow-sm backdrop-blur">
               {{ content.contentType }}
             </span>
           </div>
@@ -32,12 +35,14 @@
           }
         </div>
 
-        <div class="flex flex-1 flex-col p-6">
-          <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#D4AF37]">{{ content.meta }}</p>
-          <h2 class="mt-3 line-clamp-2 font-display text-[22px] font-semibold leading-7 text-[#5C1E2F]">{{ content.title }}</h2>
-          <p class="mt-3 line-clamp-3 min-h-[72px] text-[15px] leading-6 text-[#616161]">{{ content.excerpt }}</p>
+        <div class="flex flex-1 flex-col px-6 pb-5 pt-5">
+          <p class="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#D4AF37]">{{ content.meta }}</p>
+          <h2 class="mt-4 line-clamp-2 min-h-[54px] font-display text-[21px] font-extrabold leading-tight text-[#5C1E2F]">{{ content.title }}</h2>
+          <p class="mt-3 line-clamp-2 min-h-[48px] text-[13px] leading-6 text-[#616161]">{{ content.excerpt }}</p>
+        </div>
 
-          <div class="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-[#E0E0E0] pt-5">
+        <div class="mt-auto border-t border-[#E0E0E0] bg-white px-6 py-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
             <span class="flex items-center gap-2 text-[11px] font-extrabold text-[#616161]">
               <span class="grid size-7 place-items-center rounded-full bg-[#F2E6E9] text-[9px] text-[#8A3F50]">{{ content.authorInitials }}</span>
               {{ content.author }}
@@ -61,8 +66,10 @@
             </span>
           </div>
 
+          <span class="eh-card-action mt-4 w-fit">Ver mais</span>
+
           @if (content.premium && !canReadPremium) {
-            <button type="button" class="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[8px] bg-[#F2E6E9] px-5 text-[13px] font-bold text-[#8A3F50] transition hover:bg-[#5C1E2F] hover:text-white" (click)="contentAction.emit({ event: $event, operation: 'subscrever ao Jindungo', content })">
+            <button type="button" class="eh-card-action mt-4 w-full gap-2" (click)="contentAction.emit({ event: $event, operation: 'subscrever ao Jindungo', content })">
               <img src="/assets/icons/lock.png" alt="" class="h-4 w-4" />
               Desbloquear com Jindungo
             </button>

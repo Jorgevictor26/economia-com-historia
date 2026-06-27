@@ -8,6 +8,9 @@ readonly class UpdateQuizDTO
         public ?int $contentId = null,
         public ?string $title = null,
         public ?string $description = null,
+        public ?string $coverUrl = null,
+        public ?string $difficulty = null,
+        public ?int $xpPerQuestion = null,
         public ?int $timeLimit = null,
     ) {
     }
@@ -18,6 +21,9 @@ readonly class UpdateQuizDTO
             contentId: isset($data['content_id']) ? (int) $data['content_id'] : null,
             title: $data['title'] ?? null,
             description: $data['description'] ?? null,
+            coverUrl: $data['cover_url'] ?? null,
+            difficulty: $data['difficulty'] ?? null,
+            xpPerQuestion: isset($data['xp_per_question']) ? (int) $data['xp_per_question'] : null,
             timeLimit: array_key_exists('time_limit', $data) && $data['time_limit'] !== null
                 ? (int) $data['time_limit']
                 : null,
@@ -30,6 +36,9 @@ readonly class UpdateQuizDTO
             'content_id' => $this->contentId,
             'title' => $this->title,
             'description' => $this->description,
+            'cover_url' => $this->coverUrl,
+            'difficulty' => $this->difficulty,
+            'xp_per_question' => $this->xpPerQuestion,
             'time_limit' => $this->timeLimit,
         ], fn (mixed $value): bool => $value !== null);
     }

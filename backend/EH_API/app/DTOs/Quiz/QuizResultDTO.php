@@ -10,6 +10,7 @@ readonly class QuizResultDTO
         public int $score,
         public int $totalQuestions,
         public float $percentage,
+        public int $earnedXp,
     ) {
     }
 
@@ -21,6 +22,7 @@ readonly class QuizResultDTO
             'score' => $this->score,
             'total_questions' => $this->totalQuestions,
             'percentage' => $this->percentage,
+            'earned_xp' => $this->earnedXp,
             'completed_at' => now(),
         ];
     }

@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 import { Content } from '../../models/content.model';
 import { AuthStateService } from '../../services/auth-state.service';
 import { ContentService } from '../../services/content.service';
-import { ForumService } from '../../services/forum.service';
+import { BackendForum, ForumService } from '../../services/forum.service';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicFooterComponent } from '../shared/public-footer/public-footer.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
@@ -28,6 +28,11 @@ export class UserForumsPage {
   readonly showAllResources = signal(false);
   readonly createFeedback = signal('');
   readonly resourceError = signal(false);
+  readonly forumError = signal('');
+
+  constructor() {
+    void this.loadForums();
+  }
 
   readonly selectedResources = computed(() =>
     this.contentService.contents().filter((content) => this.selectedContentIds().includes(content.id)),
@@ -69,7 +74,7 @@ export class UserForumsPage {
     this.inviteEmails.update((emails) => emails.filter((item) => item !== email));
   }
 
-  createDebateRoom(titleInput: HTMLInputElement, objectiveInput: HTMLTextAreaElement): void {
+  async createDebateRoom(titleInput: HTMLInputElement, objectiveInput: HTMLTextAreaElement): Promise<void> {
     if (!this.auth.isAuthenticated()) {
       this.auth.requireLoginFor('criar sala de debate');
       return;
@@ -86,24 +91,64 @@ export class UserForumsPage {
       return;
     }
 
-    this.forumService.createRoom({
-      name: title,
-      category: this.selectedCategory(),
-      objective,
-      visibility: this.privacy(),
-      inviteEmails: this.inviteEmails(),
-      protectedByPassword: this.protectedByPassword(),
-      linkedContents,
-    });
+    try {
+      await this.forumService.create({
+        name: title,
+        description: objective,
+        rules: objective,
+        category: this.selectedCategory(),
+        visibility: this.privacy(),
+        content_permission: this.protectedByPassword() ? 'subscribers' : 'public',
+        allow_attachments: false,
+        content_ids: linkedContents.map((content) => content.id),
+      });
 
-    titleInput.value = '';
-    objectiveInput.value = '';
-    this.inviteEmails.set([]);
-    this.selectedContentIds.set(['1', '2']);
-    this.privacy.set('public');
-    this.protectedByPassword.set(false);
-    this.showAllResources.set(false);
-    this.createFeedback.set('Sala de debate criada e vinculada aos conteúdos selecionados.');
+      titleInput.value = '';
+      objectiveInput.value = '';
+      this.inviteEmails.set([]);
+      this.selectedContentIds.set(['1', '2']);
+      this.privacy.set('public');
+      this.protectedByPassword.set(false);
+      this.showAllResources.set(false);
+      this.createFeedback.set('Sala de debate enviada para aprovação.');
+      this.forumError.set('');
+    } catch {
+      this.createFeedback.set('');
+      this.forumError.set('Não foi possível criar a sala de debate.');
+    }
+  }
+
+  private async loadForums(): Promise<void> {
+    try {
+      const forums = await this.forumService.getAll();
+
+      if (forums.length > 0) {
+        this.forumService.rooms.set(forums.map((forum) => this.toForumRoom(forum)));
+      }
+    } catch {
+      this.forumError.set('Não foi possível carregar os fóruns.');
+    }
+  }
+
+  private toForumRoom(forum: BackendForum) {
+    return {
+      id: String(forum.id),
+      name: forum.name,
+      visibility: forum.visibility === 'private' ? 'private' as const : 'public' as const,
+      members: 0,
+      activeDebates: forum.topics_count ?? 0,
+      description: forum.description ?? forum.rules ?? 'Sem descrição.',
+      category: forum.category ?? 'Forum',
+      objective: forum.description ?? forum.rules ?? '',
+      inviteEmails: [],
+      protectedByPassword: forum.content_permission === 'subscribers',
+      linkedContents: (forum.contents ?? []).map((content) => ({
+        id: String(content.id),
+        title: content.title,
+        type: content.content_type?.name ?? 'Conteudo',
+        meta: content.category?.name ?? '',
+      })),
+    };
   }
 
   private toLinkedContent(content: Content) {

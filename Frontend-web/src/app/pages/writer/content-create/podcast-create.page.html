@@ -59,20 +59,21 @@
         @if (currentStep() === 2) {
           <section class="rounded-[8px] border border-[#E0E0E0] bg-[#fff] p-6">
             <h2 class="text-[20px] font-extrabold text-[#5C1E2F]">Ficheiro de audio</h2>
-            <button type="button" (click)="simulateAudioUpload()" class="mt-5 grid min-h-[190px] w-full place-items-center rounded-[8px] border border-dashed border-[#BDBDBD] bg-white text-center transition hover:border-[#8A3F50] hover:bg-[#F2E6E9]">
+            <label class="mt-5 grid min-h-[190px] w-full cursor-pointer place-items-center rounded-[8px] border border-dashed border-[#BDBDBD] bg-white text-center transition hover:border-[#8A3F50] hover:bg-[#F2E6E9]">
+              <input type="file" accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav" class="sr-only" (change)="onAudioSelected($event)" />
               <span>
                 <span class="material-icon mx-auto grid size-14 place-items-center rounded-[8px] bg-[#F2E6E9] text-[34px] text-[#8A3F50]" aria-hidden="true">cloud_upload</span>
-                <strong class="mt-4 block text-[14px] font-extrabold text-[#5C1E2F]">{{ audioUploaded() ? 'Audio carregado' : 'Carregar ficheiro MP3 ou WAV' }}</strong>
-                <small class="mt-2 block text-[12px] text-[#9E9E9E]">{{ audioUploaded() ? 'Clique para reiniciar o processamento' : 'Arraste o seu ficheiro de audio para aqui ou clique para procurar' }}</small>
-                <small class="mt-1 block text-[11px] text-[#9E9E9E]">Maximo 200MB</small>
+                <strong class="mt-4 block text-[14px] font-extrabold text-[#5C1E2F]">{{ audioUploaded() ? audioFileName() : 'Carregar ficheiro MP3 ou WAV' }}</strong>
+                <small class="mt-2 block text-[12px] text-[#9E9E9E]">{{ audioUploaded() ? 'Ficheiro pronto para publicacao' : 'Clique para procurar o ficheiro de audio' }}</small>
+                <small class="mt-1 block text-[11px] text-[#9E9E9E]">Maximo 20MB</small>
               </span>
-            </button>
+            </label>
 
             <div class="mt-5 flex min-h-[68px] items-center gap-3 rounded-[8px] border border-[#E0E0E0] bg-white px-4">
               <span class="grid size-10 shrink-0 place-items-center rounded-[8px] bg-[#5c1e2f] text-white"><span class="material-icon" aria-hidden="true">graphic_eq</span></span>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center justify-between gap-4 text-[12px]">
-                  <span class="truncate font-extrabold text-[#212121]">{{ audioUploaded() ? 'episodio_demo.mp3' : 'aguardando_audio.mp3' }}</span>
+                  <span class="truncate font-extrabold text-[#212121]">{{ audioUploaded() ? audioFileName() : 'aguardando_audio.mp3' }}</span>
                   <span class="shrink-0 font-bold text-[#D4AF37]">{{ uploadProgress() === 100 ? 'Pronto' : 'A processar...' }} {{ uploadProgress() }}%</span>
                 </div>
                 <div class="mt-2 h-2 overflow-hidden rounded-full bg-[#F2E6E9]">
@@ -134,9 +135,13 @@
 
             <div class="mt-5 grid gap-3 sm:grid-cols-3">
               <button type="button" (click)="openPreview()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#8A3F50] bg-white px-4 text-[14px] font-extrabold text-[#8A3F50]"><span class="material-icon" aria-hidden="true">visibility</span> Pre-visualizar</button>
-              <button type="button" (click)="saveDraft()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#8A3F50] bg-white px-4 text-[14px] font-extrabold text-[#8A3F50]"><span class="material-icon" aria-hidden="true">save</span> Guardar rascunho</button>
-              <button type="button" (click)="publish()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] bg-[#8A3F50] px-4 text-[14px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.22)]"><span class="material-icon" aria-hidden="true">publish</span> Publicar podcast</button>
+              <button type="button" (click)="saveDraft()" [disabled]="isSaving()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#8A3F50] bg-white px-4 text-[14px] font-extrabold text-[#8A3F50] disabled:cursor-not-allowed disabled:opacity-60"><span class="material-icon" aria-hidden="true">save</span> {{ isSaving() ? 'A guardar...' : 'Guardar rascunho' }}</button>
+              <button type="button" (click)="publish()" [disabled]="isSaving()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] bg-[#8A3F50] px-4 text-[14px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.22)] disabled:cursor-not-allowed disabled:opacity-60"><span class="material-icon" aria-hidden="true">publish</span> {{ isSaving() ? 'A publicar...' : 'Publicar podcast' }}</button>
             </div>
+
+            @if (formError()) {
+              <p class="mt-4 rounded-[8px] border border-[#E6D5B8] bg-white px-4 py-3 text-[12px] font-bold text-[#8A3F50]">{{ formError() }}</p>
+            }
           </section>
         }
 
@@ -175,7 +180,7 @@
 
         <footer class="flex flex-wrap items-center justify-end gap-3 border-t border-[#E0E0E0] bg-white px-6 py-4">
           <button type="button" (click)="closePreview()" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#5C1E2F] bg-white px-5 text-[13px] font-extrabold text-[#5C1E2F]">Fechar</button>
-          <button type="button" (click)="publish()" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5C1E2F] px-6 text-[13px] font-extrabold text-white">Publicar podcast</button>
+          <button type="button" (click)="publish()" [disabled]="isSaving()" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5C1E2F] px-6 text-[13px] font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-60">{{ isSaving() ? 'A publicar...' : 'Publicar podcast' }}</button>
         </footer>
       </article>
     </section>

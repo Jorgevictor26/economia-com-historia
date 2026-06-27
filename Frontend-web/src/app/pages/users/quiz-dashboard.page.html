@@ -37,8 +37,12 @@
       </div>
 
       <div class="mt-6 grid gap-5">
+        @if (loadError()) {
+          <p class="rounded-[8px] border border-[#E6D5B8] bg-white px-4 py-3 text-[12px] font-bold text-[#8A3F50]">{{ loadError() }}</p>
+        }
+
         <div class="grid gap-4 md:grid-cols-3">
-          @for (stat of userQuizStats; track stat.label) {
+          @for (stat of userQuizStats(); track stat.label) {
           <article class="flex h-[68px] items-center gap-3 rounded-[6px] border border-[#E0E0E0] bg-white px-4">
             <span class="material-symbols-outlined text-[#5C1E2F] text-[20px]">{{ stat.icon }}</span>
             <div class="min-w-0">
@@ -158,7 +162,7 @@
         } @empty {
         <article
           class="rounded-[8px] border border-dashed border-[#E0E0E0] bg-white p-8 text-center md:col-span-2 xl:col-span-3">
-          <h3 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">Nenhum quiz encontrado</h3>
+          <h3 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">{{ isLoading() ? 'A carregar quizzes...' : 'Nenhum quiz encontrado' }}</h3>
           <p class="mt-2 text-[13px] text-[#616161]">Experimente procurar por outro tema ou dificuldade.</p>
         </article>
         }

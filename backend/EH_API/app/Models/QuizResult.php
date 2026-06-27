@@ -19,6 +19,7 @@ class QuizResult extends Model
         'score',
         'total_questions',
         'percentage',
+        'earned_xp',
         'completed_at',
     ];
 
@@ -26,6 +27,7 @@ class QuizResult extends Model
         'score' => 'integer',
         'total_questions' => 'integer',
         'percentage' => 'decimal:2',
+        'earned_xp' => 'integer',
         'completed_at' => 'datetime',
     ];
 

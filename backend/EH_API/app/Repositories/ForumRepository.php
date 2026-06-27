@@ -7,16 +7,22 @@ use Illuminate\Database\Eloquent\Collection;
 
 class ForumRepository
 {
-    public function create(array $data): Forum
+    public function create(array $data, array $contentIds = []): Forum
     {
-        return Forum::create($data);
+        $forum = Forum::create($data);
+
+        if ($contentIds !== []) {
+            $forum->contents()->sync($contentIds);
+        }
+
+        return $forum->fresh(['user', 'reviewer', 'contents']);
     }
 
     public function all(array $filters = []): Collection
     {
         return Forum::query()
             ->where('status', 'approved')
-            ->with(['user', 'reviewer'])
+            ->with(['user', 'reviewer', 'contents.category', 'contents.contentType'])
             ->withCount('topics')
             ->when($filters['search'] ?? null, function ($query, string $search) {
                 $query->where(function ($searchQuery) use ($search) {
@@ -49,7 +55,7 @@ class ForumRepository
 
     public function findById(int $id, bool $onlyApproved = true): ?Forum
     {
-        return Forum::with(['topics.user', 'user', 'reviewer'])
+        return Forum::with(['topics.user', 'user', 'reviewer', 'contents.category', 'contents.contentType'])
             ->when($onlyApproved, fn ($query) => $query->where('status', 'approved'))
             ->find($id);
     }

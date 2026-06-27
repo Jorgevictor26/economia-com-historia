@@ -18,6 +18,10 @@ export interface BackendContent {
   content?: string | null;
   image?: string | null;
   video?: string | null;
+  audio?: string | null;
+  image_url?: string | null;
+  video_url?: string | null;
+  audio_url?: string | null;
   visibility?: string;
   views_count?: number | string;
   created_at?: string | null;
@@ -60,6 +64,17 @@ export interface ContentQuery {
   search?: string;
   categoryId?: number | string;
   contentTypeId?: number | string;
+}
+
+export interface ContentPayload {
+  title: string;
+  summary?: string | null;
+  category_id?: number | null;
+  content_type_id: number;
+  content: string;
+  image?: string | null;
+  video?: string | null;
+  visibility: 'public' | 'private' | 'followers';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -156,5 +171,22 @@ export class ContentService {
 
   async getById(id: string): Promise<BackendContent> {
     return firstValueFrom(this.http.get<BackendContent>(`/contents/${id}`));
+  }
+
+  async create(payload: ContentPayload): Promise<BackendContent> {
+    const response = await firstValueFrom(this.http.post<{ data: BackendContent }>('/contents', payload));
+
+    return response.data;
+  }
+
+  async uploadMedia(id: number | string, mediaType: 'image' | 'video' | 'audio' | 'document', file: File): Promise<BackendContent> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await firstValueFrom(
+      this.http.post<{ data: BackendContent }>(`/contents/${id}/media/${mediaType}`, formData),
+    );
+
+    return response.data;
   }
 }

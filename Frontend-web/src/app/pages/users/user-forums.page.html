@@ -114,6 +114,9 @@
             @if (createFeedback()) {
               <p class="rounded-[6px] bg-[#F2E6E9] px-4 py-3 text-[12px] font-bold text-[#5C1E2F]">{{ createFeedback() }}</p>
             }
+            @if (forumError()) {
+              <p class="rounded-[6px] bg-[#FFF1F3] px-4 py-3 text-[12px] font-bold text-[#B42318]">{{ forumError() }}</p>
+            }
 
             <div class="flex flex-wrap justify-end gap-4">
               <button type="reset" class="h-12 px-6 text-[12px] font-extrabold text-[#616161]">Cancelar</button>

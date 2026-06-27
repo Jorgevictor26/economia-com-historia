@@ -16,10 +16,14 @@ class Quiz extends Model
         'content_id',
         'title',
         'description',
+        'cover_url',
+        'difficulty',
+        'xp_per_question',
         'time_limit',
     ];
 
     protected $casts = [
+        'xp_per_question' => 'integer',
         'time_limit' => 'integer',
     ];
 

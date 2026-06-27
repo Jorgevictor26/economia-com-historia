@@ -30,4 +30,23 @@ class QuizResultRepository
             ->latest('completed_at')
             ->paginate(10);
     }
+
+    public function statsByUser(int $userId): array
+    {
+        $query = QuizResult::query()
+            ->where('user_id', $userId);
+
+        $completedQuizIds = (clone $query)
+            ->distinct()
+            ->pluck('quiz_id')
+            ->map(fn (mixed $quizId): string => (string) $quizId)
+            ->values()
+            ->all();
+
+        return [
+            'score' => (int) (clone $query)->sum('earned_xp'),
+            'completed_quizzes' => count($completedQuizIds),
+            'completed_quiz_ids' => $completedQuizIds,
+        ];
+    }
 }

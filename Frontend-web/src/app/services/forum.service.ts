@@ -1,5 +1,43 @@
-import { Injectable, signal } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { inject, Injectable, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { ForumLinkedContent, ForumRoom } from '../models/forum.model';
+import { BackendContent } from './content.service';
+
+export interface BackendForum {
+  id: number | string;
+  user_id?: number | string;
+  name: string;
+  description?: string | null;
+  rules?: string | null;
+  category?: string | null;
+  image_url?: string | null;
+  visibility?: 'public' | 'private' | string;
+  content_permission?: 'public' | 'subscribers' | string;
+  allow_attachments?: boolean | number;
+  status?: 'pending' | 'approved' | 'rejected' | string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  topics_count?: number;
+  user?: {
+    id: number | string;
+    name: string;
+    photo?: string | null;
+  } | null;
+  contents?: BackendContent[];
+}
+
+export interface CreateForumPayload {
+  name: string;
+  description?: string | null;
+  rules?: string | null;
+  category?: string | null;
+  image?: string | null;
+  visibility?: 'public' | 'private';
+  content_permission?: 'public' | 'subscribers';
+  allow_attachments?: boolean;
+  content_ids?: Array<number | string>;
+}
 
 export interface CreateForumRoomPayload {
   name: string;
@@ -13,6 +51,8 @@ export interface CreateForumRoomPayload {
 
 @Injectable({ providedIn: 'root' })
 export class ForumService {
+  private readonly http = inject(HttpClient);
+
   readonly rooms = signal<ForumRoom[]>([
     {
       id: 'publica-economia',
@@ -64,5 +104,21 @@ export class ForumService {
     this.rooms.update((rooms) => [room, ...rooms]);
 
     return room;
+  }
+
+  async getAll(search = ''): Promise<BackendForum[]> {
+    let params = new HttpParams();
+
+    if (search.trim()) {
+      params = params.set('search', search.trim());
+    }
+
+    return firstValueFrom(this.http.get<BackendForum[]>('/forums', { params }));
+  }
+
+  async create(payload: CreateForumPayload): Promise<BackendForum> {
+    const response = await firstValueFrom(this.http.post<{ data: BackendForum }>('/forums', payload));
+
+    return response.data;
   }
 }

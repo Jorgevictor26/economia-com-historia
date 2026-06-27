@@ -6,8 +6,8 @@
           <h1 class="font-display text-[30px] font-extrabold leading-tight text-[#5C1E2F]">Novo quiz</h1>
         </div>
 
-        <ol class="flex w-full max-w-[620px] flex-wrap items-center gap-3 text-[12px] font-extrabold text-[#9E9E9E]">
-          @for (step of steps; track step.value; let last = $last) {
+        <ol class="flex w-full max-w-[640px] flex-wrap items-center gap-3 text-[12px] font-extrabold text-[#9E9E9E]">
+          @for (step of steps; track step.value) {
             <li class="flex min-w-0 items-center gap-2" [class.text-[#8A3F50]]="currentStep() === step.value">
               <span class="grid size-7 shrink-0 place-items-center rounded-full border text-[12px]" [class.border-[#8A3F50]]="currentStep() === step.value" [class.bg-[#8A3F50]]="currentStep() === step.value" [class.text-white]="currentStep() === step.value" [class.border-[#E0E0E0]]="currentStep() !== step.value">{{ step.value }}</span>
               <span class="truncate">{{ step.title }}</span>
@@ -18,28 +18,70 @@
 
       <form class="mt-8" (submit)="$event.preventDefault()">
         @if (currentStep() === 1) {
-          <section class="rounded-[8px] border border-[#E0E0E0] bg-[#fff] p-6">
+          <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-6">
             <h2 class="text-[20px] font-extrabold text-[#5C1E2F]">Modo de criacao</h2>
-            <p class="mt-2 text-[13px] leading-6 text-[#616161]">Escolha se pretende gerar perguntas com IA ou montar o quiz manualmente.</p>
 
             <div class="mt-5 grid gap-4 md:grid-cols-2">
               <button type="button" class="min-h-[128px] rounded-[8px] border px-5 py-4 text-left transition" [class.border-[#5c1e2f]]="creationMode() === 'ai'" [class.bg-[#F2E6E9]]="creationMode() === 'ai'" [class.border-[#E0E0E0]]="creationMode() !== 'ai'" [class.bg-white]="creationMode() !== 'ai'" (click)="creationMode.set('ai')">
                 <span class="grid size-11 place-items-center rounded-[8px] bg-[#F2E6E9] text-[#8A3F50]"><span class="material-icon" aria-hidden="true">auto_awesome</span></span>
                 <strong class="mt-4 block text-[14px] font-extrabold text-[#5c1e2f]">Gerar por IA</strong>
-                <small class="mt-1 block text-[12px] text-[#9E9E9E]">Use um prompt para criar perguntas com alternativas.</small>
+                <small class="mt-1 block text-[12px] text-[#9E9E9E]">Cria um rascunho de perguntas com alternativas.</small>
               </button>
 
               <button type="button" class="min-h-[128px] rounded-[8px] border px-5 py-4 text-left transition" [class.border-[#5c1e2f]]="creationMode() === 'manual'" [class.bg-[#F2E6E9]]="creationMode() === 'manual'" [class.border-[#E0E0E0]]="creationMode() !== 'manual'" [class.bg-white]="creationMode() !== 'manual'" (click)="creationMode.set('manual')">
                 <span class="grid size-11 place-items-center rounded-[8px] bg-[#F2E6E9] text-[#8A3F50]"><span class="material-icon" aria-hidden="true">edit_square</span></span>
                 <strong class="mt-4 block text-[14px] font-extrabold text-[#5c1e2f]">Manual</strong>
-                <small class="mt-1 block text-[12px] text-[#9E9E9E]">Monte perguntas uma a uma.</small>
+                <small class="mt-1 block text-[12px] text-[#9E9E9E]">Escreve as perguntas e marca a resposta correta.</small>
               </button>
             </div>
           </section>
         }
 
         @if (currentStep() === 2) {
-          <section class="rounded-[8px] border border-[#E0E0E0] bg-[#fff] p-6">
+          <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-6">
+            <h2 class="text-[20px] font-extrabold text-[#5C1E2F]">Dados do quiz</h2>
+
+            <div class="mt-6 grid gap-4 md:grid-cols-2">
+              <label class="grid gap-2">
+                <span class="text-[13px] font-bold text-[#616161]">Titulo <b class="text-[#8A3F50]">*</b></span>
+                <input type="text" maxlength="120" placeholder="Ex: Quiz sobre economia colonial" [value]="title()" (input)="setTitle($event)" class="h-12 rounded-[8px] border border-[#E0E0E0] bg-white px-4 text-[14px] text-[#212121] outline-none placeholder:text-[#9E9E9E] focus:border-[#8A3F50]" />
+              </label>
+
+              <label class="grid gap-2">
+                <span class="text-[13px] font-bold text-[#616161]">Conteudo base <b class="text-[#8A3F50]">*</b></span>
+                <select [value]="selectedContentId()" (change)="setSelectedContent($event)" class="h-12 rounded-[8px] border border-[#E0E0E0] bg-white px-4 text-[14px] text-[#616161] outline-none focus:border-[#8A3F50]">
+                  <option value="">Selecionar conteudo</option>
+                  @for (content of contents(); track content.id) {
+                    <option [value]="content.id">{{ content.title }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+
+            <label class="mt-4 grid gap-2">
+              <span class="text-[13px] font-bold text-[#616161]">Descricao</span>
+              <textarea placeholder="Resumo curto do quiz..." maxlength="600" [value]="description()" (input)="setDescription($event)" class="min-h-[110px] resize-y rounded-[8px] border border-[#E0E0E0] bg-white px-4 py-3 text-[14px] leading-6 text-[#212121] outline-none placeholder:text-[#9E9E9E] focus:border-[#8A3F50]"></textarea>
+            </label>
+
+            <section class="mt-5 rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] p-4">
+              <h3 class="text-[13px] font-extrabold text-[#5C1E2F]">Dificuldade</h3>
+              <div class="mt-3 grid gap-3 md:grid-cols-3">
+                @for (option of difficultyOptions; track option.value) {
+                  <label class="flex min-h-[96px] cursor-pointer items-start gap-3 rounded-[8px] border bg-white p-4" [class.border-[#8A3F50]]="selectedDifficulty() === option.value" [class.bg-[#F2E6E9]]="selectedDifficulty() === option.value" [class.border-[#E0E0E0]]="selectedDifficulty() !== option.value">
+                    <input type="radio" name="difficulty" class="mt-1 size-4 accent-bordeaux" [checked]="selectedDifficulty() === option.value" [value]="option.value" (change)="setSelectedDifficulty($event)" />
+                    <span>
+                      <strong class="block text-[14px] text-[#5C1E2F]">{{ option.label }}</strong>
+                      <small class="mt-1 block text-[12px] leading-5 text-[#616161]">{{ option.xp }} XP por pergunta · {{ option.timeLimit }} min</small>
+                    </span>
+                  </label>
+                }
+              </div>
+            </section>
+          </section>
+        }
+
+        @if (currentStep() === 3) {
+          <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-6">
             <h2 class="text-[20px] font-extrabold text-[#5C1E2F]">Perguntas do quiz</h2>
 
             @if (creationMode() === 'ai') {
@@ -64,123 +106,122 @@
               </div>
             } @else {
               <div class="mt-5 grid gap-4">
-                <label class="grid gap-2">
-                  <span class="text-[13px] font-bold text-[#616161]">Pergunta</span>
-                  <textarea class="min-h-[110px] resize-y rounded-[8px] border border-[#E0E0E0] bg-white px-4 py-3 text-[14px] leading-6 text-[#212121] outline-none placeholder:text-[#9E9E9E] focus:border-[#8A3F50]" placeholder="Escreva a pergunta..." [value]="manualQuestion()" (input)="setManualQuestion($event)"></textarea>
-                </label>
+              <label class="grid gap-2">
+                <span class="text-[13px] font-bold text-[#616161]">Pergunta</span>
+                <textarea class="min-h-[110px] resize-y rounded-[8px] border border-[#E0E0E0] bg-white px-4 py-3 text-[14px] leading-6 text-[#212121] outline-none placeholder:text-[#9E9E9E] focus:border-[#8A3F50]" placeholder="Escreva a pergunta..." [value]="manualQuestion()" (input)="setManualQuestion($event)"></textarea>
+              </label>
 
-                <div class="grid gap-4 md:grid-cols-3">
-                  <label class="grid gap-2">
-                    <span class="text-[13px] font-bold text-[#616161]">Tipo</span>
-                    <select [value]="manualKind()" (change)="setManualKind($event)" class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#616161] outline-none focus:border-[#8A3F50]">
-                      <option>Multipla escolha</option>
-                      <option>Verdadeiro/Falso</option>
-                      <option>Aplicacao</option>
-                    </select>
-                  </label>
-                  <label class="grid gap-2">
-                    <span class="text-[13px] font-bold text-[#616161]">Dificuldade</span>
-                    <select [value]="selectedDifficulty()" (change)="setSelectedDifficulty($event)" class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#616161] outline-none focus:border-[#8A3F50]">
-                      <option>Basico</option>
-                      <option>Medio</option>
-                      <option>Avancado</option>
-                    </select>
-                  </label>
-                  <label class="grid gap-2">
-                    <span class="text-[13px] font-bold text-[#616161]">XP atribuido</span>
-                    <input type="number" [value]="manualXp()" (input)="setManualXp($event)" class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#616161] outline-none focus:border-[#8A3F50]" />
-                  </label>
+              <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-4">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-[13px] font-extrabold text-[#5c1e2f]">Alternativas</h3>
+                  <span class="text-[11px] font-bold text-[#9E9E9E]">Escolha a resposta correta</span>
                 </div>
-
-                <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-4">
-                  <div class="flex flex-wrap items-center justify-between gap-3">
-                    <h3 class="text-[13px] font-extrabold text-[#5c1e2f]">Alternativas</h3>
-                    <span class="text-[11px] font-bold text-[#9E9E9E]">Marque uma resposta correta</span>
-                  </div>
-                  <div class="mt-4 grid gap-3 md:grid-cols-2">
-                    @for (letter of ['A', 'B', 'C', 'D']; track letter) {
-                      <label class="flex min-h-12 items-center gap-3 rounded-[8px] border border-[#E0E0E0] bg-white px-3">
-                        <input type="radio" name="manualCorrectOption" class="accent-bordeaux" [checked]="manualCorrectOption() === letter" (change)="manualCorrectOption.set(letter)" />
-                        <span class="grid size-7 shrink-0 place-items-center rounded-full border border-[#5c1e2f] text-[11px] font-extrabold text-[#5c1e2f]">{{ letter }}</span>
-                        <input type="text" [value]="manualOptions()[letter]" (input)="setManualOption(letter, $event)" [placeholder]="'Alternativa ' + letter" class="min-w-0 flex-1 border-0 bg-transparent px-0 text-[13px] text-[#616161] outline-none" />
-                      </label>
-                    }
-                  </div>
-                </section>
-
-                <div class="flex flex-wrap items-center justify-between gap-4 border-t border-[#E0E0E0] pt-5">
-                  <button type="button" (click)="resetManualForm()" class="inline-flex h-11 items-center justify-center gap-2 rounded-[8px] border border-[#5c1e2f] bg-white px-5 text-[13px] font-extrabold text-[#5c1e2f]">
-                    <span class="material-icon" aria-hidden="true">add</span>
-                    Limpar pergunta
-                  </button>
-                  <button type="button" (click)="saveManualQuestion()" class="inline-flex h-12 items-center justify-center gap-2 rounded-[8px] bg-[#5c1e2f] px-6 text-[13px] font-extrabold text-white shadow-[0_14px_28px_rgba(92,30,47,0.22)]">
-                    <span class="material-icon" aria-hidden="true">playlist_add_check</span>
-                    Guardar pergunta
-                  </button>
+                <div class="mt-4 grid gap-3 md:grid-cols-2">
+                  @for (letter of optionLetters; track letter) {
+                    <label class="flex min-h-12 items-center gap-3 rounded-[8px] border border-[#E0E0E0] bg-white px-3">
+                      <input type="radio" name="manualCorrectOption" class="accent-bordeaux" [checked]="manualCorrectOption() === letter" (change)="manualCorrectOption.set(letter)" />
+                      <span class="grid size-7 shrink-0 place-items-center rounded-full border border-[#5c1e2f] text-[11px] font-extrabold text-[#5c1e2f]">{{ letter }}</span>
+                      <input type="text" [value]="manualOptions()[letter]" (input)="setManualOption(letter, $event)" [placeholder]="'Alternativa ' + letter" class="min-w-0 flex-1 border-0 bg-transparent px-0 text-[13px] text-[#616161] outline-none" />
+                    </label>
+                  }
                 </div>
+              </section>
+
+              <label class="grid gap-2">
+                <span class="text-[13px] font-bold text-[#616161]">Explicacao da resposta <span class="text-[#9E9E9E]">(Opcional)</span></span>
+                <textarea class="min-h-[86px] resize-y rounded-[8px] border border-[#E0E0E0] bg-white px-4 py-3 text-[14px] leading-6 text-[#212121] outline-none placeholder:text-[#9E9E9E] focus:border-[#8A3F50]" placeholder="Explique porque esta resposta e correta..." [value]="manualExplanation()" (input)="setManualExplanation($event)"></textarea>
+              </label>
+
+              <div class="flex flex-wrap items-center justify-between gap-4 border-t border-[#E0E0E0] pt-5">
+                <button type="button" (click)="resetManualForm()" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#5c1e2f] bg-white px-5 text-[13px] font-extrabold text-[#5c1e2f]">
+                  Limpar pergunta
+                </button>
+                <button type="button" (click)="saveManualQuestion()" class="inline-flex h-12 items-center justify-center gap-2 rounded-[8px] bg-[#5c1e2f] px-6 text-[13px] font-extrabold text-white shadow-[0_14px_28px_rgba(92,30,47,0.22)]">
+                  <span class="material-icon" aria-hidden="true">playlist_add_check</span>
+                  Guardar pergunta
+                </button>
               </div>
+            </div>
             }
+
+            <div class="mt-6 grid gap-3">
+              @for (question of previewQuestions(); track question.title; let i = $index) {
+                <article class="rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] p-4">
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="min-w-0">
+                      <p class="text-[11px] font-extrabold uppercase text-[#D4AF37]">Pergunta {{ i + 1 }} · {{ question.xp }} XP</p>
+                      <h3 class="mt-2 text-[14px] font-extrabold leading-6 text-[#212121]">{{ question.title }}</h3>
+                    </div>
+                    <div class="flex shrink-0 gap-2">
+                      <button type="button" (click)="editQuestion(i)" class="grid size-9 place-items-center rounded-[8px] border border-[#E0E0E0] bg-white text-[#5C1E2F]" aria-label="Editar pergunta">
+                        <span class="material-icon" aria-hidden="true">edit</span>
+                      </button>
+                      <button type="button" (click)="removeQuestion(i)" class="grid size-9 place-items-center rounded-[8px] border border-[#E0E0E0] bg-white text-[#8A3F50]" aria-label="Remover pergunta">
+                        <span class="material-icon" aria-hidden="true">delete</span>
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              }
+            </div>
           </section>
         }
 
-        @if (currentStep() === 3) {
-          <section class="rounded-[8px] border border-[#E0E0E0] bg-[#fff] p-6">
-            <h2 class="text-[20px] font-extrabold text-[#5C1E2F]">Foto do quiz <span class="text-[#9E9E9E]">(Opcional)</span></h2>
-            <p class="mt-2 text-[13px] leading-6 text-[#616161]">Adicione uma imagem para representar o quiz. Pode publicar sem foto.</p>
+        @if (currentStep() === 4) {
+          <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-6">
+            <h2 class="text-[20px] font-extrabold text-[#5C1E2F]">Capa do quiz <span class="text-[#9E9E9E]">(Opcional)</span></h2>
+            <p class="mt-2 text-[13px] leading-6 text-[#616161]">Adicione uma imagem para destacar o quiz no dashboard. Pode publicar sem capa.</p>
 
             <label class="mt-6 grid min-h-[240px] w-full cursor-pointer place-items-center overflow-hidden rounded-[8px] border border-dashed border-[#BDBDBD] bg-white text-center transition hover:border-[#8A3F50] hover:bg-[#F2E6E9]">
               <input type="file" accept="image/png,image/jpeg,image/webp" class="sr-only" (change)="onCoverSelected($event)" />
               @if (coverPreview()) {
                 <span class="grid w-full gap-4 p-4">
-                  <img [src]="coverPreview()!" alt="Foto selecionada do quiz" class="mx-auto aspect-video w-full max-w-3xl rounded-[8px] object-cover" />
+                  <img [src]="coverPreview()!" alt="Capa selecionada do quiz" class="mx-auto aspect-video w-full max-w-3xl rounded-[8px] object-cover" />
                   <span class="text-[13px] font-extrabold text-[#5C1E2F]">{{ coverFileName() }}</span>
                   <small class="text-[12px] text-[#9E9E9E]">Clique para trocar</small>
                 </span>
               } @else {
                 <span>
                   <span class="material-icon mx-auto grid size-14 place-items-center rounded-[8px] bg-[#F2E6E9] text-[34px] text-[#8A3F50]" aria-hidden="true">add_photo_alternate</span>
-                  <strong class="mt-4 block text-[14px] font-extrabold text-[#5C1E2F]">Adicionar foto opcional</strong>
+                  <strong class="mt-4 block text-[14px] font-extrabold text-[#5C1E2F]">Adicionar capa opcional</strong>
                   <small class="mt-2 block text-[12px] text-[#9E9E9E]">PNG, JPG ou WebP</small>
                 </span>
               }
             </label>
 
-            @if (coverUploaded()) {
-              <button type="button" (click)="clearCover()" class="mt-4 inline-flex h-10 items-center justify-center rounded-[8px] border border-[#E0E0E0] px-4 text-[12px] font-extrabold text-[#616161] transition hover:border-[#5C1E2F] hover:bg-[#F2E6E9] hover:text-[#5C1E2F]">Remover foto</button>
+            @if (coverPreview()) {
+              <button type="button" (click)="clearCover()" class="mt-4 inline-flex h-10 items-center justify-center rounded-[8px] border border-[#E0E0E0] px-4 text-[12px] font-extrabold text-[#616161] transition hover:border-[#5C1E2F] hover:bg-[#F2E6E9] hover:text-[#5C1E2F]">Remover capa</button>
             }
-          </section>
-        }
-
-        @if (currentStep() === 4) {
-          <section class="rounded-[8px] border border-[#E0E0E0] bg-[#fff] p-6">
-            <h2 class="text-[20px] font-extrabold text-[#5C1E2F]">Acesso do quiz</h2>
-            <div class="mt-5 grid gap-4 md:grid-cols-3">
-              <button type="button" (click)="visibleForStudents.update(toggle)" class="flex min-h-[120px] items-start gap-4 rounded-[8px] border p-5 text-left transition" [class.border-[#8A3F50]]="visibleForStudents()" [class.bg-[#F2E6E9]]="visibleForStudents()" [class.border-[#E0E0E0]]="!visibleForStudents()">
-                <span class="mt-1 grid size-5 place-items-center rounded border border-current text-[12px] text-[#8A3F50]">{{ visibleForStudents() ? '✓' : '' }}</span>
-                <span><strong class="text-[15px] text-[#5C1E2F]">Visivel para alunos</strong><small class="mt-2 block text-[12px] leading-5 text-[#616161]">Liberta o quiz no ambiente de aprendizagem.</small></span>
-              </button>
-              <button type="button" (click)="requireLogin.update(toggle)" class="flex min-h-[120px] items-start gap-4 rounded-[8px] border p-5 text-left transition" [class.border-[#8A3F50]]="requireLogin()" [class.bg-[#F2E6E9]]="requireLogin()" [class.border-[#E0E0E0]]="!requireLogin()">
-                <span class="mt-1 grid size-5 place-items-center rounded border border-current text-[12px] text-[#8A3F50]">{{ requireLogin() ? '✓' : '' }}</span>
-                <span><strong class="text-[15px] text-[#5C1E2F]">Exigir login</strong><small class="mt-2 block text-[12px] leading-5 text-[#616161]">Só utilizadores autenticados respondem.</small></span>
-              </button>
-              <button type="button" (click)="rankingEnabled.update(toggle)" class="flex min-h-[120px] items-start gap-4 rounded-[8px] border p-5 text-left transition" [class.border-[#8A3F50]]="rankingEnabled()" [class.bg-[#F2E6E9]]="rankingEnabled()" [class.border-[#E0E0E0]]="!rankingEnabled()">
-                <span class="mt-1 grid size-5 place-items-center rounded border border-current text-[12px] text-[#8A3F50]">{{ rankingEnabled() ? '✓' : '' }}</span>
-                <span><strong class="text-[15px] text-[#5C1E2F]">Ativar ranking</strong><small class="mt-2 block text-[12px] leading-5 text-[#616161]">Conta XP e posicao no ranking.</small></span>
-              </button>
-            </div>
           </section>
         }
 
         @if (currentStep() === 5) {
           <section class="rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] p-6 text-[#5C1E2F]">
             <h2 class="flex items-center gap-2 text-[18px] font-extrabold"><span class="material-icon" aria-hidden="true">quiz</span> Revisao do quiz</h2>
-            <p class="mt-3 text-[13px] leading-6 text-[#5C1E2F]">Abra a pre-visualizacao em modal antes de publicar. A foto continua opcional.</p>
+
+            <div class="mt-5 grid gap-3 sm:grid-cols-4">
+              @for (stat of quickStats; track stat.label) {
+                <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-4">
+                  <strong class="block text-[22px] text-[#5C1E2F]">{{ stat.value }}</strong>
+                  <span class="text-[12px] font-bold text-[#616161]">{{ stat.label }}</span>
+                </section>
+              }
+            </div>
+
             <div class="mt-5 grid gap-3 sm:grid-cols-3">
               <button type="button" (click)="openPreview()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#8A3F50] bg-white px-4 text-[14px] font-extrabold text-[#8A3F50]"><span class="material-icon" aria-hidden="true">visibility</span> Pre-visualizar</button>
-              <button type="button" (click)="saveDraft()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#8A3F50] bg-white px-4 text-[14px] font-extrabold text-[#8A3F50]"><span class="material-icon" aria-hidden="true">save</span> Guardar rascunho</button>
-              <button type="button" (click)="publish()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] bg-[#8A3F50] px-4 text-[14px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.22)]"><span class="material-icon" aria-hidden="true">publish</span> Publicar quiz</button>
+              <button type="button" (click)="saveDraft()" [disabled]="isSaving()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#8A3F50] bg-white px-4 text-[14px] font-extrabold text-[#8A3F50] disabled:cursor-not-allowed disabled:opacity-60"><span class="material-icon" aria-hidden="true">save</span> {{ isSaving() ? 'A guardar...' : 'Guardar' }}</button>
+              <button type="button" (click)="publish()" [disabled]="isSaving()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] bg-[#8A3F50] px-4 text-[14px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.22)] disabled:cursor-not-allowed disabled:opacity-60"><span class="material-icon" aria-hidden="true">publish</span> {{ isSaving() ? 'A publicar...' : 'Publicar quiz' }}</button>
             </div>
           </section>
+        }
+
+        @if (formError()) {
+          <p class="mt-4 rounded-[8px] border border-[#E6D5B8] bg-white px-4 py-3 text-[12px] font-bold text-[#8A3F50]">{{ formError() }}</p>
+        }
+
+        @if (successMessage()) {
+          <p class="mt-4 rounded-[8px] border border-[#D4AF37] bg-white px-4 py-3 text-[12px] font-bold text-[#5C1E2F]">{{ successMessage() }}</p>
         }
 
         <footer class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[#F2E6E9] pt-5">
@@ -204,30 +245,15 @@
         <div class="min-h-0 flex-1 overflow-y-auto bg-[#F5F5F5] px-6 py-7">
           <article class="mx-auto max-w-4xl bg-white p-6">
             @if (coverPreview()) {
-              <img [src]="coverPreview()!" alt="Foto do quiz" class="aspect-video w-full rounded-[8px] object-cover" />
+              <img [src]="coverPreview()!" alt="Capa do quiz" class="aspect-video w-full rounded-[8px] object-cover" />
             }
-            <div class="mt-5 grid gap-3 sm:grid-cols-4">
-              @for (stat of quickStats; track stat.label) {
-                <section class="border border-[#E0E0E0] bg-white p-4">
-                  <strong class="block text-[22px] text-[#5C1E2F]">{{ stat.value }}</strong>
-                  <span class="text-[12px] font-bold text-[#616161]">{{ stat.label }}</span>
-                </section>
-              }
-            </div>
+            <h1 class="font-display text-[28px] font-extrabold text-[#5C1E2F]">{{ title() || 'Novo quiz' }}</h1>
+            <p class="mt-2 text-[13px] leading-6 text-[#616161]">{{ description() || 'Sem descricao.' }}</p>
             <div class="mt-5 grid gap-4">
               @for (question of previewQuestions(); track question.title; let i = $index) {
                 <section class="border border-[#E0E0E0] bg-white p-5 text-[#616161]">
-                  <div class="flex min-w-0 gap-4">
-                    <span class="grid size-10 shrink-0 place-items-center rounded-full bg-[#5c1e2f] text-[13px] font-extrabold text-white">Q{{ i + 1 }}</span>
-                    <div class="min-w-0">
-                      <div class="flex flex-wrap gap-2">
-                        <span class="rounded-[999px] bg-[#F2E6E9] px-2.5 py-1 text-[10px] font-extrabold uppercase text-[#5c1e2f]">{{ question.kind }}</span>
-                        <span class="rounded-[999px] bg-[#F2E6E9] px-2.5 py-1 text-[10px] font-extrabold uppercase text-[#D4AF37]">{{ question.difficulty }}</span>
-                        <span class="rounded-[999px] bg-[#F5F5F5] px-2.5 py-1 text-[10px] font-extrabold uppercase text-[#616161]">{{ question.xp }} XP</span>
-                      </div>
-                      <h3 class="mt-3 text-[16px] font-extrabold leading-6 text-[#212121]">{{ question.title }}</h3>
-                    </div>
-                  </div>
+                  <p class="text-[11px] font-extrabold uppercase text-[#D4AF37]">Pergunta {{ i + 1 }} · {{ question.xp }} XP</p>
+                  <h3 class="mt-3 text-[16px] font-extrabold leading-6 text-[#212121]">{{ question.title }}</h3>
                 </section>
               }
             </div>
@@ -236,7 +262,7 @@
 
         <footer class="flex flex-wrap items-center justify-end gap-3 border-t border-[#E0E0E0] bg-white px-6 py-4">
           <button type="button" (click)="closePreview()" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#5C1E2F] bg-white px-5 text-[13px] font-extrabold text-[#5C1E2F]">Fechar</button>
-          <button type="button" (click)="publish()" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5C1E2F] px-6 text-[13px] font-extrabold text-white">Publicar quiz</button>
+          <button type="button" (click)="publish()" [disabled]="isSaving()" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5C1E2F] px-6 text-[13px] font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-60">{{ isSaving() ? 'A publicar...' : 'Publicar quiz' }}</button>
         </footer>
       </article>
     </section>

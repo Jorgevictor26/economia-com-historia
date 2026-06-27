@@ -39,6 +39,9 @@ import { NotificationService } from '../../services/notification.service';
                   <path d="M18 16v-5a6 6 0 0 0-12 0v5l-2 2h16l-2-2Z"></path>
                   <path d="M10 20a2 2 0 0 0 4 0"></path>
                 </svg>
+                @if (unreadNotificationsCount()) {
+                  <span class="public-notification-count">{{ unreadNotificationsCount() }}</span>
+                }
               </button>
 
               @if (notificationsOpen()) {
@@ -149,7 +152,12 @@ import { NotificationService } from '../../services/notification.service';
           }
 
           @if (auth.isAuthenticated()) {
-            <a routerLink="/app/notifications" class="inline-flex h-10 items-center justify-center rounded-[8px] border border-[#5c1e2f] px-5 text-[13px] font-bold text-[#5c1e2f]" (click)="closeMenu()">Notificações</a>
+            <a routerLink="/app/notifications" class="inline-flex h-10 items-center justify-center rounded-[8px] border border-[#5c1e2f] px-5 text-[13px] font-bold text-[#5c1e2f]" (click)="closeMenu()">
+              Notificações
+              @if (unreadNotificationsCount()) {
+                <span class="public-notification-count-inline">{{ unreadNotificationsCount() }}</span>
+              }
+            </a>
             <a routerLink="/app/profile" class="inline-flex h-10 items-center justify-center rounded-[8px] border border-[#5c1e2f] px-5 text-[13px] font-bold text-[#5c1e2f]" (click)="closeMenu()">Perfil</a>
           } @else {
             <a routerLink="/auth/login" class="inline-flex h-10 items-center justify-center rounded-[8px] border border-[#5c1e2f] px-5 text-[13px] font-bold text-[#5c1e2f]" (click)="closeMenu()">Entrar</a>

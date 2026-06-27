@@ -17,6 +17,7 @@ import { ProgressDomainsComponent } from './components/progress-domains/progress
     ProgressDomainsComponent,
   ],
   templateUrl: './profile.page.html',
+  styleUrl: './profile.page.scss',
 })
 export class ProfilePage implements OnInit {
   private readonly route = inject(ActivatedRoute);

@@ -62,16 +62,26 @@
 
           <label class="grid gap-2 font-sans text-[12px] font-medium text-[#555]">
             Palavra-passe
-            <input
-              formControlName="password"
-              class="auth-input"
-              [class.border-[#d9d9d9]]="!passwordInvalid()"
-              [class.border-[#b42318]]="passwordInvalid()"
-              [class.bg-[#fffafa]]="passwordInvalid()"
-              type="password"
-              placeholder="••••••••"
-              autocomplete="new-password"
-            />
+            <span class="password-control">
+              <input
+                formControlName="password"
+                [class.border-[#d9d9d9]]="!passwordInvalid()"
+                [class.border-[#b42318]]="passwordInvalid()"
+                [class.bg-[#fffafa]]="passwordInvalid()"
+                [type]="passwordVisible() ? 'text' : 'password'"
+                placeholder="????????"
+                autocomplete="new-password"
+              />
+              <button type="button" [attr.aria-label]="passwordVisible() ? 'Ocultar palavra-passe' : 'Mostrar palavra-passe'" (click)="togglePasswordVisibility()">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                  <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                  @if (!passwordVisible()) {
+                    <path d="M4 4l16 16" />
+                  }
+                </svg>
+              </button>
+            </span>
             @if (passwordInvalid()) {
               <span class="auth-error">A palavra-passe deve ter pelo menos 8 caracteres.</span>
             }
@@ -79,16 +89,26 @@
 
           <label class="grid gap-2 font-sans text-[12px] font-medium text-[#555]">
             Confirmar palavra-passe
-            <input
-              formControlName="confirmPassword"
-              class="auth-input"
-              [class.border-[#d9d9d9]]="!confirmPasswordInvalid()"
-              [class.border-[#b42318]]="confirmPasswordInvalid()"
-              [class.bg-[#fffafa]]="confirmPasswordInvalid()"
-              type="password"
-              placeholder="••••••••"
-              autocomplete="new-password"
-            />
+            <span class="password-control">
+              <input
+                formControlName="confirmPassword"
+                [class.border-[#d9d9d9]]="!confirmPasswordInvalid()"
+                [class.border-[#b42318]]="confirmPasswordInvalid()"
+                [class.bg-[#fffafa]]="confirmPasswordInvalid()"
+                [type]="confirmPasswordVisible() ? 'text' : 'password'"
+                placeholder="????????"
+                autocomplete="new-password"
+              />
+              <button type="button" [attr.aria-label]="confirmPasswordVisible() ? 'Ocultar confirma??o da palavra-passe' : 'Mostrar confirma??o da palavra-passe'" (click)="toggleConfirmPasswordVisibility()">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                  <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                  @if (!confirmPasswordVisible()) {
+                    <path d="M4 4l16 16" />
+                  }
+                </svg>
+              </button>
+            </span>
             @if (confirmPasswordInvalid()) {
               <span class="auth-error">As palavras-passe não coincidem.</span>
             }

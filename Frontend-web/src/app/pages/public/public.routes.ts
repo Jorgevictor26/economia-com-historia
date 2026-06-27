@@ -7,6 +7,7 @@ import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.com
 
 @Component({
   selector: 'app-landing-page',
+  standalone: true,
   imports: [RouterLink, PublicNavbarComponent, PublicFooterComponent, BackToTopComponent],
   templateUrl: './landing.page.html'
 })
@@ -148,13 +149,18 @@ export class LandingPage implements AfterViewInit, OnDestroy {
 
     revealTargets.forEach((element, index) => {
       element.classList.add('scroll-reveal');
+      element.classList.remove('is-visible');
       element.style.setProperty('--reveal-delay', `${Math.min(index % 4, 3) * 70}ms`);
     });
 
     this.revealObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          entry.target.classList.toggle('is-visible', entry.isIntersecting);
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          } else {
+            entry.target.classList.remove('is-visible');
+          }
         });
       },
       { rootMargin: '0px 0px -12% 0px', threshold: 0.12 },
@@ -170,6 +176,7 @@ export class LandingPage implements AfterViewInit, OnDestroy {
 
 @Component({
   selector: 'app-public-dashboard-page',
+  standalone: true,
   templateUrl: './public-dashboard.page.html'
 })
 export class PublicDashboardPage {}

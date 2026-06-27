@@ -36,6 +36,10 @@
   padding: 0;
 }
 
+.admin-content-panel > * {
+  min-width: 0;
+}
+
 .admin-identity {
   position: relative;
   z-index: 1;
@@ -217,6 +221,7 @@
 @media (max-width: 980px) {
   .admin-console-main {
     grid-template-columns: 1fr;
+    gap: 0.875rem;
   }
 
   .admin-menu-items {
@@ -235,7 +240,7 @@
   }
 
   .admin-console-main {
-    padding-block: 1.25rem;
+    padding-block: 1rem 1.25rem;
   }
 
   .admin-menu-items {
@@ -244,5 +249,50 @@
 
   .admin-content-panel {
     padding: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-console-page {
+    margin: -0.75rem;
+  }
+
+  .admin-console-main {
+    gap: 0.75rem;
+    padding-block: 0.85rem 1rem;
+  }
+
+  .admin-sidebar {
+    border-radius: 8px;
+  }
+
+  .admin-identity {
+    grid-template-columns: auto minmax(0, 1fr);
+    justify-items: start;
+    gap: 0.35rem 0.75rem;
+    padding: 0.85rem;
+    text-align: left;
+  }
+
+  .admin-avatar,
+  .admin-initials {
+    width: 3.25rem;
+  }
+
+  .admin-identity p {
+    grid-column: 2;
+  }
+
+  .admin-menu {
+    padding: 0.2rem 0.55rem 0.65rem;
+  }
+
+  .admin-menu-label {
+    padding-inline: 0.55rem;
+  }
+
+  .admin-menu-link,
+  .admin-submenu-link {
+    min-height: 2.35rem;
   }
 }

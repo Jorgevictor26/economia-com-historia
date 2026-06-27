@@ -5,6 +5,18 @@ export interface ForumRoom {
   members: number;
   activeDebates: number;
   description: string;
+  category?: string;
+  objective?: string;
+  inviteEmails?: string[];
+  protectedByPassword?: boolean;
+  linkedContents: ForumLinkedContent[];
+}
+
+export interface ForumLinkedContent {
+  id: string;
+  title: string;
+  type: string;
+  meta: string;
 }
 
 export interface ForumMessage {

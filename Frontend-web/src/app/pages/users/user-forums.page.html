@@ -3,6 +3,124 @@
 
       <main class="fluid-container grid gap-12 pb-14 pt-8 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
         <section>
+          <form class="mb-12 grid gap-12 bg-white px-6 py-7 shadow-[0_1px_2px_rgba(22,19,21,0.03)] md:px-9" (submit)="$event.preventDefault(); createDebateRoom(debateTitle, debateObjective)">
+            <header class="border-l-4 border-[#8A3F50] pl-4">
+              <h1 class="font-display text-[22px] font-extrabold text-[#5C1E2F]">Criar Nova Sala de Debate</h1>
+            </header>
+
+            <section class="rounded-[6px] border border-[#E0E0E0] p-5">
+              <label class="grid gap-2 text-[11px] font-semibold text-[#616161]">
+                Título do Debate
+                <input
+                  #debateTitle
+                  type="text"
+                  class="h-11 border border-[#C48A96] bg-white px-4 text-[14px] font-bold text-[#5C1E2F] outline-none placeholder:text-[#C48A96] focus:border-[#5C1E2F]"
+                  placeholder="Ex: O Impacto da Diversificação Económica no Pós-Guerra"
+                />
+              </label>
+
+              <label class="mt-5 grid max-w-[330px] gap-2 text-[11px] font-semibold text-[#616161]">
+                Categoria
+                <select
+                  class="h-10 border border-[#E0E0E0] bg-[#F5F5F5] px-3 text-[12px] text-[#212121] outline-none focus:border-[#5C1E2F]"
+                  [value]="selectedCategory()"
+                  (change)="selectedCategory.set($any($event.target).value)"
+                >
+                  @for (category of categories; track category) {
+                    <option [value]="category">{{ category }}</option>
+                  }
+                </select>
+              </label>
+
+              <label class="mt-5 grid gap-2 text-[11px] font-semibold text-[#616161]">
+                Objetivo da Sala
+                <textarea
+                  #debateObjective
+                  class="min-h-[120px] resize-none border border-[#F5F5F5] bg-[#F5F5F5] px-4 py-3 text-[12px] text-[#616161] outline-none placeholder:text-[#9E9E9E] focus:border-[#C48A96]"
+                  placeholder="Descreva o propósito deste debate e os pontos-chave que espera explorar..."
+                ></textarea>
+              </label>
+            </section>
+
+            <section class="grid gap-6 lg:grid-cols-[180px_minmax(0,1fr)]">
+              <div>
+                <h2 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">Privacidade</h2>
+                <p class="mt-3 text-[10px] leading-4 text-[#616161]">Defina quem pode aceder e participar no diálogo académico.</p>
+              </div>
+
+              <div class="rounded-[6px] border border-[#E0E0E0] p-5">
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <button type="button" class="min-h-[88px] border p-4 text-left" [class.border-[#5C1E2F]]="privacy() === 'public'" [class.bg-white]="privacy() === 'public'" [class.border-[#E0E0E0]]="privacy() !== 'public'" [class.bg-[#F5F5F5]]="privacy() !== 'public'" (click)="setPrivacy('public')">
+                    <strong class="block text-[13px] text-[#5C1E2F]">Público</strong>
+                    <span class="mt-1 block text-[10px] leading-4 text-[#616161]">Visível para todos os membros da academia.</span>
+                  </button>
+                  <button type="button" class="min-h-[88px] border p-4 text-left" [class.border-[#5C1E2F]]="privacy() === 'private'" [class.bg-white]="privacy() === 'private'" [class.border-[#E0E0E0]]="privacy() !== 'private'" [class.bg-[#F5F5F5]]="privacy() !== 'private'" (click)="setPrivacy('private')">
+                    <strong class="block text-[13px] text-[#5C1E2F]">Privado</strong>
+                    <span class="mt-1 block text-[10px] leading-4 text-[#616161]">Acesso restrito por convite ou palavra-passe.</span>
+                  </button>
+                </div>
+
+                <label class="mt-5 grid gap-2 text-[11px] font-semibold text-[#616161]">
+                  Lista de Convidados (Email)
+                  <span class="grid gap-2 sm:grid-cols-[minmax(0,1fr)_96px]">
+                    <input #inviteEmail type="email" class="h-10 bg-[#F5F5F5] px-3 text-[12px] outline-none focus:ring-2 focus:ring-[#F2E6E9]" placeholder="estudante@academia.ao" />
+                    <button type="button" class="bg-[#BDBDBD] text-[12px] font-extrabold text-[#212121]" (click)="addInvite(inviteEmail)">Convidar</button>
+                  </span>
+                </label>
+
+                @if (inviteEmails().length) {
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    @for (email of inviteEmails(); track email) {
+                      <button type="button" class="rounded-full bg-[#F2E6E9] px-3 py-1 text-[10px] font-bold text-[#5C1E2F]" (click)="removeInvite(email)">{{ email }} ×</button>
+                    }
+                  </div>
+                }
+
+                <label class="mt-4 inline-flex items-center gap-2 text-[12px] text-[#212121]">
+                  <input type="checkbox" class="size-4 accent-[#5C1E2F]" [checked]="protectedByPassword()" (change)="protectedByPassword.set($any($event.target).checked)" />
+                  Proteger com palavra-passe
+                </label>
+              </div>
+            </section>
+
+            <section class="grid gap-6 lg:grid-cols-[180px_minmax(0,1fr)]">
+              <div>
+                <h2 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">Recursos Base</h2>
+                <p class="mt-3 text-[10px] leading-4 text-[#616161]">Anexe conteúdos da biblioteca para fundamentar o debate.</p>
+              </div>
+
+              <div class="grid gap-3">
+                @for (content of visibleResources(); track content.id) {
+                  <label class="grid cursor-pointer grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-4 rounded-[6px] border border-[#E0E0E0] bg-white p-4">
+                    <span class="grid size-10 place-items-center bg-[#F2E6E9] text-[16px] text-[#5C1E2F]">▣</span>
+                    <span>
+                      <strong class="block truncate text-[12px] text-[#212121]">{{ content.title }}</strong>
+                      <small class="text-[10px] text-[#616161]">{{ content.type === 'podcast' ? 'Podcast' : 'Artigo Académico' }} · {{ content.readingMinutes }} min de leitura</small>
+                    </span>
+                    <input type="checkbox" class="size-4 accent-[#5C1E2F]" [checked]="selectedContentIds().includes(content.id)" (change)="toggleResource(content.id)" />
+                  </label>
+                }
+
+                <button type="button" class="min-h-12 rounded-[4px] border border-dashed border-[#C48A96] text-[12px] font-extrabold text-[#8A3F50]" (click)="showAllResources.update(show => !show)">
+                  ⊕ {{ showAllResources() ? 'Mostrar apenas vinculados' : 'Vincular Outro Recurso' }}
+                </button>
+
+                @if (resourceError()) {
+                  <p class="text-[11px] font-bold text-[#8A3F50]">Vincule pelo menos um conteúdo da plataforma.</p>
+                }
+              </div>
+            </section>
+
+            @if (createFeedback()) {
+              <p class="rounded-[6px] bg-[#F2E6E9] px-4 py-3 text-[12px] font-bold text-[#5C1E2F]">{{ createFeedback() }}</p>
+            }
+
+            <div class="flex flex-wrap justify-end gap-4">
+              <button type="reset" class="h-12 px-6 text-[12px] font-extrabold text-[#616161]">Cancelar</button>
+              <button type="submit" class="h-12 bg-[#5C1E2F] px-10 text-[12px] font-extrabold text-white">Criar Sala de Debate</button>
+            </div>
+          </form>
+
           <div class="mb-2 flex items-center gap-3">
             <span class="rounded-[4px] bg-[#d4af37] px-3 py-1 text-[9px] font-extrabold uppercase tracking-[0.08em] text-[#5c1e2f]">Tópico em Destaque</span>
             <span class="text-[11px] text-[#616161]">Iniciado há 2 dias</span>
@@ -177,6 +295,15 @@
                       <span class="text-[9px] font-bold uppercase text-[#8A3F50]">{{ room.visibility === 'public' ? 'Público' : 'Privado' }}</span>
                     </div>
                     <p class="mt-2 text-[10px] leading-4 text-[#616161]">{{ room.description }}</p>
+                    @if (room.linkedContents.length) {
+                      <div class="mt-3 grid gap-2">
+                        @for (resource of room.linkedContents; track resource.id) {
+                          <span class="rounded-[4px] bg-white px-3 py-2 text-[10px] font-bold text-[#5C1E2F]">
+                            {{ resource.title }}
+                          </span>
+                        }
+                      </div>
+                    }
                     @if (!auth.canAccessForum(room.id, room.visibility)) {
                       <p class="mt-3 text-[10px] font-bold text-[#8A3F50]">Acesso apenas por convite.</p>
                     }

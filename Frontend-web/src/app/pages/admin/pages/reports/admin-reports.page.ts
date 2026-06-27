@@ -93,10 +93,10 @@ export class AdminReportsPage {
 
   metricColor(tone: ReportMetric['tone']): string {
     const colors: Record<ReportMetric['tone'], string> = {
-      gold: '#d8a500',
-      red: '#e52525',
+      gold: '#D4AF37',
+      red: '#8A3F50',
       wine: '#5c1e2f',
-      amber: '#b88700',
+      amber: '#D4AF37',
     };
 
     return colors[tone];

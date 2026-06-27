@@ -4,8 +4,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import 'package:economica_com_historia/screens/onboarding_screen.dart';
 import 'package:economica_com_historia/shared/main_navigation_screen.dart';
+import 'package:economica_com_historia/service/perfil_service.dart';
 import '../theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -62,6 +64,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     final prefs = await SharedPreferences.getInstance();
     final onboardingConcluido = prefs.getBool('onboarding_done') ?? false;
+
+    if (!mounted) return;
+
+    await context.read<PerfilService>().initialize();
 
     if (!mounted) return;
 

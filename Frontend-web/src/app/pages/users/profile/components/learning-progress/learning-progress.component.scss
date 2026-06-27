@@ -3,7 +3,7 @@
   grid-template-columns: 168px minmax(0, 1fr);
   gap: 1.2rem;
   min-height: 138px;
-  border: 1px solid #ebe7e9;
+  border: 1px solid #F2E6E9;
   background: #fff;
   padding: 1rem;
   box-shadow: 0 16px 42px rgb(22 19 21 / 0.045);
@@ -22,7 +22,7 @@ img {
 }
 
 span {
-  color: #8a4055;
+  color: #8A3F50;
   font-size: 11px;
   font-weight: 700;
 }
@@ -30,14 +30,14 @@ span {
 h2 {
   margin-top: 0.35rem;
   color: #d4af37;
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 700;
 }
 
 p {
   margin-top: 0.25rem;
-  color: #4f4a4c;
+  color: #616161;
   font-size: 13px;
 }
 
@@ -46,7 +46,7 @@ p {
   width: min(100%, 260px);
   height: 4px;
   margin-top: 0.85rem;
-  background: #eee9eb;
+  background: #F2E6E9;
 }
 
 .progress span {

@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:economica_com_historia/theme/app_colors.dart';
-import 'package:economica_com_historia/Screens/podcast_selecionado_screen.dart';
-import 'package:economica_com_historia/widgets/app_bar_principal.dart';
+
+import '../core/exceptions/app_exceptions.dart';
+import '../core/utils/formatters.dart';
+import '../core/widgets/api_state_widgets.dart';
+import '../models/content.dart';
+import '../services/content_service.dart';
+import '../theme/app_colors.dart';
+import '../widgets/app_bar_principal.dart';
+import 'podcast_selecionado_screen.dart';
 
 class PodcastScreen extends StatefulWidget {
   const PodcastScreen({super.key});
@@ -11,69 +17,53 @@ class PodcastScreen extends StatefulWidget {
 }
 
 class _PodcastScreenState extends State<PodcastScreen> {
-  int? _categoriaSelecionada;
+  final _podcastService = PodcastService();
+  String? _categoriaSelecionada;
+  bool _isLoading = true;
+  String? _error;
+  List<Content> _podcasts = [];
 
-  static const List<_PodcastItem> _podcasts = [
-    _PodcastItem(
-      titulo: 'A Rota do Sal em Angola',
-      autor: 'Angolano Errante',
-      duracao: '45 min',
-      imagemAsset: 'assets/images/microfone.png',
-      categoria: 'História Económica',
-    ),
-    _PodcastItem(
-      titulo: 'Ciclos de Commodities',
-      autor: 'Prof. Almeida',
-      duracao: '32 min',
-      imagemAsset: 'assets/images/Ciclos_de_commodities.png',
-      categoria: 'Mercados',
-    ),
-    _PodcastItem(
-      titulo: 'A Herança Colonial',
-      autor: 'Dr. Mbaku',
-      duracao: '58 min',
-      imagemAsset: 'assets/images/A_herança_colonial.png',
-      categoria: 'História Económica',
-    ),
-    _PodcastItem(
-      titulo: 'Futuro Digital Africano',
-      autor: 'Inovação Academy',
-      duracao: '27 min',
-      imagemAsset: 'assets/images/Futuro_digital_colonial.png',
-      categoria: 'Geopolítica',
-    ),
-    _PodcastItem(
-      titulo: 'Navegação e Comércio',
-      autor: 'Arquivo Histórico',
-      duracao: '41 min',
-      imagemAsset: 'assets/images/Navegação_e_Comercio.png',
-      categoria: 'Entrevistas',
-    ),
-    _PodcastItem(
-      titulo: 'Microeconomia Local',
-      autor: 'Vozes do Mercado',
-      duracao: '19 min',
-      imagemAsset: 'assets/images/Microeconomia_Colonial.png',
-      categoria: 'Mercados',
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
 
-  final List<String> _categorias = [
-    'Todos',
-    'História Económica',
-    'Mercados',
-    'Entrevistas',
-    'Geopolítica',
-  ];
-
-  // ── Getter para filtrar podcasts ─────────────────────────────
-  List<_PodcastItem> get _podcastsFiltrados {
-    if (_categoriaSelecionada == null) {
-      return _podcasts;
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final response = await _podcastService.getPodcasts();
+      if (!mounted) return;
+      setState(() => _podcasts = response.data);
+    } on AppException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Erro ao carregar podcasts.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
-    final categoriaSelecionada = _categorias[_categoriaSelecionada!];
+  }
+
+  List<String> get _categorias {
+    final names =
+        _podcasts
+            .map((podcast) => podcast.category?.name)
+            .whereType<String>()
+            .where((name) => name.trim().isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
+    return ['Todos', ...names];
+  }
+
+  List<Content> get _podcastsFiltrados {
+    final categoria = _categoriaSelecionada;
+    if (categoria == null || categoria == 'Todos') return _podcasts;
     return _podcasts
-        .where((podcast) => podcast.categoria == categoriaSelecionada)
+        .where((podcast) => podcast.category?.name == categoria)
         .toList();
   }
 
@@ -86,14 +76,14 @@ class _PodcastScreenState extends State<PodcastScreen> {
         mostrarFavoritos: true,
         mostrarNotificacoes: true,
         mostrarPesquisa: true,
+        mostrarPerfil: true,
       ),
-      body: SafeArea(
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: _load,
         child: CustomScrollView(
           slivers: [
-            // ── Espaçamento entre AppBar e Filtro ─────────────────
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-            // ── FILTRO DE CATEGORIAS (MOVIDO PARA O TOPO) ────────
             SliverToBoxAdapter(
               child: SizedBox(
                 height: 44,
@@ -101,24 +91,22 @@ class _PodcastScreenState extends State<PodcastScreen> {
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemCount: _categorias.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
                   itemBuilder: (_, index) {
+                    final categoria = _categorias[index];
                     final selecionado =
-                        (index == 0 && _categoriaSelecionada == null) ||
-                        (_categoriaSelecionada == index);
+                        (categoria == 'Todos' &&
+                            _categoriaSelecionada == null) ||
+                        _categoriaSelecionada == categoria;
 
                     return InkWell(
                       borderRadius: BorderRadius.circular(10),
                       onTap: () {
                         setState(() {
-                          if (index == 0) {
-                            // "Todos" sempre mostra todos os podcasts
-                            _categoriaSelecionada = null;
-                          } else {
-                            // Outras categorias fazem toggle normal
-                            _categoriaSelecionada =
-                                _categoriaSelecionada == index ? null : index;
-                          }
+                          _categoriaSelecionada =
+                              categoria == 'Todos' || selecionado
+                              ? null
+                              : categoria;
                         });
                       },
                       child: AnimatedContainer(
@@ -140,7 +128,7 @@ class _PodcastScreenState extends State<PodcastScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            _categorias[index],
+                            categoria,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -157,36 +145,50 @@ class _PodcastScreenState extends State<PodcastScreen> {
                 ),
               ),
             ),
-
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
-
-            // ── LISTA DE PODCASTS FILTRADOS ──────────────────────
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: PodcastLayout.pagePadding,
-              ),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: PodcastLayout.cardSpacing,
-                    ),
-                    child: _PodcastCard(
-                      item: _podcastsFiltrados[index],
-                      onTap: () {
-                        Navigator.push(
+            if (_isLoading)
+              const SliverFillRemaining(
+                child: LoadingState(message: 'A carregar podcasts...'),
+              )
+            else if (_error != null)
+              SliverFillRemaining(
+                child: ErrorState(message: _error!, onRetry: _load),
+              )
+            else if (_podcastsFiltrados.isEmpty)
+              const SliverFillRemaining(
+                child: EmptyState(
+                  message: 'Ainda não há podcasts disponíveis.',
+                  icon: Icons.podcasts_outlined,
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: PodcastLayout.pagePadding,
+                ),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final item = _podcastsFiltrados[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(
+                        bottom: PodcastLayout.cardSpacing,
+                      ),
+                      child: _PodcastCard(
+                        content: item,
+                        onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const PodcastSelecionadoScreen(),
+                            builder: (_) => PodcastSelecionadoScreen(
+                              contentId: item.id,
+                              initialContent: item,
+                            ),
                           ),
-                        );
-                      },
-                    ),
-                  );
-                }, childCount: _podcastsFiltrados.length),
+                        ),
+                      ),
+                    );
+                  }, childCount: _podcastsFiltrados.length),
+                ),
               ),
-            ),
-
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         ),
@@ -202,27 +204,11 @@ class PodcastLayout {
   static const double cardSpacing = 16;
 }
 
-class _PodcastItem {
-  final String titulo;
-  final String autor;
-  final String duracao;
-  final String imagemAsset;
-  final String categoria;
-
-  const _PodcastItem({
-    required this.titulo,
-    required this.autor,
-    required this.duracao,
-    required this.imagemAsset,
-    required this.categoria,
-  });
-}
-
 class _PodcastCard extends StatelessWidget {
-  final _PodcastItem item;
+  final Content content;
   final VoidCallback onTap;
 
-  const _PodcastCard({required this.item, required this.onTap});
+  const _PodcastCard({required this.content, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -238,14 +224,11 @@ class _PodcastCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.asset(
-                  item.imagemAsset,
+                AppNetworkImage(
+                  url: content.displayImage,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) {
-                    return Container(color: AppColors.primaryDark);
-                  },
+                  fallbackIcon: Icons.podcasts_rounded,
                 ),
-
                 DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -253,13 +236,12 @@ class _PodcastCard extends StatelessWidget {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(.65),
+                        Colors.black.withValues(alpha: .65),
                       ],
                       stops: const [0.45, 1],
                     ),
                   ),
                 ),
-
                 Positioned(
                   left: 16,
                   right: 70,
@@ -269,7 +251,7 @@ class _PodcastCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        item.titulo,
+                        content.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -278,14 +260,12 @@ class _PodcastCard extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-
                       const SizedBox(height: 6),
-
                       Row(
                         children: [
                           Flexible(
                             child: Text(
-                              item.autor,
+                              content.author?.name ?? 'Podcast EH',
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 color: Colors.white70,
@@ -301,7 +281,7 @@ class _PodcastCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            item.duracao,
+                            readTime(content.content ?? content.summary),
                             style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 13,
@@ -312,7 +292,6 @@ class _PodcastCard extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 Positioned(
                   right: 16,
                   bottom: 16,
@@ -320,7 +299,7 @@ class _PodcastCard extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(.95),
+                      color: Colors.white.withValues(alpha: .95),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(

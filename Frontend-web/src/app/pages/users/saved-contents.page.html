@@ -1,0 +1,113 @@
+<section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
+  <app-public-navbar />
+
+  <main class="fluid-container pb-16 pt-6">
+    <section class="mb-8">
+      <h1 class="font-display text-[32px] font-extrabold leading-tight text-[#5C1E2F] md:text-[40px]">Guardados</h1>
+      <p class="mt-3 max-w-[560px] text-[13px] leading-6 text-[#616161]">
+        A sua curadoria pessoal de conteúdos guardados para voltar quando quiser.
+      </p>
+
+      <div class="mt-7 flex flex-wrap items-center gap-3">
+        @for (filter of filters; track filter) {
+        <button
+          type="button"
+          class="h-11 min-w-[88px] rounded-[10px] border px-6 text-[13px] font-semibold transition"
+          [class.border-[#5C1E2F]]="selectedFilter() === filter"
+          [class.bg-[#5C1E2F]]="selectedFilter() === filter"
+          [class.text-white]="selectedFilter() === filter"
+          [class.border-[#E0E0E0]]="selectedFilter() !== filter"
+          [class.bg-white]="selectedFilter() !== filter"
+          [class.text-[#616161]]="selectedFilter() !== filter"
+          [class.hover:border-[#5C1E2F]]="selectedFilter() !== filter"
+          [class.hover:text-[#5C1E2F]]="selectedFilter() !== filter"
+          (click)="selectedFilter.set(filter)">
+          {{ filter }}
+        </button>
+        }
+      </div>
+    </section>
+
+    @if (feedbackMessage()) {
+    <p class="mb-5 rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-4 py-3 text-[13px] font-semibold text-[#2A9D8F]">
+      {{ feedbackMessage() }}
+    </p>
+    }
+
+    @if (errorMessage()) {
+    <p class="mb-5 rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] px-4 py-3 text-[13px] font-semibold text-[#8A3F50]">
+      {{ errorMessage() }}
+    </p>
+    }
+
+    @if (isLoading()) {
+    <section class="rounded-[8px] border border-[#E0E0E0] bg-white px-6 py-12 text-center">
+      <h2 class="font-display text-[22px] font-extrabold text-[#5c1e2f]">A carregar guardados...</h2>
+      <p class="mx-auto mt-3 max-w-[460px] text-[13px] leading-6 text-[#616161]">
+        Estamos a procurar os conteúdos que guardou na sua conta.
+      </p>
+    </section>
+    } @else if (filteredFavorites().length === 0) {
+    <section class="rounded-[8px] border border-[#E0E0E0] bg-white px-6 py-12 text-center">
+      <h2 class="font-display text-[22px] font-extrabold text-[#5c1e2f]">Nada guardado aqui</h2>
+      <p class="mx-auto mt-3 max-w-[460px] text-[13px] leading-6 text-[#616161]">
+        Quando guardar itens desta categoria, eles aparecem nesta lista.
+      </p>
+      <a routerLink="/app/contents" class="mt-5 inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5C1E2F] px-5 text-[13px] font-bold text-white">
+        Explorar conteúdos
+      </a>
+    </section>
+    } @else {
+    <div class="grid items-stretch gap-8 md:grid-cols-2 xl:grid-cols-3">
+      @for (item of filteredFavorites(); track item.id) {
+      <article class="group flex h-full min-h-[472px] flex-col overflow-hidden rounded-[8px] border border-[#E6D5B8]/55 bg-white shadow-[0_1px_2px_rgba(22,19,21,0.03)] transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+        <a [routerLink]="item.route" class="block">
+          <div class="relative h-56 overflow-hidden bg-[#F2E6E9]">
+            @if (item.imageUrl) {
+            <img [src]="item.imageUrl" [alt]="item.title" class="h-full w-full object-cover transition duration-500 group-hover:scale-110" />
+            } @else {
+            <div class="grid h-full place-items-center bg-[#F5F5F5]">
+              <span class="font-display text-[42px] font-extrabold text-[#E6D5B8]">{{ item.authorInitials }}</span>
+            </div>
+            }
+
+            <div class="absolute left-4 top-4 flex flex-wrap gap-2">
+              <span class="rounded-[4px] bg-[#5C1E2F]/92 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-white backdrop-blur-sm">
+                {{ item.premium ? 'Jindungo' : item.eyebrow }}
+              </span>
+            </div>
+          </div>
+        </a>
+
+        <div class="flex flex-1 flex-col p-6">
+          <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#D4AF37]">{{ item.meta }}</p>
+          <a [routerLink]="item.route" class="mt-3">
+            <h2 class="line-clamp-2 font-display text-[22px] font-semibold leading-7 text-[#5C1E2F]">{{ item.title }}</h2>
+          </a>
+          <p class="mt-3 line-clamp-3 min-h-[72px] text-[15px] leading-6 text-[#616161]">{{ item.excerpt }}</p>
+
+          <div class="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-[#E0E0E0] pt-5">
+            <span class="flex items-center gap-2 text-[11px] font-extrabold text-[#616161]">
+              <span class="grid size-7 place-items-center rounded-full bg-[#F2E6E9] text-[9px] text-[#8A3F50]">{{ item.authorInitials }}</span>
+              {{ item.author }}
+            </span>
+            <a [routerLink]="item.route" class="text-[11px] font-semibold text-[#212121] hover:text-[#5c1e2f]">{{ item.action }}</a>
+          </div>
+
+          <button
+            type="button"
+            class="mt-4 inline-flex h-11 items-center justify-center rounded-[8px] border border-[#E6D5B8] px-4 text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F5F5F5] disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="isRemoving() === item.id"
+            (click)="removeFavorite(item)">
+            {{ isRemoving() === item.id ? 'A remover...' : 'Remover dos guardados' }}
+          </button>
+        </div>
+      </article>
+      }
+    </div>
+    }
+  </main>
+
+  <app-public-footer />
+  <app-back-to-top />
+</section>

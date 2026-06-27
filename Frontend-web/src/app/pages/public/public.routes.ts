@@ -8,7 +8,7 @@ import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.com
 @Component({
   selector: 'app-landing-page',
   imports: [RouterLink, PublicNavbarComponent, PublicFooterComponent, BackToTopComponent],
-  templateUrl: './landing-page.html'
+  templateUrl: './landing.page.html'
 })
 export class LandingPage implements AfterViewInit, OnDestroy {
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -154,10 +154,7 @@ export class LandingPage implements AfterViewInit, OnDestroy {
     this.revealObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            this.revealObserver?.unobserve(entry.target);
-          }
+          entry.target.classList.toggle('is-visible', entry.isIntersecting);
         });
       },
       { rootMargin: '0px 0px -12% 0px', threshold: 0.12 },
@@ -172,10 +169,10 @@ export class LandingPage implements AfterViewInit, OnDestroy {
 }
 
 @Component({
-  selector: 'app-user-dashboard-page',
-  templateUrl: './user-dashboard-page.html'
+  selector: 'app-public-dashboard-page',
+  templateUrl: './public-dashboard.page.html'
 })
-export class UserDashboardPage {}
+export class PublicDashboardPage {}
 
 const redirectAuthenticatedToContents: CanActivateFn = () => {
   const auth = inject(AuthStateService);

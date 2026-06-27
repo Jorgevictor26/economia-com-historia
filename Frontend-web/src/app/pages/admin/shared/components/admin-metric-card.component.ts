@@ -11,7 +11,7 @@ import { Component, input } from '@angular/core';
       </strong>
 
       @if (note()) {
-        <span class="mt-3 block text-[10px] font-extrabold text-[#7a6b12]">{{ note() }}</span>
+        <span class="mt-3 block text-[10px] font-extrabold text-[#8A3F50]">{{ note() }}</span>
       }
 
       @if (showProgress()) {

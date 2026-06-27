@@ -22,6 +22,7 @@ export class LoginComponent {
   readonly isLoading = signal(false);
   readonly submitted = signal(false);
   readonly errorMessage = signal('');
+  readonly passwordVisible = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -31,6 +32,14 @@ export class LoginComponent {
 
   readonly emailInvalid = computed(() => this.isInvalid('email'));
   readonly passwordInvalid = computed(() => this.isInvalid('password'));
+
+  togglePasswordVisibility(): void {
+    this.passwordVisible.update((visible) => !visible);
+  }
+
+  continueWithGoogle(): void {
+    this.errorMessage.set('Entrada com Google ainda precisa da rota OAuth no backend.');
+  }
 
   async submit(): Promise<void> {
     this.submitted.set(true);

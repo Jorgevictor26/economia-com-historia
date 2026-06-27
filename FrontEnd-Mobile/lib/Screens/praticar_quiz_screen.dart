@@ -1,30 +1,125 @@
 import 'package:flutter/material.dart';
-import 'package:economica_com_historia/theme/app_colors.dart';
+
+import '../core/exceptions/app_exceptions.dart';
+import '../core/widgets/api_state_widgets.dart';
+import '../models/quiz.dart';
+import '../services/quiz_service.dart';
+import '../theme/app_colors.dart';
 
 class PraticarQuizScreen extends StatefulWidget {
-  const PraticarQuizScreen({super.key});
+  final Quiz quiz;
+
+  const PraticarQuizScreen({super.key, required this.quiz});
 
   @override
   State<PraticarQuizScreen> createState() => _PraticarQuizScreenState();
 }
 
 class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
-  int? _respostaSelecionada;
-  final int _respostaCorreta = 1;
-  bool _mostrarFeedback = false;
+  final _service = QuizService();
+  late final DateTime _startedAt;
 
-  static const _opcoes = [
-    'A diversificação imediata para a exportação de diamantes em larga escala.',
-    'A transição forçada para a "economia legítima", focada em produtos agrícolas e matérias-primas.',
-    'O isolamento total do porto de Luanda face aos mercados europeus.',
-  ];
+  bool _isLoading = true;
+  bool _isSubmitting = false;
+  String? _error;
+  List<Question> _questions = [];
+  int _currentIndex = 0;
+  String? _selectedOption;
+  bool _showFeedback = false;
+  final Map<int, String> _answers = {};
 
-  void _selecionarResposta(int index) {
-    if (_mostrarFeedback) return;
+  @override
+  void initState() {
+    super.initState();
+    _startedAt = DateTime.now();
+    _load();
+  }
+
+  Future<void> _load() async {
     setState(() {
-      _respostaSelecionada = index;
-      _mostrarFeedback = true;
+      _isLoading = true;
+      _error = null;
     });
+    try {
+      final questions = widget.quiz.questions.isNotEmpty
+          ? widget.quiz.questions
+          : await _service.getQuestions(widget.quiz.id);
+      if (!mounted) return;
+      setState(() => _questions = questions);
+    } on AppException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Erro ao carregar questoes.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Question get _question => _questions[_currentIndex];
+
+  void _selecionarResposta(String option) {
+    if (_showFeedback) return;
+    setState(() {
+      _selectedOption = option;
+      _answers[_question.id] = option;
+      _showFeedback = true;
+    });
+  }
+
+  Future<void> _continuar() async {
+    if (_currentIndex < _questions.length - 1) {
+      setState(() {
+        _currentIndex++;
+        _selectedOption = _answers[_question.id];
+        _showFeedback = false;
+      });
+      return;
+    }
+    await _submit();
+  }
+
+  Future<void> _submit() async {
+    setState(() => _isSubmitting = true);
+    try {
+      final result = await _service.submitQuiz(
+        quizId: widget.quiz.id,
+        startedAt: _startedAt,
+        answers: _answers,
+      );
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Resultado'),
+          content: Text(
+            'Acertaste ${result.score}/${result.totalQuestions} (${result.percentage.toStringAsFixed(1)}%).',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      if (mounted) Navigator.maybePop(context);
+    } on AppException catch (e) {
+      if (mounted) _showSnackBar(e.message);
+    } catch (_) {
+      if (mounted) _showSnackBar('Erro ao submeter respostas.');
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -32,67 +127,94 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
-          children: [
-            _BarraTopo(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Qual foi o principal impacto económico da abolição do tráfico transatlântico na estruturamercantil de Luanda?',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                        height: 1.35,
+        child: _isLoading
+            ? const LoadingState(message: 'A carregar quiz...')
+            : _error != null
+            ? ErrorState(message: _error!, onRetry: _load)
+            : _questions.isEmpty
+            ? const EmptyState(message: 'Este quiz ainda nao tem questoes.')
+            : Column(
+                children: [
+                  _BarraTopo(
+                    current: _currentIndex + 1,
+                    total: _questions.length,
+                    progress: (_currentIndex + 1) / _questions.length,
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 20),
+                          Text(
+                            _question.question,
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                              height: 1.35,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          ..._question.options.map(
+                            (option) => _OpcaoCard(
+                              letra: option.key.toUpperCase(),
+                              texto: option.text,
+                              estado: _estado(option.key),
+                              onTap: () => _selecionarResposta(option.key),
+                            ),
+                          ),
+                          if (_showFeedback) ...[
+                            const SizedBox(height: 16),
+                            _FeedbackCard(
+                              correct:
+                                  _selectedOption == _question.correctOption,
+                              explanation: _question.explanation,
+                            ),
+                          ],
+                          const SizedBox(height: 24),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    ...List.generate(
-                      _opcoes.length,
-                      (i) => _OpcaoCard(
-                        letra: String.fromCharCode(65 + i),
-                        texto: _opcoes[i],
-                        estado: _calcularEstado(i),
-                        onTap: () => _selecionarResposta(i),
-                      ),
-                    ),
-                    if (_mostrarFeedback) ...[
-                      const SizedBox(height: 16),
-                      const _FeedbackCard(),
-                    ],
-                    const SizedBox(height: 24),
-                  ],
-                ),
+                  ),
+                  _BotaoContinuar(
+                    ativo: _selectedOption != null && !_isSubmitting,
+                    isSubmitting: _isSubmitting,
+                    label: _currentIndex == _questions.length - 1
+                        ? 'Submeter'
+                        : 'Continuar',
+                    onTap: _continuar,
+                  ),
+                ],
               ),
-            ),
-            _BotaoContinuar(
-              ativo: _respostaSelecionada != null,
-              onTap: () => Navigator.maybePop(context),
-            ),
-          ],
-        ),
       ),
     );
   }
 
-  _EstadoOpcao _calcularEstado(int i) {
-    if (!_mostrarFeedback) {
-      return i == _respostaSelecionada
+  _EstadoOpcao _estado(String option) {
+    if (!_showFeedback) {
+      return option == _selectedOption
           ? _EstadoOpcao.selecionada
           : _EstadoOpcao.neutra;
     }
-    if (i == _respostaCorreta) return _EstadoOpcao.correta;
-    if (i == _respostaSelecionada) return _EstadoOpcao.errada;
+    if (option == _question.correctOption) return _EstadoOpcao.correta;
+    if (option == _selectedOption) return _EstadoOpcao.errada;
     return _EstadoOpcao.neutra;
   }
 }
 
 class _BarraTopo extends StatelessWidget {
+  final int current;
+  final int total;
+  final double progress;
+
+  const _BarraTopo({
+    required this.current,
+    required this.total,
+    required this.progress,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -115,7 +237,7 @@ class _BarraTopo extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
-                    value: 12 / 20,
+                    value: progress,
                     minHeight: 5,
                     backgroundColor: const Color(0xFFEEE8E9),
                     valueColor: const AlwaysStoppedAnimation<Color>(
@@ -127,9 +249,9 @@ class _BarraTopo extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          const Text(
-            'PERGUNTA 12/20',
-            style: TextStyle(
+          Text(
+            'PERGUNTA $current/$total',
+            style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
               color: AppColors.primary,
@@ -160,58 +282,38 @@ class _OpcaoCard extends StatelessWidget {
   static const _verde = Color(0xFF2E7D32);
   static const _verdeClaro = Color(0xFFF1FAF1);
   static const _verdeBorda = Color(0xFF4CAF50);
-  static const _verdeLetra = Color(0xFF388E3C);
 
   @override
   Widget build(BuildContext context) {
     final Color bordaColor;
     final Color fundoColor;
     final Color letraFundoColor;
-    final Color letraTextColor;
     final Color textoColor;
-    final FontWeight textoWeight;
-    Widget? iconeDir;
 
     switch (estado) {
       case _EstadoOpcao.correta:
         bordaColor = _verdeBorda;
         fundoColor = _verdeClaro;
-        letraFundoColor = _verdeLetra;
-        letraTextColor = Colors.white;
+        letraFundoColor = _verde;
         textoColor = _verde;
-        textoWeight = FontWeight.w700;
-        iconeDir = const Icon(
-          Icons.check_circle_rounded,
-          color: _verdeBorda,
-          size: 22,
-        );
         break;
       case _EstadoOpcao.errada:
         bordaColor = Colors.redAccent;
         fundoColor = const Color(0xFFFFF0F0);
         letraFundoColor = Colors.redAccent;
-        letraTextColor = Colors.white;
         textoColor = Colors.redAccent;
-        textoWeight = FontWeight.w500;
-        iconeDir = null;
         break;
       case _EstadoOpcao.selecionada:
         bordaColor = AppColors.primary;
         fundoColor = const Color(0xFFF7EEF0);
         letraFundoColor = AppColors.primary;
-        letraTextColor = Colors.white;
         textoColor = AppColors.primary;
-        textoWeight = FontWeight.w600;
-        iconeDir = null;
         break;
       default:
         bordaColor = const Color(0xFFDDD5D6);
         fundoColor = Colors.white;
         letraFundoColor = const Color(0xFFF0EAEA);
-        letraTextColor = AppColors.textMedium;
         textoColor = AppColors.textMedium;
-        textoWeight = FontWeight.w400;
-        iconeDir = null;
     }
 
     return GestureDetector(
@@ -228,8 +330,7 @@ class _OpcaoCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+            Container(
               width: 32,
               height: 32,
               decoration: BoxDecoration(
@@ -239,10 +340,10 @@ class _OpcaoCard extends StatelessWidget {
               child: Center(
                 child: Text(
                   letra,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: letraTextColor,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -255,17 +356,12 @@ class _OpcaoCard extends StatelessWidget {
                   texto,
                   style: TextStyle(
                     fontSize: 14,
-                    fontWeight: textoWeight,
                     color: textoColor,
                     height: 1.45,
                   ),
                 ),
               ),
             ),
-            if (iconeDir != null) ...[
-              const SizedBox(width: 8),
-              Padding(padding: const EdgeInsets.only(top: 4), child: iconeDir),
-            ],
           ],
         ),
       ),
@@ -274,67 +370,53 @@ class _OpcaoCard extends StatelessWidget {
 }
 
 class _FeedbackCard extends StatelessWidget {
-  const _FeedbackCard();
+  final bool correct;
+  final String? explanation;
 
-  static const _verde = Color(0xFF2E7D32);
-  static const _verdeClaro = Color(0xFFF1FAF1);
-  static const _verdeBorda = Color(0xFFBCDFBC);
+  const _FeedbackCard({required this.correct, this.explanation});
 
   @override
   Widget build(BuildContext context) {
+    final color = correct ? const Color(0xFF2E7D32) : Colors.redAccent;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _verdeClaro,
+        color: correct ? const Color(0xFFF1FAF1) : const Color(0xFFFFF0F0),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _verdeBorda, width: 1.5),
+        border: Border.all(color: color.withValues(alpha: 0.4), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(Icons.school_outlined, color: _verde, size: 20),
-              SizedBox(width: 8),
+            children: [
+              Icon(
+                correct ? Icons.check_circle_outline : Icons.info_outline,
+                color: color,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
               Text(
-                'Excelente Raciocínio!',
+                correct ? 'Resposta correta' : 'Resposta incorreta',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: _verde,
+                  color: color,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          const Text(
-            'Com a proibição do tráfico de escravos, a elite mercantil de Luanda viu-se obrigada a reorientar os seus capitais para o comércio de bens como o óleo de palma, marfim e cera de abelha. Este período marcou o início de uma transformação estrutural que tentou integrar o interior de Angola em circuitos comerciais produtivos, alterando permanentemente a dinâmica entre o litoral e o sertão.',
-            style: TextStyle(
-              fontSize: 13,
-              color: Color(0xFF3D3D3D),
-              height: 1.6,
+          if ((explanation ?? '').isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              explanation!,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF3D3D3D),
+                height: 1.6,
+              ),
             ),
-          ),
-          const SizedBox(height: 14),
-          const Divider(color: _verdeBorda, height: 1),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: () {},
-            child: Row(
-              children: const [
-                Icon(Icons.menu_book_outlined, color: _verde, size: 16),
-                SizedBox(width: 6),
-                Text(
-                  'Ler conteúdo relacionado',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: _verde,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ],
         ],
       ),
     );
@@ -343,9 +425,16 @@ class _FeedbackCard extends StatelessWidget {
 
 class _BotaoContinuar extends StatelessWidget {
   final bool ativo;
+  final bool isSubmitting;
+  final String label;
   final VoidCallback onTap;
 
-  const _BotaoContinuar({required this.ativo, required this.onTap});
+  const _BotaoContinuar({
+    required this.ativo,
+    required this.isSubmitting,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -370,10 +459,22 @@ class _BotaoContinuar extends StatelessWidget {
             ),
             elevation: 0,
           ),
-          child: const Text(
-            'Continuar',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
+          child: isSubmitting
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+              : Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
         ),
       ),
     );

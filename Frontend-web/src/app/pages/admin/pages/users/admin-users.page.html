@@ -2,7 +2,7 @@
   <section class="mx-auto grid max-w-6xl gap-5">
     <app-admin-page-header title="Gestao de Admins">
       @if (auth.isSuperAdmin()) {
-        <button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-[6px] bg-[#5c1e2f] px-5 text-[13px] font-extrabold text-white shadow-[0_12px_28px_rgba(92,30,47,0.18)] transition hover:bg-[#6f263a]">
+        <button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-[6px] bg-[#5c1e2f] px-5 text-[13px] font-extrabold text-white shadow-[0_12px_28px_rgba(92,30,47,0.18)] transition hover:bg-[#8A3F50]">
           <span class="material-symbols-outlined text-[18px]" aria-hidden="true">person_add</span>
           Adicionar Admin
         </button>
@@ -12,16 +12,16 @@
     <section class="grid gap-3">
       <div class="grid gap-3 md:grid-cols-[minmax(220px,1fr)_minmax(180px,0.65fr)_minmax(180px,0.65fr)_auto]">
         <label class="grid gap-1">
-          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8f4058]">Pesquisar</span>
-          <div class="flex h-9 items-center gap-2 rounded-[6px] border border-[#eee7ea] bg-white px-3 shadow-[0_10px_24px_rgba(27,22,30,0.035)]">
-            <span class="material-symbols-outlined text-[16px] text-[#8b8589]" aria-hidden="true">search</span>
-            <input type="search" placeholder="Nome ou email..." class="min-w-0 flex-1 border-0 bg-transparent text-[12px] text-[#3a3034] outline-none placeholder:text-[#aaa3a7]" />
+          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50]">Pesquisar</span>
+          <div class="flex h-9 items-center gap-2 rounded-[6px] border border-[#E0E0E0] bg-white px-3 shadow-[0_10px_24px_rgba(27,22,30,0.035)]">
+            <span class="material-symbols-outlined text-[16px] text-[#9E9E9E]" aria-hidden="true">search</span>
+            <input type="search" placeholder="Nome ou email..." class="min-w-0 flex-1 border-0 bg-transparent text-[12px] text-[#212121] outline-none placeholder:text-[#9E9E9E]" />
           </div>
         </label>
 
         <label class="grid gap-1">
-          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8f4058]">Departamento</span>
-          <select class="h-9 rounded-[6px] border border-[#eee7ea] bg-white px-3 text-[12px] text-[#3a3034] shadow-[0_10px_24px_rgba(27,22,30,0.035)] outline-none">
+          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50]">Departamento</span>
+          <select class="h-9 rounded-[6px] border border-[#E0E0E0] bg-white px-3 text-[12px] text-[#212121] shadow-[0_10px_24px_rgba(27,22,30,0.035)] outline-none">
             <option>Todos os departamentos</option>
             <option>Academico</option>
             <option>Marketing</option>
@@ -31,8 +31,8 @@
         </label>
 
         <label class="grid gap-1">
-          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8f4058]">Nivel de acesso</span>
-          <select class="h-9 rounded-[6px] border border-[#eee7ea] bg-white px-3 text-[12px] text-[#3a3034] shadow-[0_10px_24px_rgba(27,22,30,0.035)] outline-none">
+          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50]">Nivel de acesso</span>
+          <select class="h-9 rounded-[6px] border border-[#E0E0E0] bg-white px-3 text-[12px] text-[#212121] shadow-[0_10px_24px_rgba(27,22,30,0.035)] outline-none">
             <option>Todos os cargos</option>
             <option>Super admin</option>
             <option>Administrador</option>
@@ -41,14 +41,14 @@
           </select>
         </label>
 
-        <button type="button" class="mt-auto inline-flex h-9 items-center justify-center gap-2 rounded-[6px] border border-[#eadfe3] bg-white px-4 text-[12px] font-extrabold text-[#8f4058] shadow-[0_10px_24px_rgba(27,22,30,0.035)] transition hover:border-[#8f4058]">
+        <button type="button" class="mt-auto inline-flex h-9 items-center justify-center gap-2 rounded-[6px] border border-[#E0E0E0] bg-white px-4 text-[12px] font-extrabold text-[#8A3F50] shadow-[0_10px_24px_rgba(27,22,30,0.035)] transition hover:border-[#8A3F50]">
           <span class="material-symbols-outlined text-[16px]" aria-hidden="true">filter_list</span>
           Filtrar
         </button>
       </div>
 
-      <section class="overflow-hidden rounded-[8px] border border-[#eee7ea] bg-white shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
-        <div class="grid grid-cols-[minmax(210px,1.2fr)_minmax(120px,0.55fr)_minmax(130px,0.58fr)_minmax(90px,0.42fr)_minmax(115px,0.5fr)_48px] gap-4 border-b border-[#f0e8eb] bg-[#f8f6f7] px-5 py-3 text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8f4058] max-xl:hidden">
+      <section class="overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
+        <div class="grid grid-cols-[minmax(210px,1.2fr)_minmax(120px,0.55fr)_minmax(130px,0.58fr)_minmax(90px,0.42fr)_minmax(115px,0.5fr)_48px] gap-4 border-b border-[#E0E0E0] bg-[#F5F5F5] px-5 py-3 text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50] max-xl:hidden">
           <span>Administrador</span>
           <span>Departamento</span>
           <span>Cargo</span>
@@ -57,51 +57,51 @@
           <span class="text-right">Acoes</span>
         </div>
 
-        <div class="grid divide-y divide-[#f1eaed]">
+        <div class="grid divide-y divide-[#F2E6E9]">
           @for (user of users; track user.email) {
-            <article class="grid grid-cols-[minmax(210px,1.2fr)_minmax(120px,0.55fr)_minmax(130px,0.58fr)_minmax(90px,0.42fr)_minmax(115px,0.5fr)_48px] items-center gap-4 px-5 py-4 transition hover:bg-[#fbfafb] max-xl:grid-cols-1">
+            <article class="grid grid-cols-[minmax(210px,1.2fr)_minmax(120px,0.55fr)_minmax(130px,0.58fr)_minmax(90px,0.42fr)_minmax(115px,0.5fr)_48px] items-center gap-4 px-5 py-4 transition hover:bg-[#fff] max-xl:grid-cols-1">
               <div class="flex min-w-0 items-center gap-3">
-                <span class="grid size-9 shrink-0 place-items-center rounded-full bg-[#f6e9ed] text-[11px] font-extrabold text-[#8f4058]">{{ initials(user.name) }}</span>
+                <span class="grid size-9 shrink-0 place-items-center rounded-full bg-[#F2E6E9] text-[11px] font-extrabold text-[#8A3F50]">{{ initials(user.name) }}</span>
                 <span class="min-w-0">
-                  <strong class="block truncate text-[13px] text-[#2e272a]">{{ user.name }}</strong>
-                  <small class="block truncate text-[11px] text-[#8d8589]">{{ user.email }}</small>
+                  <strong class="block truncate text-[13px] text-[#212121]">{{ user.name }}</strong>
+                  <small class="block truncate text-[11px] text-[#9E9E9E]">{{ user.email }}</small>
                 </span>
               </div>
 
-              <span class="text-[12px] text-[#5d5357] max-xl:before:mr-2 max-xl:before:font-extrabold max-xl:before:text-[#8f4058] max-xl:before:content-['Departamento:']">{{ user.department }}</span>
+              <span class="text-[12px] text-[#616161] max-xl:before:mr-2 max-xl:before:font-extrabold max-xl:before:text-[#8A3F50] max-xl:before:content-['Departamento:']">{{ user.department }}</span>
 
-              <span class="w-fit rounded-[4px] bg-[#f2f0f1] px-2.5 py-1 text-[9px] font-extrabold uppercase text-[#5f575b]">
+              <span class="w-fit rounded-[4px] bg-[#F5F5F5] px-2.5 py-1 text-[9px] font-extrabold uppercase text-[#616161]">
                 {{ user.position }}
               </span>
 
-              <span class="inline-flex items-center gap-2 text-[12px] font-bold" [class.text-[#2d7a47]]="user.status === 'Ativo'" [class.text-[#7b6a20]]="user.status === 'Pendente'" [class.text-[#5f575b]]="user.status === 'Inativo'">
-                <span class="size-1.5 rounded-full" [class.bg-[#2fbd68]]="user.status === 'Ativo'" [class.bg-[#d7a51f]]="user.status === 'Pendente'" [class.bg-[#777075]]="user.status === 'Inativo'"></span>
+              <span class="inline-flex items-center gap-2 text-[12px] font-bold" [class.text-[#616161]]="user.status === 'Ativo'" [class.text-[#8A3F50]]="user.status === 'Pendente'" [class.text-[#616161]]="user.status === 'Inativo'">
+                <span class="size-1.5 rounded-full" [class.bg-[#2A9D8F]]="user.status === 'Ativo'" [class.bg-[#D4AF37]]="user.status === 'Pendente'" [class.bg-[#616161]]="user.status === 'Inativo'"></span>
                 {{ user.status }}
               </span>
 
-              <span class="text-[12px] text-[#5d5357] max-xl:before:mr-2 max-xl:before:font-extrabold max-xl:before:text-[#8f4058] max-xl:before:content-['Ultimo_acesso:']">{{ user.lastAccess }}</span>
+              <span class="text-[12px] text-[#616161] max-xl:before:mr-2 max-xl:before:font-extrabold max-xl:before:text-[#8A3F50] max-xl:before:content-['Ultimo_acesso:']">{{ user.lastAccess }}</span>
 
               <div class="relative flex items-center justify-end max-xl:justify-start">
                 <details class="group relative">
-                  <summary class="grid size-8 cursor-pointer list-none place-items-center rounded-[5px] text-[#5f575b] transition hover:bg-[#f4eef1] hover:text-[#8f4058]" aria-label="Mais acoes">
+                  <summary class="grid size-8 cursor-pointer list-none place-items-center rounded-[5px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]" aria-label="Mais acoes">
                     <span class="material-symbols-outlined text-[20px]" aria-hidden="true">more_vert</span>
                   </summary>
 
-                  <div class="absolute right-0 z-20 mt-2 grid min-w-40 gap-1 rounded-[8px] border border-[#eee7ea] bg-white p-2 shadow-[0_18px_45px_rgba(27,22,30,0.12)] max-xl:left-0 max-xl:right-auto">
+                  <div class="absolute right-0 z-20 mt-2 grid min-w-40 gap-1 rounded-[8px] border border-[#E0E0E0] bg-white p-2 shadow-[0_18px_45px_rgba(27,22,30,0.12)] max-xl:left-0 max-xl:right-auto">
                     @if (canPromoteToWriter(user)) {
-                      <button type="button" (click)="promoteToWriter(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8f4058] transition hover:bg-[#fff4f7]">
+                      <button type="button" (click)="promoteToWriter(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]">
                         Promover a escritor
                       </button>
                     }
 
                     @if (canPromoteToAdmin(user)) {
-                      <button type="button" (click)="promoteToAdmin(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8f4058] transition hover:bg-[#fff4f7]">
+                      <button type="button" (click)="promoteToAdmin(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]">
                         Promover a admin
                       </button>
                     }
 
                     @if (!canPromoteToWriter(user) && !canPromoteToAdmin(user)) {
-                      <span class="px-3 py-2 text-[11px] font-semibold text-[#8d8589]">Sem acao disponivel</span>
+                      <span class="px-3 py-2 text-[11px] font-semibold text-[#9E9E9E]">Sem acao disponivel</span>
                     }
                   </div>
                 </details>
@@ -110,44 +110,44 @@
           }
         </div>
 
-        <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-[#f0e8eb] px-5 py-4 text-[11px] text-[#8d8589]">
+        <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-[#E0E0E0] px-5 py-4 text-[11px] text-[#9E9E9E]">
           <span>Mostrando 1-{{ users.length }} de {{ users.length }} administradores</span>
           <div class="flex items-center gap-2">
-            <button type="button" class="h-8 rounded-[5px] border border-[#eee7ea] bg-white px-3 text-[11px] font-bold text-[#6f686b] transition hover:border-[#8f4058]">Anterior</button>
-            <button type="button" class="h-8 rounded-[5px] border border-[#8f4058] bg-white px-3 text-[11px] font-bold text-[#8f4058] transition hover:bg-[#fff4f7]">Proxima</button>
+            <button type="button" class="h-8 rounded-[5px] border border-[#E0E0E0] bg-white px-3 text-[11px] font-bold text-[#616161] transition hover:border-[#8A3F50]">Anterior</button>
+            <button type="button" class="h-8 rounded-[5px] border border-[#8A3F50] bg-white px-3 text-[11px] font-bold text-[#8A3F50] transition hover:bg-[#F2E6E9]">Proxima</button>
           </div>
         </footer>
       </section>
     </section>
 
     <section class="grid gap-4 md:grid-cols-3">
-      <article class="flex min-h-20 items-center gap-4 rounded-[8px] border border-[#eee7ea] bg-[#f4f5f6] px-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
-        <span class="grid size-10 place-items-center rounded-[7px] bg-[#f5e7ec] text-[#8f4058]">
+      <article class="flex min-h-20 items-center gap-4 rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
+        <span class="grid size-10 place-items-center rounded-[7px] bg-[#F2E6E9] text-[#8A3F50]">
           <span class="material-symbols-outlined text-[21px]" aria-hidden="true">groups</span>
         </span>
         <div>
           <strong class="block text-[17px] text-[#5c1e2f]">{{ adminCount }}</strong>
-          <span class="text-[10px] font-extrabold uppercase tracking-[0.04em] text-[#8a8587]">Total de admins</span>
+          <span class="text-[10px] font-extrabold uppercase tracking-[0.04em] text-[#9E9E9E]">Total de admins</span>
         </div>
       </article>
 
-      <article class="flex min-h-20 items-center gap-4 rounded-[8px] border border-[#eee7ea] bg-[#f4f5f6] px-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
-        <span class="grid size-10 place-items-center rounded-[7px] bg-[#f5e7ec] text-[#8f4058]">
+      <article class="flex min-h-20 items-center gap-4 rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
+        <span class="grid size-10 place-items-center rounded-[7px] bg-[#F2E6E9] text-[#8A3F50]">
           <span class="material-symbols-outlined text-[21px]" aria-hidden="true">shield</span>
         </span>
         <div>
           <strong class="block text-[17px] text-[#5c1e2f]">{{ superAdminCount }}</strong>
-          <span class="text-[10px] font-extrabold uppercase tracking-[0.04em] text-[#8a8587]">Super admins</span>
+          <span class="text-[10px] font-extrabold uppercase tracking-[0.04em] text-[#9E9E9E]">Super admins</span>
         </div>
       </article>
 
-      <article class="flex min-h-20 items-center gap-4 rounded-[8px] border border-[#eee7ea] bg-[#f4f5f6] px-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
-        <span class="grid size-10 place-items-center rounded-[7px] bg-[#f5e7ec] text-[#8f4058]">
+      <article class="flex min-h-20 items-center gap-4 rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
+        <span class="grid size-10 place-items-center rounded-[7px] bg-[#F2E6E9] text-[#8A3F50]">
           <span class="material-symbols-outlined text-[21px]" aria-hidden="true">history</span>
         </span>
         <div>
           <strong class="block text-[17px] text-[#5c1e2f]">{{ pendingCount }}</strong>
-          <span class="text-[10px] font-extrabold uppercase tracking-[0.04em] text-[#8a8587]">Solicitacoes pendentes</span>
+          <span class="text-[10px] font-extrabold uppercase tracking-[0.04em] text-[#9E9E9E]">Solicitacoes pendentes</span>
         </div>
       </article>
     </section>

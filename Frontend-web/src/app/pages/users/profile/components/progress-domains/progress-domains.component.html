@@ -2,7 +2,7 @@
   @for (domain of domains(); track domain.title) {
     <article class="domain-card" [style.--accent]="domain.color" [style.--value]="domain.percent">
       <h3>{{ domain.title }}</h3>
-      <div class="ring" [style.background]="'conic-gradient(' + domain.color + ' ' + domain.percent + '%, #eee9eb 0)'">
+      <div class="ring" [style.background]="'conic-gradient(' + domain.color + ' ' + domain.percent + '%, #F2E6E9 0)'">
         <span>{{ domain.percent }}%</span>
       </div>
       <ul>

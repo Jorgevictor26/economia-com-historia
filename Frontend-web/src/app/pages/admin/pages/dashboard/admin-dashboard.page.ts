@@ -34,9 +34,9 @@ export class AdminDashboardPage {
 
   readonly metrics: DashboardMetric[] = [
     { label: 'Engajamento medio', value: '8.4 / 10', note: '+Comentarios e interacoes', accent: '#5c1e2f' },
-    { label: 'Membros ativos', value: '1,842', note: '+4.6% novos hoje', accent: '#7d193b' },
+    { label: 'Membros ativos', value: '1,842', note: '+4.6% novos hoje', accent: '#8A3F50' },
     { label: 'Taxa de retencao', value: '97.6%', note: 'Alta fidelidade', accent: '#5c1e2f' },
-    { label: 'Total de subscritores', value: '12.450', note: '+12% novos seguidores', accent: '#7d193b' },
+    { label: 'Total de subscritores', value: '12.450', note: '+12% novos seguidores', accent: '#8A3F50' },
   ];
 
   readonly topStudentsSignal = signal<StudentRank[]>([

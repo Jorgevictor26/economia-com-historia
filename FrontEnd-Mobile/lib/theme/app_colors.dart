@@ -11,7 +11,7 @@ class AppColors {
 
   static const secondaryDark = Color(0XFF7D6712);
 
-  static const background = Color(0xFFFFFFFF);
+  static const background = Color(0xFFF7F5F5);
 
   static const cardBackground = Color(0xFFFFFFFF);
 
@@ -39,5 +39,5 @@ class AppColors {
 
   static const googleRed = Color(0xFFEA4335);
 
-  static const surface = Color(0xF3F4F5);
+  static const surface = Color(0xFFF3F4F5);
 }

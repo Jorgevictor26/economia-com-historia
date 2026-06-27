@@ -2,10 +2,10 @@ import { CanActivateFn, Routes } from '@angular/router';
 import { adminGuard } from './services/admin.guard';
 import { authGuard } from './services/auth.guard';
 import { superAdminGuard } from './services/super-admin.guard';
-import { AdminLayoutComponent } from './pages/layouts/admin-layout/admin-layout';
-import { DashboardLayoutComponent } from './pages/layouts/dashboard-layout/dashboard-layout';
-import { PublicLayoutComponent } from './pages/layouts/public-layout/public-layout';
-import { SuperAdminLayoutComponent } from './pages/layouts/super-admin-layout/super-admin-layout';
+import { AdminLayoutComponent } from './pages/layouts/admin-layout/admin-layout.component';
+import { DashboardLayoutComponent } from './pages/layouts/dashboard-layout/dashboard-layout.component';
+import { PublicLayoutComponent } from './pages/layouts/public-layout/public-layout.component';
+import { SuperAdminLayoutComponent } from './pages/layouts/super-admin-layout/super-admin-layout.component';
 
 type LazyRoutes = () => Promise<Routes>;
 
@@ -17,35 +17,35 @@ interface DashboardRoute {
 }
 
 const dashboardRoutes: DashboardRoute[] = [
-  { path: 'home', loadChildren: () => import('./pages/users/daily-home.routes').then((m) => m.DAILY_HOME_ROUTES) },
-  { path: 'contents', loadChildren: () => import('./pages/users/contents/contents.routes').then((m) => m.CONTENTS_ROUTES) },
+  { path: 'home', loadChildren: () => import('./pages/users/user-home.routes').then((m) => m.USER_HOME_ROUTES) },
+  { path: 'contents', loadChildren: () => import('./pages/users/contents/content-library.routes').then((m) => m.CONTENT_LIBRARY_ROUTES) },
   {
     path: 'forums',
     canActivate: [authGuard],
     loginOperation: 'aceder aos fóruns',
-    loadChildren: () => import('./pages/users/forums.routes').then((m) => m.FORUMS_ROUTES),
+    loadChildren: () => import('./pages/users/user-forums.routes').then((m) => m.USER_FORUMS_ROUTES),
   },
-  { path: 'quizzes', loadChildren: () => import('./pages/users/quizzes.routes').then((m) => m.QUIZZES_ROUTES) },
-  { path: 'podcasts', loadChildren: () => import('./pages/users/podcasts.routes').then((m) => m.PODCASTS_ROUTES) },
-  { path: 'map', loadChildren: () => import('./pages/users/map.routes').then((m) => m.MAP_ROUTES) },
-  { path: 'jindungo', loadChildren: () => import('./pages/users/jindungo.routes').then((m) => m.JINDUNGO_ROUTES) },
+  { path: 'quizzes', loadChildren: () => import('./pages/users/quiz-dashboard.routes').then((m) => m.QUIZ_DASHBOARD_ROUTES) },
+  { path: 'podcasts', loadChildren: () => import('./pages/users/podcast-library.routes').then((m) => m.PODCAST_LIBRARY_ROUTES) },
+  { path: 'map', loadChildren: () => import('./pages/users/economic-map.routes').then((m) => m.ECONOMIC_MAP_ROUTES) },
+  { path: 'jindungo', loadChildren: () => import('./pages/users/jindungo-library.routes').then((m) => m.JINDUNGO_LIBRARY_ROUTES) },
   {
     path: 'favorites',
     canActivate: [authGuard],
     loginOperation: 'ver favoritos',
-    loadChildren: () => import('./pages/users/favorites.routes').then((m) => m.FAVORITES_ROUTES),
+    loadChildren: () => import('./pages/users/saved-contents.routes').then((m) => m.SAVED_CONTENTS_ROUTES),
   },
   {
     path: 'guardados',
     canActivate: [authGuard],
     loginOperation: 'ver guardados',
-    loadChildren: () => import('./pages/users/favorites.routes').then((m) => m.FAVORITES_ROUTES),
+    loadChildren: () => import('./pages/users/saved-contents.routes').then((m) => m.SAVED_CONTENTS_ROUTES),
   },
   {
     path: 'subscriptions',
     canActivate: [authGuard],
     loginOperation: 'subscrever ao Jindungo',
-    loadChildren: () => import('./pages/users/subscriptions.routes').then((m) => m.SUBSCRIPTIONS_ROUTES),
+    loadChildren: () => import('./pages/users/subscription-management.routes').then((m) => m.SUBSCRIPTION_MANAGEMENT_ROUTES),
   },
   {
     path: 'profile',
@@ -57,7 +57,7 @@ const dashboardRoutes: DashboardRoute[] = [
     path: 'notifications',
     canActivate: [authGuard],
     loginOperation: 'ver notificações',
-    loadChildren: () => import('./pages/users/notifications.routes').then((m) => m.NOTIFICATIONS_ROUTES),
+    loadChildren: () => import('./pages/users/notifications-center.routes').then((m) => m.NOTIFICATIONS_CENTER_ROUTES),
   },
 ];
 
@@ -93,7 +93,7 @@ export const routes: Routes = [
     path: 'super-admin',
     component: SuperAdminLayoutComponent,
     canActivate: [superAdminGuard],
-    loadChildren: () => import('./pages/superadmin/superadmin.routes').then((m) => m.SUPER_ADMIN_ROUTES),
+    loadChildren: () => import('./pages/superadmin/super-admin.routes').then((m) => m.SUPER_ADMIN_ROUTES),
   },
   { path: '**', redirectTo: '' },
 ];

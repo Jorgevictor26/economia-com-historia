@@ -1,0 +1,159 @@
+<app-admin-console-shell activeItem="contents">
+  <main class="mx-auto grid max-w-6xl gap-5">
+    <section class="rounded-[8px] border border-[#E0E0E0] bg-white px-8 py-7 shadow-[0_18px_45px_rgba(27,22,30,0.05)] max-md:px-5">
+      <header class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h1 class="font-display text-[30px] font-extrabold leading-tight text-[#5C1E2F]">Novo forum</h1>
+        </div>
+
+        <ol class="flex w-full max-w-[620px] flex-wrap items-center gap-3 text-[12px] font-extrabold text-[#9E9E9E]">
+          @for (step of steps; track step.value; let last = $last) {
+            <li class="flex min-w-0 items-center gap-2" [class.text-[#8A3F50]]="currentStep() === step.value">
+              <span class="grid size-7 shrink-0 place-items-center rounded-full border text-[12px]" [class.border-[#8A3F50]]="currentStep() === step.value" [class.bg-[#8A3F50]]="currentStep() === step.value" [class.text-white]="currentStep() === step.value" [class.border-[#E0E0E0]]="currentStep() !== step.value">{{ step.value }}</span>
+              <span class="truncate">{{ step.title }}</span>
+            </li>
+          }
+        </ol>
+      </header>
+
+      <form class="mt-8" (submit)="$event.preventDefault()">
+        @if (currentStep() === 1) {
+          <section class="rounded-[8px] border border-[#E0E0E0] bg-[#fff] p-6">
+            <h2 class="text-[20px] font-extrabold text-[#5C1E2F]">Dados principais</h2>
+
+            <label class="mt-6 grid gap-2">
+              <span class="text-[13px] font-bold text-[#616161]">Titulo do forum <b class="text-[#8A3F50]">*</b></span>
+              <input type="text" placeholder="Ex: Debate sobre a Historia do Kwanza" maxlength="120" [value]="title()" (input)="setTitle($event)" class="h-12 rounded-[8px] border border-[#E0E0E0] bg-white px-4 text-[14px] text-[#212121] outline-none placeholder:text-[#9E9E9E] focus:border-[#8A3F50]" />
+              <span class="-mt-1 text-right text-[12px] text-[#9E9E9E]">{{ title().length }}/120</span>
+            </label>
+
+            <div class="mt-4 grid gap-4 md:grid-cols-2">
+              <label class="grid gap-2">
+                <span class="text-[13px] font-bold text-[#616161]">Categoria</span>
+                <select [value]="category()" (change)="setCategory($event)" class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#616161] outline-none focus:border-[#8A3F50]">
+                  <option>Economia Politica</option>
+                  <option>Historia Economica</option>
+                  <option>Financas Publicas</option>
+                </select>
+              </label>
+              <label class="grid gap-2">
+                <span class="text-[13px] font-bold text-[#616161]">Conteudo base</span>
+                <select class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#616161] outline-none focus:border-[#8A3F50]">
+                  @for (content of linkedContents; track content.title) {
+                    <option>{{ content.title }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+          </section>
+        }
+
+        @if (currentStep() === 2) {
+          <section class="rounded-[8px] border border-[#E0E0E0] bg-[#fff] p-6">
+            <h2 class="text-[20px] font-extrabold text-[#5C1E2F]">Regras e orientacao</h2>
+            <label class="mt-6 grid gap-2">
+              <span class="text-[13px] font-bold text-[#616161]">Regras do debate <b class="text-[#8A3F50]">*</b></span>
+              <textarea placeholder="Defina tom, fontes aceites, limites de participacao e criterio de moderacao..." maxlength="700" [value]="rules()" (input)="setRules($event)" class="min-h-[210px] resize-y rounded-[8px] border border-[#E0E0E0] bg-white px-4 py-3 text-[14px] leading-6 text-[#212121] outline-none placeholder:text-[#9E9E9E] focus:border-[#8A3F50]"></textarea>
+              <span class="-mt-1 text-right text-[12px] text-[#9E9E9E]">{{ rules().length }}/700</span>
+            </label>
+          </section>
+        }
+
+        @if (currentStep() === 3) {
+          <section class="rounded-[8px] border border-[#E0E0E0] bg-[#fff] p-6">
+            <h2 class="text-[20px] font-extrabold text-[#5C1E2F]">Foto do forum <span class="text-[#9E9E9E]">(Opcional)</span></h2>
+            <p class="mt-2 text-[13px] leading-6 text-[#616161]">Adicione uma imagem para representar o forum. Pode publicar sem foto.</p>
+
+            <label class="mt-6 grid min-h-[240px] w-full cursor-pointer place-items-center overflow-hidden rounded-[8px] border border-dashed border-[#BDBDBD] bg-white text-center transition hover:border-[#8A3F50] hover:bg-[#F2E6E9]">
+              <input type="file" accept="image/png,image/jpeg,image/webp" class="sr-only" (change)="onCoverSelected($event)" />
+              @if (coverPreview()) {
+                <span class="grid w-full gap-4 p-4">
+                  <img [src]="coverPreview()!" alt="Foto selecionada do forum" class="mx-auto aspect-video w-full max-w-3xl rounded-[8px] object-cover" />
+                  <span class="text-[13px] font-extrabold text-[#5C1E2F]">{{ coverFileName() }}</span>
+                  <small class="text-[12px] text-[#9E9E9E]">Clique para trocar</small>
+                </span>
+              } @else {
+                <span>
+                  <span class="material-icon mx-auto grid size-14 place-items-center rounded-[8px] bg-[#F2E6E9] text-[34px] text-[#8A3F50]" aria-hidden="true">add_photo_alternate</span>
+                  <strong class="mt-4 block text-[14px] font-extrabold text-[#5C1E2F]">Adicionar foto opcional</strong>
+                  <small class="mt-2 block text-[12px] text-[#9E9E9E]">PNG, JPG ou WebP</small>
+                </span>
+              }
+            </label>
+
+            @if (coverUploaded()) {
+              <button type="button" (click)="clearCover()" class="mt-4 inline-flex h-10 items-center justify-center rounded-[8px] border border-[#E0E0E0] px-4 text-[12px] font-extrabold text-[#616161] transition hover:border-[#5C1E2F] hover:bg-[#F2E6E9] hover:text-[#5C1E2F]">Remover foto</button>
+            }
+          </section>
+        }
+
+        @if (currentStep() === 4) {
+          <section class="rounded-[8px] border border-[#E0E0E0] bg-[#fff] p-6">
+            <h2 class="text-[20px] font-extrabold text-[#5C1E2F]">Acesso e permissao</h2>
+            <div class="mt-5 grid gap-4 md:grid-cols-2">
+              @for (setting of accessSettings; track setting.label) {
+                <button type="button" (click)="setting.toggle()" class="flex min-h-[120px] items-start gap-4 rounded-[8px] border p-5 text-left transition" [class.border-[#8A3F50]]="setting.checked()" [class.bg-[#F2E6E9]]="setting.checked()" [class.border-[#E0E0E0]]="!setting.checked()" [class.bg-white]="!setting.checked()">
+                  <span class="mt-1 grid size-5 place-items-center rounded border border-current text-[12px] text-[#8A3F50]">{{ setting.checked() ? '✓' : '' }}</span>
+                  <span>
+                    <strong class="text-[15px] text-[#5C1E2F]">{{ setting.label }}</strong>
+                    <small class="mt-2 block text-[12px] leading-5 text-[#616161]">{{ setting.description }}</small>
+                  </span>
+                </button>
+              }
+            </div>
+          </section>
+        }
+
+        @if (currentStep() === 5) {
+          <section class="rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] p-6 text-[#5C1E2F]">
+            <h2 class="flex items-center gap-2 text-[18px] font-extrabold"><span class="material-icon" aria-hidden="true">forum</span> Revisao do forum</h2>
+            <p class="mt-3 text-[13px] leading-6 text-[#5C1E2F]">Abra a pre-visualizacao em modal antes de publicar. A foto continua opcional.</p>
+            <div class="mt-5 grid gap-3 sm:grid-cols-3">
+              <button type="button" (click)="openPreview()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#8A3F50] bg-white px-4 text-[14px] font-extrabold text-[#8A3F50]"><span class="material-icon" aria-hidden="true">visibility</span> Pre-visualizar</button>
+              <button type="button" (click)="saveDraft()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#8A3F50] bg-white px-4 text-[14px] font-extrabold text-[#8A3F50]"><span class="material-icon" aria-hidden="true">save</span> Guardar rascunho</button>
+              <button type="button" (click)="publish()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] bg-[#8A3F50] px-4 text-[14px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.22)]"><span class="material-icon" aria-hidden="true">publish</span> Publicar forum</button>
+            </div>
+          </section>
+        }
+
+        <footer class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[#F2E6E9] pt-5">
+          <button type="button" (click)="previousStep()" [disabled]="currentStep() === 1" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#E0E0E0] bg-white px-5 text-[13px] font-extrabold text-[#616161] disabled:cursor-not-allowed disabled:opacity-45">Anterior</button>
+          @if (currentStep() < steps.length) {
+            <button type="button" (click)="nextStep()" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#8A3F50] px-6 text-[13px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.18)]">Seguinte</button>
+          }
+        </footer>
+      </form>
+    </section>
+  </main>
+
+  @if (previewOpen()) {
+    <section class="fixed inset-0 z-[120] grid place-items-center bg-[#212121]/70 p-4" role="dialog" aria-modal="true" aria-labelledby="forum-preview-title">
+      <article class="flex max-h-[90dvh] w-[min(900px,94vw)] flex-col overflow-hidden rounded-[8px] bg-white shadow-[0_28px_90px_rgba(0,0,0,0.28)]">
+        <header class="flex min-h-16 items-center justify-between gap-4 border-b border-[#E0E0E0] px-6">
+          <h2 id="forum-preview-title" class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Pre-visualizacao do forum</h2>
+          <button type="button" (click)="closePreview()" class="grid size-10 place-items-center rounded-[8px] border border-[#E0E0E0] text-[22px] font-bold text-[#5c1e2f]" aria-label="Fechar">&times;</button>
+        </header>
+
+        <div class="min-h-0 flex-1 overflow-y-auto bg-[#F5F5F5] px-6 py-7">
+          <article class="mx-auto max-w-3xl bg-white p-6">
+            @if (coverPreview()) {
+              <img [src]="coverPreview()!" alt="Foto do forum" class="aspect-video w-full rounded-[8px] object-cover" />
+            }
+            <div class="mt-5 flex flex-wrap gap-2">
+              <span class="rounded-[999px] bg-[#F2E6E9] px-3 py-1 text-[11px] font-extrabold uppercase text-[#5C1E2F]">{{ category() }}</span>
+              <span class="rounded-[999px] bg-[#F2E6E9] px-3 py-1 text-[11px] font-extrabold uppercase text-[#D4AF37]">{{ publicVisible() ? 'Publico' : 'Restrito' }}</span>
+              <span class="rounded-[999px] bg-[#F5F5F5] px-3 py-1 text-[11px] font-extrabold uppercase text-[#616161]">{{ allowAttachments() ? 'Com anexos' : 'Sem anexos' }}</span>
+            </div>
+            <h1 class="mt-5 font-display text-[32px] font-extrabold leading-tight text-[#212121]">{{ previewTitle() }}</h1>
+            <p class="mt-4 text-[15px] leading-7 text-[#616161]">{{ previewRules() }}</p>
+          </article>
+        </div>
+
+        <footer class="flex flex-wrap items-center justify-end gap-3 border-t border-[#E0E0E0] bg-white px-6 py-4">
+          <button type="button" (click)="closePreview()" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#5C1E2F] bg-white px-5 text-[13px] font-extrabold text-[#5C1E2F]">Fechar</button>
+          <button type="button" (click)="publish()" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5C1E2F] px-6 text-[13px] font-extrabold text-white">Publicar forum</button>
+        </footer>
+      </article>
+    </section>
+  }
+</app-admin-console-shell>

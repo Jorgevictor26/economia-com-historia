@@ -1,0 +1,99 @@
+    <section class="min-h-dvh bg-white text-[#212121]">
+      <app-public-navbar />
+
+      <main>
+        <section class="fluid-container-narrow pb-12 pt-6 text-center">
+          <p class="mx-auto mb-3 inline-flex h-4 items-center justify-center bg-[#d4af37] px-2 text-[7px] font-extrabold uppercase tracking-[0.12em] text-[#5c1e2f]">Premium Editorial</p>
+          <h1 class="font-display mx-auto max-w-[390px] text-[28px] font-extrabold leading-[1.04] text-[#5C1E2F]">
+            Desbloqueie a Profundidade da Economia Angolana
+          </h1>
+          <p class="mx-auto mt-6 max-w-[360px] text-[9px] leading-4 text-[#616161]">
+            Tenha acesso a textos premium e análises históricas que ligam política, economia e sociedade em Angola.
+          </p>
+          <a [routerLink]="auth.isAuthenticated() ? '/app/subscriptions' : null" class="mt-6 inline-flex h-10 items-center justify-center bg-[#5C1E2F] px-8 text-[10px] font-extrabold text-white" (click)="!auth.isAuthenticated() && requireLogin($event, 'subscrever ao Jindungo')">
+            {{ auth.isAuthenticated() ? 'Subscrever' : 'Entrar para subscrever' }}
+          </a>
+          <p class="mt-6 text-[9px] text-[#5C1E2F]">♙</p>
+          <p class="mt-1 text-[7px] text-[#BDBDBD]">Junte-se a nossa comunidade académica.</p>
+
+          <div class="mx-auto mt-12 grid max-w-[1120px] gap-4 text-left md:grid-cols-3 2xl:gap-6">
+            <article class="min-h-[172px] border border-[#BDBDBD] bg-white p-7">
+              <span class="mb-5 grid size-8 place-items-center bg-[#F2E6E9] text-[17px] text-[#5C1E2F]">▤</span>
+              <h2 class="font-display text-[15px] font-extrabold text-[#5C1E2F]">Análises Exclusivas</h2>
+              <p class="mt-4 text-[10px] leading-5 text-[#616161]">
+                Ensaios aprofundados sobre transformação económica e ciclos históricos do país.
+              </p>
+            </article>
+            <article class="min-h-[172px] border border-[#BDBDBD] bg-white p-7">
+              <span class="mb-5 grid size-8 place-items-center bg-[#F2E6E9] text-[17px] text-[#5C1E2F]">▣</span>
+              <h2 class="font-display text-[15px] font-extrabold text-[#5C1E2F]">Rigor Histórico</h2>
+              <p class="mt-4 text-[10px] leading-5 text-[#616161]">
+                Fontes, arquivos e contexto para ler a economia angolana com profundidade.
+              </p>
+            </article>
+            <article class="min-h-[172px] border border-[#BDBDBD] bg-white p-7">
+              <span class="mb-5 grid size-8 place-items-center bg-[#F2E6E9] text-[17px] text-[#5C1E2F]">♜</span>
+              <h2 class="font-display text-[15px] font-extrabold text-[#5C1E2F]">Comunidade de Elite</h2>
+              <p class="mt-4 text-[10px] leading-5 text-[#616161]">
+                Conteúdos pensados para estudantes, investigadores e profissionais.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="bg-[#F5F5F5] px-6 py-16">
+          <div class="fluid-container-narrow text-center">
+            <h2 class="font-display text-[22px] font-extrabold text-[#5c1e2f]">Edições Recentes</h2>
+            <p class="mt-3 text-[10px] text-[#616161]">Veja o que espera por si nos textos com Jindungo.</p>
+
+            <div class="mx-auto mt-12 grid max-w-[1120px] gap-5 md:grid-cols-3 2xl:gap-7">
+              @for (edition of editions; track edition.title) {
+                <article class="relative overflow-hidden bg-white text-left shadow-[0_1px_2px_rgba(22,19,21,0.04)]">
+                  <div class="relative h-[142px] overflow-hidden">
+                    <img [src]="edition.image" [alt]="edition.title" class="h-full w-full object-cover grayscale" [class.blur-[3px]]="!auth.canReadJindungo()" />
+                    @if (!auth.canReadJindungo()) {
+                      <div class="absolute inset-0 bg-white/35"></div>
+                    }
+                    <span class="absolute bottom-[-14px] left-1/2 grid size-12 -translate-x-1/2 place-items-center rounded-full bg-[#5C1E2F] text-[18px] text-white">▣</span>
+                  </div>
+                  <div class="min-h-[122px] px-5 pb-6 pt-7" [class.blur-[2px]]="!auth.canReadJindungo()">
+                    <p class="text-[8px] font-extrabold uppercase text-[#5C1E2F]">{{ auth.canReadJindungo() ? 'Disponível para si' : 'Reservado a subscritores' }}</p>
+                    <h3 class="font-display mt-2 text-[13px] font-extrabold leading-snug text-[#5c1e2f]">{{ edition.title }}</h3>
+                    <p class="mt-3 text-[9px] leading-4 text-[#9E9E9E]">{{ edition.text }}</p>
+                  </div>
+                </article>
+              }
+            </div>
+          </div>
+        </section>
+
+        <section class="mx-auto max-w-[520px] px-6 py-20">
+          <h2 class="font-display text-center text-[21px] font-extrabold text-[#5c1e2f]">Perguntas Frequentes</h2>
+
+          <div class="mt-12 space-y-7">
+            <article>
+              <h3 class="font-display text-[14px] font-extrabold text-[#5c1e2f]">A subscrição é mesmo gratuita?</h3>
+              <p class="mt-3 text-[10px] leading-5 text-[#616161]">
+                Sim. O nosso objetivo principal é criar e cultivar uma comunidade de investigadores e curiosos altamente especializados que valorizam o rigor acima do sensacionalismo.
+              </p>
+            </article>
+            <div class="border-t border-[#E0E0E0]"></div>
+            <article>
+              <h3 class="font-display text-[14px] font-extrabold text-[#5c1e2f]">O que diferencia o Jindungo?</h3>
+              <p class="mt-3 text-[10px] leading-5 text-[#616161]">
+                Os Textos com Jindungo são a nossa camada mais crítica. Enquanto o conteúdo geral é educativo, o Jindungo foca-se na análise profunda, utilizando métodos académicos para questionar paradigmas económicos atuais.
+              </p>
+            </article>
+          </div>
+
+          <div class="mt-12 text-center">
+            <a [routerLink]="auth.isAuthenticated() ? '/app/subscriptions' : null" class="inline-flex h-12 items-center justify-center bg-[#5C1E2F] px-9 text-[14px] font-extrabold text-white" (click)="!auth.isAuthenticated() && requireLogin($event, 'subscrever ao Jindungo')">
+              {{ auth.isAuthenticated() ? 'Quero Subscrever Agora' : 'Entrar para subscrever' }}
+            </a>
+          </div>
+        </section>
+      </main>
+
+      <app-public-footer />
+      <app-back-to-top />
+    </section>

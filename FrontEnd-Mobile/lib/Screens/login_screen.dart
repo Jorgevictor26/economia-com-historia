@@ -1,11 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import '../widgets/auth_widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../core/exceptions/app_exceptions.dart';
+import '../service/perfil_service.dart';
+import '../shared/main_navigation_screen.dart';
 import '../theme/app_colors.dart';
+import '../widgets/auth_widgets.dart';
 import 'criar_conta_screen.dart';
 import 'esqueceu_senha_screen.dart';
-import 'package:economica_com_historia/shared/main_navigation_screen.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -28,32 +31,44 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleEntrar() async {
-    if (_emailController.text.isEmpty || _senhaController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Preencha todos os campos.'),
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+    final email = _emailController.text.trim();
+    final senha = _senhaController.text;
+
+    if (email.isEmpty || senha.isEmpty) {
+      _showSnackBar('Preencha todos os campos.');
       return;
     }
 
     setState(() => _isLoading = true);
+    try {
+      await context.read<PerfilService>().login(email, senha);
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+        (route) => false,
+      );
+    } on AppException catch (e) {
+      if (mounted) _showSnackBar(e.message);
+    } catch (_) {
+      if (mounted) _showSnackBar('Erro inesperado. Tente novamente.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
-    await Future.delayed(const Duration(seconds: 2)); // TODO: autenticação real
+  void _handleGoogle() {
+    _showSnackBar('Login com Google estará disponível em breve.');
+  }
 
-    if (!mounted) return;
-
-    setState(() => _isLoading = false);
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-      (route) => false,
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 
@@ -63,26 +78,19 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 16),
-
-              // ── Logo + Título ─────────────────────────────────────────
-              const AuthHeader(title: 'Bem-Vindo a\nEconomia com História'),
-
+              const AuthHeader(title: 'Bem-Vindo a\nEconomia com Historia'),
               const SizedBox(height: 32),
-
-              // ── Card do formulário ────────────────────────────────────
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
-
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── E-mail ──────────────────────────────────────────
                     const FieldLabel(label: 'E-mail'),
                     const SizedBox(height: 8),
                     AppTextField(
@@ -90,10 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       hintText: 'nome@instituicao.ao',
                       keyboardType: TextInputType.emailAddress,
                     ),
-
                     const SizedBox(height: 20),
-
-                    // ── Palavra-passe ───────────────────────────────────
                     const FieldLabel(label: 'Palavra-passe'),
                     const SizedBox(height: 8),
                     AppTextField(
@@ -112,35 +117,24 @@ class _LoginScreenState extends State<LoginScreen> {
                             setState(() => _obscureSenha = !_obscureSenha),
                       ),
                     ),
-
                     const SizedBox(height: 12),
-
-                    // ── Esqueceu a senha ────────────────────────────────
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const EsqueceuSenhaScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          'Esqueceu a senha?',
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
-                          ),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const EsqueceuSenhaScreen(),
+                        ),
+                      ),
+                      child: const Text(
+                        'Esqueceu a senha?',
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 24),
-
-                    // ── Botão Entrar ────────────────────────────────────
                     SizedBox(
                       width: double.infinity,
                       height: 52,
@@ -149,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           disabledBackgroundColor: AppColors.primary
-                              .withOpacity(0.6),
+                              .withValues(alpha: 0.6),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -170,15 +164,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.4,
                                 ),
                               ),
                       ),
                     ),
-
                     const SizedBox(height: 16),
-
-                    // ── Não tem conta ───────────────────────────────────
                     Center(
                       child: RichText(
                         text: TextSpan(
@@ -187,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: AppColors.textMedium,
                           ),
                           children: [
-                            const TextSpan(text: 'Não tem uma conta? '),
+                            const TextSpan(text: 'Nao tem uma conta? '),
                             TextSpan(
                               text: 'Criar conta',
                               style: const TextStyle(
@@ -195,14 +185,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 fontWeight: FontWeight.w700,
                               ),
                               recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const CriarContaScreen(),
-                                    ),
-                                  );
-                                },
+                                ..onTap = () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const CriarContaScreen(),
+                                  ),
+                                ),
                             ),
                           ],
                         ),
@@ -211,10 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 28),
-
-              // ── Divisor OU ACEDA COM ──────────────────────────────────
               Row(
                 children: [
                   const Expanded(child: Divider(color: AppColors.borderSoft)),
@@ -233,15 +218,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Expanded(child: Divider(color: AppColors.borderSoft)),
                 ],
               ),
-
               const SizedBox(height: 20),
-
-              // ── Botão Google ──────────────────────────────────────────
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: OutlinedButton.icon(
-                  onPressed: _handleGoogle, // TODO: Google Sign-In
+                  onPressed: _handleGoogle,
                   icon: Image.asset(
                     'assets/images/Google.png',
                     width: 20,
@@ -267,10 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 36),
-
-              // ── Footer ────────────────────────────────────────────────
               const FooterSection(),
               const SizedBox(height: 16),
             ],
@@ -278,32 +257,5 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _handleGoogle() async {
-    try {
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        clientId:
-            '1079210835329-9ecclkcslavkn7tqivu1jd3dtl8i4g2r.apps.googleusercontent.com',
-      );
-      final GoogleSignInAccount? conta = await googleSignIn.signIn();
-
-      if (conta == null) return;
-
-      if (!mounted) return;
-
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-        (route) => false,
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao entrar com Google: $e'),
-          backgroundColor: AppColors.primary,
-        ),
-      );
-    }
   }
 }

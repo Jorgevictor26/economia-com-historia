@@ -1,0 +1,357 @@
+<section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
+  <app-public-navbar />
+
+  <main class="mx-auto grid max-w-[1160px] grid-cols-[200px_minmax(0,560px)_250px] gap-7 px-8 pb-20 pt-8">
+    <aside class="hidden lg:block">
+      <div class="sticky top-[82px]">
+        <section class="border border-[#E0E0E0] bg-white px-6 py-6 text-center">
+          <div
+            class="mx-auto grid size-[70px] place-items-center rounded-[8px] bg-[#F2E6E9] font-display text-[20px] font-extrabold text-[#8A3F50]">
+            {{ detail()?.authorInitials || 'EH' }}
+          </div>
+          <h2 class="font-display mt-5 text-[13px] font-medium text-[#5c1e2f]">{{ detail()?.author || 'Equipa editorial'
+            }}</h2>
+          @if (detail()?.authorBio) {
+          <p class="mx-auto mt-2 max-w-[138px] text-[9px] leading-[1.35] text-[#616161]">
+            {{ detail()?.authorBio }}
+          </p>
+          }
+          <div class="mt-5 flex justify-center gap-4 text-[#616161]">
+            <!-- Ícone de partilha -->
+            <button type="button" class="cursor-pointer hover:text-[#5C1E2F]" (click)="toggleShareMenu($event)">
+              <span class="material-symbols-outlined text-[24px] leading-none">share</span>
+            </button>
+
+            <!-- Ícone de guardar -->
+            <button type="button" class="cursor-pointer hover:text-[#5C1E2F]" [disabled]="isSavingContent()" (click)="saveContent($event)">
+              <span class="material-symbols-outlined text-[24px] leading-none">bookmark_add</span>
+            </button>
+          </div>
+          @if (saveStatus()) {
+          <p class="mt-3 text-[11px] font-semibold text-[#5c1e2f]">{{ saveStatus() }}</p>
+          }
+
+        </section>
+
+        <section class="mt-7 border-t border-[#E0E0E0] pt-6">
+          <h3 class="mb-5 text-[11px] font-medium uppercase tracking-[0.18em] text-[#9E9E9E]">Métricas</h3>
+          <div class="grid gap-4 text-[11px] text-[#616161]">
+            <p class="flex items-center gap-3"><span class="text-[18px]">▷</span>{{ detail()?.contentType || 'Texto' }}
+            </p>
+            <p class="flex items-center gap-3"><span class="text-[18px]">⊙</span>{{ formatCompactNumber(detail()?.viewsCount) }} visualizações</p>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <article class="px-0 pb-12 pt-0">
+      <div class="mb-4 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#D4AF37]">
+        {{ detail()?.category || 'Conteúdo' }} - {{ detail()?.meta || 'A carregar...' }}
+      </div>
+
+      <h1 class="font-display max-w-[540px] text-[34px] font-extrabold leading-[1.08] text-[#5c1e2f]">
+        {{ title() }}
+      </h1>
+
+      <p
+        class="mt-6 max-w-[510px] border-l-4 border-[#d4af37] pl-7 font-display text-[14px] italic leading-7 text-[#616161]">
+        {{ detail()?.summary || 'A carregar o resumo do conteúdo...' }}
+      </p>
+
+      <div class="hidden">
+        <span>Por <strong class="text-[#5c1e2f]">{{ detail()?.author || 'Equipa editorial' }}</strong></span>
+        <span class="flex items-center gap-4">♡ 66 □ 12 ↗ ⚑</span>
+      </div>
+
+      @if (detail()?.imageUrl) {
+      <figure class="mt-7">
+        <img [src]="detail()?.imageUrl" [alt]="detail()?.title || 'Imagem do conteúdo'"
+          class="h-[310px] w-full object-cover" />
+        <figcaption class="mt-2 text-center text-[10px] text-[#9E9E9E]">
+          Imagem associada ao conteúdo.
+        </figcaption>
+      </figure>
+      }
+
+      @if (isLoading()) {
+      <div class="mt-8 space-y-4 text-[14px] leading-7 text-[#616161]">
+        <p>A carregar o conteúdo...</p>
+      </div>
+      } @else {
+      <div class="mt-8 space-y-6 text-[16px] leading-8 text-[#212121]" [innerHTML]="detail()?.body"></div>
+      }
+
+      <section class="mt-9 border-t border-[#E0E0E0] pt-5">
+        @if (isPremiumContent() && !auth.canReadJindungo()) {
+        <div class="mb-8 border border-[#d4af37] bg-[#fff] px-6 py-5 text-center">
+          <h2 class="font-display text-[18px] font-extrabold text-[#5c1e2f]">Texto com Jindungo reservado</h2>
+          <p class="mx-auto mt-2 max-w-[440px] text-[12px] leading-5 text-[#616161]">A subscrição é gratuita, mas
+            precisa de uma conta para desbloquear esta camada editorial.</p>
+          <a [routerLink]="auth.isAuthenticated() ? '/app/subscriptions' : null"
+            class="mt-4 inline-flex h-10 items-center justify-center bg-[#5C1E2F] px-6 text-[12px] font-bold text-white"
+            (click)="!auth.isAuthenticated() && requireLogin($event, 'subscrever ao Jindungo')">
+            {{ auth.isAuthenticated() ? 'Subscrever ao Jindungo' : 'Entrar para subscrever' }}
+          </a>
+        </div>
+        }
+        <div class="relative flex flex-wrap items-center justify-between gap-5 text-[12px] text-[#616161]">
+          <div class="flex flex-wrap items-center gap-8">
+            <button type="button" class="content-action" [disabled]="isSavingReaction()" (click)="react($event)">
+              <span class="material-symbols-outlined text-[20px] leading-none" [class.text-[#8A3F50]]="likedByMe()">favorite</span>
+              <span [class.text-[#8A3F50]]="likedByMe()">{{ reactionCount() }}</span>
+            </button>
+            <button type="button" class="content-action" (click)="openCommentComposer($event)">
+              <img src="/assets/icons/comment.png" alt="" />
+              <span>{{ comments().length }}</span>
+            </button>
+          </div>
+          <div class="flex flex-wrap items-center gap-8">
+            <button type="button" class="content-action" (click)="toggleShareMenu($event)">
+              <img src="/assets/icons/share.png" alt="" />
+            </button>
+          </div>
+          @if (shareMenuOpen()) {
+          <div class="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4">
+            <section class="w-full max-w-[470px] rounded-[8px] bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <h2 class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Partilhar</h2>
+                  <p class="mt-1 line-clamp-1 text-[13px] text-[#616161]">{{ title() }}</p>
+                </div>
+                <button type="button" class="grid size-9 place-items-center rounded-full text-[#616161] hover:bg-[#F5F5F5]" aria-label="Fechar" (click)="toggleShareMenu($event)">
+                  <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+              </div>
+              <div class="mt-5 flex gap-3 overflow-x-auto pb-1">
+                @if (canUseNativeShare) {
+                <button type="button" class="grid min-w-[76px] justify-items-center gap-2 text-[12px] font-semibold text-[#5C1E2F]" (click)="shareTo('native', $event)">
+                  <span class="grid size-12 place-items-center rounded-full bg-[#F5F5F5] text-[#5C1E2F]"><span class="material-symbols-outlined text-[24px]">ios_share</span></span>
+                  Sistema
+                </button>
+                }
+                <button type="button" class="grid min-w-[76px] justify-items-center gap-2 text-[12px] font-semibold text-[#5C1E2F]" (click)="shareTo('whatsapp', $event)">
+                  <span class="grid size-12 place-items-center rounded-full bg-[#F5F5F5] text-[#2A9D8F]"><span class="material-symbols-outlined text-[24px]">chat</span></span>
+                  WhatsApp
+                </button>
+                <button type="button" class="grid min-w-[76px] justify-items-center gap-2 text-[12px] font-semibold text-[#5C1E2F]" (click)="shareTo('facebook', $event)">
+                  <span class="grid size-12 place-items-center rounded-full bg-[#F5F5F5] text-[#2A9D8F]"><span class="material-symbols-outlined text-[24px]">public</span></span>
+                  Facebook
+                </button>
+                <button type="button" class="grid min-w-[76px] justify-items-center gap-2 text-[12px] font-semibold text-[#5C1E2F]" (click)="shareTo('instagram', $event)">
+                  <span class="grid size-12 place-items-center rounded-full bg-[#F5F5F5] text-[#8A3F50]"><span class="material-symbols-outlined text-[24px]">photo_camera</span></span>
+                  Instagram
+                </button>
+                <button type="button" class="grid min-w-[76px] justify-items-center gap-2 text-[12px] font-semibold text-[#5C1E2F]" (click)="shareTo('linkedin', $event)">
+                  <span class="grid size-12 place-items-center rounded-full bg-[#F5F5F5] text-[#2A9D8F]"><span class="material-symbols-outlined text-[24px]">work</span></span>
+                  LinkedIn
+                </button>
+              </div>
+              <div class="mt-5 grid grid-cols-[minmax(0,1fr)_auto] overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5]">
+                <input class="min-w-0 bg-transparent px-3 py-3 text-[12px] text-[#616161] outline-none" type="text" readonly [value]="currentShareUrl()" />
+                <button type="button" class="bg-[#5C1E2F] px-4 text-[12px] font-bold text-white" (click)="shareTo('copy', $event)">Copiar</button>
+              </div>
+            @if (shareStatus()) {
+            <p class="mt-3 text-[12px] font-semibold text-[#2A9D8F]">{{ shareStatus() }}</p>
+            }
+            </section>
+          </div>
+          }
+        </div>
+
+        @if (reactionError()) {
+        <p class="mt-4 text-[12px] font-medium text-[#8A3F50]">{{ reactionError() }}</p>
+        }
+
+        <h2 id="comments" class="mt-10 text-[14px] font-medium text-[#5c1e2f]">Comentários ({{ comments().length }})</h2>
+
+        @if (auth.isAuthenticated() && isCommentComposerOpen()) {
+        <div class="mt-6 flex gap-4">
+          <span class="size-9 rounded-[10px] bg-[#E0E0E0]"></span>
+          <div class="min-w-0 flex-1">
+            <textarea #commentInput
+              class="h-[96px] w-full resize-none border border-[#E0E0E0] bg-[#F5F5F5] p-5 text-[13px] outline-none placeholder:text-[#BDBDBD] focus:border-[#8A3F50]"
+              placeholder="Partilhe a sua reflexão académica..."></textarea>
+            <div class="-mt-px text-right">
+              <button type="button" class="h-10 bg-[#5C1E2F] px-6 text-[12px] font-bold text-white"
+                [disabled]="isSavingComment()" (click)="submitComment(commentInput.value); commentInput.value = ''">
+                {{ isSavingComment() ? 'A publicar...' : 'Publicar' }}
+              </button>
+            </div>
+          </div>
+        </div>
+        }
+
+        @if (commentSuccess()) {
+        <p class="mt-4 text-[12px] font-medium text-[#2A9D8F]">{{ commentSuccess() }}</p>
+        }
+
+        @if (commentError()) {
+        <p class="mt-4 text-[12px] font-medium text-[#8A3F50]">{{ commentError() }}</p>
+        }
+
+        @if (reportSuccess()) {
+        <p class="mt-4 text-[12px] font-medium text-[#2A9D8F]">{{ reportSuccess() }}</p>
+        }
+
+        <div class="mt-9 grid gap-7">
+          @if (isLoadingComments()) {
+          <p class="text-[13px] text-[#616161]">A carregar comentários...</p>
+          } @else if (comments().length) {
+          @for (comment of comments(); track comment.id) {
+          <div class="flex gap-4">
+            <span class="grid size-9 place-items-center rounded-[8px] bg-[#E0E0E0] text-[11px] font-bold text-[#9E9E9E]">{{
+              comment.authorInitials }}</span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-start justify-between gap-4">
+                <p class="text-[13px] font-extrabold text-[#5c1e2f]">{{ comment.author }}</p>
+                <span class="text-[10px] text-[#9E9E9E]">{{ formatDate(comment.createdAt) }}</span>
+              </div>
+              <p class="mt-1 text-[13px] leading-5 text-[#212121]">{{ comment.text }}</p>
+              <div class="mt-3 flex gap-6 text-[10px] text-[#616161]">
+                <button type="button" (click)="toggleReplyComposer($event, comment.id)">
+                  {{ replyingToCommentId() === comment.id ? 'Cancelar' : 'Responder' }}
+                </button>
+                <button type="button" class="content-action" (click)="openReportModal($event, comment)"><img
+                    src="/assets/icons/report.png" alt="" /><span>Denunciar</span></button>
+              </div>
+
+              @if (replyingToCommentId() === comment.id) {
+              <div class="mt-4 flex gap-3">
+                <input #replyInput type="text"
+                  class="min-h-9 min-w-0 flex-1 border border-[#E0E0E0] bg-[#F5F5F5] px-3 text-[12px] outline-none focus:border-[#8A3F50]"
+                  placeholder="Responder a este comentário..." />
+                <button type="button" class="bg-[#5C1E2F] px-4 text-[11px] font-bold text-white"
+                  (click)="submitReply(comment.id, replyInput.value); replyInput.value = ''">Responder</button>
+              </div>
+              }
+
+              @for (reply of comment.replies; track reply.id) {
+              <div class="mt-6 flex gap-4 border-l border-[#E0E0E0] pl-7">
+                <span
+                  class="grid size-7 place-items-center rounded-[7px] bg-[#E0E0E0] text-[9px] font-bold text-[#9E9E9E]">{{
+                  reply.authorInitials }}</span>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-start justify-between gap-4">
+                    <p class="text-[12px] font-medium text-[#5c1e2f]">{{ reply.author }}</p>
+                    <span class="text-[10px] text-[#9E9E9E]">{{ formatDate(reply.createdAt) }}</span>
+                  </div>
+                  <p class="mt-1 text-[12px] leading-5 text-[#212121]">{{ reply.text }}</p>
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+          }
+          } @else {
+          <p class="text-[13px] text-[#616161]">Ainda não há comentários neste conteúdo.</p>
+          }
+        </div>
+
+        @if (reportTarget(); as target) {
+        <div class="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4" role="dialog" aria-modal="true">
+          <section class="w-full max-w-[460px] rounded-[8px] bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Denunciar comentário</h2>
+                <p class="mt-1 text-[12px] text-[#616161]">Comentário de {{ target.author }}</p>
+              </div>
+              <button type="button" class="grid size-9 place-items-center rounded-full text-[#616161] hover:bg-[#F5F5F5]" aria-label="Fechar" (click)="closeReportModal()">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <p class="mt-4 line-clamp-3 rounded-[8px] bg-[#F5F5F5] p-3 text-[12px] leading-5 text-[#616161]">{{ target.text }}</p>
+
+            <label class="mt-4 grid gap-2 text-[12px] font-bold text-[#616161]">
+              Motivo
+              <select class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] outline-none focus:border-[#8A3F50]" [value]="reportReason()" (change)="updateReportReason($event)">
+                <option value="spam">Spam</option>
+                <option value="offensive_comment">Comentário ofensivo</option>
+                <option value="fake_information">Informação falsa</option>
+                <option value="copyright">Direitos autorais</option>
+                <option value="other">Outro</option>
+              </select>
+            </label>
+
+            <label class="mt-4 grid gap-2 text-[12px] font-bold text-[#616161]">
+              Descrição opcional
+              <textarea class="h-[96px] resize-none rounded-[8px] border border-[#E0E0E0] bg-white p-3 text-[13px] outline-none focus:border-[#8A3F50]" [value]="reportDescription()" (input)="updateReportDescription($event)" placeholder="Explique brevemente o problema..."></textarea>
+            </label>
+
+            @if (reportError()) {
+            <p class="mt-3 text-[12px] font-semibold text-[#8A3F50]">{{ reportError() }}</p>
+            }
+
+            <div class="mt-5 flex justify-end gap-3">
+              <button type="button" class="h-10 px-5 text-[12px] font-bold text-[#616161]" (click)="closeReportModal()">Cancelar</button>
+              <button type="button" class="h-10 rounded-[8px] bg-[#5C1E2F] px-5 text-[12px] font-bold text-white disabled:opacity-60" [disabled]="isSubmittingReport()" (click)="submitCommentReport()">
+                {{ isSubmittingReport() ? 'A enviar...' : 'Enviar denúncia' }}
+              </button>
+            </div>
+          </section>
+        </div>
+        }
+
+        <section class="mt-12 border-t border-[#E0E0E0] pt-8">
+          <h2 class="text-[14px] font-medium text-[#5c1e2f]">Referências e Bibliografia</h2>
+          <ul class="mt-6 grid gap-4 text-[13px] leading-6 text-[#616161]">
+            <li>• Thornton, J. (1983). <em>The Kingdom of Kongo: Civil War and Transition.</em> University of Wisconsin
+              Press.</li>
+            <li>• Hilton, A. (1985). <em>The Kingdom of Kongo.</em> Oxford Studies in African Affairs.</li>
+            <li>• Arquivos Digitais da Torre do Tombo: Relatórios de Comércio de São Salvador (1512-1560).</li>
+          </ul>
+        </section>
+      </section>
+    </article>
+
+    <aside class="hidden xl:block">
+      <div class="sticky top-[82px] grid gap-6">
+        <h2 class="font-display text-[17px] font-medium text-[#5c1e2f]">Relacionados</h2>
+
+        <a routerLink="/app/contents/diplomacia-cobre" class="block">
+          <img
+            src="https://commons.wikimedia.org/wiki/Special:FilePath/Clay%20pot%2C%20southeast%20Senegal%20%28West%20Africa%29%20%282220693915%29.jpg?width=600"
+            alt="Cerâmica de cobre" class="h-[141px] w-full rounded-[2px] object-cover object-center" />
+          <p class="mt-2 text-[10px] font-bold uppercase text-[#D4AF37]">Economia Política</p>
+          <h3 class="font-display mt-1 text-[16px] font-extrabold leading-tight text-[#5c1e2f]">A Diplomacia do Cobre
+            nos Planaltos Centrais</h3>
+        </a>
+
+        <a routerLink="/app/contents/impostos-kwanza" class="mt-4 block">
+          <img
+            src="https://commons.wikimedia.org/wiki/Special:FilePath/Foz%20do%20Rio%20Kwanza%20-%20panoramio.jpg?width=600"
+            alt="Rio Kwanza ao pôr do sol" class="h-[141px] w-full rounded-[2px] object-cover object-center" />
+          <p class="mt-2 text-[10px] font-bold uppercase text-[#D4AF37]">Geografia Histórica</p>
+          <h3 class="font-display mt-1 text-[16px] font-extrabold leading-tight text-[#5c1e2f]">Navegação e Impostos no
+            Rio Kwanza</h3>
+        </a>
+
+        <div class="mt-5 bg-[#5C1E2F] p-6 text-white">
+          <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#d4af37]">Quiz do conteúdo</p>
+          @if (relatedQuiz(); as quiz) {
+          <h3 class="font-display mt-3 text-[16px] font-medium leading-tight">{{ quiz.title }}</h3>
+          <p class="mt-3 text-[12px] leading-5 text-white/82">
+            Teste o que acabou de ler em {{ quiz.questions.length }} perguntas e ganhe {{ quiz.xp }} XP.
+          </p>
+          <a [routerLink]="['/app/quizzes', quiz.id, 'play']"
+            class="mt-6 inline-flex h-11 w-full items-center justify-center bg-[#d4af37] text-[13px] font-medium text-[#5c1e2f]">
+            Fazer quiz
+          </a>
+          } @else {
+          <h3 class="font-display mt-3 text-[16px] font-medium leading-tight">Continue com um quiz</h3>
+          <p class="mt-3 text-[12px] leading-5 text-white/82">
+            Veja os quizzes disponíveis e pratique os temas ligados aos conteúdos.
+          </p>
+          <a routerLink="/app/quizzes"
+            class="mt-6 inline-flex h-11 w-full items-center justify-center bg-[#d4af37] text-[13px] font-medium text-[#5c1e2f]">
+            Ver quizzes
+          </a>
+          }
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <app-public-footer />
+  <app-back-to-top />
+</section>

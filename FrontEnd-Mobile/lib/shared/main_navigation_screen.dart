@@ -1,37 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:economica_com_historia/theme/app_colors.dart';
-import 'package:economica_com_historia/Screens/home_screen.dart';
-import 'package:economica_com_historia/Screens/explorar_conteudo_screen.dart';
-import 'package:economica_com_historia/Screens/selecao_quiz_screen.dart';
-import 'package:economica_com_historia/Screens/forum_screen.dart';
-import 'package:economica_com_historia/Screens/podcast_screen.dart'; // ← NOVA
-import 'package:economica_com_historia/Screens/perfil_screen.dart';
-import 'package:economica_com_historia/Screens/podcast_screen.dart';
+import 'package:economica_com_historia/screens/home_screen.dart';
+import 'package:economica_com_historia/screens/explorar_conteudo_screen.dart';
+import 'package:economica_com_historia/screens/selecao_quiz_screen.dart';
+import 'package:economica_com_historia/screens/forum_screen.dart';
+import 'package:economica_com_historia/screens/podcast_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
 
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  MainNavigationScreenState createState() => MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen>
+class MainNavigationScreenState extends State<MainNavigationScreen>
     with TickerProviderStateMixin {
   int _indiceAtual = 0;
 
   late final List<AnimationController> _controllers;
   late final List<Animation<double>> _scaleAnims;
 
-  static const _telas = [
-    HomeScreen(),
-    ExplorarConteudoScreen(),
-    SelecaoQuizScreen(),
-    ForumScreen(),
-    PodcastScreen(), // ← NOVA
-    PerfilScreen(),
+  List<Widget> _telas() => [
+    HomeScreen(onIrParaForum: () => onTap(3)),
+    const ExplorarConteudoScreen(),
+    const SelecaoQuizScreen(),
+    const ForumScreen(),
+    const PodcastScreen(),
   ];
-
   static const _itens = [
     _NavItem(
       icone: Icons.home_rounded,
@@ -59,11 +55,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       iconeOff: Icons.podcasts_outlined,
       label: 'Podcast',
     ),
-    _NavItem(
-      icone: Icons.person_rounded,
-      iconeOff: Icons.person_outline_rounded,
-      label: 'Perfil',
-    ),
   ];
 
   @override
@@ -88,7 +79,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     _controllers[0].forward();
   }
 
-  void _onTap(int index) {
+  void onTap(int index) {
     if (index == _indiceAtual) return;
     HapticFeedback.lightImpact();
     _controllers[_indiceAtual].reverse();
@@ -107,12 +98,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: _indiceAtual, children: _telas),
+      body: IndexedStack(index: _indiceAtual, children: _telas()),
       bottomNavigationBar: _NavBar(
         itens: _itens,
         indiceAtual: _indiceAtual,
         scaleAnims: _scaleAnims,
-        onTap: _onTap,
+        onTap: onTap,
       ),
     );
   }
@@ -150,7 +141,7 @@ class _NavBar extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.08),
+            color: AppColors.primary.withValues(alpha: 0.08),
             blurRadius: 24,
             offset: const Offset(0, -4),
           ),
@@ -179,7 +170,7 @@ class _NavBar extends StatelessWidget {
                           height: ativo ? 28 : 24, // ← reduzido
                           decoration: BoxDecoration(
                             color: ativo
-                                ? AppColors.primary.withOpacity(0.12)
+                                ? AppColors.primary.withValues(alpha: 0.12)
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(10),
                           ),

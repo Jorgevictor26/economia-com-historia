@@ -187,7 +187,7 @@ export class UserForumsPage {
     }
 
     this.toast.set({ message, kind });
-    this.toastTimeout = setTimeout(() => this.toast.set(null), 4000);
+    this.toastTimeout = setTimeout(() => this.toast.set(null), 5000);
   }
 
   private toForumRoom(forum: BackendForum) {

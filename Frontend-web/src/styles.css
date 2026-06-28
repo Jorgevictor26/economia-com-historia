@@ -1041,7 +1041,7 @@
     height: 3px;
     width: 100%;
     transform-origin: left;
-    animation: eh-toast-progress 4s linear forwards;
+    animation: eh-toast-progress 5s linear forwards;
   }
 
   .eh-toast[data-kind="success"] .eh-toast-progress {

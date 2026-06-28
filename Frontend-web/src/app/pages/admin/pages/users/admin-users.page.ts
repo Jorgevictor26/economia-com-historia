@@ -289,6 +289,6 @@ export class AdminUsersPage {
     this.toast = { message, kind };
     this.toastTimeout = setTimeout(() => {
       this.toast = null;
-    }, 4000);
+    }, 5000);
   }
 }

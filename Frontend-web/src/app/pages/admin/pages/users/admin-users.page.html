@@ -1,126 +1,24 @@
 <app-admin-console-shell activeItem="users">
+  @if (toast; as currentToast) {
+    <aside class="eh-toast" [attr.data-kind]="currentToast.kind" role="status" aria-live="polite">
+      <div class="eh-toast-content">
+        <strong class="eh-toast-title">{{ currentToast.kind === 'error' ? 'Atenção' : currentToast.kind === 'success' ? 'Concluído' : 'Nota' }}</strong>
+        <span class="eh-toast-message">{{ currentToast.message }}</span>
+      </div>
+      <span class="eh-toast-progress" aria-hidden="true"></span>
+    </aside>
+  }
+
   <section class="mx-auto grid max-w-6xl gap-5">
-    <app-admin-page-header title="Gestao de Admins">
-      @if (auth.isSuperAdmin()) {
-        <button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-[6px] bg-[#5c1e2f] px-5 text-[13px] font-extrabold text-white shadow-[0_12px_28px_rgba(92,30,47,0.18)] transition hover:bg-[#8A3F50]">
-          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">person_add</span>
-          Adicionar Admin
+    <app-admin-page-header title="Gestão de Admins">
+      @if (auth.canPromoteWriters() || auth.canPromoteAdmins()) {
+        <button type="button" (click)="openPromotionModal()" [disabled]="!canPromoteUsers" class="inline-flex h-11 items-center justify-center gap-2 rounded-[6px] bg-[#5c1e2f] px-5 text-[13px] font-extrabold text-white shadow-[0_12px_28px_rgba(92,30,47,0.18)] transition hover:bg-[#8A3F50] disabled:cursor-not-allowed disabled:opacity-50">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">manage_accounts</span>
+          Promover
         </button>
       }
     </app-admin-page-header>
-
-    <section class="grid gap-3">
-      <div class="grid gap-3 md:grid-cols-[minmax(220px,1fr)_minmax(180px,0.65fr)_minmax(180px,0.65fr)_auto]">
-        <label class="grid gap-1">
-          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50]">Pesquisar</span>
-          <div class="flex h-9 items-center gap-2 rounded-[6px] border border-[#E0E0E0] bg-white px-3 shadow-[0_10px_24px_rgba(27,22,30,0.035)]">
-            <span class="material-symbols-outlined text-[16px] text-[#9E9E9E]" aria-hidden="true">search</span>
-            <input type="search" placeholder="Nome ou email..." class="min-w-0 flex-1 border-0 bg-transparent text-[12px] text-[#212121] outline-none placeholder:text-[#9E9E9E]" />
-          </div>
-        </label>
-
-        <label class="grid gap-1">
-          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50]">Departamento</span>
-          <select class="h-9 rounded-[6px] border border-[#E0E0E0] bg-white px-3 text-[12px] text-[#212121] shadow-[0_10px_24px_rgba(27,22,30,0.035)] outline-none">
-            <option>Todos os departamentos</option>
-            <option>Academico</option>
-            <option>Marketing</option>
-            <option>Financeiro</option>
-            <option>Tecnologia</option>
-          </select>
-        </label>
-
-        <label class="grid gap-1">
-          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50]">Nivel de acesso</span>
-          <select class="h-9 rounded-[6px] border border-[#E0E0E0] bg-white px-3 text-[12px] text-[#212121] shadow-[0_10px_24px_rgba(27,22,30,0.035)] outline-none">
-            <option>Todos os cargos</option>
-            <option>Super admin</option>
-            <option>Administrador</option>
-            <option>Escritor</option>
-            <option>Utilizador</option>
-          </select>
-        </label>
-
-        <button type="button" class="mt-auto inline-flex h-9 items-center justify-center gap-2 rounded-[6px] border border-[#E0E0E0] bg-white px-4 text-[12px] font-extrabold text-[#8A3F50] shadow-[0_10px_24px_rgba(27,22,30,0.035)] transition hover:border-[#8A3F50]">
-          <span class="material-symbols-outlined text-[16px]" aria-hidden="true">filter_list</span>
-          Filtrar
-        </button>
-      </div>
-
-      <section class="overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
-        <div class="grid grid-cols-[minmax(210px,1.2fr)_minmax(120px,0.55fr)_minmax(130px,0.58fr)_minmax(90px,0.42fr)_minmax(115px,0.5fr)_48px] gap-4 border-b border-[#E0E0E0] bg-[#F5F5F5] px-5 py-3 text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50] max-xl:hidden">
-          <span>Administrador</span>
-          <span>Departamento</span>
-          <span>Cargo</span>
-          <span>Status</span>
-          <span>Ultimo acesso</span>
-          <span class="text-right">Acoes</span>
-        </div>
-
-        <div class="grid divide-y divide-[#F2E6E9]">
-          @for (user of users; track user.email) {
-            <article class="grid grid-cols-[minmax(210px,1.2fr)_minmax(120px,0.55fr)_minmax(130px,0.58fr)_minmax(90px,0.42fr)_minmax(115px,0.5fr)_48px] items-center gap-4 px-5 py-4 transition hover:bg-[#fff] max-xl:grid-cols-1">
-              <div class="flex min-w-0 items-center gap-3">
-                <span class="grid size-9 shrink-0 place-items-center rounded-full bg-[#F2E6E9] text-[11px] font-extrabold text-[#8A3F50]">{{ initials(user.name) }}</span>
-                <span class="min-w-0">
-                  <strong class="block truncate text-[13px] text-[#212121]">{{ user.name }}</strong>
-                  <small class="block truncate text-[11px] text-[#9E9E9E]">{{ user.email }}</small>
-                </span>
-              </div>
-
-              <span class="text-[12px] text-[#616161] max-xl:before:mr-2 max-xl:before:font-extrabold max-xl:before:text-[#8A3F50] max-xl:before:content-['Departamento:']">{{ user.department }}</span>
-
-              <span class="w-fit rounded-[4px] bg-[#F5F5F5] px-2.5 py-1 text-[9px] font-extrabold uppercase text-[#616161]">
-                {{ user.position }}
-              </span>
-
-              <span class="inline-flex items-center gap-2 text-[12px] font-bold" [class.text-[#616161]]="user.status === 'Ativo'" [class.text-[#8A3F50]]="user.status === 'Pendente'" [class.text-[#616161]]="user.status === 'Inativo'">
-                <span class="size-1.5 rounded-full" [class.bg-[#2A9D8F]]="user.status === 'Ativo'" [class.bg-[#D4AF37]]="user.status === 'Pendente'" [class.bg-[#616161]]="user.status === 'Inativo'"></span>
-                {{ user.status }}
-              </span>
-
-              <span class="text-[12px] text-[#616161] max-xl:before:mr-2 max-xl:before:font-extrabold max-xl:before:text-[#8A3F50] max-xl:before:content-['Ultimo_acesso:']">{{ user.lastAccess }}</span>
-
-              <div class="relative flex items-center justify-end max-xl:justify-start">
-                <details class="group relative">
-                  <summary class="grid size-8 cursor-pointer list-none place-items-center rounded-[5px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]" aria-label="Mais acoes">
-                    <span class="material-symbols-outlined text-[20px]" aria-hidden="true">more_vert</span>
-                  </summary>
-
-                  <div class="absolute right-0 z-20 mt-2 grid min-w-40 gap-1 rounded-[8px] border border-[#E0E0E0] bg-white p-2 shadow-[0_18px_45px_rgba(27,22,30,0.12)] max-xl:left-0 max-xl:right-auto">
-                    @if (canPromoteToWriter(user)) {
-                      <button type="button" (click)="promoteToWriter(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]">
-                        Promover a escritor
-                      </button>
-                    }
-
-                    @if (canPromoteToAdmin(user)) {
-                      <button type="button" (click)="promoteToAdmin(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]">
-                        Promover a admin
-                      </button>
-                    }
-
-                    @if (!canPromoteToWriter(user) && !canPromoteToAdmin(user)) {
-                      <span class="px-3 py-2 text-[11px] font-semibold text-[#9E9E9E]">Sem acao disponivel</span>
-                    }
-                  </div>
-                </details>
-              </div>
-            </article>
-          }
-        </div>
-
-        <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-[#E0E0E0] px-5 py-4 text-[11px] text-[#9E9E9E]">
-          <span>Mostrando 1-{{ users.length }} de {{ users.length }} administradores</span>
-          <div class="flex items-center gap-2">
-            <button type="button" class="h-8 rounded-[5px] border border-[#E0E0E0] bg-white px-3 text-[11px] font-bold text-[#616161] transition hover:border-[#8A3F50]">Anterior</button>
-            <button type="button" class="h-8 rounded-[5px] border border-[#8A3F50] bg-white px-3 text-[11px] font-bold text-[#8A3F50] transition hover:bg-[#F2E6E9]">Proxima</button>
-          </div>
-        </footer>
-      </section>
-    </section>
-
-    <section class="grid gap-4 md:grid-cols-3">
+  <section class="grid gap-4 md:grid-cols-3">
       <article class="flex min-h-20 items-center gap-4 rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
         <span class="grid size-10 place-items-center rounded-[7px] bg-[#F2E6E9] text-[#8A3F50]">
           <span class="material-symbols-outlined text-[21px]" aria-hidden="true">groups</span>
@@ -147,9 +45,266 @@
         </span>
         <div>
           <strong class="block text-[17px] text-[#5c1e2f]">{{ pendingCount }}</strong>
-          <span class="text-[10px] font-extrabold uppercase tracking-[0.04em] text-[#9E9E9E]">Solicitacoes pendentes</span>
+          <span class="text-[10px] font-extrabold uppercase tracking-[0.04em] text-[#9E9E9E]">Solicitações pendentes</span>
         </div>
       </article>
     </section>
+    <section class="grid gap-3">
+      <div class="grid gap-3 md:grid-cols-[minmax(220px,1fr)_minmax(180px,0.65fr)_minmax(180px,0.65fr)_auto]">
+        <label class="grid gap-1">
+          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50]">Pesquisar</span>
+          <div class="flex h-9 items-center gap-2 rounded-[6px] border border-[#E0E0E0] bg-white px-3 shadow-[0_10px_24px_rgba(27,22,30,0.035)]">
+            <span class="material-symbols-outlined text-[16px] text-[#9E9E9E]" aria-hidden="true">search</span>
+            <input type="search" placeholder="Nome ou email..." [value]="searchTerm" (input)="updateSearch($event)" class="min-w-0 flex-1 border-0 bg-transparent text-[12px] text-[#212121] outline-none placeholder:text-[#9E9E9E]" />
+          </div>
+        </label>
+
+        <label class="grid gap-1">
+          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50]">Departamento</span>
+          <select [value]="selectedDepartment" (change)="updateDepartment($event)" class="h-9 rounded-[6px] border border-[#E0E0E0] bg-white px-3 text-[12px] text-[#212121] shadow-[0_10px_24px_rgba(27,22,30,0.035)] outline-none">
+            <option>Todos os departamentos</option>
+            <option>Académico</option>
+            <option>Marketing</option>
+            <option>Financeiro</option>
+            <option>Tecnologia</option>
+          </select>
+        </label>
+
+        <label class="grid gap-1">
+          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50]">Nivel de acesso</span>
+          <select [value]="selectedRole" (change)="updateRole($event)" class="h-9 rounded-[6px] border border-[#E0E0E0] bg-white px-3 text-[12px] text-[#212121] shadow-[0_10px_24px_rgba(27,22,30,0.035)] outline-none">
+            <option>Todos os cargos</option>
+            <option>Super admin</option>
+            <option>Administrador</option>
+            <option>Escritor</option>
+            <option>Utilizador</option>
+          </select>
+        </label>
+
+        <button type="button" (click)="applyFilters()" class="mt-auto inline-flex h-9 items-center justify-center gap-2 rounded-[6px] border border-[#E0E0E0] bg-white px-4 text-[12px] font-extrabold text-[#8A3F50] shadow-[0_10px_24px_rgba(27,22,30,0.035)] transition hover:border-[#8A3F50]">
+          <span class="material-symbols-outlined text-[16px]" aria-hidden="true">filter_list</span>
+          Filtrar
+        </button>
+      </div>
+
+      <section class="overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
+        <div class="grid grid-cols-[minmax(210px,1.2fr)_minmax(120px,0.55fr)_minmax(130px,0.58fr)_minmax(90px,0.42fr)_minmax(115px,0.5fr)_48px] gap-4 border-b border-[#E0E0E0] bg-[#F5F5F5] px-5 py-3 text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50] max-xl:hidden">
+          <span>Administrador</span>
+          <span>Departamento</span>
+          <span>Cargo</span>
+          <span>Status</span>
+          <span>Último acesso</span>
+          <span class="text-right">Ações</span>
+        </div>
+
+        <div class="grid divide-y divide-[#F2E6E9]">
+          @for (user of pagedUsers; track user.email) {
+            <article class="grid grid-cols-[minmax(210px,1.2fr)_minmax(120px,0.55fr)_minmax(130px,0.58fr)_minmax(90px,0.42fr)_minmax(115px,0.5fr)_48px] items-center gap-4 px-5 py-4 transition hover:bg-[#fff] max-xl:grid-cols-1">
+              <div class="flex min-w-0 items-center gap-3">
+                <span class="grid size-9 shrink-0 place-items-center rounded-full bg-[#F2E6E9] text-[11px] font-extrabold text-[#8A3F50]">{{ initials(user.name) }}</span>
+                <span class="min-w-0">
+                  <strong class="block truncate text-[13px] text-[#212121]">{{ user.name }}</strong>
+                  <small class="block truncate text-[11px] text-[#9E9E9E]">{{ user.email }}</small>
+                </span>
+              </div>
+
+              <span class="text-[12px] text-[#616161] max-xl:before:mr-2 max-xl:before:font-extrabold max-xl:before:text-[#8A3F50] max-xl:before:content-['Departamento:']">{{ user.department }}</span>
+
+              <span class="w-fit rounded-[4px] bg-[#F5F5F5] px-2.5 py-1 text-[9px] font-extrabold uppercase text-[#616161]">
+                {{ user.position }}
+              </span>
+
+              <span class="inline-flex items-center gap-2 text-[12px] font-bold" [class.text-[#616161]]="user.status === 'Ativo'" [class.text-[#8A3F50]]="user.status === 'Pendente'" [class.text-[#616161]]="user.status === 'Inativo'">
+                <span class="size-1.5 rounded-full" [class.bg-[#2A9D8F]]="user.status === 'Ativo'" [class.bg-[#D4AF37]]="user.status === 'Pendente'" [class.bg-[#616161]]="user.status === 'Inativo'"></span>
+                {{ user.status }}
+              </span>
+
+              <span class="text-[12px] text-[#616161] max-xl:before:mr-2 max-xl:before:font-extrabold max-xl:before:text-[#8A3F50] max-xl:before:content-['Último_acesso:']">{{ user.lastAccess }}</span>
+
+              <div class="relative flex items-center justify-end max-xl:justify-start">
+                <details class="group relative">
+                  <summary class="grid size-8 cursor-pointer list-none place-items-center rounded-[5px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]" aria-label="Mais ações">
+                    <span class="material-symbols-outlined text-[20px]" aria-hidden="true">more_vert</span>
+                  </summary>
+
+                  <div class="absolute right-0 z-20 mt-2 grid min-w-40 gap-1 rounded-[8px] border border-[#E0E0E0] bg-white p-2 shadow-[0_18px_45px_rgba(27,22,30,0.12)] max-xl:left-0 max-xl:right-auto">
+                    <button type="button" (click)="editUser(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]">
+                      Editar membro
+                    </button>
+
+                    <button type="button" (click)="deleteUser(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]">
+                      Eliminar membro
+                    </button>
+
+                    @if (canPromoteToWriter(user)) {
+                      <button type="button" (click)="promoteToWriter(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]">
+                        Promover a escritor
+                      </button>
+                    }
+
+                    @if (canPromoteToAdmin(user)) {
+                      <button type="button" (click)="promoteToAdmin(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]">
+                        Promover a admin
+                      </button>
+                    }
+
+                    @if (canPromoteToSuperAdmin(user)) {
+                      <button type="button" (click)="promoteToSuperAdmin(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]">
+                        Promover a super admin
+                      </button>
+                    }
+
+                  </div>
+                </details>
+              </div>
+            </article>
+          }
+        </div>
+
+        <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-[#E0E0E0] px-5 py-4 text-[11px] text-[#9E9E9E]">
+          <span>Mostrando {{ pageStart }}-{{ pageEnd }} de {{ filteredUsers.length }} administradores</span>
+          <div class="flex items-center gap-2">
+            <button type="button" (click)="previousPage()" [disabled]="currentPage === 1" class="h-8 rounded-[5px] border border-[#E0E0E0] bg-white px-3 text-[11px] font-bold text-[#616161] transition hover:border-[#8A3F50] disabled:cursor-not-allowed disabled:opacity-50">Anterior</button>
+            <button type="button" (click)="nextPage()" [disabled]="currentPage === totalPages" class="h-8 rounded-[5px] border border-[#8A3F50] bg-white px-3 text-[11px] font-bold text-[#8A3F50] transition hover:bg-[#F2E6E9] disabled:cursor-not-allowed disabled:opacity-50">Próxima</button>
+          </div>
+        </footer>
+      </section>
+    </section>
+
   </section>
+
+  @if (promotionModalOpen) {
+    <section class="fixed inset-0 z-[100] grid place-items-center bg-[#212121]/45 p-5" role="dialog" aria-modal="true" aria-labelledby="promotion-modal-title">
+      <article class="grid max-h-[86vh] w-full max-w-3xl overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white shadow-[0_24px_70px_rgba(27,22,30,0.2)]">
+        <header class="flex flex-wrap items-start justify-between gap-4 border-b border-[#E0E0E0] px-5 py-4">
+          <div>
+            <p class="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#9E9E9E]">Utilizadores elegíveis</p>
+            <h2 id="promotion-modal-title" class="mt-1 text-[22px] font-extrabold text-[#5C1E2F]">Promover membro</h2>
+            <p class="mt-1 max-w-xl text-[12px] font-semibold leading-5 text-[#616161]">
+              Super administradores podem promover para escritor, administrador ou super administrador. Administradores promovem apenas para escritor.
+            </p>
+          </div>
+
+          <button type="button" (click)="closePromotionModal()" class="grid size-9 place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]" aria-label="Fechar modal">
+            <span class="material-symbols-outlined text-[20px]" aria-hidden="true">close</span>
+          </button>
+        </header>
+
+        <div class="border-b border-[#E0E0E0] p-5">
+          <label class="grid gap-1">
+            <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50]">Pesquisar utilizador</span>
+            <div class="flex h-10 items-center gap-2 rounded-[6px] border border-[#E0E0E0] bg-white px-3 shadow-[0_10px_24px_rgba(27,22,30,0.035)]">
+              <span class="material-symbols-outlined text-[16px] text-[#9E9E9E]" aria-hidden="true">search</span>
+              <input type="search" placeholder="Nome, email, departamento ou cargo..." [value]="promotionSearchTerm" (input)="updatePromotionSearch($event)" class="min-w-0 flex-1 border-0 bg-transparent text-[12px] text-[#212121] outline-none placeholder:text-[#9E9E9E]" />
+            </div>
+          </label>
+        </div>
+
+        <div class="grid max-h-[52vh] divide-y divide-[#F2E6E9] overflow-y-auto">
+          @for (user of promotionCandidates(); track user.email) {
+            <article class="grid gap-4 px-5 py-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+              <div class="flex min-w-0 items-center gap-3">
+                <span class="grid size-10 shrink-0 place-items-center rounded-full bg-[#F2E6E9] text-[11px] font-extrabold text-[#8A3F50]">{{ initials(user.name) }}</span>
+                <span class="min-w-0">
+                  <strong class="block truncate text-[13px] text-[#212121]">{{ user.name }}</strong>
+                  <small class="block truncate text-[11px] text-[#9E9E9E]">{{ user.email }} - {{ roleLabel(user.role) }}</small>
+                </span>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                @if (canPromoteToWriter(user)) {
+                  <button type="button" (click)="promoteToWriter(user)" class="inline-flex h-8 items-center justify-center rounded-[5px] border border-[#E0E0E0] bg-white px-3 text-[11px] font-extrabold text-[#8A3F50] transition hover:border-[#8A3F50]">
+                    Promover a escritor
+                  </button>
+                }
+
+                @if (canPromoteToAdmin(user)) {
+                  <button type="button" (click)="promoteToAdmin(user)" class="inline-flex h-8 items-center justify-center rounded-[5px] bg-[#5c1e2f] px-3 text-[11px] font-extrabold text-white transition hover:bg-[#8A3F50]">
+                    Promover a administrador
+                  </button>
+                }
+
+                @if (canPromoteToSuperAdmin(user)) {
+                  <button type="button" (click)="promoteToSuperAdmin(user)" class="inline-flex h-8 items-center justify-center rounded-[5px] bg-[#5c1e2f] px-3 text-[11px] font-extrabold text-white transition hover:bg-[#8A3F50]">
+                    Tornar super admin
+                  </button>
+                }
+              </div>
+            </article>
+          } @empty {
+            <p class="px-5 py-8 text-center text-[12px] font-semibold text-[#9E9E9E]">Nenhum utilizador encontrado para promover.</p>
+          }
+        </div>
+      </article>
+    </section>
+  }
+
+  @if (editingUser; as user) {
+    <section class="fixed inset-0 z-[110] grid place-items-center bg-[#212121]/45 p-5" role="dialog" aria-modal="true" aria-labelledby="edit-member-title">
+      <form class="grid max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white shadow-[0_24px_70px_rgba(27,22,30,0.2)]" (submit)="$event.preventDefault(); saveEditedUser(memberName, memberEmail, memberDepartment, memberPosition, memberStatus, memberRole)">
+        <header class="flex items-start justify-between gap-4 border-b border-[#E0E0E0] px-5 py-4">
+          <div>
+            <p class="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#9E9E9E]">Gestão de membro</p>
+            <h2 id="edit-member-title" class="mt-1 text-[22px] font-extrabold text-[#5C1E2F]">Editar membro</h2>
+          </div>
+
+          <button type="button" (click)="closeEditModal()" class="grid size-9 place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]" aria-label="Fechar modal">
+            <span class="material-symbols-outlined text-[20px]" aria-hidden="true">close</span>
+          </button>
+        </header>
+
+        <div class="grid gap-4 overflow-y-auto p-5 md:grid-cols-2">
+          <label class="grid gap-1 text-[11px] font-extrabold text-[#5C1E2F]">
+            Nome
+            <input #memberName type="text" [value]="user.name" class="h-10 rounded-[6px] border border-[#E0E0E0] px-3 text-[12px] font-semibold text-[#212121] outline-none focus:border-[#8A3F50]" />
+          </label>
+
+          <label class="grid gap-1 text-[11px] font-extrabold text-[#5C1E2F]">
+            E-mail
+            <input #memberEmail type="email" [value]="user.email" class="h-10 rounded-[6px] border border-[#E0E0E0] px-3 text-[12px] font-semibold text-[#212121] outline-none focus:border-[#8A3F50]" />
+          </label>
+
+          <label class="grid gap-1 text-[11px] font-extrabold text-[#5C1E2F]">
+            Departamento
+            <select #memberDepartment [value]="user.department" class="h-10 rounded-[6px] border border-[#E0E0E0] bg-white px-3 text-[12px] font-semibold text-[#212121] outline-none focus:border-[#8A3F50]">
+              <option>Académico</option>
+              <option>Marketing</option>
+              <option>Financeiro</option>
+              <option>Tecnologia</option>
+            </select>
+          </label>
+
+          <label class="grid gap-1 text-[11px] font-extrabold text-[#5C1E2F]">
+            Nível
+            <select #memberRole [value]="user.role" class="h-10 rounded-[6px] border border-[#E0E0E0] bg-white px-3 text-[12px] font-semibold text-[#212121] outline-none focus:border-[#8A3F50]">
+              <option value="student">Utilizador</option>
+              <option value="writer">Escritor</option>
+              <option value="moderator">Moderador</option>
+              <option value="admin">Administrador</option>
+              <option value="super-admin">Super administrador</option>
+            </select>
+          </label>
+
+          <label class="grid gap-1 text-[11px] font-extrabold text-[#5C1E2F]">
+            Cargo
+            <input #memberPosition type="text" [value]="user.position" class="h-10 rounded-[6px] border border-[#E0E0E0] px-3 text-[12px] font-semibold text-[#212121] outline-none focus:border-[#8A3F50]" />
+          </label>
+
+          <label class="grid gap-1 text-[11px] font-extrabold text-[#5C1E2F]">
+            Estado
+            <select #memberStatus [value]="user.status" class="h-10 rounded-[6px] border border-[#E0E0E0] bg-white px-3 text-[12px] font-semibold text-[#212121] outline-none focus:border-[#8A3F50]">
+              <option>Ativo</option>
+              <option>Inativo</option>
+              <option>Pendente</option>
+            </select>
+          </label>
+        </div>
+
+        <footer class="flex flex-wrap justify-end gap-3 border-t border-[#E0E0E0] px-5 py-4">
+          <button type="button" (click)="closeEditModal()" class="h-10 px-4 text-[12px] font-extrabold text-[#616161]">Cancelar</button>
+          <button type="submit" class="h-10 rounded-[6px] bg-[#5C1E2F] px-5 text-[12px] font-extrabold text-white transition hover:bg-[#8A3F50]">Guardar alterações</button>
+        </footer>
+      </form>
+    </section>
+  }
 </app-admin-console-shell>

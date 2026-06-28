@@ -1,4 +1,4 @@
-    <article class="group flex h-full min-h-[318px] flex-col overflow-hidden rounded-[18px] border border-[#E0E0E0] bg-white shadow-[0_16px_40px_rgba(64,8,26,0.07)] transition duration-300 hover:-translate-y-1 hover:border-[#E6D5B8] hover:shadow-[0_22px_55px_rgba(64,8,26,0.14)]">
+﻿    <article class="group flex h-full min-h-[318px] flex-col overflow-hidden rounded-[18px] border border-[#E0E0E0] bg-white shadow-[0_16px_40px_rgba(64,8,26,0.07)] transition duration-300 hover:-translate-y-1 hover:border-[#E6D5B8] hover:shadow-[0_22px_55px_rgba(64,8,26,0.14)]">
       <a [routerLink]="contentRoute" class="flex h-full flex-col">
         <div class="relative h-40 overflow-hidden bg-[#F2E6E9]">
           @if (content.imageUrl) {
@@ -21,12 +21,9 @@
             <span class="rounded-full bg-white/92 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5c1e2f] shadow-sm backdrop-blur">
               {{ content.premium ? 'Jindungo' : content.category }}
             </span>
-<<<<<<< HEAD
-=======
             <span class="rounded-full bg-[#F2E6E9]/95 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#D4AF37] shadow-sm backdrop-blur">
               {{ content.contentType }}
             </span>
->>>>>>> a41e593e4dc497c1a33dd70919279eaeee49d67e
           </div>
 
           @if (content.premium && !canReadPremium) {

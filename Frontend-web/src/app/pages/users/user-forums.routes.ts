@@ -1,11 +1,16 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink, Routes } from '@angular/router';
+import { ActivatedRoute, RouterLink, Routes } from '@angular/router';
 import { Content } from '../../models/content.model';
 import { AuthStateService } from '../../services/auth-state.service';
 import { ContentService } from '../../services/content.service';
 import { BackendForum, ForumService } from '../../services/forum.service';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
+
+interface PageToast {
+  message: string;
+  kind: 'success' | 'error' | 'info';
+}
 
 @Component({
   selector: 'app-user-forums-page',
@@ -18,7 +23,6 @@ export class UserForumsPage {
   readonly auth = inject(AuthStateService);
   readonly contentService = inject(ContentService);
   readonly forumService = inject(ForumService);
-  private readonly router = inject(Router);
 
   readonly categories = ['Economia', 'Hist\u00f3ria', 'Jindungo', 'Podcast'];
   readonly selectedCategory = signal(this.categories[0]);
@@ -28,9 +32,11 @@ export class UserForumsPage {
   readonly selectedContentIds = signal<string[]>(['1', '2']);
   readonly showAllResources = signal(false);
   readonly createModalOpen = signal(false);
-  readonly createFeedback = signal('');
   readonly resourceError = signal(false);
-  readonly forumError = signal('');
+  readonly toast = signal<PageToast | null>(null);
+  readonly forumPage = signal(1);
+  readonly forumPageSize = 8;
+  private toastTimeout?: ReturnType<typeof setTimeout>;
 
   constructor() {
     void this.loadForums();
@@ -43,6 +49,15 @@ export class UserForumsPage {
   readonly visibleResources = computed(() =>
     this.showAllResources() ? this.contentService.contents() : this.selectedResources(),
   );
+
+  readonly forumTotalPages = computed(() => Math.max(1, Math.ceil(this.forumService.rooms().length / this.forumPageSize)));
+  readonly pagedRooms = computed(() => {
+    const start = (this.forumPage() - 1) * this.forumPageSize;
+
+    return this.forumService.rooms().slice(start, start + this.forumPageSize);
+  });
+  readonly hasPreviousForumPage = computed(() => this.forumPage() > 1);
+  readonly hasNextForumPage = computed(() => this.forumPage() < this.forumTotalPages());
 
   ngOnInit(): void {
     const contentId = this.route.snapshot.queryParamMap.get('content');
@@ -68,7 +83,6 @@ export class UserForumsPage {
       return;
     }
 
-    this.createFeedback.set('');
     this.resourceError.set(false);
     this.createModalOpen.set(true);
   }
@@ -116,11 +130,10 @@ export class UserForumsPage {
     this.resourceError.set(!linkedContents.length);
 
     if (!title || !objective || !linkedContents.length) {
-      this.createFeedback.set('Preencha o t\u00edtulo, o objetivo e vincule pelo menos um conte\u00fado da plataforma.');
+      this.showToast('Preencha o título, o objetivo e vincule pelo menos um conteúdo da plataforma.', 'error');
       return;
     }
 
-<<<<<<< HEAD
     try {
       await this.forumService.create({
         name: title,
@@ -140,11 +153,10 @@ export class UserForumsPage {
       this.privacy.set('public');
       this.protectedByPassword.set(false);
       this.showAllResources.set(false);
-      this.createFeedback.set('Sala de debate enviada para aprovação.');
-      this.forumError.set('');
+      this.createModalOpen.set(false);
+      this.showToast('Sala de debate enviada para aprovação.', 'success');
     } catch {
-      this.createFeedback.set('');
-      this.forumError.set('Não foi possível criar a sala de debate.');
+      this.showToast('Não foi possível criar a sala de debate.', 'error');
     }
   }
 
@@ -154,10 +166,28 @@ export class UserForumsPage {
 
       if (forums.length > 0) {
         this.forumService.rooms.set(forums.map((forum) => this.toForumRoom(forum)));
+        this.forumPage.set(1);
       }
     } catch {
-      this.forumError.set('Não foi possível carregar os fóruns.');
+      this.showToast('Não foi possível carregar os fóruns.', 'error');
     }
+  }
+
+  goToPreviousForumPage(): void {
+    this.forumPage.update((page) => Math.max(1, page - 1));
+  }
+
+  goToNextForumPage(): void {
+    this.forumPage.update((page) => Math.min(this.forumTotalPages(), page + 1));
+  }
+
+  private showToast(message: string, kind: PageToast['kind'] = 'info'): void {
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+
+    this.toast.set({ message, kind });
+    this.toastTimeout = setTimeout(() => this.toast.set(null), 4000);
   }
 
   private toForumRoom(forum: BackendForum) {
@@ -168,38 +198,17 @@ export class UserForumsPage {
       members: 0,
       activeDebates: forum.topics_count ?? 0,
       description: forum.description ?? forum.rules ?? 'Sem descrição.',
-      category: forum.category ?? 'Forum',
+      category: forum.category ?? 'Fórum',
       objective: forum.description ?? forum.rules ?? '',
       inviteEmails: [],
       protectedByPassword: forum.content_permission === 'subscribers',
       linkedContents: (forum.contents ?? []).map((content) => ({
         id: String(content.id),
         title: content.title,
-        type: content.content_type?.name ?? 'Conteudo',
+        type: content.content_type?.name ?? 'Conteúdo',
         meta: content.category?.name ?? '',
       })),
     };
-=======
-    const room = this.forumService.createRoom({
-      name: title,
-      category: this.selectedCategory(),
-      objective,
-      visibility: this.privacy(),
-      inviteEmails: this.inviteEmails(),
-      protectedByPassword: this.protectedByPassword(),
-      linkedContents,
-    });
-
-    titleInput.value = '';
-    objectiveInput.value = '';
-    this.inviteEmails.set([]);
-    this.selectedContentIds.set(['1', '2']);
-    this.privacy.set('public');
-    this.protectedByPassword.set(false);
-    this.showAllResources.set(false);
-    this.createFeedback.set('Discuss\u00e3o criada e vinculada aos conte\u00fados selecionados.');
-    this.createModalOpen.set(false);
-    void this.router.navigate(['/app/forums', room.id]);
   }
 
   roomInitials(name: string): string {
@@ -209,7 +218,6 @@ export class UserForumsPage {
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase())
       .join('') || 'EH';
->>>>>>> a41e593e4dc497c1a33dd70919279eaeee49d67e
   }
 
   private toLinkedContent(content: Content) {

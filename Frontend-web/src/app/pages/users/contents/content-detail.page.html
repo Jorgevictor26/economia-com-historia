@@ -1,7 +1,7 @@
 <section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
   <app-public-navbar />
 
-  <main class="mx-auto grid max-w-[1160px] grid-cols-[200px_minmax(0,560px)_250px] gap-7 px-8 pb-20 pt-8">
+  <main class="mx-auto grid w-full max-w-[1160px] grid-cols-1 gap-7 px-4 pb-20 pt-6 sm:px-6 lg:grid-cols-[200px_minmax(0,560px)] xl:grid-cols-[200px_minmax(0,560px)_250px] xl:px-8">
     <aside class="hidden lg:block">
       <div class="sticky top-[82px]">
         <section class="border border-[#E0E0E0] bg-white px-6 py-6 text-center">
@@ -11,34 +11,21 @@
           </div>
           <h2 class="font-display mt-5 text-[13px] font-medium text-[#5c1e2f]">{{ detail()?.author || 'Equipa editorial'
             }}</h2>
-          @if (detail()?.authorBio) {
-          <p class="mx-auto mt-2 max-w-[138px] text-[9px] leading-[1.35] text-[#616161]">
-            {{ detail()?.authorBio }}
-          </p>
-          }
-          <div class="mt-5 flex justify-center gap-4 text-[#616161]">
-            <!-- Ícone de partilha -->
-            <button type="button" class="cursor-pointer hover:text-[#5C1E2F]" (click)="toggleShareMenu($event)">
-              <span class="material-symbols-outlined text-[24px] leading-none">share</span>
-            </button>
-
-            <!-- Ícone de guardar -->
-            <button type="button" class="cursor-pointer hover:text-[#5C1E2F]" [disabled]="isSavingContent()" (click)="saveContent($event)">
-              <span class="material-symbols-outlined text-[24px] leading-none">bookmark_add</span>
-            </button>
+          <div class="mt-5 border-t border-[#E0E0E0] pt-4 text-left">
+            <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#9E9E9E]">Biografia</p>
+            <p class="mt-2 text-[11px] leading-5 text-[#616161]">
+              {{ detail()?.authorBio || 'Biografia indisponível para este autor.' }}
+            </p>
           </div>
-          @if (saveStatus()) {
-          <p class="mt-3 text-[11px] font-semibold text-[#5c1e2f]">{{ saveStatus() }}</p>
-          }
 
         </section>
 
         <section class="mt-7 border-t border-[#E0E0E0] pt-6">
           <h3 class="mb-5 text-[11px] font-medium uppercase tracking-[0.18em] text-[#9E9E9E]">Métricas</h3>
           <div class="grid gap-4 text-[11px] text-[#616161]">
-            <p class="flex items-center gap-3"><span class="text-[18px]">▷</span>{{ detail()?.contentType || 'Texto' }}
+            <p class="flex items-center gap-3"><span class="material-symbols-outlined text-[18px]">article</span>{{ detail()?.contentType || 'Texto' }}
             </p>
-            <p class="flex items-center gap-3"><span class="text-[18px]">⊙</span>{{ formatCompactNumber(detail()?.viewsCount) }} visualizações</p>
+            <p class="flex items-center gap-3"><span class="material-symbols-outlined text-[18px]">visibility</span>{{ formatCompactNumber(detail()?.viewsCount) }} visualizações</p>
           </div>
         </section>
       </div>

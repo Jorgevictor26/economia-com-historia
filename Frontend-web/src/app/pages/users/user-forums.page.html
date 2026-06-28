@@ -1,41 +1,51 @@
 <section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
   <app-public-navbar />
 
+  @if (toast(); as currentToast) {
+    <aside class="eh-toast" [attr.data-kind]="currentToast.kind" role="status" aria-live="polite">
+      <div class="eh-toast-content">
+        <strong class="eh-toast-title">{{ currentToast.kind === 'error' ? 'Atenção' : 'Concluído' }}</strong>
+        <span class="eh-toast-message">{{ currentToast.message }}</span>
+      </div>
+      <span class="eh-toast-progress" aria-hidden="true"></span>
+    </aside>
+  }
+
   <main class="fluid-container pb-14 pt-6">
     <header class="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
         <p class="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#D4AF37]">Comunidade</p>
-        <h1 class="mt-2 font-display text-[34px] font-extrabold leading-tight text-[#5C1E2F] md:text-[42px]">F&oacute;runs</h1>
+        <h1 class="mt-2 font-display text-[34px] font-extrabold leading-tight text-[#5C1E2F] md:text-[42px]">Fóruns</h1>
         <p class="mt-3 max-w-[680px] text-[14px] leading-6 text-[#616161]">
-          Participe em discuss&otilde;es vinculadas a conte&uacute;dos da plataforma.
+          Participe em discussões vinculadas a conteúdos da plataforma.
         </p>
       </div>
 
       <button type="button" class="eh-card-action min-h-11 px-5" (click)="openCreateModal()">
-        Criar discuss&atilde;o
+        Criar discussão
       </button>
     </header>
 
     <section class="mt-10">
       <div class="mb-5 flex items-center justify-between gap-4">
-        <h2 class="font-display text-[22px] font-extrabold text-[#5C1E2F]">F&oacute;runs dispon&iacute;veis</h2>
-        <span class="text-[12px] font-bold text-[#9E9E9E]">{{ forumService.rooms().length }} discuss&otilde;es</span>
+        <h2 class="font-display text-[22px] font-extrabold text-[#5C1E2F]">Fóruns disponíveis</h2>
+        <span class="text-[12px] font-bold text-[#9E9E9E]">{{ forumService.rooms().length }} discussões</span>
       </div>
 
       <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-        @for (room of forumService.rooms(); track room.id) {
+        @for (room of pagedRooms(); track room.id) {
           <article class="group flex min-h-[318px] flex-col overflow-hidden rounded-[18px] border border-[#E0E0E0] bg-white shadow-[0_16px_40px_rgba(64,8,26,0.07)] transition duration-300 hover:-translate-y-1 hover:border-[#E6D5B8] hover:shadow-[0_22px_55px_rgba(64,8,26,0.14)]">
             <div class="flex flex-1 flex-col px-6 pb-5 pt-6">
               <div class="flex items-start justify-between gap-4">
                 <span class="rounded-full bg-[#F2E6E9] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#D4AF37]">
-                  {{ room.category || 'Forum' }}
+                  {{ room.category || 'Fórum' }}
                 </span>
                 <span class="rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em]"
                   [class.bg-[#F2E6E9]]="room.visibility === 'public'"
                   [class.text-[#5C1E2F]]="room.visibility === 'public'"
                   [class.bg-[#212121]]="room.visibility === 'private'"
                   [class.text-white]="room.visibility === 'private'">
-                  {{ room.visibility === 'public' ? 'Publico' : 'Privado' }}
+                  {{ room.visibility === 'public' ? 'Público' : 'Privado' }}
                 </span>
               </div>
 
@@ -58,27 +68,12 @@
                   {{ room.activeDebates }} debates ativos
                 </span>
               </div>
-<<<<<<< HEAD
-            </section>
-
-            @if (createFeedback()) {
-              <p class="rounded-[6px] bg-[#F2E6E9] px-4 py-3 text-[12px] font-bold text-[#5C1E2F]">{{ createFeedback() }}</p>
-            }
-            @if (forumError()) {
-              <p class="rounded-[6px] bg-[#FFF1F3] px-4 py-3 text-[12px] font-bold text-[#B42318]">{{ forumError() }}</p>
-            }
-
-            <div class="flex flex-wrap justify-end gap-4">
-              <button type="reset" class="h-12 px-6 text-[12px] font-extrabold text-[#616161]">Cancelar</button>
-              <button type="submit" class="h-12 bg-[#5C1E2F] px-10 text-[12px] font-extrabold text-white">Criar Sala de Debate</button>
-=======
->>>>>>> a41e593e4dc497c1a33dd70919279eaeee49d67e
             </div>
 
             <div class="mt-auto flex items-center justify-between gap-3 border-t border-[#E0E0E0] bg-white px-6 py-4">
               <span class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#616161]">
                 <span class="material-symbols-outlined text-[16px] text-[#5C1E2F]">link</span>
-                {{ room.linkedContents.length }} conte&uacute;dos
+                {{ room.linkedContents.length }} conteúdos
               </span>
 
               <a [routerLink]="[room.id]" class="eh-card-action">Ver mais</a>
@@ -86,11 +81,29 @@
           </article>
         } @empty {
           <article class="rounded-[8px] border border-dashed border-[#E0E0E0] bg-white p-8 text-center md:col-span-2 xl:col-span-3">
-            <h3 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">Nenhum f&oacute;rum encontrado</h3>
-            <p class="mt-2 text-[13px] text-[#616161]">Crie a primeira discuss&atilde;o vinculada aos conte&uacute;dos da plataforma.</p>
+            <h3 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">Nenhum fórum encontrado</h3>
+            <p class="mt-2 text-[13px] text-[#616161]">Crie a primeira discussão vinculada aos conteúdos da plataforma.</p>
           </article>
         }
       </div>
+
+      @if (forumService.rooms().length) {
+        <div class="mt-8 flex justify-center">
+          <div class="eh-pagination">
+            <button type="button" class="eh-pagination-button" (click)="goToPreviousForumPage()" [disabled]="!hasPreviousForumPage()">
+              <span class="text-[16px] leading-none" aria-hidden="true">&larr;</span>
+              Anterior
+            </button>
+            <div class="eh-pagination-current">
+              {{ forumPage() }}
+            </div>
+            <button type="button" class="eh-pagination-button" (click)="goToNextForumPage()" [disabled]="!hasNextForumPage()">
+              Próximo
+              <span class="text-[16px] leading-none" aria-hidden="true">&rarr;</span>
+            </button>
+          </div>
+        </div>
+      }
     </section>
   </main>
 
@@ -98,15 +111,15 @@
     <section class="fixed inset-0 z-[120] grid place-items-center bg-[#212121]/70 p-4" role="dialog" aria-modal="true" aria-labelledby="forum-create-title">
       <form class="modal-panel flex max-h-[90dvh] w-[min(940px,94vw)] flex-col overflow-hidden rounded-[8px] bg-white shadow-[0_28px_90px_rgba(0,0,0,0.28)]" (submit)="$event.preventDefault(); createDebateRoom(debateTitle, debateObjective)">
         <header class="flex min-h-16 items-center justify-between gap-4 border-b border-[#E0E0E0] px-6">
-          <h2 id="forum-create-title" class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Criar discuss&atilde;o</h2>
+          <h2 id="forum-create-title" class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Criar discussão</h2>
           <button type="button" (click)="closeCreateModal()" class="grid size-10 place-items-center rounded-[8px] border border-[#E0E0E0] text-[22px] font-bold text-[#5C1E2F]" aria-label="Fechar">&times;</button>
         </header>
 
         <div class="min-h-0 flex-1 overflow-y-auto px-6 py-6">
           <section class="grid gap-5">
             <label class="grid gap-2 text-[12px] font-bold text-[#616161]">
-              T&iacute;tulo da discuss&atilde;o
-              <input #debateTitle type="text" class="h-11 rounded-[8px] border border-[#C48A96] bg-white px-4 text-[14px] font-bold text-[#5C1E2F] outline-none focus:border-[#5C1E2F]" placeholder="Ex: O impacto da diversifica&ccedil;&atilde;o econ&oacute;mica no p&oacute;s-guerra" />
+              Título da discussão
+              <input #debateTitle type="text" class="h-11 rounded-[8px] border border-[#C48A96] bg-white px-4 text-[14px] font-bold text-[#5C1E2F] outline-none focus:border-[#5C1E2F]" placeholder="Ex: O impacto da diversificação económica no pós-guerra" />
             </label>
 
             <label class="grid max-w-[360px] gap-2 text-[12px] font-bold text-[#616161]">
@@ -119,14 +132,14 @@
             </label>
 
             <label class="grid gap-2 text-[12px] font-bold text-[#616161]">
-              Descri&ccedil;&atilde;o e objetivo
-              <textarea #debateObjective class="min-h-[120px] resize-y rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-4 py-3 text-[13px] leading-6 text-[#616161] outline-none focus:border-[#C48A96]" placeholder="Descreva o prop&oacute;sito desta discuss&atilde;o e os pontos-chave que espera explorar..."></textarea>
+              Descrição e objetivo
+              <textarea #debateObjective class="min-h-[120px] resize-y rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-4 py-3 text-[13px] leading-6 text-[#616161] outline-none focus:border-[#C48A96]" placeholder="Descreva o propósito desta discussão e os pontos-chave que espera explorar..."></textarea>
             </label>
           </section>
 
           <section class="mt-6 grid gap-4 md:grid-cols-2">
             <button type="button" class="min-h-[88px] rounded-[8px] border p-4 text-left" [class.border-[#5C1E2F]]="privacy() === 'public'" [class.bg-white]="privacy() === 'public'" [class.border-[#E0E0E0]]="privacy() !== 'public'" [class.bg-[#F5F5F5]]="privacy() !== 'public'" (click)="setPrivacy('public')">
-              <strong class="block text-[13px] text-[#5C1E2F]">P&uacute;blico</strong>
+              <strong class="block text-[13px] text-[#5C1E2F]">Público</strong>
               <span class="mt-1 block text-[11px] leading-5 text-[#616161]">Todos os utilizadores autenticados podem participar.</span>
             </button>
 
@@ -164,11 +177,11 @@
           <section class="mt-6">
             <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">Conte&uacute;dos vinculados</h3>
-                <p class="mt-1 text-[12px] text-[#616161]">Selecione pelo menos um conte&uacute;do da plataforma.</p>
+                <h3 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">Conteúdos vinculados</h3>
+                <p class="mt-1 text-[12px] text-[#616161]">Selecione pelo menos um conteúdo da plataforma.</p>
               </div>
               <button type="button" class="rounded-[8px] border border-dashed border-[#C48A96] px-4 py-2 text-[12px] font-extrabold text-[#8A3F50]" (click)="showAllResources.update(show => !show)">
-                {{ showAllResources() ? 'Mostrar selecionados' : 'Ver mais conteudos' }}
+                {{ showAllResources() ? 'Mostrar selecionados' : 'Ver mais conteúdos' }}
               </button>
             </div>
 
@@ -180,26 +193,20 @@
                   </span>
                   <span>
                     <strong class="block truncate text-[12px] text-[#212121]">{{ content.title }}</strong>
-                    <small class="text-[10px] text-[#616161]">{{ content.type === 'podcast' ? 'Podcast' : 'Artigo Academico' }} &middot; {{ content.readingMinutes }} min de leitura</small>
+                    <small class="text-[10px] text-[#616161]">{{ content.type === 'podcast' ? 'Podcast' : 'Artigo Académico' }} &middot; {{ content.readingMinutes }} min de leitura</small>
                   </span>
                   <input type="checkbox" class="size-4 accent-[#5C1E2F]" [checked]="selectedContentIds().includes(content.id)" (change)="toggleResource(content.id)" />
                 </label>
               }
             </div>
 
-            @if (resourceError()) {
-              <p class="mt-3 text-[11px] font-bold text-[#8A3F50]">Vincule pelo menos um conte&uacute;do da plataforma.</p>
-            }
           </section>
 
-          @if (createFeedback()) {
-            <p class="mt-5 rounded-[8px] bg-[#F2E6E9] px-4 py-3 text-[12px] font-bold text-[#5C1E2F]">{{ createFeedback() }}</p>
-          }
         </div>
 
         <footer class="flex flex-wrap items-center justify-end gap-3 border-t border-[#E0E0E0] bg-white px-6 py-4">
           <button type="button" class="h-11 px-5 text-[13px] font-extrabold text-[#616161]" (click)="closeCreateModal()">Cancelar</button>
-          <button type="submit" class="eh-card-action min-h-11 px-6">Criar discuss&atilde;o</button>
+          <button type="submit" class="eh-card-action min-h-11 px-6">Criar discussão</button>
         </footer>
       </form>
     </section>

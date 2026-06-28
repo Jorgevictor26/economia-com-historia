@@ -3,7 +3,6 @@ import { RouterLink, Routes } from '@angular/router';
 import { BackendContent } from '../../services/content.service';
 import { SavedContentService } from '../../services/saved-content.service';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
-import { PublicFooterComponent } from '../shared/public-footer/public-footer.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
 interface FavoriteItem {
@@ -21,9 +20,14 @@ interface FavoriteItem {
   premium: boolean;
 }
 
+interface PageToast {
+  message: string;
+  kind: 'success' | 'error' | 'info';
+}
+
 @Component({
   selector: 'app-saved-contents-page',
-  imports: [RouterLink, PublicNavbarComponent, PublicFooterComponent, BackToTopComponent],
+  imports: [RouterLink, PublicNavbarComponent, BackToTopComponent],
   templateUrl: './saved-contents.page.html',
 })
 export class SavedContentsPage implements OnInit {
@@ -32,10 +36,12 @@ export class SavedContentsPage implements OnInit {
   readonly filters = ['Todos', 'Textos', 'Podcasts', 'Vídeos', 'Jindungo'];
   readonly selectedFilter = signal(this.filters[0]);
   readonly favorites = signal<FavoriteItem[]>([]);
+  readonly currentPage = signal(1);
+  readonly pageSize = 6;
   readonly isLoading = signal(true);
   readonly isRemoving = signal<string | null>(null);
-  readonly feedbackMessage = signal('');
-  readonly errorMessage = signal('');
+  readonly toast = signal<PageToast | null>(null);
+  private toastTimeout?: ReturnType<typeof setTimeout>;
 
   readonly filteredFavorites = computed(() => {
     const filter = this.selectedFilter();
@@ -56,6 +62,14 @@ export class SavedContentsPage implements OnInit {
 
     return selectedType ? items.filter((item) => item.type === selectedType) : items;
   });
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.filteredFavorites().length / this.pageSize)));
+  readonly pagedFavorites = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize;
+
+    return this.filteredFavorites().slice(start, start + this.pageSize);
+  });
+  readonly hasPreviousPage = computed(() => this.currentPage() > 1);
+  readonly hasNextPage = computed(() => this.currentPage() < this.totalPages());
 
   async ngOnInit(): Promise<void> {
     await this.loadFavorites();
@@ -63,7 +77,6 @@ export class SavedContentsPage implements OnInit {
 
   async loadFavorites(): Promise<void> {
     this.isLoading.set(true);
-    this.errorMessage.set('');
 
     try {
       const savedContents = await this.savedContentService.getMine();
@@ -74,11 +87,25 @@ export class SavedContentsPage implements OnInit {
           .map((content) => this.toFavoriteItem(content!)),
       );
     } catch {
-      this.errorMessage.set('Não foi possível carregar os conteúdos guardados.');
+      this.showToast('Não foi possível carregar os conteúdos guardados.', 'error');
       this.favorites.set([]);
     } finally {
+      this.currentPage.set(1);
       this.isLoading.set(false);
     }
+  }
+
+  selectFilter(filter: string): void {
+    this.selectedFilter.set(filter);
+    this.currentPage.set(1);
+  }
+
+  goToPreviousPage(): void {
+    this.currentPage.update((page) => Math.max(1, page - 1));
+  }
+
+  goToNextPage(): void {
+    this.currentPage.update((page) => Math.min(this.totalPages(), page + 1));
   }
 
   async removeFavorite(item: FavoriteItem): Promise<void> {
@@ -89,19 +116,30 @@ export class SavedContentsPage implements OnInit {
     const previousItems = this.favorites();
 
     this.isRemoving.set(item.id);
-    this.feedbackMessage.set('');
-    this.errorMessage.set('');
     this.favorites.update((items) => items.filter((favorite) => favorite.id !== item.id));
 
     try {
       await this.savedContentService.remove(item.id);
-      this.feedbackMessage.set('Conteúdo removido dos guardados.');
+      this.showToast('Conteúdo removido dos guardados.', 'success');
     } catch {
       this.favorites.set(previousItems);
-      this.errorMessage.set('Não foi possível remover este conteúdo dos guardados.');
+      this.showToast('Não foi possível remover este conteúdo dos guardados.', 'error');
     } finally {
+      if (this.currentPage() > this.totalPages()) {
+        this.currentPage.set(this.totalPages());
+      }
+
       this.isRemoving.set(null);
     }
+  }
+
+  private showToast(message: string, kind: PageToast['kind'] = 'info'): void {
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+
+    this.toast.set({ message, kind });
+    this.toastTimeout = setTimeout(() => this.toast.set(null), 4000);
   }
 
   private toFavoriteItem(content: BackendContent): FavoriteItem {

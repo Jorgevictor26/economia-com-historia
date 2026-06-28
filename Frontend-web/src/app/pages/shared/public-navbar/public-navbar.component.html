@@ -18,7 +18,7 @@
 
     <div class="ml-auto hidden shrink-0 items-center gap-3 md:flex">
       @if (auth.canWriteContent()) {
-      <a routerLink="/admin/contents/create"
+      <a routerLink="/admin/contents"
         class="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white transition hover:bg-[#5C1E2F]">Publicar</a>
       }
 
@@ -134,7 +134,7 @@
 
   <div class="mt-5 grid gap-3 border-t border-[#E0E0E0] pt-5">
     @if (auth.canWriteContent()) {
-    <a routerLink="/admin/contents/create"
+    <a routerLink="/admin/contents"
       class="inline-flex h-10 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white"
       (click)="closeMenu()">Publicar</a>
     }

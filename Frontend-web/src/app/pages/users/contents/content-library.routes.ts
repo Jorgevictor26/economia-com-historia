@@ -1157,14 +1157,11 @@ export class VideoContentDetailPage {
   private readonly savedContentService = inject(SavedContentService);
   readonly auth = inject(AuthStateService);
   readonly saveStatus = signal('');
-<<<<<<< HEAD
   readonly videoLiked = signal(false);
   readonly isVideoCommentComposerOpen = signal(false);
-=======
   readonly isLoading = signal(false);
   readonly loadError = signal('');
   readonly loadedVideo = signal<VideoDetail | null>(null);
->>>>>>> cabea4c6700a88336a57fa01f0452073cdfb0690
 
   readonly video = computed(() => {
     return this.loadedVideo() ?? this.videos[0];

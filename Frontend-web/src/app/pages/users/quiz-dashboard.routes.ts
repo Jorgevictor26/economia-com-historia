@@ -15,9 +15,10 @@ export class QuizDashboardPage {
   readonly auth = inject(AuthStateService);
   readonly searchTerm = signal('');
   readonly selectedLevel = signal('Todos');
-<<<<<<< HEAD
   readonly isLoading = signal(false);
   readonly loadError = signal('');
+  readonly quizPage = signal(1);
+  readonly quizzesPerPage = 4;
   readonly levelFilters = ['Todos', 'Fácil', 'Médio', 'Difícil'];
   readonly userQuizStats = computed(() => {
     const stats = this.quizService.userStats();
@@ -28,16 +29,6 @@ export class QuizDashboardPage {
       { label: 'Quiz Completados', value: `${stats.completedQuizzes}`, icon: 'trophy' },
     ];
   });
-=======
-  readonly quizPage = signal(1);
-  readonly quizzesPerPage = 4;
-  readonly levelFilters = ['Todos', 'Iniciante', 'Interm\u00e9dio', 'Avan\u00e7ado'];
-  readonly userQuizStats = [
-    { label: 'Pontua\u00e7\u00e3o', value: '1.240 XP', icon: 'military_tech' },
-    { label: 'Ranking', value: '#8', icon: 'leaderboard' },
-    { label: 'Quiz Completados', value: '14', icon: 'trophy' },
-  ];
->>>>>>> a41e593e4dc497c1a33dd70919279eaeee49d67e
   readonly topFive = [
     { position: 1, name: 'Isabel Marques', score: 1960 },
     { position: 2, name: 'Carlos Tchipia', score: 1840 },

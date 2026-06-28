@@ -53,7 +53,7 @@ export class AdminConsoleShellComponent {
     }
 
     if (role === 'writer') {
-      return 'Editor de conteudos';
+      return 'Editor de conteúdos';
     }
 
     if (role === 'moderator') {
@@ -78,44 +78,32 @@ export class AdminConsoleShellComponent {
   }
 
   get navGroups(): AdminNavGroup[] {
-    const contentChildren: AdminNavItem[] = [
-      { label: 'Artigo', route: '/admin/contents/create', icon: 'article' },
-      { label: 'Video', route: '/admin/video/create', icon: 'smart_display' },
-      { label: 'Podcast', route: '/admin/podcast/create', icon: 'podcasts' },
-      { label: 'Forum', route: '/admin/forum/create', icon: 'forum' },
-    ];
-
-    if (this.auth.canCreateJindungo()) {
-      contentChildren.push({ label: 'Jindungo', route: '/admin/jindungo/create', icon: 'workspace_premium' });
-    }
-
     const groups: AdminNavGroup[] = [
       {
         label: 'Plataforma',
         items: [
           { label: 'Painel Geral', route: '/admin', icon: 'dashboard', active: this.activeItem === 'dashboard' },
-          { label: 'Estatisticas', route: '/admin/statistics', icon: 'monitoring', active: this.activeItem === 'statistics' },
+          { label: 'Estatísticas', route: '/admin/statistics', icon: 'monitoring', active: this.activeItem === 'statistics' },
         ],
       },
       {
-        label: 'Administracao',
+        label: 'Administração',
         items: [
-          { label: 'Gestao Denuncias', route: '/admin/reports', icon: 'report', active: this.activeItem === 'reports' },
+          { label: 'Gestão Denúncias', route: '/admin/reports', icon: 'report', active: this.activeItem === 'reports' },
           { label: 'Utilizadores', route: '/admin/users', icon: 'group', active: this.activeItem === 'users' },
           { label: 'Subscricoes', route: '/admin/subscriptions', icon: 'workspace_premium', active: this.activeItem === 'subscriptions' },
-          { label: 'Gestao de Quiz', route: '/admin/quiz', icon: 'quiz', active: this.activeItem === 'quiz' },
+          { label: 'Gestão de Quiz', route: '/admin/quiz', icon: 'quiz', active: this.activeItem === 'quiz' },
           {
             label: 'Conteúdos',
-            route: '/admin/contents/create',
+            route: '/admin/contents',
             icon: 'article',
             active: this.activeItem === 'contents',
-            children: contentChildren,
           },
         ],
       },
       {
         label: 'Infraestrutura',
-        items: [{ label: 'Configuracoes', route: '/admin/settings', icon: 'settings', active: this.activeItem === 'settings' }],
+        items: [{ label: 'Configurações', route: '/admin/settings', icon: 'settings', active: this.activeItem === 'settings' }],
       },
     ];
 
@@ -128,11 +116,10 @@ export class AdminConsoleShellComponent {
         label: 'Conteudos',
         items: [
           {
-            label: 'Criar conteudo',
-            route: '/admin/contents/create',
+            label: 'Conteudos',
+            route: '/admin/contents',
             icon: 'article',
             active: this.activeItem === 'contents',
-            children: contentChildren,
           },
         ],
       },

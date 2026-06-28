@@ -10,7 +10,7 @@ export const adminDashboardGuard: CanActivateFn = () => {
     return true;
   }
 
-  return auth.canWriteContent() ? router.createUrlTree(['/admin/contents/create']) : router.createUrlTree(['/app/contents']);
+  return auth.canWriteContent() ? router.createUrlTree(['/admin/contents']) : router.createUrlTree(['/app/contents']);
 };
 
 export const contentWriterGuard: CanActivateFn = () => {
@@ -24,14 +24,14 @@ export const platformManagerGuard: CanActivateFn = () => {
   const auth = inject(AuthStateService);
   const router = inject(Router);
 
-  return auth.canManagePlatform() || router.createUrlTree(['/admin/contents/create']);
+  return auth.canManagePlatform() || router.createUrlTree(['/admin/contents']);
 };
 
 export const userManagerGuard: CanActivateFn = () => {
   const auth = inject(AuthStateService);
   const router = inject(Router);
 
-  return auth.canManageUsers() || router.createUrlTree(['/admin/contents/create']);
+  return auth.canManageUsers() || router.createUrlTree(['/admin/contents']);
 };
 
 export const jindungoManagerGuard: CanActivateFn = () => {

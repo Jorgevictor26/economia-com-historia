@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+﻿import { Component, computed, inject, signal } from '@angular/core';
 import { BackendContent, ContentService } from '../../../services/content.service';
 import { CreateQuestionPayload, QuizService } from '../../../services/quiz.service';
 import { AdminConsoleShellComponent } from '../../admin/components/admin-console-shell.component';
@@ -49,18 +49,10 @@ export class QuizCreatePage {
   readonly selectedContentId = signal('');
   readonly selectedDifficulty = signal<Difficulty>('medio');
   readonly manualQuestion = signal('');
-<<<<<<< HEAD
   readonly manualExplanation = signal('');
   readonly manualCorrectOption = signal<CorrectOption>('A');
   readonly manualOptions = signal<Record<CorrectOption, string>>({ A: '', B: '', C: '', D: '' });
-=======
-  readonly manualKind = signal('Múltipla escolha');
   readonly category = signal('Economia');
-  readonly selectedDifficulty = signal('Médio');
-  readonly manualXp = signal(15);
-  readonly manualCorrectOption = signal('A');
-  readonly manualOptions = signal<Record<string, string>>({ A: '', B: '', C: '', D: '' });
->>>>>>> a41e593e4dc497c1a33dd70919279eaeee49d67e
   readonly status = signal('Rascunho');
   readonly previewOpen = signal(false);
   readonly coverPreview = signal<string | null>(null);
@@ -81,22 +73,13 @@ export class QuizCreatePage {
   readonly promptSuggestions = ['Gerar com contexto historico', 'Focar conceitos economicos', 'Adicionar explicacoes curtas', 'Criar alternativas plausiveis'];
   readonly generationTags = ['Multipla escolha', 'Com feedback', 'Nivel medio'];
 
-<<<<<<< HEAD
   readonly difficultyOptions = [
     { value: 'facil' as const, label: 'Fácil', xp: 10 as XpPerQuestion, timeLimit: 5 },
     { value: 'medio' as const, label: 'Médio', xp: 15 as XpPerQuestion, timeLimit: 10 },
     { value: 'dificil' as const, label: 'Difícil', xp: 20 as XpPerQuestion, timeLimit: 15 },
-=======
-  readonly progress = computed(() => Math.min(100, Math.round((this.previewQuestions().length / 8) * 100)));
-  readonly defaultCoverLabel = computed(() => this.category().trim() || 'Quiz');
-
-  readonly metrics = [
-    { icon: 'format_list_numbered', value: '8', label: 'Numero de perguntas', badge: 'IA', description: 'Quantidade sugerida para avaliacao curta.' },
-    { icon: 'speed', value: 'Médio', label: 'Dificuldade', badge: 'Base', description: 'Equilibrado para aprendizagem progressiva.' },
-    { icon: 'workspace_premium', value: '120', label: 'XP total', badge: 'Ranking', description: 'Pontuacao distribuida por pergunta.' },
-    { icon: 'schedule', value: '10 min', label: 'Tempo estimado', badge: 'Aluno', description: 'Tempo medio para responder com calma.' },
->>>>>>> a41e593e4dc497c1a33dd70919279eaeee49d67e
   ];
+
+  readonly defaultCoverLabel = computed(() => this.category().trim() || 'Quiz');
 
   readonly previewQuestions = signal<ManualQuestion[]>([]);
   readonly allQuestions = computed(() => this.currentQuestionReady()

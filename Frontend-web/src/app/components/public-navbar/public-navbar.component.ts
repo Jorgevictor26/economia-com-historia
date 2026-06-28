@@ -29,7 +29,7 @@ import { NotificationService } from '../../services/notification.service';
 
         <div class="ml-auto hidden shrink-0 items-center gap-3 md:flex">
           @if (auth.canWriteContent()) {
-            <a routerLink="/admin/contents/create" class="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white transition hover:bg-[#471525]">Publicar</a>
+            <a routerLink="/admin/contents" class="inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white transition hover:bg-[#471525]">Publicar</a>
           }
 
           @if (auth.isAuthenticated()) {
@@ -148,7 +148,7 @@ import { NotificationService } from '../../services/notification.service';
 
         <div class="mt-5 grid gap-3 border-t border-[#ece7e4] pt-5">
           @if (auth.canWriteContent()) {
-            <a routerLink="/admin/contents/create" class="inline-flex h-10 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white" (click)="closeMenu()">Publicar</a>
+            <a routerLink="/admin/contents" class="inline-flex h-10 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white" (click)="closeMenu()">Publicar</a>
           }
 
           @if (auth.isAuthenticated()) {
@@ -188,6 +188,7 @@ export class PublicNavbarComponent implements OnInit {
       return [
         { label: 'Home', route: this.homeRoute(), exact: true },
         { label: 'Conteúdo', route: '/app/contents', exact: false },
+        { label: 'Favoritos', route: '/app/favorites', exact: false },
         { label: 'Mapa', route: '/app/map', exact: false },
         { label: 'Quiz', route: '/app/quizzes', exact: false },
         { label: 'Fórum', route: '/app/forums', exact: false },

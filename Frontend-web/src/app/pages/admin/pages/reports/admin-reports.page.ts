@@ -36,35 +36,39 @@ interface ActivityLog {
   templateUrl: './admin-reports.page.html',
 })
 export class AdminReportsPage {
+  showCriticalOnly = false;
+  recentFirst = true;
+  actionStatus = '';
+
   readonly metrics: ReportMetric[] = [
-    { label: 'Denuncias pendentes', value: '24', tone: 'gold' },
-    { label: 'Urgencia critica', value: '03', tone: 'red' },
+    { label: 'Denúncias pendentes', value: '24', tone: 'gold' },
+    { label: 'Urgência crítica', value: '03', tone: 'red' },
     { label: 'Resolvidas (24h)', value: '142', tone: 'wine' },
     { label: 'Tempo de resposta', value: '18m', tone: 'amber' },
   ];
 
-  readonly reports: ReportItem[] = [
+  reports: ReportItem[] = [
     {
       severity: 'Critico',
-      title: 'Comentario em: "A Economia do Reino do Kongo"',
-      target: 'Discurso de odio',
-      excerpt: '...texto removido por conter violacoes graves as diretrizes de respeito e integridade historica do portal...',
-      meta: '12 minutos atras',
+      title: 'Comentário em: "A Economia do Reino do Kongo"',
+      target: 'Discurso de ódio',
+      excerpt: '...texto removido por conter violações graves às diretrizes de respeito e integridade histórica do portal...',
+      meta: '12 minutos atrás',
       reporter: 'Autor: Joao M.',
       category: 'Reportado por: Ana P., Miguel (4)',
       time: 'Agora',
-      primaryAction: 'Banir usuario',
-      secondaryAction: 'Aviso previo',
+      primaryAction: 'Banir usuário',
+      secondaryAction: 'Aviso prévio',
       mutedAction: 'Ignorar',
     },
     {
       severity: 'Moderado',
-      title: 'Usuario: @historia_fake_ang',
+      title: 'Usuário: @historia_fake_ang',
       target: 'Perfil inapropriado',
-      excerpt: 'Bio: Divulgacao de fatos alternativos sobre a moeda Kwanza.',
-      meta: '2 horas atras',
-      reporter: 'Razao: Desinformacao',
-      category: 'Historico: 1 aviso anterior',
+      excerpt: 'Bio: Divulgação de fatos alternativos sobre a moeda Kwanza.',
+      meta: '2 horas atrás',
+      reporter: 'Razão: Desinformação',
+      category: 'Histórico: 1 aviso anterior',
       time: 'Pendente',
       primaryAction: 'Suspender',
       secondaryAction: 'Editar perfil',
@@ -72,10 +76,10 @@ export class AdminReportsPage {
     },
     {
       severity: 'Baixo',
-      title: 'Topico: "Melhores investimentos em Luanda para 2025"',
-      target: 'Spam / Conteudo irrelevante',
-      excerpt: 'Compre agora criptomoedas e ganhe bonus imediatos no site bit-fake-link.com...',
-      meta: '5 horas atras',
+      title: 'Tópico: "Melhores investimentos em Luanda para 2025"',
+      target: 'Spam / Conteúdo irrelevante',
+      excerpt: 'Compre agora criptomoedas e ganhe bônus imediatos no site bit-fake-link.com...',
+      meta: '5 horas atrás',
       reporter: 'Origem: UPL Detectou',
       category: 'Marcado como marketing',
       time: 'Fila',
@@ -86,8 +90,8 @@ export class AdminReportsPage {
   ];
 
   readonly activityLogs: ActivityLog[] = [
-    { time: '14:02', actor: 'Moderador Carlos', detail: 'removeu comentario de "Pedro S." por violacao de termos.', tone: 'red' },
-    { time: '13:45', actor: 'Sistema', detail: 'bloqueou automaticamente usuario "Barreto_DL" por 12 reports em 9 minutos.', tone: 'gold' },
+    { time: '14:02', actor: 'Moderador Carlos', detail: 'removeu comentário de "Pedro S." por violação de termos.', tone: 'red' },
+    { time: '13:45', actor: 'Sistema', detail: 'bloqueou automaticamente usuário "Barreto_DL" por 12 reports em 9 minutos.', tone: 'gold' },
     { time: '12:30', actor: 'Super Admin Ana Helena', detail: 'aprovou recurso de "Marta L.".', tone: 'wine' },
   ];
 
@@ -100,5 +104,26 @@ export class AdminReportsPage {
     };
 
     return colors[tone];
+  }
+
+  visibleReports(): ReportItem[] {
+    const reports = this.showCriticalOnly ? this.reports.filter((report) => report.severity === 'Critico') : [...this.reports];
+
+    return this.recentFirst ? reports : reports.reverse();
+  }
+
+  toggleCriticalFilter(): void {
+    this.showCriticalOnly = !this.showCriticalOnly;
+    this.actionStatus = this.showCriticalOnly ? 'A mostrar apenas denúncias críticas.' : 'Filtro removido.';
+  }
+
+  toggleSort(): void {
+    this.recentFirst = !this.recentFirst;
+    this.actionStatus = this.recentFirst ? 'Ordenado por mais recentes.' : 'Ordenado por fila inversa.';
+  }
+
+  handleReportAction(report: ReportItem, action: string): void {
+    this.reports = this.reports.filter((item) => item !== report);
+    this.actionStatus = `${action}: "${report.title}" foi atualizado.`;
   }
 }

@@ -74,13 +74,21 @@ export class LoginComponent implements AfterViewInit {
     this.passwordVisible.update((visible) => !visible);
   }
 
-  startGoogleLogin(): void {
+  async startGoogleLogin(): Promise<void> {
     if (window.google?.accounts?.id && this.googleReady()) {
       window.google.accounts.id.prompt();
       return;
     }
 
-    this.errorMessage.set('Configure o Google Client ID para ativar a seleção de contas Google.');
+    this.errorMessage.set('');
+    await this.setupGoogleLogin();
+
+    if (window.google?.accounts?.id && this.googleReady()) {
+      window.google.accounts.id.prompt();
+      return;
+    }
+
+    this.errorMessage.set('Não foi possível carregar o login com Google. Recarregue a página e tente novamente.');
   }
 
   ngAfterViewInit(): void {

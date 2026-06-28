@@ -12,48 +12,47 @@
   }
 
   <main class="fluid-container pb-14 pt-6">
-    <section class="mb-8">
-      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_310px] lg:items-end">
-        <div>
-          <h1 class="mt-3 font-display text-[32px] font-extrabold leading-tight text-[#5C1E2F]">Explorar
-            Conte&uacute;dos</h1>
-        </div>
-      </div>
+   <section class="mb-8">
+  <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
-      <div
-        class="mt-7 grid gap-4 rounded-[12px] border border-[#E0E0E0] bg-white p-3 md:grid-cols-[minmax(0,1.7fr)_minmax(190px,0.85fr)]">
-        <!-- Pesquisa -->
-        <label
-          class="flex min-h-[40px] items-center gap-2 rounded-[8px] bg-[#F5F5F5] px-3 text-[#9E9E9E] cursor-pointer">
-          <span class="material-symbols-outlined text-[#5C1E2F]">search</span>
-          <input
-            class="w-full bg-transparent text-[13px] text-[#212121] outline-none placeholder:text-[#9E9E9E] cursor-pointer"
-            type="text" placeholder="Pesquisar conteúdos..." [value]="searchTerm()" (input)="updateSearch($event)" />
-          <!-- Ícone de limpar único -->
-          @if (searchTerm()) {
-          <button type="button" class="ml-2 text-[#5C1E2F] hover:text-[#8A3F50] cursor-pointer" (click)="clearSearch()">
-            <span class="material-symbols-outlined">close</span>
-          </button>
-          }
-        </label>
+    <!-- Título -->
+    <div>
+      <h1 class="font-display text-[32px] font-extrabold leading-tight text-[#5C1E2F]">
+        Explorar Conteúdos
+      </h1>
+    </div>
 
-        <!-- Categoria -->
-        <label class="relative flex min-h-[40px] items-center gap-2 rounded-[8px] bg-[#F5F5F5] px-3 cursor-pointer">
-          <span class="material-symbols-outlined text-[#5C1E2F]">category</span>
-          <select
-            class="h-full w-full appearance-none rounded-[8px] bg-transparent px-2 pr-8 text-[13px] font-semibold text-[#212121] outline-none cursor-pointer"
-            [value]="selectedCategoryFilter()" (change)="selectCategoryFilter($any($event.target).value)">
-            @for (filter of categoryFilters(); track filter) {
-            <option [value]="filter">{{ filter === 'Todos' ? 'Todas as categorias' : filter }}</option>
-            }
-          </select>
-          <!-- Ícone dropdown -->
-          <span class="pointer-events-none absolute right-3 text-[#5C1E2F]">
-            <span class="material-symbols-outlined">arrow_drop_down</span>
+    <!-- Pesquisa -->
+    <label
+      class="flex w-full max-w-[420px] items-center gap-2 rounded-[10px] border border-[#E0E0E0] bg-white px-4 py-3 shadow-sm">
+
+      <span class="material-symbols-outlined text-[#5C1E2F]">
+        search
+      </span>
+
+      <input
+        class="w-full bg-transparent text-[14px] text-[#212121] outline-none placeholder:text-[#9E9E9E]"
+        type="text"
+        placeholder="Pesquisar conteúdos..."
+        [value]="searchTerm()"
+        (input)="updateSearch($event)" />
+
+      @if (searchTerm()) {
+        <button
+          type="button"
+          class="text-[#616161] hover:text-[#8A3F50]"
+          (click)="clearSearch()">
+
+          <span class="material-symbols-outlined">
+            close
           </span>
-        </label>
 
-      </div>
+        </button>
+      }
+
+    </label>
+
+  </div>
 
       <div class="mt-5 flex flex-wrap gap-3">
         @for (filter of contentTypeFilters(); track filter) {

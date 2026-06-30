@@ -1,9 +1,6 @@
 <section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
   <app-public-navbar />
 
-<<<<<<< HEAD
-  @if (video(); as currentVideo) {
-=======
   @if (toast(); as currentToast) {
     <aside class="eh-toast" [attr.data-kind]="currentToast.kind" role="status" aria-live="polite">
       <div class="eh-toast-content">
@@ -14,7 +11,7 @@
     </aside>
   }
 
->>>>>>> bcc865f790a1e693b305905928e41090baa9837e
+  @if (video(); as currentVideo) {
   <main class="mx-auto grid max-w-[1160px] gap-8 px-5 pb-20 pt-8 lg:grid-cols-[minmax(0,1fr)_310px] lg:px-8">
     <article class="min-w-0">
       <section class="overflow-hidden rounded-2xl bg-black">

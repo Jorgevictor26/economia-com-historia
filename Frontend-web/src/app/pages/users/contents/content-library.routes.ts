@@ -614,12 +614,9 @@ export class ContentDetailPage implements OnDestroy {
   readonly reactionError = signal('');
   readonly saveStatus = signal('');
   readonly shareStatus = signal('');
-<<<<<<< HEAD
   readonly relatedContents = signal<ContentListItem[]>([]);
   readonly isLoadingRelated = signal(false);
-=======
   readonly toast = signal<PageToast | null>(null);
->>>>>>> bcc865f790a1e693b305905928e41090baa9837e
   readonly canUseNativeShare = typeof navigator !== 'undefined' && 'share' in navigator;
   private toastTimeout?: ReturnType<typeof setTimeout>;
   readonly relatedQuiz = computed(() => {
@@ -1133,48 +1130,17 @@ export class VideoContentDetailPage implements OnDestroy {
   readonly isLoading = signal(false);
   readonly loadError = signal('');
   readonly loadedVideo = signal<VideoDetail | null>(null);
-<<<<<<< HEAD
   readonly relatedContents = signal<ContentListItem[]>([]);
   readonly isLoadingRelated = signal(false);
-=======
   private toastTimeout?: ReturnType<typeof setTimeout>;
->>>>>>> bcc865f790a1e693b305905928e41090baa9837e
 
   readonly video = computed(() => {
     return this.loadedVideo();
   });
 
-<<<<<<< HEAD
-=======
   ngOnDestroy(): void {
     this.clearToastTimeout();
   }
-
-  readonly relatedResearch: RelatedResearch[] = [
-    {
-      title: 'A Arquitectura do Lobito: uma cidade portuaria em crise',
-      meta: 'Arquivo - 4.5k visualizacoes',
-      duration: '12:05',
-      imageUrl: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=400&q=80',
-      route: '/app/contents/videos/video-ferrovia',
-    },
-    {
-      title: 'Mudancas cambiais na economia do pos-guerra',
-      meta: 'Economia - 12k visualizacoes',
-      duration: '8:45',
-      imageUrl: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&w=400&q=80',
-      route: '/app/contents/videos/video-inflacao',
-    },
-    {
-      title: 'Documento branco: infraestrutura investindo 1960-1970',
-      meta: 'Pesquisa - 15 min',
-      duration: 'PDF',
-      imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=400&q=80',
-      route: '/app/contents/rotas-comerciais',
-    },
-  ];
-
->>>>>>> bcc865f790a1e693b305905928e41090baa9837e
   readonly comments: VideoComment[] = [];
 
   constructor() {

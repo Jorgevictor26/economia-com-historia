@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Content extends Model
 {
@@ -18,8 +17,6 @@ class Content extends Model
         'title',
         'summary',
         'content',
-        'image',
-        'video',
         'image_url',
         'video_url',
         'audio_url',
@@ -83,24 +80,4 @@ class Content extends Model
         return $this->hasMany(SavedContent::class);
     }
 
-    protected function image(): Attribute
-    {
-        return Attribute::make(
-            get: fn (?string $value): ?string => $this->image_url ?? $value,
-        );
-    }
-
-    protected function video(): Attribute
-    {
-        return Attribute::make(
-            get: fn (?string $value): ?string => $this->video_url ?? $value,
-        );
-    }
-
-    protected function audio(): Attribute
-    {
-        return Attribute::make(
-            get: fn (?string $value): ?string => $this->audio_url ?? $value,
-        );
-    }
 }

@@ -11,8 +11,8 @@ class CreateContentDTO
         public string $title,
         public ?string $summary,
         public string $content,
-        public ?string $image,
-        public ?string $video,
+        public ?string $imageUrl,
+        public ?string $videoUrl,
         public string $visibility
     ) {}
 }

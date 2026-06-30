@@ -51,8 +51,8 @@ class ContentController extends Controller
             $request->validated('title'),
             $request->validated('summary'),
             $request->validated('content'),
-            $request->validated('image'),
-            $request->validated('video'),
+            $request->validated('image_url'),
+            $request->validated('video_url'),
             $request->validated('visibility')
         );
 

@@ -21,8 +21,7 @@ class UploadContentMediaRequest extends FormRequest
 
         return [
             'media_type' => ['sometimes', 'string', Rule::in(ContentMedia::TYPES)],
-            'file' => ['required_without:'.$mediaType, ...$mediaRules],
-            $mediaType => ['required_without:file', ...$mediaRules],
+            'file' => ['required', ...$mediaRules],
         ];
     }
 
@@ -33,7 +32,7 @@ class UploadContentMediaRequest extends FormRequest
 
     public function mediaFile(): UploadedFile
     {
-        return $this->file('file') ?? $this->file($this->validatedMediaType());
+        return $this->file('file');
     }
 
     private function validatedMediaType(): string

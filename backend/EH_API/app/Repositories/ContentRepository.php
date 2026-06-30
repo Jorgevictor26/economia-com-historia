@@ -90,14 +90,6 @@ class ContentRepository
             $column => $url,
         ];
 
-        if ($column === 'image_url') {
-            $updates['image'] = null;
-        }
-
-        if ($column === 'video_url') {
-            $updates['video'] = null;
-        }
-
         $content->update($updates);
 
         return $content->fresh(['author', 'category', 'contentType']);

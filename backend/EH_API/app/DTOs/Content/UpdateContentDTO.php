@@ -10,8 +10,8 @@ readonly class UpdateContentDTO
         public ?string $title = null,
         public ?string $summary = null,
         public ?string $content = null,
-        public ?string $image = null,
-        public ?string $video = null,
+        public ?string $imageUrl = null,
+        public ?string $videoUrl = null,
         public ?string $visibility = null,
     ) {
     }
@@ -24,8 +24,8 @@ readonly class UpdateContentDTO
             title: $data['title'] ?? null,
             summary: $data['summary'] ?? null,
             content: $data['content'] ?? null,
-            image: $data['image'] ?? null,
-            video: $data['video'] ?? null,
+            imageUrl: $data['image_url'] ?? null,
+            videoUrl: $data['video_url'] ?? null,
             visibility: $data['visibility'] ?? null,
         );
     }
@@ -38,8 +38,8 @@ readonly class UpdateContentDTO
             'title' => $this->title,
             'summary' => $this->summary,
             'content' => $this->content,
-            'image_url' => $this->image,
-            'video_url' => $this->video,
+            'image_url' => $this->imageUrl,
+            'video_url' => $this->videoUrl,
             'visibility' => $this->visibility,
         ], fn (mixed $value): bool => $value !== null);
     }

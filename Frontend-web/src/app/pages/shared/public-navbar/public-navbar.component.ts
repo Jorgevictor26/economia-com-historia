@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthStateService } from '../../../services/auth-state.service';
 import { NotificationService } from '../../../services/notification.service';
+import { normalizeMediaUrl } from '../../../services/media-url.util';
 
 @Component({
   selector: 'app-public-navbar',
@@ -85,5 +86,9 @@ export class PublicNavbarComponent implements OnInit {
       .map((name) => name[0])
       .join('')
       .toUpperCase();
+  }
+
+  profileAvatarUrl(): string | undefined {
+    return normalizeMediaUrl(this.auth.user()?.avatarUrl);
   }
 }

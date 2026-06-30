@@ -6,8 +6,12 @@
       <div class="sticky top-[82px]">
         <section class="border border-[#E0E0E0] bg-white px-6 py-6 text-center">
           <div
-            class="mx-auto grid size-[70px] place-items-center rounded-[8px] bg-[#F2E6E9] font-display text-[20px] font-extrabold text-[#8A3F50]">
+            class="mx-auto grid size-[70px] place-items-center overflow-hidden rounded-[8px] bg-[#F2E6E9] font-display text-[20px] font-extrabold text-[#8A3F50]">
+            @if (detail()?.authorPhotoUrl) {
+            <img [src]="detail()?.authorPhotoUrl" [alt]="detail()?.author || 'Autor'" class="h-full w-full object-cover" />
+            } @else {
             {{ detail()?.authorInitials || 'EH' }}
+            }
           </div>
           <h2 class="font-display mt-5 text-[13px] font-medium text-[#5c1e2f]">{{ detail()?.author || 'Equipa editorial'
             }}</h2>
@@ -44,11 +48,6 @@
         class="mt-6 max-w-[510px] border-l-4 border-[#d4af37] pl-7 font-display text-[14px] italic leading-7 text-[#616161]">
         {{ detail()?.summary || 'A carregar o resumo do conteúdo...' }}
       </p>
-
-      <div class="hidden">
-        <span>Por <strong class="text-[#5c1e2f]">{{ detail()?.author || 'Equipa editorial' }}</strong></span>
-        <span class="flex items-center gap-4">♡ 66 □ 12 ↗ ⚑</span>
-      </div>
 
       @if (detail()?.imageUrl) {
       <figure class="mt-7">
@@ -202,8 +201,13 @@
           } @else if (comments().length) {
           @for (comment of comments(); track comment.id) {
           <div class="flex gap-4">
-            <span class="grid size-9 place-items-center rounded-[8px] bg-[#E0E0E0] text-[11px] font-bold text-[#9E9E9E]">{{
-              comment.authorInitials }}</span>
+            <span class="grid size-9 place-items-center overflow-hidden rounded-[8px] bg-[#E0E0E0] text-[11px] font-bold text-[#9E9E9E]">
+              @if (comment.authorPhotoUrl) {
+              <img [src]="comment.authorPhotoUrl" [alt]="comment.author" class="h-full w-full object-cover" />
+              } @else {
+              {{ comment.authorInitials }}
+              }
+            </span>
             <div class="min-w-0 flex-1">
               <div class="flex items-start justify-between gap-4">
                 <p class="text-[13px] font-extrabold text-[#5c1e2f]">{{ comment.author }}</p>
@@ -231,8 +235,13 @@
               @for (reply of comment.replies; track reply.id) {
               <div class="mt-6 flex gap-4 border-l border-[#E0E0E0] pl-7">
                 <span
-                  class="grid size-7 place-items-center rounded-[7px] bg-[#E0E0E0] text-[9px] font-bold text-[#9E9E9E]">{{
-                  reply.authorInitials }}</span>
+                  class="grid size-7 place-items-center overflow-hidden rounded-[7px] bg-[#E0E0E0] text-[9px] font-bold text-[#9E9E9E]">
+                  @if (reply.authorPhotoUrl) {
+                  <img [src]="reply.authorPhotoUrl" [alt]="reply.author" class="h-full w-full object-cover" />
+                  } @else {
+                  {{ reply.authorInitials }}
+                  }
+                </span>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-start justify-between gap-4">
                     <p class="text-[12px] font-medium text-[#5c1e2f]">{{ reply.author }}</p>
@@ -295,39 +304,42 @@
         </div>
         }
 
-        <section class="mt-12 border-t border-[#E0E0E0] pt-8">
-          <h2 class="text-[14px] font-medium text-[#5c1e2f]">Referências e Bibliografia</h2>
-          <ul class="mt-6 grid gap-4 text-[13px] leading-6 text-[#616161]">
-            <li>• Thornton, J. (1983). <em>The Kingdom of Kongo: Civil War and Transition.</em> University of Wisconsin
-              Press.</li>
-            <li>• Hilton, A. (1985). <em>The Kingdom of Kongo.</em> Oxford Studies in African Affairs.</li>
-            <li>• Arquivos Digitais da Torre do Tombo: Relatórios de Comércio de São Salvador (1512-1560).</li>
-          </ul>
-        </section>
       </section>
     </article>
 
     <aside class="hidden xl:block">
       <div class="sticky top-[82px] grid gap-6">
-        <h2 class="font-display text-[17px] font-medium text-[#5c1e2f]">Relacionados</h2>
-
-        <a routerLink="/app/contents/diplomacia-cobre" class="block">
-          <img
-            src="https://commons.wikimedia.org/wiki/Special:FilePath/Clay%20pot%2C%20southeast%20Senegal%20%28West%20Africa%29%20%282220693915%29.jpg?width=600"
-            alt="Cerâmica de cobre" class="h-[141px] w-full rounded-[2px] object-cover object-center" />
-          <p class="mt-2 text-[10px] font-bold uppercase text-[#D4AF37]">Economia Política</p>
-          <h3 class="font-display mt-1 text-[16px] font-extrabold leading-tight text-[#5c1e2f]">A Diplomacia do Cobre
-            nos Planaltos Centrais</h3>
-        </a>
-
-        <a routerLink="/app/contents/impostos-kwanza" class="mt-4 block">
-          <img
-            src="https://commons.wikimedia.org/wiki/Special:FilePath/Foz%20do%20Rio%20Kwanza%20-%20panoramio.jpg?width=600"
-            alt="Rio Kwanza ao pôr do sol" class="h-[141px] w-full rounded-[2px] object-cover object-center" />
-          <p class="mt-2 text-[10px] font-bold uppercase text-[#D4AF37]">Geografia Histórica</p>
-          <h3 class="font-display mt-1 text-[16px] font-extrabold leading-tight text-[#5c1e2f]">Navegação e Impostos no
-            Rio Kwanza</h3>
-        </a>
+        <section>
+          <h2 class="font-display text-[17px] font-medium text-[#5c1e2f]">Relacionados</h2>
+          <div class="mt-5 grid gap-4">
+            @if (isLoadingRelated()) {
+            <p class="text-[12px] text-[#616161]">A carregar relacionados...</p>
+            } @else if (relatedContents().length) {
+            @for (item of relatedContents(); track item.id) {
+            <a [routerLink]="relatedContentRoute(item)" class="grid grid-cols-[86px_minmax(0,1fr)] gap-3 rounded-[8px] transition hover:bg-white">
+              <div class="relative h-[62px] overflow-hidden rounded-[5px] bg-[#F2E6E9]">
+                @if (item.imageUrl) {
+                <img [src]="item.imageUrl" [alt]="item.title" class="h-full w-full object-cover" />
+                } @else {
+                <span class="grid h-full place-items-center font-display text-[14px] font-extrabold text-[#8A3F50]">{{ item.authorInitials }}</span>
+                }
+                <span class="absolute bottom-1 right-1 rounded-[4px] bg-black/75 px-1.5 py-0.5 text-[8px] font-bold uppercase text-white">{{ item.contentType }}</span>
+              </div>
+              <span class="min-w-0">
+                <strong class="line-clamp-2 text-[12px] leading-4 text-[#212121]">{{ item.title }}</strong>
+                <span class="mt-1 block truncate text-[10px] text-[#616161]">{{ item.category }} • {{ item.author }}</span>
+                <span class="mt-1 flex gap-2 text-[9px] text-[#9E9E9E]">
+                  <span>{{ item.reactionsCount ?? 0 }} gostos</span>
+                  <span>{{ item.commentsCount ?? 0 }} comentários</span>
+                </span>
+              </span>
+            </a>
+            }
+            } @else {
+            <p class="text-[12px] text-[#616161]">Sem conteúdos relacionados por agora.</p>
+            }
+          </div>
+        </section>
 
         <div class="mt-5 bg-[#5C1E2F] p-6 text-white">
           <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#d4af37]">Quiz do conteúdo</p>

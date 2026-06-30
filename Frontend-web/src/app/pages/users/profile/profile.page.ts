@@ -33,12 +33,16 @@ export class ProfilePage implements OnInit {
   readonly isSecuritySection = this.section === 'security';
   readonly isNotificationPreferencesSection = this.section === 'notification-preferences';
   readonly isSavingProfile = signal(false);
+  readonly isSavingSecurity = signal(false);
   readonly isLoadingProfile = signal(false);
   readonly profileSaveMessage = signal('');
   readonly profileSaveError = signal('');
+  readonly securitySaveMessage = signal('');
+  readonly securitySaveError = signal('');
   readonly selectedPhotoPreviewUrl = signal('');
   readonly selectedPhotoName = signal('');
   readonly photoSaveMessage = signal('');
+  readonly photoSaveError = signal('');
 
   readonly profileMenu = [
     { label: 'Perfil', icon: 'person', route: '/app/profile', active: !this.section },
@@ -178,7 +182,44 @@ export class ProfilePage implements OnInit {
     reader.readAsDataURL(file);
   }
 
-  savePhoto(): void {
+  async saveSecurity(password: string, passwordConfirmation: string): Promise<void> {
+    const normalizedPassword = password.trim();
+    const normalizedConfirmation = passwordConfirmation.trim();
+
+    this.securitySaveMessage.set('');
+    this.securitySaveError.set('');
+
+    if (!normalizedPassword || !normalizedConfirmation) {
+      this.securitySaveError.set('Preencha e confirme a nova palavra-passe.');
+      return;
+    }
+
+    if (normalizedPassword.length < 8) {
+      this.securitySaveError.set('A palavra-passe deve ter pelo menos 8 caracteres.');
+      return;
+    }
+
+    if (normalizedPassword !== normalizedConfirmation) {
+      this.securitySaveError.set('As palavras-passe não coincidem.');
+      return;
+    }
+
+    this.isSavingSecurity.set(true);
+
+    try {
+      await this.profileService.updateProfile({
+        password: normalizedPassword,
+        password_confirmation: normalizedConfirmation,
+      });
+      this.securitySaveMessage.set('Palavra-passe atualizada com sucesso.');
+    } catch {
+      this.securitySaveError.set('Não foi possível atualizar a palavra-passe.');
+    } finally {
+      this.isSavingSecurity.set(false);
+    }
+  }
+
+  async savePhoto(): Promise<void> {
     const previewUrl = this.selectedPhotoPreviewUrl();
     const currentUser = this.auth.user();
 
@@ -186,10 +227,20 @@ export class ProfilePage implements OnInit {
       return;
     }
 
-    this.auth.updateAuthenticatedUser({
-      ...currentUser,
-      avatarUrl: previewUrl,
-    });
-    this.photoSaveMessage.set('Foto atualizada com sucesso!');
+    this.photoSaveMessage.set('');
+    this.photoSaveError.set('');
+
+    try {
+      await this.profileService.updateProfile({ photo: previewUrl });
+      this.selectedPhotoPreviewUrl.set('');
+      this.selectedPhotoName.set('');
+      this.photoSaveMessage.set('Foto atualizada com sucesso!');
+    } catch {
+      this.auth.updateAuthenticatedUser({
+        ...currentUser,
+        avatarUrl: previewUrl,
+      });
+      this.photoSaveError.set('A foto foi atualizada localmente, mas não foi possível guardar no backend.');
+    }
   }
 }

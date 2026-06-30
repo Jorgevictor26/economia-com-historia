@@ -1,6 +1,7 @@
 import { Component, Input, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthStateService } from '../../../services/auth-state.service';
+import { normalizeMediaUrl } from '../../../services/media-url.util';
 import { PublicNavbarComponent } from '../../shared/public-navbar/public-navbar.component';
 
 interface AdminNavItem {
@@ -38,7 +39,7 @@ export class AdminConsoleShellComponent {
   }
 
   get displayAvatarUrl(): string {
-    return this.auth.user()?.avatarUrl || this.avatarUrl;
+    return normalizeMediaUrl(this.auth.user()?.avatarUrl || this.avatarUrl) ?? '';
   }
 
   get displayRole(): string {
@@ -126,4 +127,3 @@ export class AdminConsoleShellComponent {
     ];
   }
 }
-

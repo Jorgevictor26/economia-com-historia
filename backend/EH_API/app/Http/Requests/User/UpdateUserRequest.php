@@ -23,8 +23,9 @@ class UpdateUserRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'email')->ignore($this->user()?->id),
             ],
-            'photo' => ['nullable', 'string', 'max:255'],
+            'photo' => ['nullable', 'string'],
             'bio' => ['nullable', 'string', 'max:2000'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ];
     }
 }

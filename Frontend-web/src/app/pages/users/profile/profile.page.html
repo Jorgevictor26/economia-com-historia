@@ -92,35 +92,39 @@
           <span>Edite as suas configurações de conta e altere a sua palavra-passe aqui.</span>
         </header>
 
-        <form class="account-form" (submit)="$event.preventDefault()">
+        <form class="account-form" (submit)="$event.preventDefault(); saveSecurity(newPasswordInput.value, confirmPasswordInput.value); newPasswordInput.value = ''; confirmPasswordInput.value = ''">
           <section class="account-section" aria-labelledby="account-email-title">
             <label class="account-field">
               <span id="account-email-title">E-mail:</span>
               <div class="account-email-row">
                 <input type="email" [value]="'Seu endereço de e-mail é ' + profileEmail()" readonly />
-                <button type="button" aria-label="Editar e-mail">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
-                  </svg>
-                </button>
               </div>
             </label>
             <div class="field-stack">
               <label class="account-field">
                 <span>Nova palavra-passe</span>
-                <input type="password" placeholder="Digite a nova palavra-passe" autocomplete="new-password" />
+                <input #newPasswordInput type="password" placeholder="Digite a nova palavra-passe" autocomplete="new-password" />
               </label>
               <br>
               <label class="account-field">
                 <span>Confirmar nova palavra-passe</span>
-                <input type="password" placeholder="Confirme a nova palavra-passe" autocomplete="new-password" />
+                <input #confirmPasswordInput type="password" placeholder="Confirme a nova palavra-passe" autocomplete="new-password" />
               </label>
             </div>
 
             <div class="form-actions">
-              <button type="submit">Salvar Alterações</button>
+              <button type="submit" [disabled]="isSavingSecurity()">
+                {{ isSavingSecurity() ? 'A salvar...' : 'Salvar alterações' }}
+              </button>
             </div>
+
+            @if (securitySaveMessage()) {
+            <p class="field-help text-[#2A9D8F]">{{ securitySaveMessage() }}</p>
+            }
+
+            @if (securitySaveError()) {
+            <p class="field-help text-[#8A3F50]">{{ securitySaveError() }}</p>
+            }
           </section>
         </form>
         } @else if (isNotificationPreferencesSection) {
@@ -183,6 +187,9 @@
                 {{ photoSaveMessage() }}
               </p>
               }
+              @if (photoSaveError()) {
+              <p class="field-help text-[#8A3F50]">{{ photoSaveError() }}</p>
+              }
 
               <div class="form-actions">
                 <button type="submit" [disabled]="!selectedPhotoPreviewUrl()">Salvar foto</button>
@@ -215,9 +222,12 @@
             @if (photoSaveMessage()) {
             <p class="photo-success">
               <span class="profile-menu-icon" aria-hidden="true">check_circle</span>
-              {{ photoSaveMessage() }}
-            </p>
-            }
+                {{ photoSaveMessage() }}
+              </p>
+              }
+              @if (photoSaveError()) {
+              <p class="field-help text-[#8A3F50]">{{ photoSaveError() }}</p>
+              }
           </section>
 
           <section class="profile-fields-column">

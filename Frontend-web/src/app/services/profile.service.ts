@@ -5,6 +5,7 @@ import { ApiResponse } from '../models/api-response.model';
 import { User, UserRole } from '../models/user.model';
 import { AuthStateService } from './auth-state.service';
 import { ProfileDashboard } from '../models/profile.model';
+import { normalizeMediaUrl } from './media-url.util';
 
 interface BackendUser {
   id: number | string;
@@ -16,9 +17,12 @@ interface BackendUser {
 }
 
 export interface UpdateProfilePayload {
-  name: string;
-  email: string;
+  name?: string;
+  email?: string;
   bio?: string | null;
+  photo?: string | null;
+  password?: string | null;
+  password_confirmation?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -88,7 +92,7 @@ export class ProfileService {
       name: user.name,
       email: user.email,
       role: this.resolveRole(user.roles) ?? currentUser?.role ?? 'student',
-      avatarUrl: user.photo || undefined,
+      avatarUrl: normalizeMediaUrl(user.photo),
       biography: user.bio || undefined,
       hasPremiumAccess: this.hasPremiumAccess(user.roles) || currentUser?.hasPremiumAccess || false,
       invitedForumIds: currentUser?.invitedForumIds ?? [],
@@ -124,5 +128,3 @@ export class ProfileService {
     return Boolean(role && role !== 'student');
   }
 }
-
-

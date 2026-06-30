@@ -60,8 +60,8 @@
 
       <div class="public-profile-menu">
         <a routerLink="/app/profile" class="public-profile-trigger" aria-label="Perfil" aria-haspopup="menu">
-          @if (auth.user()?.avatarUrl) {
-          <img [src]="auth.user()?.avatarUrl" alt="Perfil"
+          @if (profileAvatarUrl()) {
+          <img [src]="profileAvatarUrl()" alt="Perfil"
             class="size-[34px] rounded-full object-cover ring-1 ring-[#5c1e2f]/10" />
           } @else {
           <span

@@ -2,6 +2,7 @@
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthStateService } from '../../services/auth-state.service';
 import { NotificationService } from '../../services/notification.service';
+import { normalizeMediaUrl } from '../../services/media-url.util';
 
 @Component({
   selector: 'app-public-navbar',
@@ -71,9 +72,9 @@ import { NotificationService } from '../../services/notification.service';
 
             <div class="public-profile-menu">
               <a routerLink="/app/profile" class="public-profile-trigger" aria-label="Perfil" aria-haspopup="menu">
-                @if (auth.user()?.avatarUrl) {
+                @if (profileAvatarUrl()) {
                   <img
-                    [src]="auth.user()?.avatarUrl"
+                    [src]="profileAvatarUrl()"
                     alt="Perfil"
                     class="size-[34px] rounded-full object-cover ring-1 ring-[#5c1e2f]/10"
                   />
@@ -244,5 +245,9 @@ export class PublicNavbarComponent implements OnInit {
       .map((name) => name[0])
       .join('')
       .toUpperCase();
+  }
+
+  profileAvatarUrl(): string | undefined {
+    return normalizeMediaUrl(this.auth.user()?.avatarUrl);
   }
 }

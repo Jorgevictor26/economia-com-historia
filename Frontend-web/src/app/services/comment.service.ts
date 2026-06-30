@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 interface BackendUser {
   id: number | string;
   name: string;
+  photo?: string | null;
 }
 
 export interface BackendCommentReply {

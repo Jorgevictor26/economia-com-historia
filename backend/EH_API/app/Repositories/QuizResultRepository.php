@@ -33,18 +33,26 @@ class QuizResultRepository
 
     public function statsByUser(int $userId): array
     {
-        $query = QuizResult::query()
-            ->where('user_id', $userId);
+        $results = QuizResult::query()
+            ->with('quiz')
+            ->where('user_id', $userId)
+            ->get();
 
-        $completedQuizIds = (clone $query)
-            ->distinct()
+        $completedQuizIds = $results
             ->pluck('quiz_id')
+            ->unique()
             ->map(fn (mixed $quizId): string => (string) $quizId)
             ->values()
             ->all();
 
         return [
-            'score' => (int) (clone $query)->sum('earned_xp'),
+            'score' => (int) $results->sum(function (QuizResult $result): int {
+                if ($result->earned_xp > 0) {
+                    return $result->earned_xp;
+                }
+
+                return $result->score * (int) ($result->quiz?->xp_per_question ?? 0);
+            }),
             'completed_quizzes' => count($completedQuizIds),
             'completed_quiz_ids' => $completedQuizIds,
         ];

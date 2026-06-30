@@ -5,6 +5,7 @@ import { LoginForm } from '../models/login-form.model';
 import { AuthStateService } from './auth-state.service';
 import { User, UserRole } from '../models/user.model';
 import { ApiResponse } from '../models/api-response.model';
+import { normalizeMediaUrl } from './media-url.util';
 
 interface BackendUser {
   id: number | string;
@@ -94,7 +95,7 @@ export class AuthService {
       name: user.name,
       email: user.email,
       role: this.resolveRole(user.roles),
-      avatarUrl: user.photo || undefined,
+      avatarUrl: normalizeMediaUrl(user.photo),
       biography: user.bio || undefined,
       hasPremiumAccess: this.hasPremiumAccess(user),
       invitedForumIds: [],
@@ -128,4 +129,3 @@ export class AuthService {
     return this.resolveRole(user.roles) !== 'student' || Boolean(user.jindungo_subscription_expires_at);
   }
 }
-

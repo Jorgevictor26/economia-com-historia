@@ -1,36 +1,37 @@
 <section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
   <app-public-navbar />
 
+  @if (video(); as currentVideo) {
   <main class="mx-auto grid max-w-[1160px] gap-8 px-5 pb-20 pt-8 lg:grid-cols-[minmax(0,1fr)_310px] lg:px-8">
     <article class="min-w-0">
       <section class="overflow-hidden rounded-2xl bg-black">
 
         <div class="group relative aspect-video bg-[#212121]">
 
-          @if (video().videoUrl && isDirectVideoUrl(video().videoUrl)) {
-            <video class="h-full w-full object-cover" [poster]="video().frameUrl" controls>
-              <source [src]="video().videoUrl" />
+          @if (currentVideo.videoUrl && isDirectVideoUrl(currentVideo.videoUrl)) {
+            <video class="h-full w-full object-cover" [poster]="currentVideo.frameUrl" controls>
+              <source [src]="currentVideo.videoUrl" />
             </video>
           } @else {
-            @if (video().frameUrl) {
-              <img [src]="video().frameUrl" [alt]="video().title" class="h-full w-full object-cover" />
+            @if (currentVideo.frameUrl) {
+              <img [src]="currentVideo.frameUrl" [alt]="currentVideo.title" class="h-full w-full object-cover" />
             } @else {
               <div class="grid h-full place-items-center bg-[#2A1B22]">
-                <span class="font-display text-[48px] font-extrabold text-white/70">{{ video().authorInitials }}</span>
+                <span class="font-display text-[48px] font-extrabold text-white/70">{{ currentVideo.authorInitials }}</span>
               </div>
             }
           }
 
           <!-- Overlay -->
-          @if (!video().videoUrl || !isDirectVideoUrl(video().videoUrl)) {
+          @if (!currentVideo.videoUrl || !isDirectVideoUrl(currentVideo.videoUrl)) {
             <div class="absolute inset-0 bg-black/20 transition group-hover:bg-black/10"></div>
           }
 
           <!-- Play Central -->
-          @if (!video().videoUrl || !isDirectVideoUrl(video().videoUrl)) {
+          @if (!currentVideo.videoUrl || !isDirectVideoUrl(currentVideo.videoUrl)) {
           <div class="absolute inset-0 flex items-center justify-center">
 
-            <a [href]="video().videoUrl || null" target="_blank" rel="noopener noreferrer"
+            <a [href]="currentVideo.videoUrl || null" target="_blank" rel="noopener noreferrer" [class.pointer-events-none]="!currentVideo.videoUrl"
               class="grid h-15 w-15 place-items-center rounded-full bg-black/70 text-white backdrop-blur-md transition duration-300 hover:scale-110 hover:bg-[#8A3F50]">
               <span class="material-symbols-outlined text-[50px]">
                 play_arrow
@@ -39,74 +40,17 @@
 
           </div>
           }
-
-          <!-- Título -->
           <div class="absolute left-6 top-6 max-w-[70%]">
 
             <h2 class="text-lg font-bold text-white md:text-2xl">
-              {{ video().title }}
+              {{ currentVideo.title }}
             </h2>
 
             <p class="mt-1 text-xs text-white/70">
-              {{ video().author }}
+              {{ currentVideo.author }}
             </p>
 
           </div>
-          @if (!video().videoUrl || !isDirectVideoUrl(video().videoUrl)) {
-          <div
-            class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/70 to-transparent px-4 pb-3 pt-12">
-
-            <div class="mb-3 h-[4px] overflow-hidden rounded-full bg-white/20">
-
-              <div class="relative h-full w-[38%] bg-[#8A3F50]">
-
-                <span class="absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-[#8A3F50]"></span>
-
-              </div>
-            </div>
-            <div class="flex items-center justify-between">
-
-              <div class="flex items-center gap-3">
-
-                <button class="text-white">
-                  <span class="material-symbols-outlined text-[24px]">
-                    play_arrow
-                  </span>
-                </button>
-
-                <button class="text-white">
-                  <span class="material-symbols-outlined text-[22px]">
-                    volume_up
-                  </span>
-                </button>
-
-                <div class="h-1 w-20 rounded-full bg-white/20">
-                  <div class="h-full w-[65%] rounded-full bg-white"></div>
-                </div>
-
-                <span class="text-xs text-white/80">
-                  12:34 / {{ video().duration }}
-                </span>
-
-              </div>
-
-              <div class="flex items-center gap-4 text-white">
-
-                <button>
-                  <span class="material-symbols-outlined text-[20px]">
-                    settings
-                  </span>
-                </button>
-                <button>
-                  <span class="material-symbols-outlined text-[22px]">
-                    fullscreen
-                  </span>
-                </button>
-
-              </div>
-            </div>
-          </div>
-          }
         </div>
       </section>
 
@@ -120,19 +64,23 @@
       <div class="mt-7 flex flex-wrap items-center gap-3 text-[14px] text-[#616161]">
         <h1
           class="mt-3 max-w-[720px] font-display text-[20px] font-extrabold leading-[1.05] text-[#5c1e2f] md:text-[34px]">
-          {{ video().title }}
+          {{ currentVideo.title }}
         </h1>
         <div class="flex items-center gap-4">
-          <span class="grid h-8 w-8 place-items-center rounded-full bg-[#212121] text-white font-bold">
-            {{ video().authorInitials }}
+          <span class="grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-[#212121] text-white font-bold">
+            @if (currentVideo.authorPhotoUrl) {
+            <img [src]="currentVideo.authorPhotoUrl" [alt]="currentVideo.author" class="h-full w-full object-cover" />
+            } @else {
+            {{ currentVideo.authorInitials }}
+            }
           </span>
           <div>
             <h3 class="font-bold text-[#5c1e2f]">
-              {{ video().author }}
+              {{ currentVideo.author }}
             </h3>
           </div>
         </div>
-        <span>{{ video().date }}</span>
+        <span>{{ currentVideo.date }}</span>
       </div>
 
 
@@ -154,7 +102,7 @@
               <span>Partilhar</span>
             </button>
 
-            <a [routerLink]="['/app/forums']" [queryParams]="{ content: video().id }" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]">
+            <a [routerLink]="['/app/forums']" [queryParams]="{ content: currentVideo.id }" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]">
               <span class="material-symbols-outlined text-[26px] leading-none">forum</span>
               <span>Criar f&oacute;rum</span>
             </a>
@@ -172,12 +120,12 @@
 
       <section class="mt-10 max-w-[720px]">
         <p class="text-[14px] leading-7 text-[#616161]">
-          {{ video().summary }}
+          {{ currentVideo.summary }}
         </p>
 
         <blockquote
           class="mt-6 border-l-4 border-[#8A3F50] bg-white px-5 py-4 font-display text-[14px] italic leading-7 text-[#8A3F50]">
-          {{ video().quote }}
+          {{ currentVideo.quote }}
         </blockquote>
       </section>
       <section class="mt-10 border-t border-[#E0E0E0] pt-9">
@@ -218,22 +166,30 @@
     <aside class="lg:pt-1">
       <div class="sticky top-[82px] grid gap-6">
         <section>
-          <h2 class="mb-5 flex items-center gap-2 font-display text-[15px] font-extrabold text-[#5c1e2f]">
-            <span class="text-[17px] text-[#8A3F50]" aria-hidden="true">Relacionados</span>
-          </h2>
-          <div class="grid gap-4">
-            @for (item of relatedResearch; track item.title) {
-            <a [routerLink]="item.route" class="grid grid-cols-[86px_minmax(0,1fr)] gap-3">
-              <div class="relative h-[58px] overflow-hidden rounded-[4px] bg-[#212121]">
-                <img [src]="item.imageUrl" [alt]="item.title" class="h-full w-full object-cover opacity-85" />
-                <span class="absolute bottom-1 right-1 bg-black/75 px-1.5 py-0.5 text-[8px] font-bold text-white">{{
-                  item.duration }}</span>
+          <h2 class="font-display text-[16px] font-extrabold text-[#5c1e2f]">Relacionados</h2>
+          <div class="mt-4 grid gap-3">
+            @if (isLoadingRelated()) {
+            <p class="text-[12px] text-[#616161]">A carregar relacionados...</p>
+            } @else if (relatedContents().length) {
+            @for (item of relatedContents(); track item.id) {
+            <a [routerLink]="relatedContentRoute(item)" class="grid grid-cols-[112px_minmax(0,1fr)] gap-3">
+              <div class="relative aspect-video overflow-hidden rounded-[5px] bg-[#212121]">
+                @if (item.imageUrl) {
+                <img [src]="item.imageUrl" [alt]="item.title" class="h-full w-full object-cover" />
+                } @else {
+                <span class="grid h-full place-items-center font-display text-[14px] font-extrabold text-white/75">{{ item.authorInitials }}</span>
+                }
+                <span class="absolute bottom-1 right-1 rounded-[4px] bg-black/75 px-1.5 py-0.5 text-[8px] font-bold uppercase text-white">{{ item.contentType }}</span>
               </div>
               <span class="min-w-0">
                 <strong class="line-clamp-2 text-[12px] leading-4 text-[#212121]">{{ item.title }}</strong>
-                <span class="mt-1 block text-[10px] text-[#616161]">{{ item.meta }}</span>
+                <span class="mt-1 block truncate text-[10px] text-[#616161]">{{ item.author }}</span>
+                <span class="mt-1 block truncate text-[10px] text-[#9E9E9E]">{{ item.category }} • {{ item.reactionsCount ?? 0 }} gostos</span>
               </span>
             </a>
+            }
+            } @else {
+            <p class="text-[12px] text-[#616161]">Sem conteúdos relacionados por agora.</p>
             }
           </div>
         </section>
@@ -251,6 +207,21 @@
       </div>
     </aside>
   </main>
+  } @else {
+  <main class="mx-auto grid min-h-[60dvh] max-w-[720px] place-items-center px-5 py-16 text-center">
+    <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-8">
+      <h1 class="font-display text-[24px] font-extrabold text-[#5c1e2f]">
+        {{ isLoading() ? 'A carregar vídeo...' : 'Vídeo não encontrado' }}
+      </h1>
+      @if (loadError()) {
+      <p class="mt-3 text-[13px] font-bold text-[#B42318]">{{ loadError() }}</p>
+      }
+      <a routerLink="/app/contents" class="mt-5 inline-flex h-10 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[12px] font-bold text-white">
+        Ver conteúdos
+      </a>
+    </section>
+  </main>
+  }
 
   <app-back-to-top />
 </section>

@@ -12,14 +12,16 @@ import { CommentReportReason, CommentReportService } from '../../../services/com
 import { QuizService } from '../../../services/quiz.service';
 import { ReactionService } from '../../../services/reaction.service';
 import { SavedContentService } from '../../../services/saved-content.service';
+import { normalizeMediaUrl } from '../../../services/media-url.util';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
-import { PublicFooterComponent } from '../../shared/public-footer/public-footer.component';
 import { PublicNavbarComponent } from '../../shared/public-navbar/public-navbar.component';
 import { ContentCardComponent } from './components/content-card.component';
 import { ContentListItem } from '../../../models/content-list-item.model';
 
 interface ContentDetail {
   id: string;
+  categoryId?: number | string;
+  contentTypeId?: number | string;
   category: string;
   contentType: string;
   meta: string;
@@ -28,6 +30,7 @@ interface ContentDetail {
   body: string;
   author: string;
   authorInitials: string;
+  authorPhotoUrl?: string;
   authorBio?: string;
   imageUrl?: string;
   premium: boolean;
@@ -41,6 +44,7 @@ interface CommentView {
   id: string;
   author: string;
   authorInitials: string;
+  authorPhotoUrl?: string;
   text: string;
   createdAt?: string | null;
   replies: CommentReplyView[];
@@ -50,6 +54,7 @@ interface CommentReplyView {
   id: string;
   author: string;
   authorInitials: string;
+  authorPhotoUrl?: string;
   text: string;
   createdAt?: string | null;
 }
@@ -62,6 +67,8 @@ interface CommentReportTarget {
 
 interface VideoDetail {
   id: string;
+  categoryId?: number | string;
+  contentTypeId?: number | string;
   title: string;
   date: string;
   duration: string;
@@ -69,17 +76,10 @@ interface VideoDetail {
   videoUrl?: string;
   author: string;
   authorInitials: string;
+  authorPhotoUrl?: string;
   authorRole: string;
   summary: string;
   quote: string;
-}
-
-interface RelatedResearch {
-  title: string;
-  meta: string;
-  duration: string;
-  imageUrl: string;
-  route: string;
 }
 
 interface VideoComment {
@@ -105,27 +105,16 @@ export class ContentLibraryPage implements OnInit {
   private readonly reactionService = inject(ReactionService);
   private readonly savedContentService = inject(SavedContentService);
   private loadRequestId = 0;
-  private readonly fallbackCategories: Category[] = [
-    { id: 1, name: 'História' },
-    { id: 2, name: 'Economia' },
-  ];
-  private readonly fallbackContentTypes: ContentTypeOption[] = [
-    { id: 1, name: 'Texto', slug: 'texto' },
-    { id: 2, name: 'Podcast', slug: 'podcast' },
-    { id: 3, name: 'Video', slug: 'video' },
-    { id: 4, name: 'Jindungo', slug: 'jindungo' },
-  ];
-
-  readonly categories = signal<Category[]>(this.fallbackCategories);
-  readonly contentTypes = signal<ContentTypeOption[]>(this.fallbackContentTypes);
-  readonly contents = signal<ContentListItem[]>(this.getFallbackContents());
+  readonly categories = signal<Category[]>([]);
+  readonly contentTypes = signal<ContentTypeOption[]>([]);
+  readonly contents = signal<ContentListItem[]>([]);
   readonly pagination = signal<ContentPagination>({
     currentPage: 1,
     lastPage: 1,
-    perPage: this.getFallbackContents().length,
-    total: this.getFallbackContents().length,
-    from: 1,
-    to: this.getFallbackContents().length,
+    perPage: 0,
+    total: 0,
+    from: 0,
+    to: 0,
   });
   readonly isLoadingContents = signal(false);
   readonly categoryFilters = computed(() => ['Todos', ...this.categories().map((category) => category.name)]);
@@ -204,7 +193,7 @@ export class ContentLibraryPage implements OnInit {
         this.categories.set(categories);
       }
     } catch {
-      this.categories.set(this.fallbackCategories);
+      this.categories.set([]);
     }
 
     try {
@@ -214,7 +203,7 @@ export class ContentLibraryPage implements OnInit {
         this.contentTypes.set(contentTypes);
       }
     } catch {
-      this.contentTypes.set(this.fallbackContentTypes);
+      this.contentTypes.set([]);
     }
 
     this.applyRouteFilters();
@@ -465,7 +454,7 @@ export class ContentLibraryPage implements OnInit {
       excerpt: content.summary || this.toExcerpt(content.content),
       author: authorName,
       authorInitials: this.getInitials(authorName),
-      imageUrl: content.image || undefined,
+      imageUrl: normalizeMediaUrl(content.image ?? content.image_url),
       premium,
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
@@ -497,16 +486,14 @@ export class ContentLibraryPage implements OnInit {
       this.pagination.set(response.pagination);
     } catch {
       if (replace) {
-        const fallbackContents = this.getFallbackContents();
-
-        this.contents.set(fallbackContents);
+        this.contents.set([]);
         this.pagination.set({
           currentPage: 1,
           lastPage: 1,
-          perPage: fallbackContents.length,
-          total: fallbackContents.length,
-          from: fallbackContents.length > 0 ? 1 : 0,
-          to: fallbackContents.length,
+          perPage: 0,
+          total: 0,
+          from: 0,
+          to: 0,
         });
       }
     } finally {
@@ -564,147 +551,11 @@ export class ContentLibraryPage implements OnInit {
     return value.replace(/<[^>]*>/g, '').slice(0, 180);
   }
 
-  private getFallbackContents(): ContentListItem[] {
-    return [
-    {
-      id: 'rotas-comerciais',
-      category: 'História',
-      contentType: 'Texto',
-      meta: '12 Out 2024 - 15 min leitura',
-      title: 'As Rotas Comerciais do Reino do Kongo',
-      excerpt:
-        'Uma análise profunda sobre como a diplomacia e comércio moldaram o poder político na região central de África muito antes da colonização.',
-      author: 'Dr. Ricardo Mbaxi',
-      authorInitials: 'DR',
-      imageUrl: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=900&q=80',
-    },
-    {
-      id: 'imposto-reservas',
-      category: 'Economia',
-      contentType: 'Jindungo',
-      meta: '08 Out 2024 - Conteúdo exclusivo',
-      title: 'O Impacto das Reservas Internacionais no Kwanza',
-      excerpt:
-        'Relatório trimestral exclusivo para assinantes Premium sobre as projeções cambiais e a balança comercial angolana para 2025.',
-      author: 'Jindungo Lab',
-      authorInitials: 'JL',
-      imageUrl: 'https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?auto=format&fit=crop&w=900&q=80',
-      premium: true,
-    },
-    {
-      id: 'caso-agro',
-      category: 'Economia',
-      contentType: 'Texto',
-      meta: '05 Out 2024 - 10 min leitura',
-      title: 'Diversificação Económica: O Caso da Agro-Indústria',
-      excerpt:
-        'Como as novas políticas de incentivo estão a transformar o Huambo no novo celeiro de exportação de Angola.',
-      author: 'Dra. Maria Luvuala',
-      authorInitials: 'ML',
-      imageUrl: 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?auto=format&fit=crop&w=900&q=80',
-    },
-    {
-      id: 'heranca-imperio',
-      category: 'Podcast',
-      contentType: 'Podcast',
-      meta: '01 Out 2024 - 45 min áudio',
-      title: 'Ep. 24: A Herança do Império Lunda',
-      excerpt:
-        'Conversa exclusiva com historiadores locais sobre a estrutura económica e social do povo Lunda-Chokwe.',
-      author: 'Equipa EH',
-      authorInitials: 'EH',
-      imageUrl: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&w=900&q=80',
-    },
-    {
-      id: 'diamantes-luanda-sul',
-      category: 'Economia',
-      contentType: 'Jindungo',
-      meta: '28 Set 2024 - Relatório mensal',
-      title: 'Análise do Mercado de Diamantes na Lunda Sul',
-      excerpt:
-        'Um estudo detalhado sobre a cadeia de valor e o impacto das novas concessões mineiras no PIB nacional.',
-      author: 'Jindungo Lab',
-      authorInitials: 'JL',
-      imageUrl: 'https://images.unsplash.com/photo-1642790551116-18e150f248e3?auto=format&fit=crop&w=900&q=80',
-      premium: true,
-    },
-    {
-      id: 'video-cafe',
-      category: 'Economia',
-      contentType: 'Video',
-      meta: '12 Mar 2024 - 18 min video',
-      title: 'Do Cafe ao Petroleo: ciclos economicos que mudaram Angola',
-      excerpt:
-        'Video-aula com imagens de arquivo, mapas e conceitos essenciais para acompanhar as viragens produtivas de Angola.',
-      author: 'Dr. Arnaldo Santos',
-      authorInitials: 'AS',
-      imageUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80',
-    },
-    {
-      id: 'video-ferrovia',
-      category: 'Economia',
-      contentType: 'Video',
-      meta: '18 Mar 2024 - 14 min video',
-      title: 'Ferrovias, portos e mercados: a logistica que move Angola',
-      excerpt:
-        'Uma aula visual sobre corredores de transporte, exportacoes, portos e integracao regional no seculo XX.',
-      author: 'Equipa EH',
-      authorInitials: 'EH',
-      imageUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=900&q=80',
-    },
-    {
-      id: 'nzinga-diplomacia',
-      category: 'História',
-      contentType: 'Texto',
-      meta: '25 Set 2024 - 20 min leitura',
-      title: 'A Rainha Nzinga e a Diplomacia com os Holandeses',
-      excerpt:
-        'Como a soberana do Ndongo e Matamba utilizou alianças estratégicas para manter a independência do seu reino.',
-      author: 'Dr. Joaquim Santos',
-      authorInitials: 'JS',
-      imageUrl: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80',
-    },
-    {
-      id: 'evolucao-comercio-kongo',
-      category: 'História',
-      contentType: 'Texto',
-      meta: '22 Set 2024 - 10 min leitura',
-      title: 'A Evolução do Comércio no Reino do Kongo',
-      excerpt:
-        'Um estudo cronológico sobre a transformação das redes comerciais e a influência das moedas tradicionais na região.',
-      author: 'Dr. António Manuel',
-      authorInitials: 'AM',
-    },
-    {
-      id: 'politica-monetaria-angola',
-      category: 'Economia',
-      contentType: 'Jindungo',
-      meta: '15 Set 2024 - Relatório especial',
-      title: 'Análise da Política Monetária de Angola',
-      excerpt:
-        'Investigação técnica sobre as taxas de juro, inflação e os novos mecanismos de regulação do Banco Nacional de Angola.',
-      author: 'Jindungo Lab',
-      authorInitials: 'JL',
-      premium: true,
-    },
-    {
-      id: 'petroleo-estrutura-social',
-      category: 'Economia',
-      contentType: 'Texto',
-      meta: '10 Set 2024 - 25 min leitura',
-      title: 'O Impacto do Petróleo na Estrutura Social',
-      excerpt:
-        'Como a indústria extractiva redefiniu as classes sociais e o desenvolvimento urbano nas principaís capitais provínciais de Angola.',
-      author: 'Dra. Sofia Bento',
-      authorInitials: 'SB',
-    },
-    ];
-  }
 }
 
 @Component({
   selector: 'app-content-detail-page',
-  imports: [RouterLink, PublicNavbarComponent, PublicFooterComponent, BackToTopComponent],
+  imports: [RouterLink, PublicNavbarComponent, BackToTopComponent],
   templateUrl: './content-detail.page.html'
 })
 export class ContentDetailPage {
@@ -739,6 +590,8 @@ export class ContentDetailPage {
   readonly reactionError = signal('');
   readonly saveStatus = signal('');
   readonly shareStatus = signal('');
+  readonly relatedContents = signal<ContentListItem[]>([]);
+  readonly isLoadingRelated = signal(false);
   readonly canUseNativeShare = typeof navigator !== 'undefined' && 'share' in navigator;
   readonly relatedQuiz = computed(() => {
     const contentId = this.detail()?.id ?? this.route.snapshot.params['id'];
@@ -764,6 +617,7 @@ export class ContentDetailPage {
       this.likedByMe.set(detail.likedByMe);
       await Promise.all([
         this.loadComments(String(content.id)),
+        this.loadRelatedContents(content),
       ]);
     } finally {
       this.isLoading.set(false);
@@ -1032,6 +886,39 @@ export class ContentDetailPage {
     }
   }
 
+  private async loadRelatedContents(content: BackendContent): Promise<void> {
+    const contentId = String(content.id);
+    const categoryId = content.category?.id;
+    const contentTypeId = content.content_type?.id;
+    const related = new Map<string, ContentListItem>();
+
+    this.isLoadingRelated.set(true);
+
+    try {
+      if (categoryId) {
+        const response = await this.contentService.getAll({ categoryId });
+
+        response.data
+          .filter((item) => String(item.id) !== contentId)
+          .forEach((item) => related.set(String(item.id), this.toRelatedContent(item)));
+      }
+
+      if (related.size < 6 && contentTypeId) {
+        const response = await this.contentService.getAll({ contentTypeId });
+
+        response.data
+          .filter((item) => String(item.id) !== contentId)
+          .forEach((item) => related.set(String(item.id), this.toRelatedContent(item)));
+      }
+
+      this.relatedContents.set([...related.values()].slice(0, 6));
+    } catch {
+      this.relatedContents.set([]);
+    } finally {
+      this.isLoadingRelated.set(false);
+    }
+  }
+
   private async loadReactionCount(contentId: string): Promise<void> {
     try {
       const counts = await this.reactionService.getCountByType(contentId);
@@ -1052,6 +939,7 @@ export class ContentDetailPage {
       id: String(comment.id),
       author: authorName,
       authorInitials: this.getInitials(authorName),
+      authorPhotoUrl: normalizeMediaUrl(comment.user?.photo),
       text: comment.comment,
       createdAt: comment.created_at,
       replies: (comment.replies ?? []).map((reply) => {
@@ -1061,6 +949,7 @@ export class ContentDetailPage {
           id: String(reply.id),
           author: replyAuthor,
           authorInitials: this.getInitials(replyAuthor),
+          authorPhotoUrl: normalizeMediaUrl(reply.user?.photo),
           text: reply.reply,
           createdAt: reply.created_at,
         };
@@ -1085,6 +974,8 @@ export class ContentDetailPage {
 
     return {
       id: String(content.id),
+      categoryId: content.category?.id,
+      contentTypeId: content.content_type?.id,
       category: content.category?.name ?? 'Sem categoria',
       contentType,
       meta: this.buildMeta(content.updated_at ?? content.created_at, contentType),
@@ -1093,13 +984,46 @@ export class ContentDetailPage {
       body: content.content || '<p>Conteúdo indisponível.</p>',
       author: authorName,
       authorInitials: this.getInitials(authorName),
+      authorPhotoUrl: normalizeMediaUrl(content.author?.photo ?? content.user?.photo),
       authorBio: content.author?.bio || content.user?.bio || undefined,
-      imageUrl: content.image || undefined,
+      imageUrl: normalizeMediaUrl(content.image ?? content.image_url),
       premium: contentTypeSlug === 'jindungo',
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
       likedByMe: Boolean(content.liked_by_me),
       viewsCount: Number(content.views_count ?? 0),
+    };
+  }
+
+  relatedContentRoute(content: ContentListItem): string[] {
+    const type = this.normalizeText(content.contentType);
+
+    if (type === 'video') {
+      return ['/app/contents/videos', content.id];
+    }
+
+    return ['/app/contents', content.id];
+  }
+
+  private toRelatedContent(content: BackendContent): ContentListItem {
+    const contentType = content.content_type?.name ?? 'Texto';
+    const authorName = content.author?.name ?? content.user?.name ?? 'Equipa editorial';
+
+    return {
+      id: String(content.id),
+      category: content.category?.name ?? 'Sem categoria',
+      contentType,
+      meta: this.buildMeta(content.updated_at ?? content.created_at, contentType),
+      title: content.title,
+      excerpt: content.summary || this.toExcerpt(content.content),
+      author: authorName,
+      authorInitials: this.getInitials(authorName),
+      imageUrl: normalizeMediaUrl(content.image ?? content.image_url),
+      premium: this.normalizeText(content.content_type?.slug ?? contentType) === 'jindungo',
+      reactionsCount: Number(content.reactions_count ?? 0),
+      commentsCount: Number(content.comments_count ?? 0),
+      likedByMe: Boolean(content.liked_by_me),
+      searchText: content.content || '',
     };
   }
 
@@ -1148,7 +1072,7 @@ export class ContentDetailPage {
 
 @Component({
   selector: 'app-video-content-detail-page',
-  imports: [RouterLink, PublicNavbarComponent, PublicFooterComponent, BackToTopComponent],
+  imports: [RouterLink, PublicNavbarComponent, BackToTopComponent],
   templateUrl: './video-content-detail.page.html'
 })
 export class VideoContentDetailPage {
@@ -1162,81 +1086,14 @@ export class VideoContentDetailPage {
   readonly isLoading = signal(false);
   readonly loadError = signal('');
   readonly loadedVideo = signal<VideoDetail | null>(null);
+  readonly relatedContents = signal<ContentListItem[]>([]);
+  readonly isLoadingRelated = signal(false);
 
   readonly video = computed(() => {
-    return this.loadedVideo() ?? this.videos[0];
+    return this.loadedVideo();
   });
 
-  readonly relatedResearch: RelatedResearch[] = [
-    {
-      title: 'A Arquitectura do Lobito: uma cidade portuaria em crise',
-      meta: 'Arquivo - 4.5k visualizacoes',
-      duration: '12:05',
-      imageUrl: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=400&q=80',
-      route: '/app/contents/videos/video-ferrovia',
-    },
-    {
-      title: 'Mudancas cambiais na economia do pos-guerra',
-      meta: 'Economia - 12k visualizacoes',
-      duration: '8:45',
-      imageUrl: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&w=400&q=80',
-      route: '/app/contents/videos/video-inflacao',
-    },
-    {
-      title: 'Documento branco: infraestrutura investindo 1960-1970',
-      meta: 'Pesquisa - 15 min',
-      duration: 'PDF',
-      imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=400&q=80',
-      route: '/app/contents/rotas-comerciais',
-    },
-  ];
-
   readonly comments: VideoComment[] = [];
-
-  private readonly videos: VideoDetail[] = [
-    {
-      id: 'video-cafe',
-      title: 'Do Cafe ao Petroleo: ciclos economicos que mudaram Angola',
-      date: '12 Marco, 2024',
-      duration: '18:32',
-      frameUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80',
-      author: 'Dr. Arnaldo Santos',
-      authorInitials: 'AS',
-      authorRole: 'Historiador economico senior',
-      summary:
-        'Este ensaio visual explora a transicao da capital e das regioes produtivas de Angola entre economias agricolas, administracao colonial, industrializacao e dependencia petrolifera. Com imagens de arquivo e dados economicos, o video acompanha como infraestruturas, portos e trabalho moldaram a sociedade angolana moderna.',
-      quote:
-        'A passagem da dominancia agricola para a industrializacao nao foi apenas uma mudanca de moeda; foi o nascimento de uma nova classe social angolana.',
-    },
-    {
-      id: 'video-ferrovia',
-      title: 'Ferrovias, portos e mercados: a logistica que move Angola',
-      date: '18 Marco, 2024',
-      duration: '14:32',
-      frameUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=1200&q=80',
-      author: 'Equipa EH',
-      authorInitials: 'EH',
-      authorRole: 'Nucleo de arquivo e visualizacao',
-      summary:
-        'Uma aula visual sobre corredores ferroviarios, portos, exportacoes e integracao regional. O video mostra como as rotas de transporte alteraram mercados locais e ligaram o interior angolano a circuitos comerciais internacionais.',
-      quote:
-        'Cada linha ferroviaria tambem transportava decisoes politicas, expectativas de mercado e novas formas de ocupacao do territorio.',
-    },
-    {
-      id: 'video-inflacao',
-      title: 'Inflacao explicada com exemplos do quotidiano angolano',
-      date: '22 Marco, 2024',
-      duration: '11:18',
-      frameUrl: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&w=1200&q=80',
-      author: 'Nucleo Academico',
-      authorInitials: 'NA',
-      authorRole: 'Educacao economica aplicada',
-      summary:
-        'Conceitos de inflacao, poder de compra, moeda e precos sao apresentados a partir de exemplos familiares do quotidiano angolano, aproximando teoria economica e experiencia social.',
-      quote:
-        'A inflacao torna-se concreta quando o salario, o mercado e a memoria familiar deixam de contar a mesma historia.',
-    },
-  ];
 
   constructor() {
     void this.loadVideo();
@@ -1262,6 +1119,7 @@ export class VideoContentDetailPage {
       }
 
       this.loadedVideo.set(this.toVideoDetail(content));
+      await this.loadRelatedContents(content);
     } catch {
       this.loadError.set('Não foi possível carregar este vídeo.');
     } finally {
@@ -1302,6 +1160,11 @@ export class VideoContentDetailPage {
     event.stopPropagation();
 
     const video = this.video();
+
+    if (!video) {
+      return;
+    }
+
     const url = window.location.href.split('#')[0];
     const text = `${video.title} - Economia com História`;
 
@@ -1346,19 +1209,97 @@ export class VideoContentDetailPage {
 
     return {
       id: String(content.id),
+      categoryId: content.category?.id,
+      contentTypeId: content.content_type?.id,
       title: content.title,
       date: createdAt && !Number.isNaN(createdAt.getTime())
         ? createdAt.toLocaleDateString('pt-AO', { day: '2-digit', month: 'long', year: 'numeric' })
         : 'Data indisponível',
       duration: this.extractDuration(content.content) ?? '00:00',
-      frameUrl: content.image ?? content.image_url ?? undefined,
+      frameUrl: normalizeMediaUrl(content.image ?? content.image_url),
       videoUrl: content.video ?? content.video_url ?? undefined,
       author: authorName,
       authorInitials: this.initials(authorName),
+      authorPhotoUrl: normalizeMediaUrl(content.author?.photo ?? content.user?.photo),
       authorRole: 'Autor',
       summary: content.summary || this.toPlainText(content.content) || 'Sem resumo disponível.',
       quote: this.toPlainText(content.content) || content.summary || '',
     };
+  }
+
+  private async loadRelatedContents(content: BackendContent): Promise<void> {
+    const contentId = String(content.id);
+    const categoryId = content.category?.id;
+    const contentTypeId = content.content_type?.id;
+    const related = new Map<string, ContentListItem>();
+
+    this.isLoadingRelated.set(true);
+
+    try {
+      if (categoryId) {
+        const response = await this.contentService.getAll({ categoryId });
+
+        response.data
+          .filter((item) => String(item.id) !== contentId)
+          .forEach((item) => related.set(String(item.id), this.toRelatedContent(item)));
+      }
+
+      if (related.size < 6 && contentTypeId) {
+        const response = await this.contentService.getAll({ contentTypeId });
+
+        response.data
+          .filter((item) => String(item.id) !== contentId)
+          .forEach((item) => related.set(String(item.id), this.toRelatedContent(item)));
+      }
+
+      this.relatedContents.set([...related.values()].slice(0, 6));
+    } catch {
+      this.relatedContents.set([]);
+    } finally {
+      this.isLoadingRelated.set(false);
+    }
+  }
+
+  relatedContentRoute(content: ContentListItem): string[] {
+    const type = this.normalizeText(content.contentType);
+
+    if (type === 'video') {
+      return ['/app/contents/videos', content.id];
+    }
+
+    return ['/app/contents', content.id];
+  }
+
+  private toRelatedContent(content: BackendContent): ContentListItem {
+    const contentType = content.content_type?.name ?? 'Texto';
+    const authorName = content.author?.name ?? content.user?.name ?? 'Equipa editorial';
+
+    return {
+      id: String(content.id),
+      category: content.category?.name ?? 'Sem categoria',
+      contentType,
+      meta: this.formatMeta(content.updated_at ?? content.created_at, contentType),
+      title: content.title,
+      excerpt: content.summary || this.toPlainText(content.content).slice(0, 180),
+      author: authorName,
+      authorInitials: this.initials(authorName),
+      imageUrl: normalizeMediaUrl(content.image ?? content.image_url),
+      premium: this.normalizeText(content.content_type?.slug ?? contentType) === 'jindungo',
+      reactionsCount: Number(content.reactions_count ?? 0),
+      commentsCount: Number(content.comments_count ?? 0),
+      likedByMe: Boolean(content.liked_by_me),
+      searchText: content.content || '',
+    };
+  }
+
+  private formatMeta(createdAt: string | null | undefined, contentType: string): string {
+    const date = createdAt ? new Date(createdAt) : null;
+    const formattedDate =
+      date && !Number.isNaN(date.getTime())
+        ? new Intl.DateTimeFormat('pt-AO', { day: '2-digit', month: 'short', year: 'numeric' }).format(date)
+        : 'Sem data';
+
+    return `${formattedDate} - ${contentType}`;
   }
 
   private extractDuration(content: string | null | undefined): string | null {

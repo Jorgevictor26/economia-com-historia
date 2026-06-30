@@ -38,7 +38,7 @@ export class RegisterPage {
     acceptedTerms: [false, [Validators.requiredTrue]],
   });
   readonly bioForm = this.fb.nonNullable.group({
-    biography: ['', [Validators.required, Validators.minLength(20)]],
+    biography: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(150)]],
   });
 
   readonly initials = computed(() => {
@@ -145,7 +145,7 @@ export class RegisterPage {
 
   private async finishRegistration(): Promise<void> {
     const { fullName, email, password, confirmPassword } = this.form.getRawValue();
-    const biography = this.bioForm.controls.biography.value.trim();
+    const biography = this.bioForm.controls.biography.value.trim().slice(0, 150);
     const payload: RegisterPayload = {
       name: fullName,
       email,

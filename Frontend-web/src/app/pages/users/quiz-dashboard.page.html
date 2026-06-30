@@ -38,8 +38,8 @@
       {{ loadError() }}</p>
     }
 
-    <section class="mt-6 grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start">
-      <aside class="rounded-[8px] border border-[#E0E0E0] bg-white">
+    <section class="mt-6 grid gap-6 xl:grid-cols-[minmax(260px,1fr)_minmax(0,3fr)] xl:items-stretch">
+      <aside class="h-full rounded-[8px] border border-[#E0E0E0] bg-white">
         <article class="p-5">
           <h2 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">As tuas estat&iacute;sticas</h2>
           <div class="mt-4 flex flex-col divide-y divide-[#E0E0E0]">
@@ -73,14 +73,12 @@
             </div>
             }
           </div>
-          
-           <button type="button" class="eh-card-action mt-5 w-full min-h-11 justify-center">Ver ranking completo</button>
-       
+          <button type="button" class="eh-card-action mt-5 w-full min-h-11 justify-center">Ver ranking completo</button>
         </section>
       </aside>
 
       <section class="min-w-0">
-      <div class="grid auto-rows-fr gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div class="grid auto-rows-fr gap-6 md:grid-cols-2 xl:grid-cols-3">
         @for (quiz of paginatedQuizzes(); track quiz.title) {
         <article
           class="group flex h-full min-h-[318px] flex-col overflow-hidden rounded-[18px] border border-[#E0E0E0] bg-white shadow-[0_16px_40px_rgba(64,8,26,0.07)] transition duration-300 hover:-translate-y-1 hover:border-[#E6D5B8] hover:shadow-[0_22px_55px_rgba(64,8,26,0.14)]">
@@ -126,7 +124,10 @@
             <div class="mt-auto pt-5">
               <div class="h-2 overflow-hidden rounded-full bg-[#F2E6E9]">
                 <span
-                  class="block h-full rounded-full bg-[linear-gradient(90deg,#2a9d8f,#d4af37)] transition-all duration-500"
+                  class="block h-full rounded-full transition-all duration-500"
+                  [class.bg-[#2A9D8F]]="quiz.progress === 100"
+                  [class.bg-[#D4AF37]]="quiz.progress >= 50 && quiz.progress < 100"
+                  [class.bg-[#8A3F50]]="quiz.progress < 50"
                   [style.width.%]="quiz.progress"></span>
               </div>
               <div class="mt-2 flex justify-between text-[11px] text-[#9E9E9E]">

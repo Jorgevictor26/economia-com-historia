@@ -133,7 +133,7 @@ export class ProfilePage implements OnInit {
   async saveProfile(name: string, email: string, biography: string): Promise<void> {
     const normalizedName = name.trim();
     const normalizedEmail = email.trim();
-    const normalizedBiography = biography.trim();
+    const normalizedBiography = biography.trim().slice(0, 150);
 
     this.profileSaveMessage.set('');
     this.profileSaveError.set('');

@@ -1762,6 +1762,36 @@
     font-weight: 400;
   }
 
+  textarea {
+    appearance: none;
+    display: block;
+    width: 100%;
+    height: auto !important;
+    min-height: 6rem;
+    resize: none !important;
+    field-sizing: content;
+    overflow-y: auto;
+    border: 1px solid #E0E0E0;
+    background-color: #fff;
+    padding: 0.875rem 1rem;
+    color: #212121;
+    line-height: 1.6;
+    box-shadow: 0 8px 18px rgba(33, 33, 33, 0.03);
+    transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  }
+
+  textarea:focus {
+    border-color: #8A3F50;
+    box-shadow: 0 0 0 3px rgba(138, 63, 80, 0.12);
+    outline: none;
+  }
+
+  textarea:disabled,
+  textarea[readonly] {
+    background-color: #F5F5F5;
+    color: #616161;
+  }
+
   button:disabled,
   [aria-disabled="true"] {
     cursor: not-allowed;

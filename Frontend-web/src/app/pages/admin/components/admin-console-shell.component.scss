@@ -13,7 +13,7 @@
   display: grid;
   grid-template-columns: minmax(228px, 260px) minmax(0, 1fr);
   gap: 1rem;
-  align-items: start;
+  align-items: stretch;
   min-height: calc(100dvh - 96px);
   padding-block: 2rem 2.5rem;
 }
@@ -28,6 +28,8 @@
 
 .admin-sidebar {
   overflow: visible;
+  height: 100%;
+  align-self: stretch;
 }
 
 .admin-content-panel {

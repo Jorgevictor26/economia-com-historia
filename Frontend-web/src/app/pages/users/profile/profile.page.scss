@@ -14,7 +14,7 @@
   display: grid;
   grid-template-columns: minmax(228px, 260px) minmax(0, 1fr);
   gap: 1rem;
-  align-items: start;
+  align-items: stretch;
 }
 
 .profile-sidebar,
@@ -33,6 +33,8 @@
 
 .profile-sidebar {
   overflow: visible;
+  height: 100%;
+  align-self: stretch;
 }
 
 .profile-identity {
@@ -269,7 +271,7 @@ select {
 
 textarea {
   min-height: 5.45rem;
-  resize: vertical;
+  resize: none;
   padding: 0.85rem;
 }
 

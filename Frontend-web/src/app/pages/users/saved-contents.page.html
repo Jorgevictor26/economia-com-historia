@@ -13,11 +13,7 @@
 
   <main class="fluid-container pb-16 pt-6">
     <section class="mb-8">
-      <h1 class="font-display text-[32px] font-extrabold leading-tight text-[#5C1E2F] md:text-[40px]">Guardados</h1>
-      <p class="mt-3 max-w-[560px] text-[13px] leading-6 text-[#616161]">
-        A sua curadoria pessoal de conteúdos guardados para voltar quando quiser.
-      </p>
-
+      <h1 class="font-display text-[32px] font-extrabold leading-tight text-[#5C1E2F] md:text-[40px]">Guardados</h1> 
       <div class="mt-7 flex flex-wrap items-center gap-3">
         @for (filter of filters; track filter) {
           <button
@@ -49,7 +45,7 @@
       <section class="rounded-[8px] border border-[#E0E0E0] bg-white px-6 py-12 text-center">
         <h2 class="font-display text-[22px] font-extrabold text-[#5c1e2f]">Nada guardado aqui</h2>
         <p class="mx-auto mt-3 max-w-[460px] text-[13px] leading-6 text-[#616161]">
-          Quando guardar itens desta categoria, eles aparecem nesta lista.
+          Quando guardar itens, eles aparecem nesta lista.
         </p>
         <a routerLink="/app/contents" class="mt-5 inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5C1E2F] px-5 text-[13px] font-bold text-white">
           Explorar conteúdos

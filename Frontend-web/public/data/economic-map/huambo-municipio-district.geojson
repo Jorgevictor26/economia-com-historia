@@ -1,0 +1,7 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature", "properties": { "id": "se-catedral", "name": "Sé Catedral" }, "geometry": { "type": "Polygon", "coordinates": [[[15.70,-12.75],[15.78,-12.76],[15.78,-12.84],[15.69,-12.85],[15.66,-12.80],[15.70,-12.75]]] } },
+    { "type": "Feature", "properties": { "id": "sao-joao", "name": "São João" }, "geometry": { "type": "Polygon", "coordinates": [[[15.66,-12.80],[15.69,-12.85],[15.77,-12.88],[15.72,-12.96],[15.60,-12.93],[15.58,-12.84],[15.66,-12.80]]] } }
+  ]
+}

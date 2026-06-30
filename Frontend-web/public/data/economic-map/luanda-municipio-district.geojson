@@ -1,0 +1,7 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature", "properties": { "id": "ingombota", "name": "Ingombota" }, "geometry": { "type": "Polygon", "coordinates": [[[13.20,-8.78],[13.27,-8.79],[13.28,-8.86],[13.22,-8.89],[13.17,-8.85],[13.20,-8.78]]] } },
+    { "type": "Feature", "properties": { "id": "maianga", "name": "Maianga" }, "geometry": { "type": "Polygon", "coordinates": [[[13.17,-8.85],[13.22,-8.89],[13.30,-8.93],[13.24,-9.02],[13.14,-8.98],[13.10,-8.90],[13.17,-8.85]]] } }
+  ]
+}

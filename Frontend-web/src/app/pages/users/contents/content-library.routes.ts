@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink, Routes } from '@angular/router';
 import { adminGuard } from '../../../services/admin.guard';
 import { Category } from '../../../models/category.model';
@@ -90,12 +90,17 @@ interface VideoComment {
   likes: number;
 }
 
+interface PageToast {
+  message: string;
+  kind: 'success' | 'error' | 'info';
+}
+
 @Component({
   selector: 'app-content-library-page',
   imports: [PublicNavbarComponent, BackToTopComponent, ContentCardComponent],
   templateUrl: './content-library.page.html'
 })
-export class ContentLibraryPage implements OnInit {
+export class ContentLibraryPage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly auth = inject(AuthStateService);
@@ -125,7 +130,9 @@ export class ContentLibraryPage implements OnInit {
   readonly shareContentTarget = signal<ContentListItem | null>(null);
   readonly shareStatus = signal('');
   readonly saveStatus = signal('');
+  readonly toast = signal<PageToast | null>(null);
   readonly savingContentId = signal<string | null>(null);
+  private toastTimeout?: ReturnType<typeof setTimeout>;
   readonly shareUrl = computed(() => {
     const content = this.shareContentTarget();
 
@@ -210,6 +217,10 @@ export class ContentLibraryPage implements OnInit {
     await this.loadContents(1, true);
   }
 
+  ngOnDestroy(): void {
+    this.clearToastTimeout();
+  }
+
   requireLogin(event: Event, operation: string): void {
     event.preventDefault();
     event.stopPropagation();
@@ -271,7 +282,7 @@ export class ContentLibraryPage implements OnInit {
     }
 
     await navigator.clipboard?.writeText(url);
-    this.shareStatus.set('Link copiado.');
+    this.showToast('Link copiado.', 'success');
   }
 
   async shareFromModal(platform: 'whatsapp' | 'facebook' | 'instagram'): Promise<void> {
@@ -363,11 +374,24 @@ export class ContentLibraryPage implements OnInit {
 
     try {
       await this.savedContentService.save(content.id);
-      this.saveStatus.set(`"${content.title}" foi guardado.`);
+      this.showToast(`"${content.title}" foi guardado.`, 'success');
     } catch {
-      this.saveStatus.set('Não foi possível guardar este conteúdo.');
+      this.showToast('Não foi possível guardar este conteúdo.', 'error');
     } finally {
       this.savingContentId.set(null);
+    }
+  }
+
+  private showToast(message: string, kind: PageToast['kind'] = 'info'): void {
+    this.clearToastTimeout();
+    this.toast.set({ message, kind });
+    this.toastTimeout = setTimeout(() => this.toast.set(null), 5000);
+  }
+
+  private clearToastTimeout(): void {
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+      this.toastTimeout = undefined;
     }
   }
 
@@ -558,7 +582,7 @@ export class ContentLibraryPage implements OnInit {
   imports: [RouterLink, PublicNavbarComponent, BackToTopComponent],
   templateUrl: './content-detail.page.html'
 })
-export class ContentDetailPage {
+export class ContentDetailPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly commentService = inject(CommentService);
   private readonly commentReportService = inject(CommentReportService);
@@ -590,9 +614,14 @@ export class ContentDetailPage {
   readonly reactionError = signal('');
   readonly saveStatus = signal('');
   readonly shareStatus = signal('');
+<<<<<<< HEAD
   readonly relatedContents = signal<ContentListItem[]>([]);
   readonly isLoadingRelated = signal(false);
+=======
+  readonly toast = signal<PageToast | null>(null);
+>>>>>>> bcc865f790a1e693b305905928e41090baa9837e
   readonly canUseNativeShare = typeof navigator !== 'undefined' && 'share' in navigator;
+  private toastTimeout?: ReturnType<typeof setTimeout>;
   readonly relatedQuiz = computed(() => {
     const contentId = this.detail()?.id ?? this.route.snapshot.params['id'];
 
@@ -622,6 +651,10 @@ export class ContentDetailPage {
     } finally {
       this.isLoading.set(false);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.clearToastTimeout();
   }
 
   requireLogin(event: Event, operation: string): void {
@@ -672,7 +705,7 @@ export class ContentDetailPage {
       this.likedByMe.set(response.data.reacted);
       this.reactionCount.set(Number(response.data.reactions_count ?? this.reactionCount()));
     } catch {
-      this.reactionError.set('Não foi possível registar a reação.');
+      this.showToast('Não foi possível registar a reação.', 'error');
     } finally {
       this.isSavingReaction.set(false);
     }
@@ -698,9 +731,9 @@ export class ContentDetailPage {
 
     try {
       await this.savedContentService.save(contentId);
-      this.saveStatus.set('Conteúdo guardado.');
+      this.showToast('Conteúdo guardado.', 'success');
     } catch {
-      this.saveStatus.set('Não foi possível guardar este conteúdo.');
+      this.showToast('Não foi possível guardar este conteúdo.', 'error');
     } finally {
       this.isSavingContent.set(false);
     }
@@ -739,13 +772,13 @@ export class ContentDetailPage {
 
     if (platform === 'copy') {
       await navigator.clipboard?.writeText(url);
-      this.shareStatus.set('Link copiado.');
+      this.showToast('Link copiado.', 'success');
       return;
     }
 
     if (platform === 'instagram') {
       await navigator.clipboard?.writeText(url);
-      this.shareStatus.set('Link copiado para partilhar no Instagram.');
+      this.showToast('Link copiado para partilhar no Instagram.', 'success');
       window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
       return;
     }
@@ -771,7 +804,7 @@ export class ContentDetailPage {
     this.commentSuccess.set('');
 
     if (!contentId || !comment) {
-      this.commentError.set('Escreva um comentário antes de publicar.');
+      this.showToast('Escreva um comentário antes de publicar.', 'error');
       return;
     }
 
@@ -780,10 +813,10 @@ export class ContentDetailPage {
     try {
       await this.commentService.create(contentId, comment);
       await this.loadComments(contentId);
-      this.commentSuccess.set('Comentário publicado com sucesso.');
+      this.showToast('Comentário publicado com sucesso.', 'success');
       this.isCommentComposerOpen.set(false);
     } catch {
-      this.commentError.set('Não foi possível publicar o comentário.');
+      this.showToast('Não foi possível publicar o comentário.', 'error');
     } finally {
       this.isSavingComment.set(false);
     }
@@ -797,17 +830,17 @@ export class ContentDetailPage {
     this.commentSuccess.set('');
 
     if (!contentId || !reply) {
-      this.commentError.set('Escreva uma resposta antes de publicar.');
+      this.showToast('Escreva uma resposta antes de publicar.', 'error');
       return;
     }
 
     try {
       await this.commentService.reply(commentId, reply);
       await this.loadComments(contentId);
-      this.commentSuccess.set('Resposta publicada com sucesso.');
+      this.showToast('Resposta publicada com sucesso.', 'success');
       this.replyingToCommentId.set(null);
     } catch {
-      this.commentError.set('Não foi possível publicar a resposta.');
+      this.showToast('Não foi possível publicar a resposta.', 'error');
     }
   }
 
@@ -856,7 +889,7 @@ export class ContentDetailPage {
 
     try {
       await this.commentReportService.create(target.id, this.reportReason(), this.reportDescription());
-      this.reportSuccess.set('Comentário denunciado. A equipa vai rever.');
+      this.showToast('Comentário denunciado. A equipa vai rever.', 'success');
       this.reportTarget.set(null);
     } catch (error) {
       this.reportError.set(error instanceof Error ? this.translateReportError(error.message) : 'Não foi possível enviar a denúncia.');
@@ -873,6 +906,19 @@ export class ContentDetailPage {
     };
 
     return translations[message] ?? message;
+  }
+
+  private showToast(message: string, kind: PageToast['kind'] = 'info'): void {
+    this.clearToastTimeout();
+    this.toast.set({ message, kind });
+    this.toastTimeout = setTimeout(() => this.toast.set(null), 5000);
+  }
+
+  private clearToastTimeout(): void {
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+      this.toastTimeout = undefined;
+    }
   }
 
   private async loadComments(contentId: string): Promise<void> {
@@ -1075,24 +1121,60 @@ export class ContentDetailPage {
   imports: [RouterLink, PublicNavbarComponent, BackToTopComponent],
   templateUrl: './video-content-detail.page.html'
 })
-export class VideoContentDetailPage {
+export class VideoContentDetailPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly contentService = inject(ContentService);
   private readonly savedContentService = inject(SavedContentService);
   readonly auth = inject(AuthStateService);
   readonly saveStatus = signal('');
+  readonly toast = signal<PageToast | null>(null);
   readonly videoLiked = signal(false);
   readonly isVideoCommentComposerOpen = signal(false);
   readonly isLoading = signal(false);
   readonly loadError = signal('');
   readonly loadedVideo = signal<VideoDetail | null>(null);
+<<<<<<< HEAD
   readonly relatedContents = signal<ContentListItem[]>([]);
   readonly isLoadingRelated = signal(false);
+=======
+  private toastTimeout?: ReturnType<typeof setTimeout>;
+>>>>>>> bcc865f790a1e693b305905928e41090baa9837e
 
   readonly video = computed(() => {
     return this.loadedVideo();
   });
 
+<<<<<<< HEAD
+=======
+  ngOnDestroy(): void {
+    this.clearToastTimeout();
+  }
+
+  readonly relatedResearch: RelatedResearch[] = [
+    {
+      title: 'A Arquitectura do Lobito: uma cidade portuaria em crise',
+      meta: 'Arquivo - 4.5k visualizacoes',
+      duration: '12:05',
+      imageUrl: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=400&q=80',
+      route: '/app/contents/videos/video-ferrovia',
+    },
+    {
+      title: 'Mudancas cambiais na economia do pos-guerra',
+      meta: 'Economia - 12k visualizacoes',
+      duration: '8:45',
+      imageUrl: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&w=400&q=80',
+      route: '/app/contents/videos/video-inflacao',
+    },
+    {
+      title: 'Documento branco: infraestrutura investindo 1960-1970',
+      meta: 'Pesquisa - 15 min',
+      duration: 'PDF',
+      imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=400&q=80',
+      route: '/app/contents/rotas-comerciais',
+    },
+  ];
+
+>>>>>>> bcc865f790a1e693b305905928e41090baa9837e
   readonly comments: VideoComment[] = [];
 
   constructor() {
@@ -1197,9 +1279,22 @@ export class VideoContentDetailPage {
 
     try {
       await this.savedContentService.save(contentId);
-      this.saveStatus.set('Conteúdo guardado.');
+      this.showToast('Conteúdo guardado.', 'success');
     } catch {
-      this.saveStatus.set('Não foi possível guardar este conteúdo.');
+      this.showToast('Não foi possível guardar este conteúdo.', 'error');
+    }
+  }
+
+  private showToast(message: string, kind: PageToast['kind'] = 'info'): void {
+    this.clearToastTimeout();
+    this.toast.set({ message, kind });
+    this.toastTimeout = setTimeout(() => this.toast.set(null), 5000);
+  }
+
+  private clearToastTimeout(): void {
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+      this.toastTimeout = undefined;
     }
   }
 

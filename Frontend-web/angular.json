@@ -29,7 +29,8 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css"]
+            "allowedCommonJsDependencies": ["leaflet"],
+            "styles": ["node_modules/leaflet/dist/leaflet.css", "src/styles.css"]
           },
           "configurations": {
             "production": {
@@ -59,6 +60,7 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
+            "port": 5000,
             "proxyConfig": "proxy.conf.json"
           },
           "configurations": {

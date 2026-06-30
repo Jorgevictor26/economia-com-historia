@@ -3,7 +3,6 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Routes } from '@angular/router';
 import { BackendContent, ContentService } from '../../services/content.service';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
-import { PublicFooterComponent } from '../shared/public-footer/public-footer.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
 interface PodcastView {
@@ -20,7 +19,7 @@ interface PodcastView {
 
 @Component({
   selector: 'app-podcast-library-page',
-  imports: [RouterLink, PublicNavbarComponent, PublicFooterComponent, BackToTopComponent],
+  imports: [RouterLink, PublicNavbarComponent, BackToTopComponent],
   templateUrl: './podcast-library.page.html'
 })
 export class PodcastLibraryPage {

@@ -1,6 +1,16 @@
 <section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
   <app-public-navbar />
 
+  @if (toast(); as currentToast) {
+    <aside class="eh-toast" [attr.data-kind]="currentToast.kind" role="status" aria-live="polite">
+      <div class="eh-toast-content">
+        <strong class="eh-toast-title">{{ currentToast.kind === 'error' ? 'Atenção' : currentToast.kind === 'success' ? 'Concluído' : 'Nota' }}</strong>
+        <span class="eh-toast-message">{{ currentToast.message }}</span>
+      </div>
+      <span class="eh-toast-progress" aria-hidden="true"></span>
+    </aside>
+  }
+
   <main class="mx-auto grid w-full max-w-[1160px] grid-cols-1 gap-7 px-4 pb-20 pt-6 sm:px-6 lg:grid-cols-[200px_minmax(0,560px)] xl:grid-cols-[200px_minmax(0,560px)_250px] xl:px-8">
     <aside class="hidden lg:block">
       <div class="sticky top-[82px]">
@@ -152,17 +162,10 @@
                 <input class="min-w-0 bg-transparent px-3 py-3 text-[12px] text-[#616161] outline-none" type="text" readonly [value]="currentShareUrl()" />
                 <button type="button" class="bg-[#5C1E2F] px-4 text-[12px] font-bold text-white" (click)="shareTo('copy', $event)">Copiar</button>
               </div>
-            @if (shareStatus()) {
-            <p class="mt-3 text-[12px] font-semibold text-[#2A9D8F]">{{ shareStatus() }}</p>
-            }
             </section>
           </div>
           }
         </div>
-
-        @if (reactionError()) {
-        <p class="mt-4 text-[12px] font-medium text-[#8A3F50]">{{ reactionError() }}</p>
-        }
 
         <h2 id="comments" class="mt-10 text-[14px] font-medium text-[#5c1e2f]">Comentários ({{ comments().length }})</h2>
 
@@ -181,18 +184,6 @@
             </div>
           </div>
         </div>
-        }
-
-        @if (commentSuccess()) {
-        <p class="mt-4 text-[12px] font-medium text-[#2A9D8F]">{{ commentSuccess() }}</p>
-        }
-
-        @if (commentError()) {
-        <p class="mt-4 text-[12px] font-medium text-[#8A3F50]">{{ commentError() }}</p>
-        }
-
-        @if (reportSuccess()) {
-        <p class="mt-4 text-[12px] font-medium text-[#2A9D8F]">{{ reportSuccess() }}</p>
         }
 
         <div class="mt-9 grid gap-7">

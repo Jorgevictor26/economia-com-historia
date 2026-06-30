@@ -7,12 +7,12 @@
 }
 
 .profile-main {
-  min-height: calc(100dvh - 96px);
+  min-height: auto;
 }
 
 .profile-editor {
   display: grid;
-  grid-template-columns: minmax(228px, 260px) minmax(0, 1fr);
+  grid-template-columns: minmax(260px, 0.24fr) minmax(0, 1fr);
   gap: 1rem;
   align-items: stretch;
 }

@@ -942,7 +942,7 @@
     min-height: 2.25rem;
     align-items: center;
     justify-content: center;
-    border-radius: 999px !important;
+    border-radius: 10px !important;
     background: #5c1e2f;
     padding-inline: 1rem;
     color: #fff;
@@ -1805,7 +1805,7 @@
   .public-navbar-drawer-link,
   .content-action,
   .jindungo-unlock-button {
-    border-radius: 8px !important;
+    border-radius: 10px !important;
   }
 
   button.rounded-full,
@@ -1819,7 +1819,7 @@
   select,
   article:not(.rounded-full),
   .panel {
-    border-radius: 8px;
+    border-radius: 10px;
   }
 }
 

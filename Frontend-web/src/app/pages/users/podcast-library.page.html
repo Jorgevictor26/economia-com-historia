@@ -6,9 +6,9 @@
     <section
       class="grid gap-5 bg-white p-4 shadow-[0_18px_36px_rgba(44,39,41,0.06)] md:p-4">
       @if (currentPodcast().coverUrl) {
-        <img [src]="currentPodcast().coverUrl!" [alt]="'Capa de ' + currentPodcast().title" class="min-h-[260px] w-full rounded-[3px] object-cover shadow-[0_18px_34px_rgba(44,39,41,0.18)] md:h-[360px]" />
+        <img [src]="currentPodcast().coverUrl!" [alt]="'Capa de ' + currentPodcast().title" class="min-h-[260px] w-full rounded-[3px] object-cover md:h-[360px]" />
       } @else {
-        <div class="podcast-mic min-h-[260px] rounded-[3px] shadow-[0_18px_34px_rgba(44,39,41,0.18)] md:min-h-[360px]" role="img"
+        <div class="podcast-mic min-h-[260px] rounded-[3px] md:min-h-[360px]" role="img"
           aria-label="Capa do episódio"></div>
       }
 
@@ -88,7 +88,7 @@
             
             <button type="button"
               class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-[0.08em] text-[#9E9E9E]">
-              <span class="material-symbols-outlined text-[15px]" aria-hidden="true">flag</span>
+              <span class="material-symbols-outlined text-[15px]" aria-hidden="true">bookmark_add</span>
              Guardar
             </button>
           </div>

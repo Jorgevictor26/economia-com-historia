@@ -86,7 +86,7 @@
       <div class="mt-8 space-y-6 text-[16px] leading-8 text-[#212121]" [innerHTML]="detail()?.body"></div>
       }
 
-      <section class="mt-9 border-t border-[#E0E0E0] pt-5">
+      <section class="mt-9 pt-5">
         @if (isPremiumContent() && !auth.canReadJindungo()) {
         <div class="mb-8 border border-[#d4af37] bg-[#fff] px-6 py-5 text-center">
           <h2 class="font-display text-[18px] font-extrabold text-[#5c1e2f]">Texto com Jindungo reservado</h2>
@@ -99,7 +99,7 @@
           </a>
         </div>
         }
-        <div class="relative flex flex-wrap items-center justify-between gap-5 border-y border-[#E0E0E0] py-4 text-[12px] text-[#616161]">
+        <div class="relative flex flex-wrap items-center justify-between gap-5 border-t border-[#E0E0E0] py-4 text-[12px] text-[#616161]">
           <div class="flex flex-wrap items-center gap-8">
             <button type="button" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]" [disabled]="isSavingReaction()" (click)="react($event)">
               <span class="material-symbols-outlined text-[26px] leading-none" [class.text-[#8A3F50]]="likedByMe()">favorite</span>
@@ -113,13 +113,10 @@
               <span class="material-symbols-outlined text-[26px] leading-none">share</span>
               <span>Partilhar</span>
             </button>
-            <a [routerLink]="['/app/forums']" [queryParams]="{ content: detail()?.id }" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]">
-              <span class="material-symbols-outlined text-[26px] leading-none">forum</span>
-              <span>Criar f&oacute;rum</span>
-            </a>
+
           </div>
           <button type="button" class="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#9E9E9E] transition hover:text-[#5C1E2F]" [disabled]="isSavingContent()" (click)="saveContent($event)">
-            <span class="material-symbols-outlined text-[24px] leading-none">outlined_flag</span>
+            <span class="material-symbols-outlined text-[19px] leading-none">bookmark_add</span>
             <span>Guardar</span>
           </button>
           @if (shareMenuOpen()) {
@@ -301,25 +298,26 @@
     <aside class="hidden xl:block">
       <div class="sticky top-[82px] grid gap-6">
         <section>
-          <h2 class="font-display text-[17px] font-medium text-[#5c1e2f]">Relacionados</h2>
-          <div class="mt-5 grid gap-4">
+          <h2 class="font-display text-[17px] font-extrabold text-[#5c1e2f]">Relacionados</h2>
+          <div class="mt-6 grid gap-10">
             @if (isLoadingRelated()) {
             <p class="text-[12px] text-[#616161]">A carregar relacionados...</p>
             } @else if (relatedContents().length) {
             @for (item of relatedContents(); track item.id) {
-            <a [routerLink]="relatedContentRoute(item)" class="grid grid-cols-[86px_minmax(0,1fr)] gap-3 rounded-[8px] transition hover:bg-white">
-              <div class="relative h-[62px] overflow-hidden rounded-[5px] bg-[#F2E6E9]">
+            <a [routerLink]="relatedContentRoute(item)" class="group block transition">
+              <div class="relative h-[142px] overflow-hidden rounded-[3px] bg-[#F2E6E9]">
                 @if (item.imageUrl) {
-                <img [src]="item.imageUrl" [alt]="item.title" class="h-full w-full object-cover" />
+                <img [src]="item.imageUrl" [alt]="item.title" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                 } @else {
-                <span class="grid h-full place-items-center font-display text-[14px] font-extrabold text-[#8A3F50]">{{ item.authorInitials }}</span>
+                <span class="grid h-full place-items-center px-4 text-center font-display text-[18px] font-extrabold text-[#8A3F50]">{{ item.category }}</span>
                 }
-                <span class="absolute bottom-1 right-1 rounded-[4px] bg-black/75 px-1.5 py-0.5 text-[8px] font-bold uppercase text-white">{{ item.contentType }}</span>
+                <span class="hidden">{{ item.contentType }}</span>
               </div>
-              <span class="min-w-0">
-                <strong class="line-clamp-2 text-[12px] leading-4 text-[#212121]">{{ item.title }}</strong>
-                <span class="mt-1 block truncate text-[10px] text-[#616161]">{{ item.category }} • {{ item.author }}</span>
-                <span class="mt-1 flex gap-2 text-[9px] text-[#9E9E9E]">
+              <span class="block">
+                <span class="mt-3 block text-[10px] font-extrabold uppercase text-[#D4AF37]">{{ item.category }}</span>
+                <strong class="mt-1 line-clamp-2 font-display text-[17px] font-extrabold leading-tight text-[#5c1e2f]">{{ item.title }}</strong>
+                <span class="hidden">{{ item.category }} • {{ item.author }}</span>
+                <span class="hidden">
                   <span>{{ item.reactionsCount ?? 0 }} gostos</span>
                   <span>{{ item.commentsCount ?? 0 }} comentários</span>
                 </span>

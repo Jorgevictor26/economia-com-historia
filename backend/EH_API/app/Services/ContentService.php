@@ -41,6 +41,13 @@ class ContentService
         return $this->repository->all($filters);
     }
 
+    public function getSuggestions(?User $actor, int $limit = 9)
+    {
+        $includeJindungo = $actor?->hasRoleName('super-admin') || $actor?->hasActiveJindungoSubscription();
+
+        return $this->repository->suggestions($actor, (bool) $includeJindungo, $limit);
+    }
+
     public function findById(int $id)
     {
         return $this->repository->findById($id);

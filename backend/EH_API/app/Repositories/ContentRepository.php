@@ -4,6 +4,9 @@ namespace App\Repositories;
 
 use App\Models\Content;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class ContentRepository
 {
@@ -14,19 +17,7 @@ class ContentRepository
 
     public function all(array $filters = [])
     {
-        return Content::query()
-            ->with(['author', 'category', 'contentType'])
-            ->withCount(['reactions', 'comments'])
-            ->when($filters['user_id'] ?? null, function ($query, $userId) {
-                $query->withExists([
-                    'reactions as liked_by_me' => fn ($reactionQuery) => $reactionQuery
-                        ->where('user_id', $userId)
-                        ->where('reaction_type', 'like'),
-                ]);
-            })
-            ->when(! ($filters['include_jindungo'] ?? false), function ($query) {
-                $query->whereDoesntHave('contentType', fn ($typeQuery) => $typeQuery->where('slug', 'jindungo'));
-            })
+        return $this->contentQuery($filters)
             ->when($filters['category_id'] ?? null, fn ($query, $categoryId) => $query->where('category_id', $categoryId))
             ->when($filters['content_type_id'] ?? null, fn ($query, $contentTypeId) => $query->where('content_type_id', $contentTypeId))
             ->when($filters['type'] ?? null, fn ($query, $type) => $query->whereHas('contentType', fn ($typeQuery) => $typeQuery->where('slug', $type)))
@@ -43,6 +34,62 @@ class ContentRepository
             })
             ->latest()
             ->paginate(10);
+    }
+
+    public function suggestions(?User $user, bool $includeJindungo, int $limit): Collection
+    {
+        $limit = max(1, min($limit, 12));
+        $historyIds = $user ? $this->historyContentIds($user->id) : collect();
+        $suggestions = collect();
+
+        if ($historyIds->isNotEmpty()) {
+            $historyContents = Content::query()
+                ->whereIn('id', $historyIds)
+                ->get(['id', 'category_id', 'content_type_id']);
+
+            $categoryIds = $historyContents->pluck('category_id')->filter()->unique()->values();
+            $contentTypeIds = $historyContents->pluck('content_type_id')->filter()->unique()->values();
+
+            if ($categoryIds->isNotEmpty() || $contentTypeIds->isNotEmpty()) {
+                $suggestions = $this->contentQuery([
+                    'include_jindungo' => $includeJindungo,
+                    'user_id' => $user->id,
+                ])
+                    ->whereNotIn('id', $historyIds)
+                    ->where(function (Builder $query) use ($categoryIds, $contentTypeIds) {
+                        $query
+                            ->when($categoryIds->isNotEmpty(), fn (Builder $categoryQuery) => $categoryQuery->whereIn('category_id', $categoryIds))
+                            ->when($contentTypeIds->isNotEmpty(), fn (Builder $typeQuery) => $typeQuery->orWhereIn('content_type_id', $contentTypeIds));
+                    })
+                    ->orderByDesc('reactions_count')
+                    ->orderByDesc('views_count')
+                    ->latest()
+                    ->limit($limit)
+                    ->get();
+            }
+        }
+
+        if ($suggestions->count() < $limit) {
+            $excludeIds = $historyIds
+                ->merge($suggestions->pluck('id'))
+                ->unique()
+                ->values();
+
+            $fallback = $this->contentQuery([
+                'include_jindungo' => $includeJindungo,
+                'user_id' => $user?->id,
+            ])
+                ->when($excludeIds->isNotEmpty(), fn (Builder $query) => $query->whereNotIn('id', $excludeIds))
+                ->orderByDesc('reactions_count')
+                ->orderByDesc('views_count')
+                ->latest()
+                ->limit($limit - $suggestions->count())
+                ->get();
+
+            $suggestions = $suggestions->merge($fallback);
+        }
+
+        return $suggestions->values();
     }
 
     public function findById(int $id): ?Content
@@ -93,5 +140,41 @@ class ContentRepository
         $content->update($updates);
 
         return $content->fresh(['author', 'category', 'contentType']);
+    }
+
+    private function contentQuery(array $filters = []): Builder
+    {
+        return Content::query()
+            ->with(['author', 'category', 'contentType'])
+            ->withCount(['reactions', 'comments'])
+            ->when($filters['user_id'] ?? null, function (Builder $query, $userId) {
+                $query->withExists([
+                    'reactions as liked_by_me' => fn ($reactionQuery) => $reactionQuery
+                        ->where('user_id', $userId)
+                        ->where('reaction_type', 'like'),
+                ]);
+            })
+            ->when(! ($filters['include_jindungo'] ?? false), function (Builder $query) {
+                $query->whereDoesntHave('contentType', fn ($typeQuery) => $typeQuery->where('slug', 'jindungo'));
+            });
+    }
+
+    private function historyContentIds(int $userId): Collection
+    {
+        return collect()
+            ->merge(DB::table('saved_contents')->where('user_id', $userId)->pluck('content_id'))
+            ->merge(DB::table('reactions')->where('user_id', $userId)->pluck('content_id'))
+            ->merge(DB::table('comments')->where('user_id', $userId)->pluck('content_id'))
+            ->merge(
+                DB::table('quiz_results')
+                    ->join('quizzes', 'quiz_results.quiz_id', '=', 'quizzes.id')
+                    ->where('quiz_results.user_id', $userId)
+                    ->whereNotNull('quizzes.content_id')
+                    ->pluck('quizzes.content_id')
+            )
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
     }
 }

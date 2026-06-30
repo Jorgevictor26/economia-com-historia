@@ -95,6 +95,28 @@ interface PageToast {
   kind: 'success' | 'error' | 'info';
 }
 
+function contentAuthorPhotoUrl(content: BackendContent): string | undefined {
+  const author = content.author ?? content.user;
+
+  return normalizeMediaUrl(
+    content.author_photo_url
+      ?? content.authorPhotoUrl
+      ?? content.author_photo
+      ?? author?.photo
+      ?? author?.avatar_url
+      ?? author?.avatarUrl
+      ?? author?.profile_photo
+      ?? author?.profilePhoto
+      ?? author?.avatar,
+  );
+}
+
+function contentAuthorId(content: BackendContent): string | undefined {
+  const id = content.author?.id ?? content.user?.id;
+
+  return id === undefined || id === null ? undefined : String(id);
+}
+
 @Component({
   selector: 'app-content-library-page',
   imports: [PublicNavbarComponent, BackToTopComponent, ContentCardComponent],
@@ -468,10 +490,7 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
     const contentTypeSlug = content.content_type?.slug ?? this.normalizeText(contentType);
     const premium = contentTypeSlug === 'jindungo';
     const authorName = content.author?.name ?? content.user?.name ?? 'Equipa editorial';
-
-    console.log('author:', content.author);
-    console.log('user:', content.user);
-    console.log('photo final:', normalizeMediaUrl(content.author?.photo ?? content.user?.photo));
+    const authorId = contentAuthorId(content);
 
     return {
       id: String(content.id),
@@ -480,9 +499,10 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
       meta: this.buildMeta(content.updated_at ?? content.created_at, contentType),
       title: content.title,
       excerpt: content.summary || this.toExcerpt(content.content),
+      authorId,
       author: authorName,
       authorInitials: this.getInitials(authorName),
-      authorPhotoUrl: normalizeMediaUrl(content.author?.photo ?? content.user?.photo),
+      authorPhotoUrl: contentAuthorPhotoUrl(content) ?? this.authenticatedAuthorPhotoUrl(authorId),
       imageUrl: normalizeMediaUrl(content.image_url),
       premium,
       reactionsCount: Number(content.reactions_count ?? 0),
@@ -578,6 +598,12 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
     }
 
     return value.replace(/<[^>]*>/g, '').slice(0, 180);
+  }
+
+  private authenticatedAuthorPhotoUrl(authorId: string | undefined): string | undefined {
+    const user = this.auth.user();
+
+    return authorId && user?.id === authorId ? user.avatarUrl : undefined;
   }
 
 }
@@ -1019,6 +1045,7 @@ export class ContentDetailPage implements OnDestroy {
     const contentType = content.content_type?.name ?? 'Texto';
     const contentTypeSlug = content.content_type?.slug ?? this.normalizeText(contentType);
     const authorName = content.author?.name ?? content.user?.name ?? 'Equipa editorial';
+    const authorId = contentAuthorId(content);
 
     return {
       id: String(content.id),
@@ -1032,7 +1059,7 @@ export class ContentDetailPage implements OnDestroy {
       body: content.content || '<p>Conteúdo indisponível.</p>',
       author: authorName,
       authorInitials: this.getInitials(authorName),
-      authorPhotoUrl: normalizeMediaUrl(content.author?.photo ?? content.user?.photo),
+      authorPhotoUrl: contentAuthorPhotoUrl(content) ?? this.authenticatedAuthorPhotoUrl(authorId),
       authorBio: content.author?.bio || content.user?.bio || undefined,
       imageUrl: normalizeMediaUrl(content.image_url),
       premium: contentTypeSlug === 'jindungo',
@@ -1056,6 +1083,7 @@ export class ContentDetailPage implements OnDestroy {
   private toRelatedContent(content: BackendContent): ContentListItem {
     const contentType = content.content_type?.name ?? 'Texto';
     const authorName = content.author?.name ?? content.user?.name ?? 'Equipa editorial';
+    const authorId = contentAuthorId(content);
 
     return {
       id: String(content.id),
@@ -1064,9 +1092,10 @@ export class ContentDetailPage implements OnDestroy {
       meta: this.buildMeta(content.updated_at ?? content.created_at, contentType),
       title: content.title,
       excerpt: content.summary || this.toExcerpt(content.content),
+      authorId,
       author: authorName,
       authorInitials: this.getInitials(authorName),
-      authorPhotoUrl: normalizeMediaUrl(content.author?.photo ?? content.user?.photo),
+      authorPhotoUrl: contentAuthorPhotoUrl(content) ?? this.authenticatedAuthorPhotoUrl(authorId),
       imageUrl: normalizeMediaUrl(content.image_url),
       premium: this.normalizeText(content.content_type?.slug ?? contentType) === 'jindungo',
       reactionsCount: Number(content.reactions_count ?? 0),
@@ -1116,6 +1145,12 @@ export class ContentDetailPage implements OnDestroy {
     }
 
     return value.replace(/<[^>]*>/g, '').slice(0, 180);
+  }
+
+  private authenticatedAuthorPhotoUrl(authorId: string | undefined): string | undefined {
+    const user = this.auth.user();
+
+    return authorId && user?.id === authorId ? user.avatarUrl : undefined;
   }
 }
 
@@ -1273,6 +1308,7 @@ export class VideoContentDetailPage implements OnDestroy {
   private toVideoDetail(content: BackendContent): VideoDetail {
     const authorName = content.author?.name ?? content.user?.name ?? 'Equipa editorial';
     const createdAt = content.created_at ? new Date(content.created_at) : null;
+    const authorId = contentAuthorId(content);
 
     return {
       id: String(content.id),
@@ -1287,7 +1323,7 @@ export class VideoContentDetailPage implements OnDestroy {
       videoUrl: content.video_url ?? undefined,
       author: authorName,
       authorInitials: this.initials(authorName),
-      authorPhotoUrl: normalizeMediaUrl(content.author?.photo ?? content.user?.photo),
+      authorPhotoUrl: contentAuthorPhotoUrl(content) ?? this.authenticatedAuthorPhotoUrl(authorId),
       authorRole: 'Autor',
       summary: content.summary || this.toPlainText(content.content) || 'Sem resumo disponível.',
       quote: this.toPlainText(content.content) || content.summary || '',
@@ -1340,6 +1376,7 @@ export class VideoContentDetailPage implements OnDestroy {
   private toRelatedContent(content: BackendContent): ContentListItem {
     const contentType = content.content_type?.name ?? 'Texto';
     const authorName = content.author?.name ?? content.user?.name ?? 'Equipa editorial';
+    const authorId = contentAuthorId(content);
 
     return {
       id: String(content.id),
@@ -1348,8 +1385,10 @@ export class VideoContentDetailPage implements OnDestroy {
       meta: this.formatMeta(content.updated_at ?? content.created_at, contentType),
       title: content.title,
       excerpt: content.summary || this.toPlainText(content.content).slice(0, 180),
+      authorId,
       author: authorName,
       authorInitials: this.initials(authorName),
+      authorPhotoUrl: contentAuthorPhotoUrl(content) ?? this.authenticatedAuthorPhotoUrl(authorId),
       imageUrl: normalizeMediaUrl(content.image_url),
       premium: this.normalizeText(content.content_type?.slug ?? contentType) === 'jindungo',
       reactionsCount: Number(content.reactions_count ?? 0),
@@ -1377,6 +1416,12 @@ export class VideoContentDetailPage implements OnDestroy {
 
   private toPlainText(value: string | null | undefined): string {
     return (value ?? '').replace(/<[^>]*>/g, '').trim();
+  }
+
+  private authenticatedAuthorPhotoUrl(authorId: string | undefined): string | undefined {
+    const user = this.auth.user();
+
+    return authorId && user?.id === authorId ? user.avatarUrl : undefined;
   }
 
   private initials(name: string): string {

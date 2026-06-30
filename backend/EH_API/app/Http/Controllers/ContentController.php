@@ -13,6 +13,8 @@ use App\Services\ContentService;
 
 use App\DTOs\Content\CreateContentDTO;
 use App\DTOs\Content\UpdateContentDTO;
+use App\Models\Content;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ContentController extends Controller
 {
@@ -25,8 +27,7 @@ class ContentController extends Controller
         $user = $request->user('sanctum');
         $includeJindungo = $user?->hasRoleName('super-admin') || $user?->hasActiveJindungoSubscription();
 
-        return response()->json(
-            $this->service->getAll(array_merge($request->only([
+        $contents = $this->service->getAll(array_merge($request->only([
                 'category_id',
                 'content_type_id',
                 'type',
@@ -34,8 +35,17 @@ class ContentController extends Controller
             ]), [
                 'include_jindungo' => (bool) $includeJindungo,
                 'user_id' => $user?->id,
-            ]))
-        );
+            ]));
+
+        return response()->json($this->withAuthorPhotoUrls($contents));
+    }
+
+    public function suggestions(Request $request)
+    {
+        $limit = min(max((int) $request->integer('limit', 9), 1), 12);
+        $contents = $this->service->getSuggestions($request->user('sanctum'), $limit);
+
+        return response()->json($this->withAuthorPhotoUrls($contents));
     }
 
     public function store(StoreContentRequest $request)
@@ -94,7 +104,7 @@ class ContentController extends Controller
             ->where('reaction_type', 'like')
             ->exists());
 
-        return response()->json($content);
+        return response()->json($this->withAuthorPhotoUrl($content));
     }
 
     public function update(UpdateContentRequest $request, int $id)
@@ -174,5 +184,29 @@ class ContentController extends Controller
         return response()->json([
             'message' => 'You are not allowed to manage this content',
         ], 403);
+    }
+
+    private function withAuthorPhotoUrls(LengthAwarePaginator|iterable $contents): LengthAwarePaginator|iterable
+    {
+        if ($contents instanceof LengthAwarePaginator) {
+            $contents->getCollection()->transform(fn (Content $content): Content => $this->withAuthorPhotoUrl($content));
+
+            return $contents;
+        }
+
+        foreach ($contents as $content) {
+            $this->withAuthorPhotoUrl($content);
+        }
+
+        return $contents;
+    }
+
+    private function withAuthorPhotoUrl(Content $content): Content
+    {
+        $content->loadMissing('author');
+
+        $content->setAttribute('author_photo_url', $content->author?->photo);
+
+        return $content;
     }
 }

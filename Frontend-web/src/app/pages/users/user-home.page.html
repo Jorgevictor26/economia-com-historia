@@ -45,8 +45,21 @@
               </a>
             </div>
 
+            @if (isLoadingSuggestions()) {
+              <div class="rounded-[8px] border border-[#E0E0E0] bg-white px-6 py-8 text-sm font-semibold text-[#616161]">
+                A carregar sugestões...
+              </div>
+            } @else if (suggestionsError()) {
+              <div class="rounded-[8px] border border-[#E0E0E0] bg-white px-6 py-8 text-sm font-semibold text-[#8A3F50]">
+                {{ suggestionsError() }}
+              </div>
+            } @else if (recommendedContent().length === 0) {
+              <div class="rounded-[8px] border border-[#E0E0E0] bg-white px-6 py-8 text-sm font-semibold text-[#616161]">
+                Ainda não há conteúdos suficientes para sugerir.
+              </div>
+            } @else {
             <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              @for (item of recommendedContent; track item.id) {
+              @for (item of recommendedContent(); track item.id) {
                 <article
                   class="group flex min-h-[318px] flex-col overflow-hidden rounded-[18px] border border-[#E0E0E0] bg-white shadow-[0_16px_40px_rgba(64,8,26,0.07)] transition duration-300 hover:-translate-y-1 hover:border-[#E6D5B8] hover:shadow-[0_22px_55px_rgba(64,8,26,0.14)]">
                   <a [routerLink]="item.route" class="flex h-full flex-col">
@@ -74,6 +87,7 @@
                 </article>
               }
             </div>
+            }
           </div>
         </section>
 
@@ -153,7 +167,7 @@
             <aside class="rounded-[8px] border border-[#E6D5B8]/70 bg-white p-6">
               <p class="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#D4AF37]">Fila rapida</p>
               <div class="mt-4 grid gap-3">
-                @for (item of quickQueue; track item.id) {
+                @for (item of quickQueue(); track item.id) {
                   <a [routerLink]="item.route" class="grid grid-cols-[54px_1fr] gap-3 rounded-[8px] border border-[#E0E0E0] p-2 transition hover:border-[#5c1e2f] hover:bg-[#F2E6E9]">
                     <img [src]="item.imageUrl" [alt]="item.title" class="h-[54px] w-[54px] rounded-[6px] object-cover" />
                     <span>

@@ -34,6 +34,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::get('/content-types', [ContentTypeController::class, 'index']);
     Route::get('/contents', [ContentController::class, 'index']);
+    Route::get('/contents/suggestions', [ContentController::class, 'suggestions']);
     Route::get('/contents/{id}', [ContentController::class, 'show']);
     Route::get('/quizzes', [QuizController::class, 'index']);
     Route::get('/quizzes/{id}', [QuizController::class, 'show']);

@@ -5,6 +5,7 @@ export interface ContentListItem {
   meta: string;
   title: string;
   excerpt: string;
+  authorId?: string;
   author: string;
   authorInitials: string;
   imageUrl?: string;

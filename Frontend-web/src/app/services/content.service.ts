@@ -9,6 +9,11 @@ interface BackendRelation {
   slug?: string;
   bio?: string | null;
   photo?: string | null;
+  avatar?: string | null;
+  avatar_url?: string | null;
+  avatarUrl?: string | null;
+  profile_photo?: string | null;
+  profilePhoto?: string | null;
 }
 
 export interface BackendContent {
@@ -26,6 +31,9 @@ export interface BackendContent {
   updated_at?: string | null;
   author?: BackendRelation | null;
   user?: BackendRelation | null;
+  author_photo?: string | null;
+  author_photo_url?: string | null;
+  authorPhotoUrl?: string | null;
   category?: BackendRelation | null;
   content_type?: BackendRelation | null;
   reactions_count?: number | string;
@@ -132,6 +140,12 @@ export class ContentService {
 
   async getById(id: string): Promise<BackendContent> {
     return firstValueFrom(this.http.get<BackendContent>(`/contents/${id}`));
+  }
+
+  async getSuggestions(limit = 9): Promise<BackendContent[]> {
+    const params = new HttpParams().set('limit', Math.min(Math.max(limit, 1), 12));
+
+    return firstValueFrom(this.http.get<BackendContent[]>('/contents/suggestions', { params }));
   }
 
   async create(payload: ContentPayload): Promise<BackendContent> {

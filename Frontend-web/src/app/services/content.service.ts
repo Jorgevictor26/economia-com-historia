@@ -16,12 +16,10 @@ export interface BackendContent {
   title: string;
   summary?: string | null;
   content?: string | null;
-  image?: string | null;
-  video?: string | null;
-  audio?: string | null;
   image_url?: string | null;
   video_url?: string | null;
   audio_url?: string | null;
+  document_url?: string | null;
   visibility?: string;
   views_count?: number | string;
   created_at?: string | null;
@@ -72,8 +70,8 @@ export interface ContentPayload {
   category_id?: number | null;
   content_type_id: number;
   content: string;
-  image?: string | null;
-  video?: string | null;
+  image_url?: string | null;
+  video_url?: string | null;
   visibility: 'public' | 'private' | 'followers';
 }
 

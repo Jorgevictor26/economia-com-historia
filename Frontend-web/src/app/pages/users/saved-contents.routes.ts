@@ -159,7 +159,7 @@ export class SavedContentsPage implements OnInit {
       meta: this.buildMeta(content.created_at, contentType),
       route: this.contentRoute(String(content.id), type),
       action: type === 'podcast' ? 'Ouvir' : type === 'video' ? 'Ver vídeo' : 'Ler agora',
-      imageUrl: content.image || undefined,
+      imageUrl: content.image_url ?? undefined,
       premium: type === 'jindungo',
     };
   }

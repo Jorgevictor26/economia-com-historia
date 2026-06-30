@@ -13,4 +13,5 @@ export interface ContentListItem {
   commentsCount?: number;
   likedByMe?: boolean;
   searchText?: string;
+  authorPhotoUrl?: string;
 }

@@ -249,8 +249,8 @@ export class PodcastCreatePage {
       category_id: this.resolveCategoryId(this.category()),
       content_type_id: contentType.id,
       content: this.podcastBody(),
-      image: null,
-      video: null,
+      image_url: null,
+      video_url: null,
       visibility: asDraft ? 'private' : this.mapVisibility(),
     };
   }
@@ -332,5 +332,4 @@ export class PodcastCreatePage {
     return 'Nao foi possivel guardar o podcast.';
   }
 }
-
 

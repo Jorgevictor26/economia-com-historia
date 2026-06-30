@@ -469,6 +469,10 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
     const premium = contentTypeSlug === 'jindungo';
     const authorName = content.author?.name ?? content.user?.name ?? 'Equipa editorial';
 
+    console.log('author:', content.author);
+    console.log('user:', content.user);
+    console.log('photo final:', normalizeMediaUrl(content.author?.photo ?? content.user?.photo));
+
     return {
       id: String(content.id),
       category: content.category?.name ?? 'Sem categoria',
@@ -478,7 +482,8 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
       excerpt: content.summary || this.toExcerpt(content.content),
       author: authorName,
       authorInitials: this.getInitials(authorName),
-      imageUrl: normalizeMediaUrl(content.image ?? content.image_url),
+      authorPhotoUrl: normalizeMediaUrl(content.author?.photo ?? content.user?.photo),
+      imageUrl: normalizeMediaUrl(content.image_url),
       premium,
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
@@ -1029,7 +1034,7 @@ export class ContentDetailPage implements OnDestroy {
       authorInitials: this.getInitials(authorName),
       authorPhotoUrl: normalizeMediaUrl(content.author?.photo ?? content.user?.photo),
       authorBio: content.author?.bio || content.user?.bio || undefined,
-      imageUrl: normalizeMediaUrl(content.image ?? content.image_url),
+      imageUrl: normalizeMediaUrl(content.image_url),
       premium: contentTypeSlug === 'jindungo',
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
@@ -1061,7 +1066,8 @@ export class ContentDetailPage implements OnDestroy {
       excerpt: content.summary || this.toExcerpt(content.content),
       author: authorName,
       authorInitials: this.getInitials(authorName),
-      imageUrl: normalizeMediaUrl(content.image ?? content.image_url),
+      authorPhotoUrl: normalizeMediaUrl(content.author?.photo ?? content.user?.photo),
+      imageUrl: normalizeMediaUrl(content.image_url),
       premium: this.normalizeText(content.content_type?.slug ?? contentType) === 'jindungo',
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
@@ -1277,8 +1283,8 @@ export class VideoContentDetailPage implements OnDestroy {
         ? createdAt.toLocaleDateString('pt-AO', { day: '2-digit', month: 'long', year: 'numeric' })
         : 'Data indisponível',
       duration: this.extractDuration(content.content) ?? '00:00',
-      frameUrl: normalizeMediaUrl(content.image ?? content.image_url),
-      videoUrl: content.video ?? content.video_url ?? undefined,
+      frameUrl: normalizeMediaUrl(content.image_url),
+      videoUrl: content.video_url ?? undefined,
       author: authorName,
       authorInitials: this.initials(authorName),
       authorPhotoUrl: normalizeMediaUrl(content.author?.photo ?? content.user?.photo),
@@ -1344,7 +1350,7 @@ export class VideoContentDetailPage implements OnDestroy {
       excerpt: content.summary || this.toPlainText(content.content).slice(0, 180),
       author: authorName,
       authorInitials: this.initials(authorName),
-      imageUrl: normalizeMediaUrl(content.image ?? content.image_url),
+      imageUrl: normalizeMediaUrl(content.image_url),
       premium: this.normalizeText(content.content_type?.slug ?? contentType) === 'jindungo',
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),

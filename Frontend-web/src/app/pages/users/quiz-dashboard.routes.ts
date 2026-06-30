@@ -30,11 +30,11 @@ export class QuizDashboardPage {
     ];
   });
   readonly topFive = [
-    { position: 1, name: 'Isabel Marques', score: 1960 },
-    { position: 2, name: 'Carlos Tchipia', score: 1840 },
-    { position: 3, name: 'Jussana Paim', score: 1795 },
-    { position: 4, name: 'David Jaspe', score: 1710 },
-    { position: 5, name: 'L\u00edria B\u00e1', score: 1650 },
+    { position: 1, name: 'Isabel Marques', score: 1960, icon: 'emoji_events' },
+    { position: 2, name: 'Carlos Tchipia', score: 1840, icon: 'workspace_premium' },
+    { position: 3, name: 'Jussana Paim', score: 1795, icon: 'military_tech' },
+    { position: 4, name: 'David Jaspe', score: 1710, icon: 'stars' },
+    { position: 5, name: 'L\u00edria B\u00e1', score: 1650, icon: 'auto_awesome' },
   ];
 
   readonly featuredQuiz = computed(() => this.quizService.quizzes()[1] ?? this.quizService.quizzes()[0]);
@@ -84,6 +84,11 @@ export class QuizDashboardPage {
 
   selectLevel(event: Event): void {
     this.selectedLevel.set((event.target as HTMLSelectElement).value);
+    this.quizPage.set(1);
+  }
+
+  selectLevelFilter(level: string): void {
+    this.selectedLevel.set(level);
     this.quizPage.set(1);
   }
 

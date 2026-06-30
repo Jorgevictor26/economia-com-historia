@@ -21,8 +21,6 @@ const dashboardRoutes: DashboardRoute[] = [
   { path: 'contents', loadChildren: () => import('./pages/users/contents/content-library.routes').then((m) => m.CONTENT_LIBRARY_ROUTES) },
   {
     path: 'forums',
-    canActivate: [authGuard],
-    loginOperation: 'aceder aos fóruns',
     loadChildren: () => import('./pages/users/user-forums.routes').then((m) => m.USER_FORUMS_ROUTES),
   },
   { path: 'quizzes', loadChildren: () => import('./pages/users/quiz-dashboard.routes').then((m) => m.QUIZ_DASHBOARD_ROUTES) },

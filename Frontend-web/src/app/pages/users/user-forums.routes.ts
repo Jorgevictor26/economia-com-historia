@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink, Routes } from '@angular/router';
 import { Content } from '../../models/content.model';
 import { AuthStateService } from '../../services/auth-state.service';
+import { authGuard } from '../../services/auth.guard';
 import { ContentService } from '../../services/content.service';
 import { BackendForum, ForumService } from '../../services/forum.service';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
@@ -352,5 +353,5 @@ export class UserForumDetailPage {
 
 export const USER_FORUMS_ROUTES: Routes = [
   { path: '', component: UserForumsPage },
-  { path: ':id', component: UserForumDetailPage },
+  { path: ':id', canActivate: [authGuard], data: { loginOperation: 'ver detalhes do fórum' }, component: UserForumDetailPage },
 ];

@@ -954,7 +954,7 @@ export class ContentDetailPage implements OnDestroy {
           .forEach((item) => related.set(String(item.id), this.toRelatedContent(item)));
       }
 
-      this.relatedContents.set([...related.values()].slice(0, 6));
+      this.relatedContents.set([...related.values()].slice(0, 3));
     } catch {
       this.relatedContents.set([]);
     } finally {
@@ -1313,7 +1313,7 @@ export class VideoContentDetailPage implements OnDestroy {
           .forEach((item) => related.set(String(item.id), this.toRelatedContent(item)));
       }
 
-      this.relatedContents.set([...related.values()].slice(0, 6));
+      this.relatedContents.set([...related.values()].slice(0, 3));
     } catch {
       this.relatedContents.set([]);
     } finally {

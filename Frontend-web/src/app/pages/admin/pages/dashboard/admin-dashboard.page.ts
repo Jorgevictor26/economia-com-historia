@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+﻿import { Component, inject, signal } from '@angular/core';
 import { AuthStateService } from '../../../../services/auth-state.service';
 import { AdminConsoleShellComponent } from '../../components/admin-console-shell.component';
 import { AdminMetricCardComponent, AdminPageHeaderComponent } from '../../shared/components';
@@ -60,3 +60,4 @@ export class AdminDashboardPage {
     return this.topStudentsSignal();
   }
 }
+

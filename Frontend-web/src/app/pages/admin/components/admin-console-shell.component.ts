@@ -1,4 +1,4 @@
-import { Component, Input, inject } from '@angular/core';
+﻿import { Component, Input, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthStateService } from '../../../services/auth-state.service';
 import { normalizeMediaUrl } from '../../../services/media-url.util';
@@ -127,3 +127,4 @@ export class AdminConsoleShellComponent {
     ];
   }
 }
+

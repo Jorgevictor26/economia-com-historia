@@ -189,7 +189,6 @@ export class ContentService {
     return response.data;
   }
 
-<<<<<<< HEAD
   async update(id: number | string, payload: Partial<ContentPayload>): Promise<BackendContent> {
     const response = await firstValueFrom(this.http.put<{ data: BackendContent }>(`/contents/${id}`, payload));
 
@@ -197,9 +196,6 @@ export class ContentService {
   }
 
   async delete(id: number | string): Promise<void> {
-=======
-  async delete(id: string | number): Promise<void> {
->>>>>>> c19bb649b34b5b916dffc58911f1153a834e80e4
     await firstValueFrom(this.http.delete(`/contents/${id}`));
   }
 

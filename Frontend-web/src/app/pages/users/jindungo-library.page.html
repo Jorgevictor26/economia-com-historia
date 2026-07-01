@@ -1,4 +1,4 @@
-    <section class="min-h-dvh bg-white text-[#212121]">
+﻿    <section class="min-h-dvh bg-white text-[#212121]">
       <app-public-navbar />
 
       <main>
@@ -13,26 +13,26 @@
           <a [routerLink]="auth.isAuthenticated() ? '/app/subscriptions' : null" class="mt-6 inline-flex h-10 items-center justify-center bg-[#5C1E2F] px-8 text-[10px] font-extrabold text-white" (click)="!auth.isAuthenticated() && requireLogin($event, 'subscrever ao Jindungo')">
             {{ auth.isAuthenticated() ? 'Subscrever' : 'Entrar para subscrever' }}
           </a>
-          <p class="mt-6 text-[9px] text-[#5C1E2F]">♙</p>
+          <p class="mt-6 text-[9px] text-[#5C1E2F]">â™™</p>
           <p class="mt-1 text-[7px] text-[#BDBDBD]">Junte-se a nossa comunidade académica.</p>
 
           <div class="mx-auto mt-12 grid max-w-[1120px] gap-4 text-left md:grid-cols-3 2xl:gap-6">
             <article class="min-h-[172px] border border-[#BDBDBD] bg-white p-7">
-              <span class="mb-5 grid size-8 place-items-center bg-[#F2E6E9] text-[17px] text-[#5C1E2F]">▤</span>
+              <span class="mb-5 grid size-8 place-items-center bg-[#F2E6E9] text-[17px] text-[#5C1E2F]">â–¤</span>
               <h2 class="font-display text-[15px] font-extrabold text-[#5C1E2F]">Análises Exclusivas</h2>
               <p class="mt-4 text-[10px] leading-5 text-[#616161]">
                 Ensaios aprofundados sobre transformação económica e ciclos históricos do país.
               </p>
             </article>
             <article class="min-h-[172px] border border-[#BDBDBD] bg-white p-7">
-              <span class="mb-5 grid size-8 place-items-center bg-[#F2E6E9] text-[17px] text-[#5C1E2F]">▣</span>
+              <span class="mb-5 grid size-8 place-items-center bg-[#F2E6E9] text-[17px] text-[#5C1E2F]">â–£</span>
               <h2 class="font-display text-[15px] font-extrabold text-[#5C1E2F]">Rigor Histórico</h2>
               <p class="mt-4 text-[10px] leading-5 text-[#616161]">
                 Fontes, arquivos e contexto para ler a economia angolana com profundidade.
               </p>
             </article>
             <article class="min-h-[172px] border border-[#BDBDBD] bg-white p-7">
-              <span class="mb-5 grid size-8 place-items-center bg-[#F2E6E9] text-[17px] text-[#5C1E2F]">♜</span>
+              <span class="mb-5 grid size-8 place-items-center bg-[#F2E6E9] text-[17px] text-[#5C1E2F]">â™œ</span>
               <h2 class="font-display text-[15px] font-extrabold text-[#5C1E2F]">Comunidade de Elite</h2>
               <p class="mt-4 text-[10px] leading-5 text-[#616161]">
                 Conteúdos pensados para estudantes, investigadores e profissionais.
@@ -54,7 +54,7 @@
                     @if (!auth.canReadJindungo()) {
                       <div class="absolute inset-0 bg-white/35"></div>
                     }
-                    <span class="absolute bottom-[-14px] left-1/2 grid size-12 -translate-x-1/2 place-items-center rounded-full bg-[#5C1E2F] text-[18px] text-white">▣</span>
+                    <span class="absolute bottom-[-14px] left-1/2 grid size-12 -translate-x-1/2 place-items-center rounded-full bg-[#5C1E2F] text-[18px] text-white">â–£</span>
                   </div>
                   <div class="min-h-[122px] px-5 pb-6 pt-7" [class.blur-[2px]]="!auth.canReadJindungo()">
                     <p class="text-[8px] font-extrabold uppercase text-[#5C1E2F]">{{ auth.canReadJindungo() ? 'Disponível para si' : 'Reservado a subscritores' }}</p>
@@ -97,3 +97,4 @@
       <app-public-footer />
       <app-back-to-top />
     </section>
+

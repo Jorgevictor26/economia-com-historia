@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+﻿import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
 
@@ -40,3 +40,4 @@ export class CommentReportService {
     return response.error?.message ?? 'Não foi possível enviar a denúncia.';
   }
 }
+

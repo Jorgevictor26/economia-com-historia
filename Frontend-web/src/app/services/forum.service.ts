@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+﻿import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ForumLinkedContent, ForumRoom } from '../models/forum.model';
@@ -122,3 +122,4 @@ export class ForumService {
     return response.data;
   }
 }
+

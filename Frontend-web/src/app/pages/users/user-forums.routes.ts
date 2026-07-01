@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+﻿import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink, Routes } from '@angular/router';
 import { Content } from '../../models/content.model';
 import { AuthStateService } from '../../services/auth-state.service';
@@ -352,3 +352,4 @@ export const USER_FORUMS_ROUTES: Routes = [
   { path: '', component: UserForumsPage },
   { path: ':id', canActivate: [authGuard], data: { loginOperation: 'ver detalhes do fórum' }, component: UserForumDetailPage },
 ];
+

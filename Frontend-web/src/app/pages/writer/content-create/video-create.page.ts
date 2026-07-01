@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+﻿import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Category } from '../../../models/category.model';
 import { ContentTypeOption } from '../../../models/content-type.model';
@@ -304,3 +304,4 @@ export class VideoCreatePage {
     return 'Nao foi possivel guardar o video.';
   }
 }
+

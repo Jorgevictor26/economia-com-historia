@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { AdminConsoleShellComponent } from '../../components/admin-console-shell.component';
 import { AdminMetricCardComponent, AdminPageHeaderComponent } from '../../shared/components';
 
@@ -95,3 +95,4 @@ export class AdminSubscriptionsPage {
       .replace(/[\u0300-\u036f]/g, '');
   }
 }
+

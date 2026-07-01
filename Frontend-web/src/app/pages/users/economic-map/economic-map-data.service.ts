@@ -124,7 +124,7 @@ export class EconomicMapDataService {
       economy,
       history,
       stats: [
-        { label: 'Municípios', value: id === 'huambo' ? '11' : id === 'luanda' ? '9' : '—', icon: 'map' },
+        { label: 'Municípios', value: id === 'huambo' ? '11' : id === 'luanda' ? '9' : '-', icon: 'map' },
         { label: 'Capital', value: capital, icon: 'location_city' },
         { label: 'Perfil', value: highlights[0] ?? 'Regional', icon: 'monitoring' },
       ],
@@ -190,3 +190,4 @@ export class EconomicMapDataService {
     return value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
 }
+

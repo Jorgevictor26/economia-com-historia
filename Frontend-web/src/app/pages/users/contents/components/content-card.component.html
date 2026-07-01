@@ -72,86 +72,25 @@
       </span>
 
       <span class="flex items-center gap-3 text-[12px] text-[#616161]">
-        <button
-          type="button"
-          class="content-action"
-          aria-label="Gostar"
-          (click)="contentAction.emit({ event: $event, operation: 'gostar', content })">
-          <span
-            class="material-symbols-outlined text-[19px] leading-none"
-            [class.text-[#8A3F50]]="content.likedByMe">
-            favorite
-          </span>
-          <span [class.text-[#8A3F50]]="content.likedByMe">
-            {{ content.reactionsCount ?? 0 }}
-          </span>
+        <button type="button" class="content-action" aria-label="Gostar" (click)="contentAction.emit({ event: $event, operation: 'gostar', content })">
+          <span class="material-symbols-outlined text-[19px] leading-none" [class.text-[#8A3F50]]="content.likedByMe">favorite</span>
+          <span [class.text-[#8A3F50]]="content.likedByMe">{{ content.reactionsCount ?? 0 }}</span>
         </button>
 
-        <button
-          type="button"
-          class="content-action"
-          aria-label="Comentar"
-          (click)="contentAction.emit({ event: $event, operation: 'comentar', content })">
+        <button type="button" class="content-action" aria-label="Comentar" (click)="contentAction.emit({ event: $event, operation: 'comentar', content })">
           <img src="/assets/icons/comment.png" alt="" />
           <span>{{ content.commentsCount ?? 0 }}</span>
         </button>
 
-        <button
-          type="button"
-          class="content-action"
-          aria-label="Guardar"
-          (click)="contentAction.emit({ event: $event, operation: 'guardar', content })">
-          <span class="material-symbols-outlined text-[19px] leading-none">
-            bookmark_add
-          </span>
+        <button type="button" class="content-action" aria-label="Guardar" (click)="contentAction.emit({ event: $event, operation: 'guardar', content })">
+          <span class="material-symbols-outlined text-[19px] leading-none">bookmark_add</span>
         </button>
 
-<<<<<<< HEAD
-            <span class="flex items-center gap-3 text-[12px] text-[#616161]">
-              @if (canManage) {
-              <details class="relative">
-                <summary class="content-action list-none" aria-label="Gerir conteúdo">
-                  <span class="material-symbols-outlined text-[20px] leading-none">more_vert</span>
-                </summary>
-                <div class="absolute right-0 z-20 mt-2 grid min-w-40 overflow-hidden rounded-[10px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
-                  <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" (click)="contentAction.emit({ event: $event, operation: 'editar', content })">
-                    <span class="material-symbols-outlined text-[17px]">edit</span>
-                    Editar post
-                  </button>
-                  <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]" (click)="contentAction.emit({ event: $event, operation: 'apagar', content })">
-                    <span class="material-symbols-outlined text-[17px]">delete</span>
-                    Apagar post
-                  </button>
-                </div>
-              </details>
-              }
-              <button type="button" class="content-action" aria-label="Gostar" (click)="contentAction.emit({ event: $event, operation: 'gostar', content })">
-                <span class="material-symbols-outlined text-[19px] leading-none" [class.text-[#8A3F50]]="content.likedByMe">favorite</span>
-                <span [class.text-[#8A3F50]]="content.likedByMe">{{ content.reactionsCount ?? 0 }}</span>
-              </button>
-              <button type="button" class="content-action" aria-label="Comentar" (click)="contentAction.emit({ event: $event, operation: 'comentar', content })">
-                <img src="/assets/icons/comment.png" alt="" />
-                <span>{{ content.commentsCount ?? 0 }}</span>
-              </button>
-              <button type="button" class="content-action" aria-label="Guardar" (click)="contentAction.emit({ event: $event, operation: 'guardar', content })">
-                <span class="material-symbols-outlined text-[19px] leading-none">bookmark_add</span>
-              </button>
-              <button type="button" class="content-action" aria-label="Partilhar" (click)="contentAction.emit({ event: $event, operation: 'partilhar', content })">
-                <img src="/assets/icons/share.png" alt="" />
-              </button>
-            </span>
-          </div>
-=======
-        <button
-          type="button"
-          class="content-action"
-          aria-label="Partilhar"
-          (click)="contentAction.emit({ event: $event, operation: 'partilhar', content })">
+        <button type="button" class="content-action" aria-label="Partilhar" (click)="contentAction.emit({ event: $event, operation: 'partilhar', content })">
           <img src="/assets/icons/share.png" alt="" />
         </button>
       </span>
     </div>
->>>>>>> c19bb649b34b5b916dffc58911f1153a834e80e4
 
     @if (content.premium && !canReadPremium) {
       <button

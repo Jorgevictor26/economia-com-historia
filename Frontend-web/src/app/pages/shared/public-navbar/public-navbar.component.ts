@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+﻿import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthStateService } from '../../../services/auth-state.service';
 import { NotificationService } from '../../../services/notification.service';
@@ -92,3 +92,4 @@ export class PublicNavbarComponent implements OnInit {
     return normalizeMediaUrl(this.auth.user()?.avatarUrl);
   }
 }
+

@@ -17,18 +17,18 @@
           <div class="mt-5 border-t border-[#E0E0E0] pt-4 text-left">
             <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#9E9E9E]">Biografia</p>
             <p class="mt-2 text-[11px] leading-5 text-[#616161]">
-              {{ (detail()?.authorBio || 'Biografia indisponÃ­vel para este autor.').length > 150 ? (detail()?.authorBio || 'Biografia indisponÃ­vel para este autor.').slice(0, 150) + '...' : (detail()?.authorBio || 'Biografia indisponÃ­vel para este autor.') }}
+              {{ (detail()?.authorBio || 'Biografia indisponível para este autor.').length > 150 ? (detail()?.authorBio || 'Biografia indisponível para este autor.').slice(0, 150) + '...' : (detail()?.authorBio || 'Biografia indisponível para este autor.') }}
             </p>
           </div>
 
         </section>
 
         <section class="mt-7 border-t border-[#E0E0E0] pt-6">
-          <h3 class="mb-5 text-[11px] font-medium uppercase tracking-[0.18em] text-[#9E9E9E]">MÃ©tricas</h3>
+          <h3 class="mb-5 text-[11px] font-medium uppercase tracking-[0.18em] text-[#9E9E9E]">Métricas</h3>
           <div class="grid gap-4 text-[11px] text-[#616161]">
             <p class="flex items-center gap-3"><span class="material-symbols-outlined text-[18px]">article</span>{{ detail()?.contentType || 'Texto' }}
             </p>
-            <p class="flex items-center gap-3"><span class="material-symbols-outlined text-[18px]">visibility</span>{{ formatCompactNumber(detail()?.viewsCount) }} visualizaÃ§Ãµes</p>
+            <p class="flex items-center gap-3"><span class="material-symbols-outlined text-[18px]">visibility</span>{{ formatCompactNumber(detail()?.viewsCount) }} visualizações</p>
           </div>
         </section>
       </div>
@@ -36,7 +36,7 @@
 
     <article class="px-0 pb-12 pt-0">
       <div class="mb-4 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#D4AF37]">
-        {{ detail()?.category || 'ConteÃºdo' }} - {{ detail()?.meta || 'A carregar...' }}
+        {{ detail()?.category || 'Conteúdo' }} - {{ detail()?.meta || 'A carregar...' }}
       </div>
 
       <h1 class="font-display max-w-[540px] text-[34px] font-extrabold leading-[1.08] text-[#5c1e2f]">
@@ -67,22 +67,22 @@
 
       <p
         class="mt-6 max-w-[510px] border-l-4 border-[#d4af37] pl-7 font-display text-[14px] italic leading-7 text-[#616161]">
-        {{ detail()?.summary || 'A carregar o resumo do conteÃºdo...' }}
+        {{ detail()?.summary || 'A carregar o resumo do conteúdo...' }}
       </p>
 
       @if (detail()?.imageUrl) {
       <figure class="mt-7">
-        <img [src]="detail()?.imageUrl" [alt]="detail()?.title || 'Imagem do conteÃºdo'"
+        <img [src]="detail()?.imageUrl" [alt]="detail()?.title || 'Imagem do conteúdo'"
           class="h-[310px] w-full object-cover" />
         <figcaption class="mt-2 text-center text-[10px] text-[#9E9E9E]">
-          Imagem associada ao conteÃºdo.
+          Imagem associada ao conteúdo.
         </figcaption>
       </figure>
       } @else {
       <figure class="mt-7">
         <div class="default-category-cover h-[310px] w-full rounded-[8px]">
           <span>
-            <strong>{{ detail()?.category || 'ConteÃºdo' }}</strong>
+            <strong>{{ detail()?.category || 'Conteúdo' }}</strong>
             <small>{{ detail()?.contentType || 'Texto' }}</small>
           </span>
         </div>
@@ -91,7 +91,7 @@
 
       @if (isLoading()) {
       <div class="mt-8 space-y-4 text-[14px] leading-7 text-[#616161]">
-        <p>A carregar o conteÃºdo...</p>
+        <p>A carregar o conteúdo...</p>
       </div>
       } @else {
       <div class="mt-8 space-y-6 text-[16px] leading-8 text-[#212121]" [innerHTML]="detail()?.body"></div>
@@ -101,7 +101,7 @@
         @if (isPremiumContent() && !auth.canReadJindungo()) {
         <div class="mb-8 border border-[#d4af37] bg-[#fff] px-6 py-5 text-center">
           <h2 class="font-display text-[18px] font-extrabold text-[#5c1e2f]">Texto com Jindungo reservado</h2>
-          <p class="mx-auto mt-2 max-w-[440px] text-[12px] leading-5 text-[#616161]">A subscriÃ§Ã£o Ã© gratuita, mas
+          <p class="mx-auto mt-2 max-w-[440px] text-[12px] leading-5 text-[#616161]">A subscrição é gratuita, mas
             precisa de uma conta para desbloquear esta camada editorial.</p>
           <a [routerLink]="auth.isAuthenticated() ? '/app/subscriptions' : null"
             class="mt-4 inline-flex h-10 items-center justify-center bg-[#5C1E2F] px-6 text-[12px] font-bold text-white"
@@ -131,16 +131,21 @@
             <span>Guardar</span>
           </button>
           @if (canManageDetail()) {
-          <div class="flex items-center gap-3 text-[11px] font-extrabold uppercase tracking-[0.08em]">
-            <a [routerLink]="editContentRoute()" class="inline-flex items-center gap-2 text-[#616161] transition hover:text-[#5C1E2F]">
-              <span class="material-symbols-outlined text-[19px] leading-none">edit</span>
-              <span>Editar post</span>
-            </a>
-            <button type="button" class="inline-flex items-center gap-2 text-[#8A3F50] transition hover:text-[#5C1E2F]" (click)="deleteCurrentContent($event)">
-              <span class="material-symbols-outlined text-[19px] leading-none">delete</span>
-              <span>Apagar post</span>
-            </button>
-          </div>
+          <details class="relative">
+            <summary class="grid size-9 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" aria-label="Mais ações">
+              <span class="material-symbols-outlined text-[22px] leading-none">more_vert</span>
+            </summary>
+            <div class="absolute right-0 z-20 mt-2 grid min-w-40 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
+              <a [routerLink]="editContentRoute()" class="flex items-center gap-2 px-3 py-2 text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]">
+                <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
+                <span>Editar post</span>
+              </a>
+              <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]" (click)="deleteCurrentContent($event)">
+                <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
+                <span>Apagar post</span>
+              </button>
+            </div>
+          </details>
           }
           @if (shareMenuOpen()) {
           <div class="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4" (click)="toggleShareMenu($event)">
@@ -187,7 +192,7 @@
           }
         </div>
 
-        <h2 id="comments" class="mt-10 text-[14px] font-medium text-[#5c1e2f]">ComentÃ¡rios ({{ comments().length }})</h2>
+        <h2 id="comments" class="mt-10 text-[14px] font-medium text-[#5c1e2f]">Comentários ({{ comments().length }})</h2>
 
         @if (auth.isAuthenticated() && isCommentComposerOpen()) {
         <div class="mt-6 flex gap-4">
@@ -195,7 +200,7 @@
           <div class="min-w-0 flex-1">
             <textarea #commentInput
               class="h-[96px] w-full resize-none border border-[#E0E0E0] bg-[#F5F5F5] p-5 text-[13px] outline-none placeholder:text-[#BDBDBD] focus:border-[#8A3F50]"
-              placeholder="Partilhe a sua reflexÃ£o acadÃ©mica..."></textarea>
+              placeholder="Partilhe a sua reflexão académica..."></textarea>
             <div class="-mt-px text-right">
               <button type="button" class="h-10 bg-[#5C1E2F] px-6 text-[12px] font-bold text-white"
                 [disabled]="isSavingComment()" (click)="submitComment(commentInput.value); commentInput.value = ''">
@@ -208,7 +213,7 @@
 
         <div class="mt-9 grid gap-7">
           @if (isLoadingComments()) {
-          <p class="text-[13px] text-[#616161]">A carregar comentÃ¡rios...</p>
+          <p class="text-[13px] text-[#616161]">A carregar comentários...</p>
           } @else if (comments().length) {
           @for (comment of comments(); track comment.id) {
           <div class="flex gap-4">
@@ -237,7 +242,7 @@
               <div class="mt-4 flex gap-3">
                 <input #replyInput type="text"
                   class="min-h-9 min-w-0 flex-1 border border-[#E0E0E0] bg-[#F5F5F5] px-3 text-[12px] outline-none focus:border-[#8A3F50]"
-                  placeholder="Responder a este comentÃ¡rio..." />
+                  placeholder="Responder a este comentário..." />
                 <button type="button" class="bg-[#5C1E2F] px-4 text-[11px] font-bold text-white"
                   (click)="submitReply(comment.id, replyInput.value); replyInput.value = ''">Responder</button>
               </div>
@@ -266,7 +271,7 @@
           </div>
           }
           } @else {
-          <p class="text-[13px] text-[#616161]">Ainda nÃ£o hÃ¡ comentÃ¡rios neste conteÃºdo.</p>
+          <p class="text-[13px] text-[#616161]">Ainda não há comentários neste conteúdo.</p>
           }
         </div>
 
@@ -275,8 +280,8 @@
           <section class="w-full max-w-[460px] rounded-[8px] bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]" (click)="$event.stopPropagation()">
             <div class="flex items-start justify-between gap-4">
               <div>
-                <h2 class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Denunciar comentÃ¡rio</h2>
-                <p class="mt-1 text-[12px] text-[#616161]">ComentÃ¡rio de {{ target.author }}</p>
+                <h2 class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Denunciar comentário</h2>
+                <p class="mt-1 text-[12px] text-[#616161]">Comentário de {{ target.author }}</p>
               </div>
               <button type="button" class="grid size-9 place-items-center rounded-full text-[#616161] hover:bg-[#F5F5F5]" aria-label="Fechar" (click)="closeReportModal()">
                 <span class="material-symbols-outlined text-[20px]">close</span>
@@ -289,15 +294,15 @@
               Motivo
               <select class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] outline-none focus:border-[#8A3F50]" [value]="reportReason()" (change)="updateReportReason($event)">
                 <option value="spam">Spam</option>
-                <option value="offensive_comment">ComentÃ¡rio ofensivo</option>
-                <option value="fake_information">InformaÃ§Ã£o falsa</option>
+                <option value="offensive_comment">Comentário ofensivo</option>
+                <option value="fake_information">Informação falsa</option>
                 <option value="copyright">Direitos autorais</option>
                 <option value="other">Outro</option>
               </select>
             </label>
 
             <label class="mt-4 grid gap-2 text-[12px] font-bold text-[#616161]">
-              DescriÃ§Ã£o opcional
+              Descrição opcional
               <textarea class="h-[96px] resize-none rounded-[8px] border border-[#E0E0E0] bg-white p-3 text-[13px] outline-none focus:border-[#8A3F50]" [value]="reportDescription()" (input)="updateReportDescription($event)" placeholder="Explique brevemente o problema..."></textarea>
             </label>
 
@@ -308,7 +313,7 @@
             <div class="mt-5 flex justify-end gap-3">
               <button type="button" class="h-10 px-5 text-[12px] font-bold text-[#616161]" (click)="closeReportModal()">Cancelar</button>
               <button type="button" class="h-10 rounded-[8px] bg-[#5C1E2F] px-5 text-[12px] font-bold text-white disabled:opacity-60" [disabled]="isSubmittingReport()" (click)="submitCommentReport()">
-                {{ isSubmittingReport() ? 'A enviar...' : 'Enviar denÃºncia' }}
+                {{ isSubmittingReport() ? 'A enviar...' : 'Enviar denúncia' }}
               </button>
             </div>
           </section>
@@ -339,22 +344,22 @@
               <span class="block">
                 <span class="mt-3 block text-[10px] font-extrabold uppercase text-[#D4AF37]">{{ item.category }}</span>
                 <strong class="mt-1 line-clamp-2 font-display text-[17px] font-extrabold leading-tight text-[#5c1e2f]">{{ item.title }}</strong>
-                <span class="hidden">{{ item.category }} â€¢ {{ item.author }}</span>
+                <span class="hidden">{{ item.category }} • {{ item.author }}</span>
                 <span class="hidden">
                   <span>{{ item.reactionsCount ?? 0 }} gostos</span>
-                  <span>{{ item.commentsCount ?? 0 }} comentÃ¡rios</span>
+                  <span>{{ item.commentsCount ?? 0 }} comentários</span>
                 </span>
               </span>
             </a>
             }
             } @else {
-            <p class="text-[12px] text-[#616161]">Sem conteÃºdos relacionados por agora.</p>
+            <p class="text-[12px] text-[#616161]">Sem conteúdos relacionados por agora.</p>
             }
           </div>
         </section>
 
         <div class="mt-5 bg-[#5C1E2F] p-6 text-white">
-          <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#d4af37]">Quiz do conteÃºdo</p>
+          <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#d4af37]">Quiz do conteúdo</p>
           @if (relatedQuiz(); as quiz) {
           <h3 class="font-display mt-3 text-[16px] font-medium leading-tight">{{ quiz.title }}</h3>
           <p class="mt-3 text-[12px] leading-5 text-white/82">
@@ -367,7 +372,7 @@
           } @else {
           <h3 class="font-display mt-3 text-[16px] font-medium leading-tight">Continue com um quiz</h3>
           <p class="mt-3 text-[12px] leading-5 text-white/82">
-            Veja os quizzes disponÃ­veis e pratique os temas ligados aos conteÃºdos.
+            Veja os quizzes disponíveis e pratique os temas ligados aos conteúdos.
           </p>
           <a routerLink="/app/quizzes"
             class="mt-6 inline-flex h-11 w-full items-center justify-center bg-[#d4af37] text-[13px] font-medium text-[#5c1e2f]">
@@ -381,4 +386,5 @@
 
   <app-back-to-top />
 </section>
+
 

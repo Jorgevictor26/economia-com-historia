@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+﻿import { Component, inject } from '@angular/core';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
@@ -23,3 +23,4 @@ import { ToastService } from '../../services/toast.service';
 export class ToastContainerComponent {
   readonly toastService = inject(ToastService);
 }
+

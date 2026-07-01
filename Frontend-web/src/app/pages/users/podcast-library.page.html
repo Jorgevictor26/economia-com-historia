@@ -1,4 +1,4 @@
-<section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
+﻿<section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
   <app-public-navbar />
 
   <main class="mx-auto w-full max-w-[1440px] px-5 pb-16 pt-8 lg:px-8">
@@ -21,11 +21,15 @@
           {{ currentPodcast().description }}
         </p>
         <div class="mt-5 border-[#E0E0E0] bg-white px-3 py-4">
+          <audio #podcastAudio class="sr-only" [src]="currentPodcast().audioUrl || ''" preload="metadata" (loadedmetadata)="markAudioReady(podcastAudio)" (timeupdate)="syncAudioProgress(podcastAudio)" (play)="markAudioPlaying()" (pause)="markAudioStopped()" (ended)="markAudioEnded(podcastAudio)" (error)="markAudioError()"></audio>
           @if (currentPodcast().audioUrl) {
-            <audio class="mx-auto block w-full max-w-[560px]" [src]="currentPodcast().audioUrl!" controls preload="metadata"></audio>
+            <div class="mx-auto max-w-[560px] rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-4 py-5 text-center">
+              <span class="block truncate text-[12px] font-extrabold text-[#5C1E2F]">{{ audioStatusText() }}</span>
+              <small class="mt-1 block truncate text-[11px] font-bold text-[#9E9E9E]">{{ audioProgressText() }}</small>
+            </div>
           } @else {
             <div class="mx-auto max-w-[560px] rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-4 py-5 text-center text-[12px] font-bold text-[#8A3F50]">
-              Audio ainda nao disponivel para este podcast.
+              Áudio ainda não disponível para este podcast.
             </div>
           }
 
@@ -37,37 +41,24 @@
             <p class="mt-3 text-center text-[12px] font-bold text-[#8A3F50]">{{ loadError() }}</p>
           }
 
-          @if (!currentPodcast().audioUrl) {
-            <div class="mx-auto mt-4 grid max-w-[560px] grid-cols-5 items-center gap-4">
-              <button type="button"
-                class="grid size-11 place-items-center text-[#9E9E9E] transition hover:text-[#5c1e2f]"
-                aria-label="Reprodução aleatória">
-                <span class="material-symbols-outlined text-[34px]" aria-hidden="true">shuffle</span>
-              </button>
-              <button type="button"
-                class="grid size-12 place-items-center text-[#212121] transition hover:text-[#5c1e2f]"
-                aria-label="Episódio anterior">
-                <span class="material-symbols-outlined text-[42px]" aria-hidden="true">skip_previous</span>
-              </button>
-              <button type="button"
-                class="mx-auto grid size-[50px] place-items-center rounded-full bg-[#5C1E2F] text-white shadow-[0_18px_34px_rgba(104,26,49,0.28)] transition hover:bg-[#5C1E2F]"
-                aria-label="Reproduzir episódio">
-                <span class="material-symbols-outlined text-[58px]" aria-hidden="true">play_arrow</span>
-              </button>
-              <button type="button"
-                class="grid size-12 place-items-center text-[#212121] transition hover:text-[#5c1e2f]"
-                aria-label="Próximo episódio">
-                <span class="material-symbols-outlined text-[42px]" aria-hidden="true">skip_next</span>
-              </button>
-              <button type="button"
-                class="grid size-11 place-items-center text-[#9E9E9E] transition hover:text-[#5c1e2f]"
-                aria-label="Repetir episódio">
-                <span class="material-symbols-outlined text-[34px]" aria-hidden="true">repeat</span>
-              </button>
-            </div>
-          }
+          <div class="mx-auto mt-4 grid max-w-[560px] grid-cols-5 items-center gap-4">
+            <button type="button" class="grid size-11 place-items-center text-[#9E9E9E] transition hover:text-[#5c1e2f] disabled:cursor-not-allowed disabled:opacity-40" aria-label="Reiniciar episódio" [disabled]="!currentPodcast().audioUrl" (click)="restartAudio(podcastAudio)">
+              <span class="material-symbols-outlined text-[34px]" aria-hidden="true">restart_alt</span>
+            </button>
+            <button type="button" class="grid size-12 place-items-center text-[#212121] transition hover:text-[#5c1e2f] disabled:cursor-not-allowed disabled:opacity-40" aria-label="Recuar 10 segundos" [disabled]="!currentPodcast().audioUrl" (click)="skipAudio(podcastAudio, -10)">
+              <span class="material-symbols-outlined text-[42px]" aria-hidden="true">replay_10</span>
+            </button>
+            <button type="button" class="mx-auto grid size-[50px] place-items-center rounded-full bg-[#5C1E2F] text-white shadow-[0_18px_34px_rgba(104,26,49,0.28)] transition hover:bg-[#5C1E2F] disabled:cursor-not-allowed disabled:opacity-45" [attr.aria-label]="audioPlaying() ? 'Pausar episódio' : 'Reproduzir episódio'" [disabled]="!currentPodcast().audioUrl" (click)="toggleAudio(podcastAudio)">
+              <span class="material-symbols-outlined text-[44px]" aria-hidden="true">{{ audioPlaying() ? 'pause' : 'play_arrow' }}</span>
+            </button>
+            <button type="button" class="grid size-12 place-items-center text-[#212121] transition hover:text-[#5c1e2f] disabled:cursor-not-allowed disabled:opacity-40" aria-label="Avançar 10 segundos" [disabled]="!currentPodcast().audioUrl" (click)="skipAudio(podcastAudio, 10)">
+              <span class="material-symbols-outlined text-[42px]" aria-hidden="true">forward_10</span>
+            </button>
+            <button type="button" class="grid size-11 place-items-center text-[#9E9E9E] transition hover:text-[#5c1e2f] disabled:cursor-not-allowed disabled:opacity-40" aria-label="Repetir episódio" [disabled]="!currentPodcast().audioUrl" (click)="restartAudio(podcastAudio)">
+              <span class="material-symbols-outlined text-[34px]" aria-hidden="true">repeat</span>
+            </button>
+          </div>
         </div>
-
         <div
           class="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-[#E0E0E0] pt-4 text-[11px] text-[#616161]">
           <div class="flex flex-wrap gap-5">
@@ -85,12 +76,28 @@
             </button>
           </div>
           <div class="flex flex-wrap items-center gap-5">
-            
             <button type="button"
               class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-[0.08em] text-[#9E9E9E]">
               <span class="material-symbols-outlined text-[15px]" aria-hidden="true">bookmark_add</span>
              Guardar
             </button>
+            @if (canManagePodcast()) {
+              <details class="relative">
+                <summary class="grid size-9 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" aria-label="Mais ações">
+                  <span class="material-symbols-outlined text-[22px] leading-none">more_vert</span>
+                </summary>
+                <div class="absolute right-0 z-20 mt-2 grid min-w-40 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
+                  <a [routerLink]="editPodcastRoute()" class="flex items-center gap-2 px-3 py-2 text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]">
+                    <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
+                    <span>Editar post</span>
+                  </a>
+                  <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]" (click)="deletePodcastContent($event)">
+                    <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
+                    <span>Apagar post</span>
+                  </button>
+                </div>
+              </details>
+            }
           </div>
         </div>
       </div>
@@ -284,3 +291,6 @@
 
   <app-back-to-top />
 </section>
+
+
+

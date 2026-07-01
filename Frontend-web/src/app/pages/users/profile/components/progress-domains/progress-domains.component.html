@@ -1,4 +1,4 @@
-<div class="domains-grid">
+﻿<div class="domains-grid">
   @for (domain of domains(); track domain.title) {
     <article class="domain-card" [style.--accent]="domain.color" [style.--value]="domain.percent">
       <h3>{{ domain.title }}</h3>
@@ -12,3 +12,4 @@
     </article>
   }
 </div>
+

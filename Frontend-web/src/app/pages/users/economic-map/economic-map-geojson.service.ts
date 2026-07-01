@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { LoadedMapLayer, MapLevel } from './economic-map.models';
 
 @Injectable({ providedIn: 'root' })
@@ -39,3 +39,4 @@ export class EconomicMapGeojsonService {
     return `/data/economic-map/${parentId}-${level}.geojson`;
   }
 }
+

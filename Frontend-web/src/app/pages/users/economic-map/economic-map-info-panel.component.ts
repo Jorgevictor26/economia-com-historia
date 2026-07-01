@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MapInfoTab, MapRegionInfo } from './economic-map.models';
 
@@ -140,3 +140,4 @@ export class EconomicMapInfoPanelComponent {
     { key: 'gallery', label: 'Galeria' },
   ];
 }
+

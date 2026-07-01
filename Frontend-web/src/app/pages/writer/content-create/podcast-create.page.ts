@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+﻿import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Category } from '../../../models/category.model';
 import { ContentTypeOption } from '../../../models/content-type.model';
@@ -280,11 +280,11 @@ export class PodcastCreatePage {
     return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   }
 
-<<<<<<< HEAD
   private showError(message: string): void {
     this.formError.set('');
     this.toastService.error(message);
-=======
+  }
+
   private async readAudioDuration(file: File): Promise<void> {
     if (typeof Audio === 'undefined' || typeof URL === 'undefined') {
       return;
@@ -324,7 +324,6 @@ export class PodcastCreatePage {
     const remainingMinutes = minutes % 60;
 
     return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}min` : `${hours}h`;
->>>>>>> c19bb649b34b5b916dffc58911f1153a834e80e4
   }
 
   private errorMessage(error: unknown): string {
@@ -354,3 +353,4 @@ export class PodcastCreatePage {
     return 'Nao foi possivel guardar o podcast.';
   }
 }
+

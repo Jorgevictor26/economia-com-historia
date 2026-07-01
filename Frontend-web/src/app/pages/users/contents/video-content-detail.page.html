@@ -8,9 +8,14 @@
         <div class="group relative aspect-video bg-[#212121]">
 
           @if (currentVideo.videoUrl && isDirectVideoUrl(currentVideo.videoUrl)) {
-            <video class="h-full w-full object-cover" [poster]="currentVideo.frameUrl" controls>
-              <source [src]="currentVideo.videoUrl" />
-            </video>
+            <video #videoPlayer class="h-full w-full object-cover" [src]="currentVideo.videoUrl" [poster]="currentVideo.frameUrl" preload="metadata" playsinline (play)="markVideoPlaying()" (pause)="markVideoStopped()" (ended)="markVideoStopped()" (error)="markVideoError()"></video>
+            <div class="absolute inset-0 z-10 flex items-center justify-center">
+              <button type="button" (click)="toggleVideoPlayback(videoPlayer)" class="grid h-15 w-15 place-items-center rounded-full bg-black/70 text-white backdrop-blur-md transition duration-300 hover:scale-110 hover:bg-[#8A3F50]" [attr.aria-label]="videoPlaying() ? 'Pausar vídeo' : 'Reproduzir vídeo'">
+                <span class="material-symbols-outlined text-[50px]">
+                  {{ videoPlaying() ? 'pause' : 'play_arrow' }}
+                </span>
+              </button>
+            </div>
           } @else {
             @if (currentVideo.frameUrl) {
               <img [src]="currentVideo.frameUrl" [alt]="currentVideo.title" class="h-full w-full object-cover" />
@@ -22,14 +27,11 @@
           }
 
           <!-- Overlay -->
-          @if (!currentVideo.videoUrl || !isDirectVideoUrl(currentVideo.videoUrl)) {
-            <div class="absolute inset-0 bg-black/20 transition group-hover:bg-black/10"></div>
-          }
+          <div class="pointer-events-none absolute inset-0 bg-black/20 transition group-hover:bg-black/10"></div>
 
           <!-- Play Central -->
           @if (!currentVideo.videoUrl || !isDirectVideoUrl(currentVideo.videoUrl)) {
           <div class="absolute inset-0 flex items-center justify-center">
-
             <a [href]="currentVideo.videoUrl || null" target="_blank" rel="noopener noreferrer" [class.pointer-events-none]="!currentVideo.videoUrl"
               class="grid h-15 w-15 place-items-center rounded-full bg-black/70 text-white backdrop-blur-md transition duration-300 hover:scale-110 hover:bg-[#8A3F50]">
               <span class="material-symbols-outlined text-[50px]">
@@ -54,10 +56,13 @@
       </section>
 
       @if (isLoading()) {
-        <p class="mt-4 text-[13px] font-semibold text-[#616161]">A carregar vÃ­deo...</p>
+        <p class="mt-4 text-[13px] font-semibold text-[#616161]">A carregar vídeo...</p>
       }
       @if (loadError()) {
         <p class="mt-4 text-[13px] font-bold text-[#B42318]">{{ loadError() }}</p>
+      }
+      @if (videoLoadError()) {
+        <p class="mt-4 text-[13px] font-bold text-[#8A3F50]">Não foi possível abrir o ficheiro de vídeo. Confirme se o ficheiro ainda está disponível.</p>
       }
 
       <div class="mt-7 flex flex-wrap items-center gap-3 text-[14px] text-[#616161]">
@@ -101,10 +106,6 @@
               <span>Partilhar</span>
             </button>
 
-            <a [routerLink]="['/app/forums']" [queryParams]="{ content: currentVideo.id }" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]">
-              <span class="material-symbols-outlined text-[26px] leading-none">forum</span>
-              <span>Criar f&oacute;rum</span>
-            </a>
           </div>
 
           <button type="button" class="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#9E9E9E] transition hover:text-[#5C1E2F]" (click)="saveVideoContent($event)">
@@ -112,16 +113,21 @@
             <span>Guardar</span>
           </button>
           @if (canManageVideo()) {
-          <div class="flex items-center gap-3 text-[11px] font-extrabold uppercase tracking-[0.08em]">
-            <a [routerLink]="editVideoRoute()" class="inline-flex items-center gap-2 text-[#616161] transition hover:text-[#5C1E2F]">
-              <span class="material-symbols-outlined text-[19px] leading-none">edit</span>
-              <span>Editar post</span>
-            </a>
-            <button type="button" class="inline-flex items-center gap-2 text-[#8A3F50] transition hover:text-[#5C1E2F]" (click)="deleteVideoContent($event)">
-              <span class="material-symbols-outlined text-[19px] leading-none">delete</span>
-              <span>Apagar post</span>
-            </button>
-          </div>
+          <details class="relative">
+            <summary class="grid size-9 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" aria-label="Mais ações">
+              <span class="material-symbols-outlined text-[22px] leading-none">more_vert</span>
+            </summary>
+            <div class="absolute right-0 z-20 mt-2 grid min-w-40 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
+              <a [routerLink]="editVideoRoute()" class="flex items-center gap-2 px-3 py-2 text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]">
+                <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
+                <span>Editar post</span>
+              </a>
+              <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]" (click)="deleteVideoContent($event)">
+                <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
+                <span>Apagar post</span>
+              </button>
+            </div>
+          </details>
           }
         </div>
       </section>
@@ -137,7 +143,7 @@
         </blockquote>
       </section>
       <section class="mt-10 border-t border-[#E0E0E0] pt-9">
-        <h2 class="text-[14px] font-medium text-[#5c1e2f]">ComentÃ¡rios ({{ comments.length }})</h2>
+        <h2 class="text-[14px] font-medium text-[#5c1e2f]">Comentários ({{ comments.length }})</h2>
         @if (isVideoCommentComposerOpen()) {
         <div class="mt-6 flex gap-4">
           <span class="size-9 rounded-[10px] bg-[#E0E0E0]"></span>
@@ -151,7 +157,7 @@
         }
         <div class="mt-9 grid gap-7">
           @if (!comments.length) {
-          <p class="text-[13px] text-[#616161]">Ainda nÃ£o hÃ¡ comentÃ¡rios neste vÃ­deo.</p>
+          <p class="text-[13px] text-[#616161]">Ainda não há comentários neste vídeo.</p>
           }
           @for (comment of comments; track comment.author) {
           <div class="flex gap-4">
@@ -193,12 +199,12 @@
                 <span class="mt-3 block text-[10px] font-extrabold uppercase text-[#D4AF37]">{{ item.category }}</span>
                 <strong class="mt-1 line-clamp-2 font-display text-[17px] font-extrabold leading-tight text-[#5c1e2f]">{{ item.title }}</strong>
                 <span class="hidden">{{ item.author }}</span>
-                <span class="hidden">{{ item.category }} â€¢ {{ item.reactionsCount ?? 0 }} gostos</span>
+                <span class="hidden">{{ item.category }} • {{ item.reactionsCount ?? 0 }} gostos</span>
               </span>
             </a>
             }
             } @else {
-            <p class="text-[12px] text-[#616161]">Sem conteÃºdos relacionados por agora.</p>
+            <p class="text-[12px] text-[#616161]">Sem conteúdos relacionados por agora.</p>
             }
           </div>
         </section>
@@ -206,7 +212,7 @@
         <section class="rounded-[6px] bg-[#F2E6E9] p-6">
           <h2 class="font-display text-[15px] font-extrabold text-[#5c1e2f]">Apoie o Arquivo</h2>
           <p class="mt-3 text-[12px] leading-5 text-[#616161]">
-            Junte-se para desbloquear vÃ­deos de alta resoluÃ§Ã£o, documentos raros e visualizaÃ§Ãµes interativas.
+            Junte-se para desbloquear vídeos de alta resolução, documentos raros e visualizações interativas.
           </p>
           <a routerLink="/app/subscriptions"
             class="mt-5 inline-flex h-10 w-full items-center justify-center bg-[#5c1e2f] text-[11px] font-extrabold uppercase text-white">
@@ -220,13 +226,13 @@
   <main class="mx-auto grid min-h-[60dvh] max-w-[720px] place-items-center px-5 py-16 text-center">
     <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-8">
       <h1 class="font-display text-[24px] font-extrabold text-[#5c1e2f]">
-        {{ isLoading() ? 'A carregar vÃ­deo...' : 'VÃ­deo nÃ£o encontrado' }}
+        {{ isLoading() ? 'A carregar vídeo...' : 'Vídeo não encontrado' }}
       </h1>
       @if (loadError()) {
       <p class="mt-3 text-[13px] font-bold text-[#B42318]">{{ loadError() }}</p>
       }
       <a routerLink="/app/contents" class="mt-5 inline-flex h-10 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[12px] font-bold text-white">
-        Ver conteÃºdos
+        Ver conteúdos
       </a>
     </section>
   </main>
@@ -234,4 +240,5 @@
 
   <app-back-to-top />
 </section>
+
 

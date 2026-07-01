@@ -1,19 +1,17 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+﻿import { Component, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Routes } from '@angular/router';
 import { AuthStateService } from '../../services/auth-state.service';
 import { BackendComment, CommentService } from '../../services/comment.service';
 import { BackendContent, ContentService } from '../../services/content.service';
-<<<<<<< HEAD
 import { ToastService } from '../../services/toast.service';
-=======
 import { normalizeMediaUrl } from '../../services/media-url.util';
->>>>>>> c19bb649b34b5b916dffc58911f1153a834e80e4
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
 interface PodcastView {
   id: string;
+  ownerId?: string;
   categoryId?: number | string;
   contentTypeId?: number | string;
   title: string;
@@ -60,6 +58,7 @@ interface RelatedPodcastView {
 })
 export class PodcastLibraryPage {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly auth = inject(AuthStateService);
   private readonly commentService = inject(CommentService);
   private readonly contentService = inject(ContentService);
@@ -79,9 +78,44 @@ export class PodcastLibraryPage {
   readonly loadError = signal('');
   readonly commentError = signal('');
   readonly commentSuccess = signal('');
+  readonly audioPlaying = signal(false);
+  readonly audioReady = signal(false);
+  readonly audioEnded = signal(false);
+  readonly audioLoadError = signal(false);
+  readonly audioProgressText = signal('00:00 / 00:00');
+  readonly audioStatusText = computed(() => {
+    if (!this.currentPodcast().audioUrl) {
+      return 'Áudio indisponível';
+    }
+
+    if (this.audioLoadError()) {
+      return 'Não foi possível carregar o áudio';
+    }
+
+    if (!this.audioReady()) {
+      return 'A preparar áudio';
+    }
+
+    if (this.audioPlaying()) {
+      return 'A reproduzir';
+    }
+
+    if (this.audioEnded()) {
+      return 'Reprodução terminada';
+    }
+
+    return 'Em pausa';
+  });
+  readonly canManagePodcast = computed(() => {
+    const ownerId = this.currentPodcast().ownerId;
+    const userId = this.auth.user()?.id;
+
+    return Boolean(ownerId && userId && String(ownerId) === String(userId));
+  });
 
   readonly currentPodcast = computed<PodcastView>(() => this.podcast() ?? {
     id: '',
+    ownerId: undefined,
     title: 'Podcast',
     description: '',
     coverUrl: null,
@@ -132,6 +166,141 @@ export class PodcastLibraryPage {
 
   areRepliesOpen(commentId: string): boolean {
     return this.expandedReplies()[commentId] ?? false;
+  }
+
+  async toggleAudio(audio: HTMLAudioElement): Promise<void> {
+    const audioUrl = this.currentPodcast().audioUrl;
+
+    if (!audioUrl) {
+      return;
+    }
+
+    if (audio.paused) {
+      try {
+        this.prepareAudioElement(audio, audioUrl);
+        await audio.play();
+      } catch {
+        this.audioPlaying.set(false);
+        this.audioLoadError.set(true);
+      }
+      return;
+    }
+
+    audio.pause();
+  }
+
+  async restartAudio(audio: HTMLAudioElement): Promise<void> {
+    const audioUrl = this.currentPodcast().audioUrl;
+
+    if (!audioUrl) {
+      return;
+    }
+
+    this.prepareAudioElement(audio, audioUrl);
+    audio.currentTime = 0;
+    this.audioEnded.set(false);
+
+    try {
+      await audio.play();
+    } catch {
+      this.audioPlaying.set(false);
+      this.audioLoadError.set(true);
+    }
+  }
+
+  skipAudio(audio: HTMLAudioElement, seconds: number): void {
+    audio.currentTime = Math.max(0, Math.min(audio.duration || audio.currentTime + seconds, audio.currentTime + seconds));
+  }
+
+  markAudioPlaying(): void {
+    this.audioPlaying.set(true);
+    this.audioEnded.set(false);
+  }
+
+  markAudioStopped(): void {
+    this.audioPlaying.set(false);
+  }
+
+  markAudioReady(audio: HTMLAudioElement): void {
+    this.audioReady.set(true);
+    this.audioLoadError.set(false);
+    this.syncAudioProgress(audio);
+  }
+
+  markAudioEnded(audio: HTMLAudioElement): void {
+    this.audioPlaying.set(false);
+    this.audioEnded.set(true);
+    this.syncAudioProgress(audio);
+  }
+
+  syncAudioProgress(audio: HTMLAudioElement): void {
+    const current = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+    const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+    this.audioProgressText.set(`${this.formatAudioTime(current)} / ${this.formatAudioTime(duration)}`);
+  }
+
+  markAudioError(): void {
+    if (!this.currentPodcast().audioUrl || this.audioLoadError()) {
+      return;
+    }
+
+    this.audioPlaying.set(false);
+    this.audioReady.set(false);
+    this.audioLoadError.set(true);
+  }
+
+  editPodcastRoute(): string[] {
+    const podcast = this.podcast();
+
+    return podcast ? ['/app/contents', podcast.id, 'edit'] : ['/app/contents'];
+  }
+
+  async deletePodcastContent(event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const podcast = this.podcast();
+
+    if (!podcast || !this.canManagePodcast()) {
+      this.toastService.error('Apenas o dono pode apagar este conteúdo.');
+      return;
+    }
+
+    if (!window.confirm(`Apagar "${podcast.title}"?`)) {
+      return;
+    }
+
+    try {
+      await this.contentService.delete(podcast.id);
+      await this.router.navigate(['/app/contents']);
+    } catch {
+      this.toastService.error('Não foi possível apagar este conteúdo.');
+    }
+  }
+
+  private formatAudioTime(totalSeconds: number): string {
+    const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+    const minutes = Math.floor(safeSeconds / 60);
+    const seconds = safeSeconds % 60;
+
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  private resetAudioState(): void {
+    this.audioPlaying.set(false);
+    this.audioReady.set(false);
+    this.audioEnded.set(false);
+    this.audioLoadError.set(false);
+    this.audioProgressText.set('00:00 / 00:00');
+  }
+
+  private prepareAudioElement(audio: HTMLAudioElement, audioUrl: string): void {
+    if (audio.currentSrc !== audioUrl && audio.getAttribute('src') !== audioUrl) {
+      audio.src = audioUrl;
+      audio.load();
+    }
+
+    this.audioLoadError.set(false);
   }
 
   async submitComment(value: string): Promise<void> {
@@ -193,6 +362,7 @@ export class PodcastLibraryPage {
     this.podcast.set(null);
     this.comments.set([]);
     this.relatedPodcasts.set([]);
+    this.resetAudioState();
 
     try {
       const content = await this.contentService.getById(id);
@@ -203,7 +373,7 @@ export class PodcastLibraryPage {
         this.loadRelatedPodcasts(content),
       ]);
     } catch {
-      this.toastService.error('Nao foi possivel carregar este podcast.');
+      this.toastService.error('Não foi possível carregar este podcast.');
     } finally {
       this.isLoading.set(false);
     }
@@ -214,18 +384,25 @@ export class PodcastLibraryPage {
 
     return {
       id: String(content.id),
+      ownerId: this.contentOwnerId(content),
       categoryId: content.category?.id,
       contentTypeId: content.content_type?.id,
       title: content.title,
-      description: content.summary || this.stripHtml(content.content ?? '') || 'Sem descricao disponivel.',
-      coverUrl: normalizeMediaUrl(content.image_url) ?? null,
-      audioUrl: normalizeMediaUrl(content.audio_url) ?? null,
+      description: content.summary || this.stripHtml(content.content ?? '') || 'Sem descrição disponível.',
+      coverUrl: normalizeMediaUrl(content.image_url, { contentId: content.id, mediaType: 'image' }) ?? null,
+      audioUrl: normalizeMediaUrl(content.audio_url, { contentId: content.id, mediaType: 'audio' }) ?? null,
       authorName,
       authorInitials: this.initials(authorName),
       category: content.category?.name ?? 'Podcast',
       duration: this.extractDuration(content.content ?? ''),
       keyPoints: this.extractKeyPoints(content.content ?? content.summary ?? ''),
     };
+  }
+
+  private contentOwnerId(content: BackendContent): string | undefined {
+    const ownerId = content.user_id ?? content.author_id ?? content.user?.id ?? content.author?.id;
+
+    return ownerId === undefined || ownerId === null ? undefined : String(ownerId);
   }
 
   private async loadComments(contentId: string): Promise<void> {
@@ -303,7 +480,7 @@ export class PodcastLibraryPage {
       id: String(content.id),
       title: content.title,
       category: content.category?.name ?? content.content_type?.name ?? 'Podcast',
-      coverUrl: normalizeMediaUrl(content.image_url) ?? null,
+      coverUrl: normalizeMediaUrl(content.image_url, { contentId: content.id, mediaType: 'image' }) ?? null,
     };
   }
 
@@ -352,3 +529,4 @@ export const PODCAST_LIBRARY_ROUTES: Routes = [
   { path: '', component: PodcastLibraryPage },
   { path: ':id', component: PodcastLibraryPage },
 ];
+

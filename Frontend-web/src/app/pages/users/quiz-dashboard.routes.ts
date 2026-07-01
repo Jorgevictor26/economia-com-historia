@@ -1,12 +1,9 @@
-import { Component, computed, inject, signal } from '@angular/core';
+﻿import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink, Routes } from '@angular/router';
 import { AuthStateService } from '../../services/auth-state.service';
 import { QuizService, QuizSubmitResult } from '../../services/quiz.service';
-<<<<<<< HEAD
 import { ToastService } from '../../services/toast.service';
-=======
 import { Quiz } from '../../models/quiz.model';
->>>>>>> c19bb649b34b5b916dffc58911f1153a834e80e4
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
@@ -357,3 +354,4 @@ export const QUIZ_DASHBOARD_ROUTES: Routes = [
   { path: '', component: QuizDashboardPage },
   { path: ':id/play', component: QuizPlayPage },
 ];
+

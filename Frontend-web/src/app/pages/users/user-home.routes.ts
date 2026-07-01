@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+﻿import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink, Routes } from '@angular/router';
 import { BackendContent, BackendContentProgress, ContentService } from '../../services/content.service';
 import { AuthStateService } from '../../services/auth-state.service';
@@ -197,7 +197,7 @@ export class UserHomePage implements OnInit, OnDestroy {
       summary: content.summary || this.toPlainText(content.content) || 'Conteúdo disponível na biblioteca Economia com História.',
       author: content.author?.name ?? content.user?.name ?? 'Equipa editorial',
       route: this.contentRoute(content, contentTypeSlug),
-      imageUrl: normalizeMediaUrl(content.image_url) ?? '/assets/bna-hero.jpg',
+      imageUrl: normalizeMediaUrl(content.image_url, { contentId: content.id, mediaType: 'image' }) ?? '/assets/bna-hero.jpg',
       meta: reactionsCount === 1 ? '1 gosto' : `${reactionsCount} gostos`,
       premium: contentTypeSlug === 'jindungo',
     };
@@ -247,3 +247,4 @@ export class UserHomePage implements OnInit, OnDestroy {
 }
 
 export const USER_HOME_ROUTES: Routes = [{ path: '', component: UserHomePage }];
+

@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+﻿import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink, Routes } from '@angular/router';
 import { BackendContent } from '../../services/content.service';
 import { SavedContentService } from '../../services/saved-content.service';
@@ -226,3 +226,4 @@ export class SavedContentsPage implements OnInit {
 }
 
 export const SAVED_CONTENTS_ROUTES: Routes = [{ path: '', component: SavedContentsPage }];
+

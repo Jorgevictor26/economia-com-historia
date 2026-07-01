@@ -1,4 +1,4 @@
-import { CanActivateFn, Routes } from '@angular/router';
+﻿import { CanActivateFn, Routes } from '@angular/router';
 import { adminGuard } from './services/admin.guard';
 import { authGuard } from './services/auth.guard';
 import { superAdminGuard } from './services/super-admin.guard';
@@ -100,3 +100,4 @@ export const routes: Routes = [
   },
   { path: '**', redirectTo: '' },
 ];
+

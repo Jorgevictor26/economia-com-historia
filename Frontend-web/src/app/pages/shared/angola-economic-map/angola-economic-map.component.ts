@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+﻿import { Component, computed, signal } from '@angular/core';
 
 type AreaLevel = 'País' | 'Província' | 'Município' | 'Distrito' | 'Bairro' | 'Avenida';
 
@@ -183,4 +183,5 @@ export class AngolaEconomicMapComponent {
     return { id, parentId, name, level, x, y, minZoom, economy, history, localInfo, points };
   }
 }
+
 

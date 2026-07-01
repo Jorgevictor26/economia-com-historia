@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+﻿import { Component, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -127,3 +127,4 @@ export class ResetPasswordPage {
     return 'Não foi possível redefinir a palavra-passe. Verifique o link e tente novamente.';
   }
 }
+

@@ -262,16 +262,6 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
       return;
     }
 
-    if (payload.operation === 'editar') {
-      await this.router.navigate(['/app/contents', payload.content.id, 'edit']);
-      return;
-    }
-
-    if (payload.operation === 'apagar') {
-      await this.deleteContent(payload.content);
-      return;
-    }
-
     if (payload.operation === 'comentar') {
       await this.router.navigate(['/app/contents', payload.content.id], { fragment: 'comments' });
       return;
@@ -418,31 +408,6 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
     }
   }
 
-  canManageContent(content: ContentListItem): boolean {
-    const userId = this.auth.user()?.id;
-
-    return Boolean(content.ownerId && userId && String(content.ownerId) === String(userId));
-  }
-
-  private async deleteContent(content: ContentListItem): Promise<void> {
-    if (!this.canManageContent(content)) {
-      this.showToast('Apenas o dono pode apagar este conteÃºdo.', 'error');
-      return;
-    }
-
-    if (!window.confirm(`Apagar "${content.title}"?`)) {
-      return;
-    }
-
-    try {
-      await this.contentService.delete(content.id);
-      this.contents.update((items) => items.filter((item) => item.id !== content.id));
-      this.showToast('ConteÃºdo apagado.', 'success');
-    } catch {
-      this.showToast('NÃ£o foi possÃ­vel apagar este conteÃºdo.', 'error');
-    }
-  }
-
   private showToast(message: string, kind: PageToast['kind'] = 'info'): void {
     this.toastService[kind](message);
   }
@@ -541,7 +506,7 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
       author: authorName,
       authorInitials: this.getInitials(authorName),
       authorPhotoUrl: contentAuthorPhotoUrl(content) ?? this.authenticatedAuthorPhotoUrl(authorId),
-      imageUrl: normalizeMediaUrl(content.image_url),
+      imageUrl: normalizeMediaUrl(content.image_url, { contentId: content.id, mediaType: 'image' }),
       premium,
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
@@ -830,7 +795,7 @@ export class ContentDetailPage implements OnDestroy {
     const detail = this.detail();
 
     if (!detail || !this.canManageDetail()) {
-      this.showToast('Apenas o dono pode editar este conteÃºdo.', 'error');
+      this.showToast('Apenas o dono pode editar este conteúdo.', 'error');
       return;
     }
 
@@ -839,7 +804,7 @@ export class ContentDetailPage implements OnDestroy {
     const nextBody = body.trim();
 
     if (!nextTitle || !nextBody) {
-      this.showToast('Preencha o tÃ­tulo e o conteÃºdo.', 'error');
+      this.showToast('Preencha o título e o conteúdo.', 'error');
       return;
     }
 
@@ -854,9 +819,9 @@ export class ContentDetailPage implements OnDestroy {
       });
 
       this.detail.set(this.toContentDetail(updated));
-      this.showToast('ConteÃºdo atualizado.', 'success');
+      this.showToast('Conteúdo atualizado.', 'success');
     } catch {
-      this.showToast('NÃ£o foi possÃ­vel atualizar este conteÃºdo.', 'error');
+      this.showToast('Não foi possível atualizar este conteúdo.', 'error');
     }
   }
 
@@ -867,7 +832,7 @@ export class ContentDetailPage implements OnDestroy {
     const detail = this.detail();
 
     if (!detail || !this.canManageDetail()) {
-      this.showToast('Apenas o dono pode apagar este conteÃºdo.', 'error');
+      this.showToast('Apenas o dono pode apagar este conteúdo.', 'error');
       return;
     }
 
@@ -879,7 +844,7 @@ export class ContentDetailPage implements OnDestroy {
       await this.contentService.delete(detail.id);
       await this.router.navigate(['/app/contents']);
     } catch {
-      this.showToast('NÃ£o foi possÃ­vel apagar este conteÃºdo.', 'error');
+      this.showToast('Não foi possível apagar este conteúdo.', 'error');
     }
   }
 
@@ -1176,7 +1141,7 @@ export class ContentDetailPage implements OnDestroy {
       authorInitials: this.getInitials(authorName),
       authorPhotoUrl: contentAuthorPhotoUrl(content) ?? this.authenticatedAuthorPhotoUrl(authorId),
       authorBio: content.author?.bio || content.user?.bio || undefined,
-      imageUrl: normalizeMediaUrl(content.image_url),
+      imageUrl: normalizeMediaUrl(content.image_url, { contentId: content.id, mediaType: 'image' }),
       premium: contentTypeSlug === 'jindungo',
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
@@ -1212,7 +1177,7 @@ export class ContentDetailPage implements OnDestroy {
       author: authorName,
       authorInitials: this.getInitials(authorName),
       authorPhotoUrl: contentAuthorPhotoUrl(content) ?? this.authenticatedAuthorPhotoUrl(authorId),
-      imageUrl: normalizeMediaUrl(content.image_url),
+      imageUrl: normalizeMediaUrl(content.image_url, { contentId: content.id, mediaType: 'image' }),
       premium: this.normalizeText(content.content_type?.slug ?? contentType) === 'jindungo',
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
@@ -1297,6 +1262,8 @@ export class VideoContentDetailPage implements OnDestroy {
   readonly loadedVideo = signal<VideoDetail | null>(null);
   readonly relatedContents = signal<ContentListItem[]>([]);
   readonly isLoadingRelated = signal(false);
+  readonly videoPlaying = signal(false);
+  readonly videoLoadError = signal(false);
   private toastTimeout?: ReturnType<typeof setTimeout>;
 
   readonly video = computed(() => {
@@ -1318,6 +1285,38 @@ export class VideoContentDetailPage implements OnDestroy {
     void this.loadVideo();
   }
 
+  async toggleVideoPlayback(video: HTMLVideoElement): Promise<void> {
+    if (video.paused) {
+      try {
+        await video.play();
+      } catch {
+        this.videoPlaying.set(false);
+        this.videoLoadError.set(true);
+      }
+      return;
+    }
+
+    video.pause();
+  }
+
+  markVideoPlaying(): void {
+    this.videoPlaying.set(true);
+    this.videoLoadError.set(false);
+  }
+
+  markVideoStopped(): void {
+    this.videoPlaying.set(false);
+  }
+
+  markVideoError(): void {
+    if (!this.video()?.videoUrl || this.videoLoadError()) {
+      return;
+    }
+
+    this.videoPlaying.set(false);
+    this.videoLoadError.set(true);
+  }
+
   private async loadVideo(): Promise<void> {
     const id = this.route.snapshot.params['id'];
 
@@ -1327,6 +1326,7 @@ export class VideoContentDetailPage implements OnDestroy {
 
     this.isLoading.set(true);
     this.loadError.set('');
+    this.videoLoadError.set(false);
 
     try {
       const content = await this.contentService.getById(id);
@@ -1435,7 +1435,7 @@ export class VideoContentDetailPage implements OnDestroy {
     const video = this.video();
 
     if (!video || !this.canManageVideo()) {
-      this.showToast('Apenas o dono pode apagar este conteÃºdo.', 'error');
+      this.showToast('Apenas o dono pode apagar este conteúdo.', 'error');
       return;
     }
 
@@ -1447,7 +1447,7 @@ export class VideoContentDetailPage implements OnDestroy {
       await this.contentService.delete(video.id);
       await this.router.navigate(['/app/contents']);
     } catch {
-      this.showToast('NÃ£o foi possÃ­vel apagar este conteÃºdo.', 'error');
+      this.showToast('Não foi possível apagar este conteúdo.', 'error');
     }
   }
 
@@ -1477,8 +1477,8 @@ export class VideoContentDetailPage implements OnDestroy {
         ? createdAt.toLocaleDateString('pt-AO', { day: '2-digit', month: 'long', year: 'numeric' })
         : 'Data indisponível',
       duration: this.extractDuration(content.content) ?? '00:00',
-      frameUrl: normalizeMediaUrl(content.image_url),
-      videoUrl: content.video_url ?? undefined,
+      frameUrl: normalizeMediaUrl(content.image_url, { contentId: content.id, mediaType: 'image' }),
+      videoUrl: normalizeMediaUrl(content.video_url, { contentId: content.id, mediaType: 'video' }),
       author: authorName,
       authorInitials: this.initials(authorName),
       authorPhotoUrl: contentAuthorPhotoUrl(content) ?? this.authenticatedAuthorPhotoUrl(authorId),
@@ -1548,7 +1548,7 @@ export class VideoContentDetailPage implements OnDestroy {
       author: authorName,
       authorInitials: this.initials(authorName),
       authorPhotoUrl: contentAuthorPhotoUrl(content) ?? this.authenticatedAuthorPhotoUrl(authorId),
-      imageUrl: normalizeMediaUrl(content.image_url),
+      imageUrl: normalizeMediaUrl(content.image_url, { contentId: content.id, mediaType: 'image' }),
       premium: this.normalizeText(content.content_type?.slug ?? contentType) === 'jindungo',
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
@@ -1618,3 +1618,4 @@ export const CONTENT_LIBRARY_ROUTES: Routes = [
   { path: ':id/edit', component: ContentDetailPage },
   { path: ':id', component: ContentDetailPage },
 ];
+

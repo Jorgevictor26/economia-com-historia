@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+﻿import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MapLayerKey, MapLayerOption, MapSearchResult } from './economic-map.models';
 
 @Component({
@@ -99,3 +99,4 @@ export class EconomicMapSidebarComponent {
   @Output() zoomIn = new EventEmitter<void>();
   @Output() zoomOut = new EventEmitter<void>();
 }
+

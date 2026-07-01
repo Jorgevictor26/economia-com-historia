@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+﻿import { Component, inject } from '@angular/core';
 import { RouterLink, Routes } from '@angular/router';
 import { SubscriptionService } from '../../services/subscription.service';
 import { AuthStateService } from '../../services/auth-state.service';
@@ -60,3 +60,4 @@ export class SubscriptionManagementPage {
 }
 
 export const SUBSCRIPTION_MANAGEMENT_ROUTES: Routes = [{ path: '', component: SubscriptionManagementPage }];
+

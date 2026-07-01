@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+﻿import { Component, computed, inject, signal } from '@angular/core';
 import { Routes } from '@angular/router';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
@@ -120,3 +120,4 @@ export class EconomicMapPage {
 }
 
 export const ECONOMIC_MAP_ROUTES: Routes = [{ path: '', component: EconomicMapPage }];
+

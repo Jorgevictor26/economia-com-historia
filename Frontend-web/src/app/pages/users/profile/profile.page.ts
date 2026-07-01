@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthStateService } from '../../../services/auth-state.service';
 import { ProfileService } from '../../../services/profile.service';
@@ -244,3 +244,4 @@ export class ProfilePage implements OnInit {
     }
   }
 }
+

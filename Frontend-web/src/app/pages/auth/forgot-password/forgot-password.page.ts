@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+﻿import { Component, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -76,3 +76,4 @@ export class ForgotPasswordPage {
     return 'Não foi possível enviar o email de recuperação. Verifique se a API está ativa e tente novamente.';
   }
 }
+

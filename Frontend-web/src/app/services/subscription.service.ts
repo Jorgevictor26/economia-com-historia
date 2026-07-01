@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+﻿import { Injectable, signal } from '@angular/core';
 import { SubscribedJindungoText, SubscriptionPlan } from '../models/subscription.model';
 
 @Injectable({ providedIn: 'root' })
@@ -46,3 +46,4 @@ export class SubscriptionService {
     },
   ]);
 }
+

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { AdminConsoleShellComponent } from '../../components/admin-console-shell.component';
 import { AdminPageHeaderComponent } from '../../shared/components';
 
@@ -15,3 +15,4 @@ export class AdminSettingsPage {
     this.saveStatus = 'Configurações guardadas no painel.';
   }
 }
+

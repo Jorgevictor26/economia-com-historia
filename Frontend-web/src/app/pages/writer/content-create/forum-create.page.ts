@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+﻿import { Component, computed, inject, signal } from '@angular/core';
 import { BackendContent, ContentService } from '../../../services/content.service';
 import { ForumService } from '../../../services/forum.service';
 import { ToastService } from '../../../services/toast.service';
@@ -243,3 +243,4 @@ export class ForumCreatePage {
     return 'Nao foi possivel criar o forum.';
   }
 }
+

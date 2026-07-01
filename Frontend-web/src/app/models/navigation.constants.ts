@@ -1,4 +1,4 @@
-import { NavigationItem } from './navigation-item.model';
+﻿import { NavigationItem } from './navigation-item.model';
 
 export const DASHBOARD_NAVIGATION: NavigationItem[] = [
   { label: 'Conteúdos', route: '/app/contents', icon: 'book' },
@@ -24,5 +24,6 @@ export const SUPER_ADMIN_NAVIGATION: NavigationItem[] = [
   { label: 'Analytics', route: '/super-admin/analytics', icon: 'chart' },
   { label: 'Monitoramento', route: '/super-admin/monitoring', icon: 'pulse' },
 ];
+
 
 

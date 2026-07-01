@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild, inject } from '@angular/core';
+﻿import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild, inject } from '@angular/core';
 import * as L from 'leaflet';
 import { EconomicMapDataService } from './economic-map-data.service';
 import { EconomicMapGeojsonService } from './economic-map-geojson.service';
@@ -280,3 +280,4 @@ export class EconomicMapLeafletComponent implements AfterViewInit, OnChanges, On
     return null;
   }
 }
+

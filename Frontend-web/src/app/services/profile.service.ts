@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+﻿import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ApiResponse } from '../models/api-response.model';
@@ -128,3 +128,4 @@ export class ProfileService {
     return Boolean(role && role !== 'student');
   }
 }
+

@@ -13,6 +13,8 @@ interface BackendRelation {
 
 export interface BackendContent {
   id: number | string;
+  user_id?: number | string;
+  author_id?: number | string;
   title: string;
   summary?: string | null;
   content?: string | null;
@@ -140,6 +142,16 @@ export class ContentService {
     const response = await firstValueFrom(this.http.post<{ data: BackendContent }>('/contents', payload));
 
     return response.data;
+  }
+
+  async update(id: number | string, payload: Partial<ContentPayload>): Promise<BackendContent> {
+    const response = await firstValueFrom(this.http.put<{ data: BackendContent }>(`/contents/${id}`, payload));
+
+    return response.data;
+  }
+
+  async delete(id: number | string): Promise<void> {
+    await firstValueFrom(this.http.delete(`/contents/${id}`));
   }
 
   async uploadMedia(id: number | string, mediaType: 'image' | 'video' | 'audio' | 'document', file: File): Promise<BackendContent> {

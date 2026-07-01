@@ -139,9 +139,6 @@
               <button type="button" (click)="publish()" [disabled]="isSaving()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] bg-[#8A3F50] px-4 text-[14px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.22)] disabled:cursor-not-allowed disabled:opacity-60"><span class="material-icon" aria-hidden="true">publish</span> {{ isSaving() ? 'A publicar...' : 'Publicar podcast' }}</button>
             </div>
 
-            @if (formError()) {
-              <p class="mt-4 rounded-[8px] border border-[#E6D5B8] bg-white px-4 py-3 text-[12px] font-bold text-[#8A3F50]">{{ formError() }}</p>
-            }
           </section>
         }
 

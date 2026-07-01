@@ -6,6 +6,7 @@ import { AuthStateService } from '../../../services/auth-state.service';
 import { CategoryService } from '../../../services/category.service';
 import { ContentPayload, ContentService } from '../../../services/content.service';
 import { ContentTypeService } from '../../../services/content-type.service';
+import { ToastService } from '../../../services/toast.service';
 import { AdminConsoleShellComponent } from '../../admin/components/admin-console-shell.component';
 
 @Component({
@@ -37,6 +38,7 @@ export class VideoCreatePage {
   private readonly contentService = inject(ContentService);
   private readonly categoryService = inject(CategoryService);
   private readonly contentTypeService = inject(ContentTypeService);
+  private readonly toastService = inject(ToastService);
 
   readonly categories = signal<Category[]>([]);
   readonly contentTypes = signal<ContentTypeOption[]>([]);
@@ -178,7 +180,7 @@ export class VideoCreatePage {
       this.categories.set(categories);
       this.contentTypes.set(contentTypes);
     } catch {
-      this.formError.set('Nao foi possivel carregar categorias e tipos de conteudo.');
+      this.showError('Nao foi possivel carregar categorias e tipos de conteudo.');
     }
   }
 
@@ -207,7 +209,7 @@ export class VideoCreatePage {
       await this.router.navigate(['/app/contents/videos', content.id]);
     } catch (error) {
       this.status.set('Rascunho');
-      this.formError.set(this.errorMessage(error));
+      this.showError(this.errorMessage(error));
     } finally {
       this.isSaving.set(false);
     }
@@ -272,6 +274,11 @@ export class VideoCreatePage {
 
   private normalize(value: string): string {
     return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  }
+
+  private showError(message: string): void {
+    this.formError.set('');
+    this.toastService.error(message);
   }
 
   private errorMessage(error: unknown): string {

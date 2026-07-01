@@ -7,6 +7,7 @@ import { AuthService } from '../../../services/auth.service';
 import { AuthStateService } from '../../../services/auth-state.service';
 import { UserRole } from '../../../models/user.model';
 import { environmentConfig } from '../../../services/environment.config';
+import { ToastService } from '../../../services/toast.service';
 
 interface GoogleCredentialResponse {
   credential?: string;
@@ -54,6 +55,7 @@ export class LoginComponent implements AfterViewInit {
   private readonly authService = inject(AuthService);
   private readonly authState = inject(AuthStateService);
   private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   readonly isLoading = signal(false);
   readonly submitted = signal(false);
@@ -88,7 +90,7 @@ export class LoginComponent implements AfterViewInit {
       return;
     }
 
-    this.errorMessage.set('Não foi possível carregar o login com Google. Recarregue a página e tente novamente.');
+    this.showError('Não foi possível carregar o login com Google. Recarregue a página e tente novamente.');
   }
 
   ngAfterViewInit(): void {
@@ -110,7 +112,7 @@ export class LoginComponent implements AfterViewInit {
       await this.authService.login(this.form.getRawValue());
       await this.router.navigateByUrl(this.routeForRole(this.authState.user()?.role));
     } catch (error) {
-      this.errorMessage.set(this.extractErrorMessage(error));
+      this.showError(this.extractErrorMessage(error));
     } finally {
       this.isLoading.set(false);
     }
@@ -183,7 +185,7 @@ export class LoginComponent implements AfterViewInit {
       this.googleReady.set(true);
     } catch {
       this.googleReady.set(false);
-      this.errorMessage.set('Não foi possível carregar o login com Google.');
+      this.showError('Não foi possível carregar o login com Google.');
     }
   }
 
@@ -212,14 +214,14 @@ export class LoginComponent implements AfterViewInit {
 
   private handleGoogleCredential(response: GoogleCredentialResponse): void {
     if (!response.credential) {
-      this.errorMessage.set('Não foi possível obter a conta Google selecionada.');
+      this.showError('Não foi possível obter a conta Google selecionada.');
       return;
     }
 
     const profile = this.decodeGoogleCredential(response.credential);
 
     if (!profile?.email) {
-      this.errorMessage.set('A conta Google selecionada não devolveu um e-mail válido.');
+      this.showError('A conta Google selecionada não devolveu um e-mail válido.');
       return;
     }
 
@@ -238,6 +240,11 @@ export class LoginComponent implements AfterViewInit {
       true,
     );
     void this.router.navigateByUrl('/app/home');
+  }
+
+  private showError(message: string): void {
+    this.errorMessage.set('');
+    this.toastService.error(message);
   }
 
   private decodeGoogleCredential(credential: string): GoogleJwtPayload | null {

@@ -7,6 +7,7 @@ export interface ContentListItem {
   excerpt: string;
   author: string;
   authorInitials: string;
+  ownerId?: string;
   imageUrl?: string;
   premium?: boolean;
   reactionsCount?: number;

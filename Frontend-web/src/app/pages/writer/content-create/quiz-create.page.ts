@@ -1,6 +1,7 @@
 ﻿import { Component, computed, inject, signal } from '@angular/core';
 import { BackendContent, ContentService } from '../../../services/content.service';
 import { CreateQuestionPayload, QuizService } from '../../../services/quiz.service';
+import { ToastService } from '../../../services/toast.service';
 import { AdminConsoleShellComponent } from '../../admin/components/admin-console-shell.component';
 
 type Difficulty = 'facil' | 'medio' | 'dificil';
@@ -41,6 +42,7 @@ interface ManualQuestion {
 export class QuizCreatePage {
   private readonly contentService = inject(ContentService);
   private readonly quizService = inject(QuizService);
+  private readonly toastService = inject(ToastService);
 
   readonly creationMode = signal<'ai' | 'manual'>('manual');
   readonly aiPrompt = signal('');
@@ -165,7 +167,7 @@ export class QuizCreatePage {
       this.status.set('Pergunta guardada');
       this.resetManualForm();
     } catch (error) {
-      this.formError.set(this.errorMessage(error));
+      this.showError(this.errorMessage(error));
     }
   }
 
@@ -257,7 +259,7 @@ export class QuizCreatePage {
       const page = await this.contentService.getAll();
       this.contents.set(page.data);
     } catch {
-      this.formError.set('Nao foi possivel carregar os conteudos base.');
+      this.showError('Nao foi possivel carregar os conteudos base.');
     }
   }
 
@@ -288,10 +290,10 @@ export class QuizCreatePage {
 
       this.status.set(asDraft ? 'Rascunho guardado' : 'Publicado');
       this.previewOpen.set(false);
-      this.successMessage.set(asDraft ? 'Quiz guardado com sucesso.' : 'Quiz criado com sucesso.');
+      this.showSuccess(asDraft ? 'Quiz guardado com sucesso.' : 'Quiz criado com sucesso.');
     } catch (error) {
       this.status.set('Rascunho');
-      this.formError.set(this.errorMessage(error));
+      this.showError(this.errorMessage(error));
     } finally {
       this.isSaving.set(false);
     }
@@ -339,7 +341,7 @@ export class QuizCreatePage {
       this.resetManualForm();
       return true;
     } catch (error) {
-      this.formError.set(this.errorMessage(error));
+      this.showError(this.errorMessage(error));
       return false;
     }
   }
@@ -396,6 +398,16 @@ export class QuizCreatePage {
     }
 
     return trimmed;
+  }
+
+  private showSuccess(message: string): void {
+    this.successMessage.set('');
+    this.toastService.success(message);
+  }
+
+  private showError(message: string): void {
+    this.formError.set('');
+    this.toastService.error(message);
   }
 
   private errorMessage(error: unknown): string {

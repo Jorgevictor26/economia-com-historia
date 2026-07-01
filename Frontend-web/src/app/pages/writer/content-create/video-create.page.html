@@ -142,9 +142,6 @@
               <button type="button" (click)="saveDraft()" [disabled]="isSaving()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#8A3F50] bg-white px-4 text-[14px] font-extrabold text-[#8A3F50] disabled:cursor-not-allowed disabled:opacity-50"><span class="material-icon" aria-hidden="true">save</span> Guardar rascunho</button>
               <button type="button" (click)="publish()" [disabled]="isSaving()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] bg-[#8A3F50] px-4 text-[14px] font-extrabold text-white shadow-[0_10px_24px_rgba(138,18,56,0.22)] disabled:cursor-not-allowed disabled:opacity-50"><span class="material-icon" aria-hidden="true">publish</span> Publicar video</button>
             </div>
-            @if (formError()) {
-              <p class="mt-3 text-[13px] font-bold text-[#B42318]">{{ formError() }}</p>
-            }
           </section>
         }
 

@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Routes } from '@angular/router';
 import { BackendContent, ContentService } from '../../services/content.service';
+import { ToastService } from '../../services/toast.service';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
@@ -25,6 +26,7 @@ interface PodcastView {
 export class PodcastLibraryPage {
   private readonly route = inject(ActivatedRoute);
   private readonly contentService = inject(ContentService);
+  private readonly toastService = inject(ToastService);
 
   readonly isCommentComposerOpen = signal(false);
   readonly expandedReplies = signal<Record<string, boolean>>({});
@@ -76,7 +78,7 @@ export class PodcastLibraryPage {
     try {
       this.podcast.set(this.toPodcastView(await this.contentService.getById(id)));
     } catch {
-      this.loadError.set('Nao foi possivel carregar este podcast.');
+      this.toastService.error('Nao foi possivel carregar este podcast.');
     } finally {
       this.isLoading.set(false);
     }

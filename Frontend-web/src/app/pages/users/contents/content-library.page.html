@@ -82,7 +82,7 @@
     }
     <div class="grid items-stretch gap-8 md:grid-cols-2 xl:grid-cols-3">
       @for (content of filteredContents(); track content.id) {
-      <app-content-card [content]="content" [canReadPremium]="auth.canReadJindungo()"
+      <app-content-card [content]="content" [canReadPremium]="auth.canReadJindungo()" [canManage]="canManageContent(content)"
         (contentAction)="handleContentAction($event)" />
       }
     </div>

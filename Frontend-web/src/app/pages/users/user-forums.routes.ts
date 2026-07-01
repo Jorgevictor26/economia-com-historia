@@ -5,6 +5,7 @@ import { AuthStateService } from '../../services/auth-state.service';
 import { authGuard } from '../../services/auth.guard';
 import { ContentService } from '../../services/content.service';
 import { BackendForum, ForumService } from '../../services/forum.service';
+import { ToastService } from '../../services/toast.service';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
@@ -24,6 +25,7 @@ export class UserForumsPage {
   readonly auth = inject(AuthStateService);
   readonly contentService = inject(ContentService);
   readonly forumService = inject(ForumService);
+  private readonly toastService = inject(ToastService);
 
   readonly categories = ['Economia', 'Hist\u00f3ria', 'Jindungo', 'Podcast'];
   readonly selectedCategory = signal(this.categories[0]);
@@ -183,12 +185,7 @@ export class UserForumsPage {
   }
 
   private showToast(message: string, kind: PageToast['kind'] = 'info'): void {
-    if (this.toastTimeout) {
-      clearTimeout(this.toastTimeout);
-    }
-
-    this.toast.set({ message, kind });
-    this.toastTimeout = setTimeout(() => this.toast.set(null), 5000);
+    this.toastService[kind](message);
   }
 
   private toForumRoom(forum: BackendForum) {

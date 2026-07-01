@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthSidePanelComponent } from '../components/auth-side-panel/auth-side-panel.component';
 import { AuthService } from '../../../services/auth.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-forgot-password-page',
@@ -14,6 +15,7 @@ import { AuthService } from '../../../services/auth.service';
 export class ForgotPasswordPage {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly toastService = inject(ToastService);
 
   readonly isLoading = signal(false);
   readonly submitted = signal(false);
@@ -45,10 +47,13 @@ export class ForgotPasswordPage {
 
     try {
       const message = await this.authService.forgotPassword(this.form.getRawValue());
-      this.feedbackMessage.set(message);
+      this.feedbackMessage.set('');
+      this.toastService.success(message);
       this.sent.set(true);
     } catch (error) {
-      this.errorMessage.set(this.extractErrorMessage(error));
+      const message = this.extractErrorMessage(error);
+      this.errorMessage.set('');
+      this.toastService.error(message);
     } finally {
       this.isLoading.set(false);
     }

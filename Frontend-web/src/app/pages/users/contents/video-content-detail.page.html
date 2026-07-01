@@ -122,6 +122,18 @@
             <span class="material-symbols-outlined text-[24px] leading-none">bookmark_add</span>
             <span>Guardar</span>
           </button>
+          @if (canManageVideo()) {
+          <div class="flex items-center gap-3 text-[11px] font-extrabold uppercase tracking-[0.08em]">
+            <a [routerLink]="editVideoRoute()" class="inline-flex items-center gap-2 text-[#616161] transition hover:text-[#5C1E2F]">
+              <span class="material-symbols-outlined text-[19px] leading-none">edit</span>
+              <span>Editar post</span>
+            </a>
+            <button type="button" class="inline-flex items-center gap-2 text-[#8A3F50] transition hover:text-[#5C1E2F]" (click)="deleteVideoContent($event)">
+              <span class="material-symbols-outlined text-[19px] leading-none">delete</span>
+              <span>Apagar post</span>
+            </button>
+          </div>
+          }
         </div>
       </section>
 

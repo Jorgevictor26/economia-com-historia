@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink, Routes } from '@angular/router';
 import { AuthStateService } from '../../services/auth-state.service';
 import { QuizService, QuizSubmitResult } from '../../services/quiz.service';
+import { ToastService } from '../../services/toast.service';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
@@ -13,6 +14,7 @@ import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.com
 export class QuizDashboardPage {
   readonly quizService = inject(QuizService);
   readonly auth = inject(AuthStateService);
+  private readonly toastService = inject(ToastService);
   readonly searchTerm = signal('');
   readonly selectedLevel = signal('Todos');
   readonly isLoading = signal(false);
@@ -116,7 +118,7 @@ export class QuizDashboardPage {
     try {
       await this.quizService.loadAll();
     } catch {
-      this.loadError.set('Nao foi possivel carregar os quizzes.');
+      this.toastService.error('Nao foi possivel carregar os quizzes.');
     } finally {
       this.isLoading.set(false);
     }

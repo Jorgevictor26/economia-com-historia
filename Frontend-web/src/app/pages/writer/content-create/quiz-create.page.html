@@ -221,14 +221,6 @@
           </section>
         }
 
-        @if (formError()) {
-          <p class="mt-4 rounded-[8px] border border-[#E6D5B8] bg-white px-4 py-3 text-[12px] font-bold text-[#8A3F50]">{{ formError() }}</p>
-        }
-
-        @if (successMessage()) {
-          <p class="mt-4 rounded-[8px] border border-[#D4AF37] bg-white px-4 py-3 text-[12px] font-bold text-[#5C1E2F]">{{ successMessage() }}</p>
-        }
-
         <footer class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[#F2E6E9] pt-5">
           <button type="button" (click)="previousStep()" [disabled]="currentStep() === 1" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#E0E0E0] bg-white px-5 text-[13px] font-extrabold text-[#616161] disabled:cursor-not-allowed disabled:opacity-45">Anterior</button>
           @if (currentStep() < steps.length) {

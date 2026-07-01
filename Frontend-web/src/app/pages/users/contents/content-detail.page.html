@@ -54,6 +54,28 @@
         {{ title() }}
       </h1>
 
+      @if (isEditMode()) {
+      <form class="mt-7 grid gap-4 rounded-[10px] border border-[#E0E0E0] bg-white p-5 shadow-[0_16px_40px_rgba(64,8,26,0.07)]"
+        (submit)="$event.preventDefault(); saveEditedContent(editTitle.value, editSummary.value, editBody.value)">
+        <label class="grid gap-2 text-[12px] font-extrabold text-[#5C1E2F]">
+          T&iacute;tulo
+          <input #editTitle type="text" class="h-11 border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#212121] outline-none focus:border-[#8A3F50]" [value]="detail()?.title || ''" />
+        </label>
+        <label class="grid gap-2 text-[12px] font-extrabold text-[#5C1E2F]">
+          Resumo
+          <textarea #editSummary class="min-h-[96px] border border-[#E0E0E0] bg-white px-3 py-3 text-[13px] text-[#212121] outline-none focus:border-[#8A3F50]">{{ detail()?.summary || '' }}</textarea>
+        </label>
+        <label class="grid gap-2 text-[12px] font-extrabold text-[#5C1E2F]">
+          Conte&uacute;do
+          <textarea #editBody class="min-h-[180px] border border-[#E0E0E0] bg-white px-3 py-3 text-[13px] text-[#212121] outline-none focus:border-[#8A3F50]">{{ detail()?.body || '' }}</textarea>
+        </label>
+        <div class="flex flex-wrap justify-end gap-3">
+          <a [routerLink]="['/app/contents', detail()?.id]" class="inline-flex h-10 items-center justify-center px-4 text-[12px] font-extrabold text-[#616161] hover:bg-[#F5F5F5]">Cancelar</a>
+          <button type="submit" class="inline-flex h-10 items-center justify-center bg-[#5C1E2F] px-5 text-[12px] font-extrabold text-white">Guardar altera&ccedil;&otilde;es</button>
+        </div>
+      </form>
+      }
+
       <p
         class="mt-6 max-w-[510px] border-l-4 border-[#d4af37] pl-7 font-display text-[14px] italic leading-7 text-[#616161]">
         {{ detail()?.summary || 'A carregar o resumo do conteúdo...' }}
@@ -119,6 +141,18 @@
             <span class="material-symbols-outlined text-[19px] leading-none">bookmark_add</span>
             <span>Guardar</span>
           </button>
+          @if (canManageDetail()) {
+          <div class="flex items-center gap-3 text-[11px] font-extrabold uppercase tracking-[0.08em]">
+            <a [routerLink]="editContentRoute()" class="inline-flex items-center gap-2 text-[#616161] transition hover:text-[#5C1E2F]">
+              <span class="material-symbols-outlined text-[19px] leading-none">edit</span>
+              <span>Editar post</span>
+            </a>
+            <button type="button" class="inline-flex items-center gap-2 text-[#8A3F50] transition hover:text-[#5C1E2F]" (click)="deleteCurrentContent($event)">
+              <span class="material-symbols-outlined text-[19px] leading-none">delete</span>
+              <span>Apagar post</span>
+            </button>
+          </div>
+          }
           @if (shareMenuOpen()) {
           <div class="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4">
             <section class="w-full max-w-[470px] rounded-[8px] bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]">

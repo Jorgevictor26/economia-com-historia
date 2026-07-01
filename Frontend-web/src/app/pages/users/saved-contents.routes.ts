@@ -2,6 +2,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink, Routes } from '@angular/router';
 import { BackendContent } from '../../services/content.service';
 import { SavedContentService } from '../../services/saved-content.service';
+import { ToastService } from '../../services/toast.service';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
@@ -32,6 +33,7 @@ interface PageToast {
 })
 export class SavedContentsPage implements OnInit {
   private readonly savedContentService = inject(SavedContentService);
+  private readonly toastService = inject(ToastService);
 
   readonly filters = ['Todos', 'Textos', 'Podcasts', 'Vídeos', 'Jindungo'];
   readonly selectedFilter = signal(this.filters[0]);
@@ -134,12 +136,7 @@ export class SavedContentsPage implements OnInit {
   }
 
   private showToast(message: string, kind: PageToast['kind'] = 'info'): void {
-    if (this.toastTimeout) {
-      clearTimeout(this.toastTimeout);
-    }
-
-    this.toast.set({ message, kind });
-    this.toastTimeout = setTimeout(() => this.toast.set(null), 5000);
+    this.toastService[kind](message);
   }
 
   private toFavoriteItem(content: BackendContent): FavoriteItem {

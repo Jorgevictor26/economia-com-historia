@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthSidePanelComponent } from '../components/auth-side-panel/auth-side-panel.component';
 import { AuthService, RegisterPayload } from '../../../services/auth.service';
+import { ToastService } from '../../../services/toast.service';
 
 type RegisterStep = 'account' | 'photo' | 'bio';
 
@@ -17,6 +18,7 @@ export class RegisterPage {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   readonly isLoading = signal(false);
   readonly submitted = signal(false);
@@ -83,7 +85,7 @@ export class RegisterPage {
     }
 
     this.isLoading.set(true);
-    this.feedbackMessage.set('Dados validados. Agora pode personalizar o seu perfil.');
+    this.showSuccess('Dados validados. Agora pode personalizar o seu perfil.');
     this.isLoading.set(false);
     this.pulseStep();
     this.step.set('photo');
@@ -96,7 +98,7 @@ export class RegisterPage {
     }
 
     this.selectedPhotoName.set(file.name);
-    this.feedbackMessage.set('Foto selecionada. Pode avançar quando estiver pronto.');
+    this.showSuccess('Foto selecionada. Pode avançar quando estiver pronto.');
 
     const reader = new FileReader();
     reader.onload = () => this.photoPreviewUrl.set(String(reader.result || ''));
@@ -107,11 +109,11 @@ export class RegisterPage {
     this.photoSubmitted.set(true);
 
     if (!this.selectedPhotoName()) {
-      this.feedbackMessage.set('Escolha uma foto ou use Pular para continuar sem foto.');
+      this.showError('Escolha uma foto ou use Pular para continuar sem foto.');
       return;
     }
 
-    this.feedbackMessage.set('Foto adicionada ao perfil. Agora escreva uma biografia.');
+    this.showSuccess('Foto adicionada ao perfil. Agora escreva uma biografia.');
     this.pulseStep();
     this.step.set('bio');
   }
@@ -119,7 +121,7 @@ export class RegisterPage {
   skipPhoto(): void {
     this.selectedPhotoName.set('');
     this.photoPreviewUrl.set('');
-    this.feedbackMessage.set('Sem problema. Pode adicionar uma foto mais tarde; agora sugerimos uma biografia.');
+    this.showSuccess('Sem problema. Pode adicionar uma foto mais tarde; agora sugerimos uma biografia.');
     this.pulseStep();
     this.step.set('bio');
   }
@@ -129,17 +131,17 @@ export class RegisterPage {
 
     if (this.bioForm.invalid) {
       this.bioForm.markAllAsTouched();
-      this.feedbackMessage.set('Escreva uma breve biografia para avançar.');
+      this.showError('Escreva uma breve biografia para avançar.');
       return;
     }
 
-    this.feedbackMessage.set('Biografia guardada. A finalizar a criação da conta...');
+    this.showSuccess('Biografia guardada. A finalizar a criação da conta...');
     void this.finishRegistration();
   }
 
   skipBiography(): void {
     this.bioForm.reset({ biography: '' });
-    this.feedbackMessage.set('Biografia ignorada. O perfil ficará sem biografia por agora.');
+    this.showSuccess('Biografia ignorada. O perfil ficará sem biografia por agora.');
     void this.finishRegistration();
   }
 
@@ -168,7 +170,7 @@ export class RegisterPage {
       await this.authService.register(payload);
       await this.router.navigateByUrl('/app/home');
     } catch (error) {
-      this.feedbackMessage.set(this.extractErrorMessage(error));
+      this.showError(this.extractErrorMessage(error));
     } finally {
       this.isLoading.set(false);
     }
@@ -204,6 +206,16 @@ export class RegisterPage {
     }
 
     return 'Não foi possível criar a conta. Verifique se a API está ativa e tente novamente.';
+  }
+
+  private showSuccess(message: string): void {
+    this.feedbackMessage.set('');
+    this.toastService.success(message);
+  }
+
+  private showError(message: string): void {
+    this.feedbackMessage.set('');
+    this.toastService.error(message);
   }
 }
 

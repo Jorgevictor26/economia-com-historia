@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { UserRole } from '../../../../models/user.model';
 import { AuthStateService } from '../../../../services/auth-state.service';
+import { ToastService } from '../../../../services/toast.service';
 import { AdminConsoleShellComponent } from '../../components/admin-console-shell.component';
 import { AdminPageHeaderComponent } from '../../shared/components';
 
@@ -27,6 +28,7 @@ interface AdminToast {
 })
 export class AdminUsersPage {
   readonly auth = inject(AuthStateService);
+  private readonly toastService = inject(ToastService);
   promotionModalOpen = false;
   editingUser: ManagedUser | null = null;
   promotionSearchTerm = '';
@@ -282,13 +284,6 @@ export class AdminUsersPage {
   }
 
   private showToast(message: string, kind: AdminToast['kind'] = 'info'): void {
-    if (this.toastTimeout) {
-      clearTimeout(this.toastTimeout);
-    }
-
-    this.toast = { message, kind };
-    this.toastTimeout = setTimeout(() => {
-      this.toast = null;
-    }, 5000);
+    this.toastService[kind](message);
   }
 }

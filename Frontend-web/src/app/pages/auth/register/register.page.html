@@ -9,10 +9,6 @@
         <span [class.is-active]="step() === 'bio'"></span>
       </div>
 
-      @if (feedbackMessage()) {
-        <p class="feedback-banner">{{ feedbackMessage() }}</p>
-      }
-
       @if (step() === 'account') {
         <header class="step-panel mb-8 text-center">
           <img src="/auth-logo.png" alt="Economia com História" class="mx-auto mb-7 h-[54px] w-auto" />
@@ -69,7 +65,7 @@
                 [class.border-[#b42318]]="passwordInvalid()"
                 [class.bg-[#fffafa]]="passwordInvalid()"
                 [type]="passwordVisible() ? 'text' : 'password'"
-                placeholder="????????"
+                placeholder="********"
                 autocomplete="new-password"
               />
               <button type="button" [attr.aria-label]="passwordVisible() ? 'Ocultar palavra-passe' : 'Mostrar palavra-passe'" (click)="togglePasswordVisibility()">
@@ -96,10 +92,10 @@
                 [class.border-[#b42318]]="confirmPasswordInvalid()"
                 [class.bg-[#fffafa]]="confirmPasswordInvalid()"
                 [type]="confirmPasswordVisible() ? 'text' : 'password'"
-                placeholder="????????"
+                placeholder="********"
                 autocomplete="new-password"
               />
-              <button type="button" [attr.aria-label]="confirmPasswordVisible() ? 'Ocultar confirma??o da palavra-passe' : 'Mostrar confirma??o da palavra-passe'" (click)="toggleConfirmPasswordVisibility()">
+              <button type="button" [attr.aria-label]="confirmPasswordVisible() ? 'Ocultar confirmação da palavra-passe' : 'Mostrar confirmação da palavra-passe'" (click)="toggleConfirmPasswordVisibility()">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
                   <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />

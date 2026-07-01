@@ -68,6 +68,11 @@
   color: #c8c8c8;
 }
 
+.password-control input::-ms-reveal,
+.password-control input::-ms-clear {
+  display: none;
+}
+
 .password-control input:focus {
   border-color: #5c1e2f;
   box-shadow: 0 0 0 4px rgb(92 30 47 / 0.1);

@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthSidePanelComponent } from '../components/auth-side-panel/auth-side-panel.component';
 import { AuthService } from '../../../services/auth.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-reset-password-page',
@@ -16,6 +17,7 @@ export class ResetPasswordPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
+  private readonly toastService = inject(ToastService);
 
   readonly isLoading = signal(false);
   readonly submitted = signal(false);
@@ -83,13 +85,16 @@ export class ResetPasswordPage {
         password_confirmation: confirmPassword,
       });
 
-      this.successMessage.set(message);
+      this.successMessage.set('');
+      this.toastService.success(message);
 
       window.setTimeout(() => {
         void this.router.navigateByUrl('/auth/login');
       }, 900);
     } catch (error) {
-      this.errorMessage.set(this.extractErrorMessage(error));
+      const message = this.extractErrorMessage(error);
+      this.errorMessage.set('');
+      this.toastService.error(message);
     } finally {
       this.isLoading.set(false);
     }

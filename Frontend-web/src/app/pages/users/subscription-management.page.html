@@ -1,18 +1,18 @@
-<section class="profile-page -m-6 min-h-dvh bg-[linear-gradient(135deg,#F5F5F5_0%,#E0E0E0_100%)] text-[#212121]">
+<section class="profile-page -m-6 min-h-dvh text-[#212121]">
   <app-public-navbar />
 
-  <main class="fluid-container py-8 lg:py-10">
-    <section class="grid items-start gap-4 lg:grid-cols-[minmax(228px,260px)_minmax(0,1fr)]">
-      <aside class="rounded-[8px] border border-[#E0E0E0]/75 bg-white/95 shadow-[0_24px_60px_rgb(22_19_21_/_0.12)]" aria-label="Menu de perfil">
-        <div class="grid justify-items-center gap-2 px-4 py-4 text-center">
-          <div class="grid size-[100px] place-items-center rounded-full border-[3px] border-[#5C1E2F] bg-[#5C1E2F] font-display text-[2rem] font-extrabold text-white shadow-[0_18px_34px_rgb(92_30_47_/_0.20)]">
+  <main class="profile-main fluid-container py-8 lg:py-10">
+    <section class="profile-editor">
+      <aside class="profile-sidebar" aria-label="Menu de perfil">
+        <div class="profile-identity">
+          <div class="profile-avatar">
             {{ initials() }}
           </div>
-          <h2 class="max-w-52 font-display text-[0.92rem] font-extrabold leading-tight text-[#5c1e2f]">{{ auth.user()?.name || 'Estudante Angola' }}</h2>
-          <p class="text-[0.72rem] text-[#616161]">Utilizador Comum</p>
+          <h2>{{ auth.user()?.name || 'Estudante Angola' }}</h2>
+          <p>Utilizador Comum</p>
         </div>
 
-        <nav class="grid gap-[0.1rem] px-3 pb-3">
+        <nav class="profile-menu">
           @for (item of profileMenu; track item.label) {
             <a
               [routerLink]="item.route"
@@ -31,8 +31,8 @@
         </nav>
       </aside>
 
-      <section class="overflow-hidden rounded-[8px] border border-[#E0E0E0]/75 bg-white/95 shadow-[0_24px_60px_rgb(22_19_21_/_0.12)]">
-        <header class="border-b border-[#E0E0E0] px-5 py-5 lg:px-10 lg:py-6">
+      <section class="profile-form-panel">
+        <header class="profile-form-header">
           <h1 class="font-display text-[clamp(1.35rem,2.2vw,1.8rem)] font-extrabold leading-none text-[#5c1e2f]">Subscrições</h1>
           <span class="mt-2 block max-w-3xl text-[clamp(0.78rem,1.2vw,0.92rem)] leading-6 text-[#616161]">
             Subscrever aqui funciona como seguir um canal: liga a sua conta a recursos reservados e conteúdos Jindungo.
@@ -96,6 +96,5 @@
     </section>
   </main>
 
-  <app-public-footer />
   <app-back-to-top />
 </section>

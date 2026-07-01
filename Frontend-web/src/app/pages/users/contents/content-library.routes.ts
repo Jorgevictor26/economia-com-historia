@@ -12,6 +12,7 @@ import { CommentReportReason, CommentReportService } from '../../../services/com
 import { QuizService } from '../../../services/quiz.service';
 import { ReactionService } from '../../../services/reaction.service';
 import { SavedContentService } from '../../../services/saved-content.service';
+import { ToastService } from '../../../services/toast.service';
 import { normalizeMediaUrl } from '../../../services/media-url.util';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../../shared/public-navbar/public-navbar.component';
@@ -20,6 +21,7 @@ import { ContentListItem } from '../../../models/content-list-item.model';
 
 interface ContentDetail {
   id: string;
+  ownerId?: string;
   categoryId?: number | string;
   contentTypeId?: number | string;
   category: string;
@@ -67,6 +69,7 @@ interface CommentReportTarget {
 
 interface VideoDetail {
   id: string;
+  ownerId?: string;
   categoryId?: number | string;
   contentTypeId?: number | string;
   title: string;
@@ -109,6 +112,7 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
   private readonly contentTypeService = inject(ContentTypeService);
   private readonly reactionService = inject(ReactionService);
   private readonly savedContentService = inject(SavedContentService);
+  private readonly toastService = inject(ToastService);
   private loadRequestId = 0;
   readonly categories = signal<Category[]>([]);
   readonly contentTypes = signal<ContentTypeOption[]>([]);
@@ -233,6 +237,16 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
 
     if (payload.operation === 'partilhar') {
       this.openShareModal(payload.content);
+      return;
+    }
+
+    if (payload.operation === 'editar') {
+      await this.router.navigate(['/app/contents', payload.content.id, 'edit']);
+      return;
+    }
+
+    if (payload.operation === 'apagar') {
+      await this.deleteContent(payload.content);
       return;
     }
 
@@ -382,10 +396,33 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
     }
   }
 
+  canManageContent(content: ContentListItem): boolean {
+    const userId = this.auth.user()?.id;
+
+    return Boolean(content.ownerId && userId && String(content.ownerId) === String(userId));
+  }
+
+  private async deleteContent(content: ContentListItem): Promise<void> {
+    if (!this.canManageContent(content)) {
+      this.showToast('Apenas o dono pode apagar este conteÃºdo.', 'error');
+      return;
+    }
+
+    if (!window.confirm(`Apagar "${content.title}"?`)) {
+      return;
+    }
+
+    try {
+      await this.contentService.delete(content.id);
+      this.contents.update((items) => items.filter((item) => item.id !== content.id));
+      this.showToast('ConteÃºdo apagado.', 'success');
+    } catch {
+      this.showToast('NÃ£o foi possÃ­vel apagar este conteÃºdo.', 'error');
+    }
+  }
+
   private showToast(message: string, kind: PageToast['kind'] = 'info'): void {
-    this.clearToastTimeout();
-    this.toast.set({ message, kind });
-    this.toastTimeout = setTimeout(() => this.toast.set(null), 5000);
+    this.toastService[kind](message);
   }
 
   private clearToastTimeout(): void {
@@ -471,6 +508,7 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
 
     return {
       id: String(content.id),
+      ownerId: this.contentOwnerId(content),
       category: content.category?.name ?? 'Sem categoria',
       contentType,
       meta: this.buildMeta(content.updated_at ?? content.created_at, contentType),
@@ -567,6 +605,12 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
       .toUpperCase();
   }
 
+  private contentOwnerId(content: BackendContent): string | undefined {
+    const ownerId = content.user_id ?? content.author_id ?? content.user?.id ?? content.author?.id;
+
+    return ownerId === undefined || ownerId === null ? undefined : String(ownerId);
+  }
+
   private toExcerpt(value: string | null | undefined): string {
     if (!value) {
       return 'Conteúdo disponível na biblioteca Economia com História.';
@@ -584,12 +628,14 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
 })
 export class ContentDetailPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly commentService = inject(CommentService);
   private readonly commentReportService = inject(CommentReportService);
   private readonly contentService = inject(ContentService);
   private readonly quizService = inject(QuizService);
   private readonly reactionService = inject(ReactionService);
   private readonly savedContentService = inject(SavedContentService);
+  private readonly toastService = inject(ToastService);
   readonly auth = inject(AuthStateService);
   readonly detail = signal<ContentDetail | null>(null);
   readonly comments = signal<CommentView[]>([]);
@@ -626,6 +672,13 @@ export class ContentDetailPage implements OnDestroy {
   });
   readonly title = computed(() => this.detail()?.title ?? (this.route.snapshot.params['id'] === 'create' ? 'Criar conteúdo' : 'Conteúdo editorial'));
   readonly isPremiumContent = computed(() => this.detail()?.premium ?? ['imposto-reservas', 'diamantes-luanda-sul', 'politica-monetaria-angola'].includes(this.route.snapshot.params['id']));
+  readonly isEditMode = computed(() => this.route.snapshot.url.some((segment) => segment.path === 'edit'));
+  readonly canManageDetail = computed(() => {
+    const ownerId = this.detail()?.ownerId;
+    const userId = this.auth.user()?.id;
+
+    return Boolean(ownerId && userId && String(ownerId) === String(userId));
+  });
 
   async ngOnInit(): Promise<void> {
     const id = this.route.snapshot.params['id'];
@@ -733,6 +786,69 @@ export class ContentDetailPage implements OnDestroy {
       this.showToast('Não foi possível guardar este conteúdo.', 'error');
     } finally {
       this.isSavingContent.set(false);
+    }
+  }
+
+  editContentRoute(): string[] {
+    const detail = this.detail();
+
+    return detail ? ['/app/contents', detail.id, 'edit'] : ['/app/contents'];
+  }
+
+  async saveEditedContent(title: string, summary: string, body: string): Promise<void> {
+    const detail = this.detail();
+
+    if (!detail || !this.canManageDetail()) {
+      this.showToast('Apenas o dono pode editar este conteÃºdo.', 'error');
+      return;
+    }
+
+    const nextTitle = title.trim();
+    const nextSummary = summary.trim();
+    const nextBody = body.trim();
+
+    if (!nextTitle || !nextBody) {
+      this.showToast('Preencha o tÃ­tulo e o conteÃºdo.', 'error');
+      return;
+    }
+
+    try {
+      const updated = await this.contentService.update(detail.id, {
+        title: nextTitle,
+        summary: nextSummary || null,
+        content: nextBody,
+        category_id: detail.categoryId ? Number(detail.categoryId) : null,
+        content_type_id: Number(detail.contentTypeId),
+        visibility: 'public',
+      });
+
+      this.detail.set(this.toContentDetail(updated));
+      this.showToast('ConteÃºdo atualizado.', 'success');
+    } catch {
+      this.showToast('NÃ£o foi possÃ­vel atualizar este conteÃºdo.', 'error');
+    }
+  }
+
+  async deleteCurrentContent(event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const detail = this.detail();
+
+    if (!detail || !this.canManageDetail()) {
+      this.showToast('Apenas o dono pode apagar este conteÃºdo.', 'error');
+      return;
+    }
+
+    if (!window.confirm(`Apagar "${detail.title}"?`)) {
+      return;
+    }
+
+    try {
+      await this.contentService.delete(detail.id);
+      await this.router.navigate(['/app/contents']);
+    } catch {
+      this.showToast('NÃ£o foi possÃ­vel apagar este conteÃºdo.', 'error');
     }
   }
 
@@ -906,9 +1022,7 @@ export class ContentDetailPage implements OnDestroy {
   }
 
   private showToast(message: string, kind: PageToast['kind'] = 'info'): void {
-    this.clearToastTimeout();
-    this.toast.set({ message, kind });
-    this.toastTimeout = setTimeout(() => this.toast.set(null), 5000);
+    this.toastService[kind](message);
   }
 
   private clearToastTimeout(): void {
@@ -1017,6 +1131,7 @@ export class ContentDetailPage implements OnDestroy {
 
     return {
       id: String(content.id),
+      ownerId: this.detailOwnerId(content),
       categoryId: content.category?.id,
       contentTypeId: content.content_type?.id,
       category: content.category?.name ?? 'Sem categoria',
@@ -1054,6 +1169,7 @@ export class ContentDetailPage implements OnDestroy {
 
     return {
       id: String(content.id),
+      ownerId: this.detailOwnerId(content),
       category: content.category?.name ?? 'Sem categoria',
       contentType,
       meta: this.buildMeta(content.updated_at ?? content.created_at, contentType),
@@ -1094,6 +1210,12 @@ export class ContentDetailPage implements OnDestroy {
       .replace(/[\u0300-\u036f]/g, '');
   }
 
+  private detailOwnerId(content: BackendContent): string | undefined {
+    const ownerId = content.user_id ?? content.author_id ?? content.user?.id ?? content.author?.id;
+
+    return ownerId === undefined || ownerId === null ? undefined : String(ownerId);
+  }
+
   private getInitials(name: string): string {
     return name
       .split(' ')
@@ -1120,8 +1242,10 @@ export class ContentDetailPage implements OnDestroy {
 })
 export class VideoContentDetailPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly contentService = inject(ContentService);
   private readonly savedContentService = inject(SavedContentService);
+  private readonly toastService = inject(ToastService);
   readonly auth = inject(AuthStateService);
   readonly saveStatus = signal('');
   readonly toast = signal<PageToast | null>(null);
@@ -1136,6 +1260,12 @@ export class VideoContentDetailPage implements OnDestroy {
 
   readonly video = computed(() => {
     return this.loadedVideo();
+  });
+  readonly canManageVideo = computed(() => {
+    const ownerId = this.video()?.ownerId;
+    const userId = this.auth.user()?.id;
+
+    return Boolean(ownerId && userId && String(ownerId) === String(userId));
   });
 
   ngOnDestroy(): void {
@@ -1162,14 +1292,14 @@ export class VideoContentDetailPage implements OnDestroy {
       const contentTypeSlug = this.normalizeText(content.content_type?.slug ?? content.content_type?.name ?? '');
 
       if (contentTypeSlug && contentTypeSlug !== 'video') {
-        this.loadError.set('Este conteúdo não é um vídeo.');
+        this.showToast('Este conteúdo não é um vídeo.', 'error');
         return;
       }
 
       this.loadedVideo.set(this.toVideoDetail(content));
       await this.loadRelatedContents(content);
     } catch {
-      this.loadError.set('Não foi possível carregar este vídeo.');
+      this.showToast('Não foi possível carregar este vídeo.', 'error');
     } finally {
       this.isLoading.set(false);
     }
@@ -1251,10 +1381,37 @@ export class VideoContentDetailPage implements OnDestroy {
     }
   }
 
+  editVideoRoute(): string[] {
+    const video = this.video();
+
+    return video ? ['/app/contents', video.id, 'edit'] : ['/app/contents'];
+  }
+
+  async deleteVideoContent(event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const video = this.video();
+
+    if (!video || !this.canManageVideo()) {
+      this.showToast('Apenas o dono pode apagar este conteÃºdo.', 'error');
+      return;
+    }
+
+    if (!window.confirm(`Apagar "${video.title}"?`)) {
+      return;
+    }
+
+    try {
+      await this.contentService.delete(video.id);
+      await this.router.navigate(['/app/contents']);
+    } catch {
+      this.showToast('NÃ£o foi possÃ­vel apagar este conteÃºdo.', 'error');
+    }
+  }
+
   private showToast(message: string, kind: PageToast['kind'] = 'info'): void {
-    this.clearToastTimeout();
-    this.toast.set({ message, kind });
-    this.toastTimeout = setTimeout(() => this.toast.set(null), 5000);
+    this.toastService[kind](message);
   }
 
   private clearToastTimeout(): void {
@@ -1270,6 +1427,7 @@ export class VideoContentDetailPage implements OnDestroy {
 
     return {
       id: String(content.id),
+      ownerId: this.videoOwnerId(content),
       categoryId: content.category?.id,
       contentTypeId: content.content_type?.id,
       title: content.title,
@@ -1337,6 +1495,7 @@ export class VideoContentDetailPage implements OnDestroy {
 
     return {
       id: String(content.id),
+      ownerId: this.videoOwnerId(content),
       category: content.category?.name ?? 'Sem categoria',
       contentType,
       meta: this.formatMeta(content.updated_at ?? content.created_at, contentType),
@@ -1386,6 +1545,12 @@ export class VideoContentDetailPage implements OnDestroy {
     return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   }
 
+  private videoOwnerId(content: BackendContent): string | undefined {
+    const ownerId = content.user_id ?? content.author_id ?? content.user?.id ?? content.author?.id;
+
+    return ownerId === undefined || ownerId === null ? undefined : String(ownerId);
+  }
+
   isDirectVideoUrl(url: string | undefined): boolean {
     if (!url) {
       return false;
@@ -1399,6 +1564,6 @@ export const CONTENT_LIBRARY_ROUTES: Routes = [
   { path: '', component: ContentLibraryPage },
   { path: 'create', canActivate: [adminGuard], component: ContentDetailPage },
   { path: 'videos/:id', component: VideoContentDetailPage },
+  { path: ':id/edit', component: ContentDetailPage },
   { path: ':id', component: ContentDetailPage },
-  { path: ':id/edit', canActivate: [adminGuard], component: ContentDetailPage },
 ];

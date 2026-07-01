@@ -4,7 +4,7 @@ import { Component, input } from '@angular/core';
   selector: 'app-admin-metric-card',
   standalone: true,
   template: `
-    <article class="rounded-[8px] border border-[#E0E0E0] bg-white p-5 shadow-[0_18px_45px_rgba(33,33,33,0.05)]">
+    <article class="rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] p-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
       <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#616161]">{{ label() }}</span>
       <strong class="font-number mt-2 block text-[23px] font-extrabold leading-none" [style.color]="accent()">
         {{ value() }}
@@ -15,7 +15,7 @@ import { Component, input } from '@angular/core';
       }
 
       @if (showProgress()) {
-        <span class="mt-4 block h-0.5 w-full bg-[#E0E0E0]">
+        <span class="mt-4 block h-0.5 w-full bg-white">
           <span class="block h-full" [style.width.%]="progress()" [style.background]="accent()"></span>
         </span>
       }

@@ -10,6 +10,7 @@ import { ContentListItem } from '../../../../models/content-list-item.model';
 export class ContentCardComponent {
   @Input({ required: true }) content!: ContentListItem;
   @Input() canReadPremium = false;
+  @Input() canManage = false;
   @Output() contentAction = new EventEmitter<{ event: Event; operation: string; content: ContentListItem }>();
 
   get contentRoute(): unknown[] {

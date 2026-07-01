@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { BackendContent, ContentService } from '../../../services/content.service';
 import { ForumService } from '../../../services/forum.service';
+import { ToastService } from '../../../services/toast.service';
 import { AdminConsoleShellComponent } from '../../admin/components/admin-console-shell.component';
 
 @Component({
@@ -29,6 +30,7 @@ import { AdminConsoleShellComponent } from '../../admin/components/admin-console
 export class ForumCreatePage {
   private readonly forumService = inject(ForumService);
   private readonly contentService = inject(ContentService);
+  private readonly toastService = inject(ToastService);
 
   readonly title = signal('');
   readonly rules = signal('');
@@ -113,7 +115,7 @@ export class ForumCreatePage {
   }
 
   saveDraft(): void {
-    this.formError.set('O backend ainda nao tem rascunho para forum. Use Publicar forum para enviar para aprovacao.');
+    this.showError('O backend ainda nao tem rascunho para forum. Use Publicar forum para enviar para aprovacao.');
   }
 
   async publish(): Promise<void> {
@@ -140,9 +142,10 @@ export class ForumCreatePage {
 
       this.status.set('Enviado para aprovacao');
       this.previewOpen.set(false);
+      this.toastService.success('Forum enviado para aprovacao.');
     } catch (error) {
       this.status.set('Rascunho');
-      this.formError.set(this.errorMessage(error));
+      this.showError(this.errorMessage(error));
     } finally {
       this.isSaving.set(false);
     }
@@ -198,7 +201,7 @@ export class ForumCreatePage {
       this.availableContents.set(response.data);
       this.selectedContentIds.set(response.data.slice(0, 2).map((content) => content.id));
     } catch {
-      this.formError.set('Nao foi possivel carregar os conteudos base.');
+      this.showError('Nao foi possivel carregar os conteudos base.');
     }
   }
 
@@ -210,6 +213,11 @@ export class ForumCreatePage {
     }
 
     return trimmed;
+  }
+
+  private showError(message: string): void {
+    this.formError.set('');
+    this.toastService.error(message);
   }
 
   private errorMessage(error: unknown): string {

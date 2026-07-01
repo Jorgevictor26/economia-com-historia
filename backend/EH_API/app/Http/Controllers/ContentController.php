@@ -48,6 +48,26 @@ class ContentController extends Controller
         return response()->json($this->withAuthorPhotoUrls($contents));
     }
 
+    public function featuredJindungo(Request $request)
+    {
+        $content = $this->service->featuredJindungo($request->user('sanctum'));
+
+        if (! $content) {
+            return response()->json([
+                'message' => 'Jindungo content not found',
+            ], 404);
+        }
+
+        $content = $this->withAuthorPhotoUrl($content);
+        $content->setAttribute('can_access', $this->service->canAccess($content, $request->user('sanctum')));
+
+        if (! $content->getAttribute('can_access')) {
+            $content->setAttribute('content', null);
+        }
+
+        return response()->json($content);
+    }
+
     public function store(StoreContentRequest $request)
     {
         if (! $this->canCreateContent($request)) {

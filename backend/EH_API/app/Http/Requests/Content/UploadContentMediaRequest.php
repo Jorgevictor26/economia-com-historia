@@ -35,6 +35,15 @@ class UploadContentMediaRequest extends FormRequest
         return $this->file('file');
     }
 
+    public function messages(): array
+    {
+        return [
+            'file.uploaded' => 'O ficheiro nao foi enviado. Confirme upload_max_filesize e post_max_size no PHP.',
+            'file.max' => 'O ficheiro excede o tamanho maximo permitido para este tipo de media.',
+            'file.mimes' => 'O formato do ficheiro nao e suportado para este tipo de media.',
+        ];
+    }
+
     private function validatedMediaType(): string
     {
         $mediaType = $this->mediaType();

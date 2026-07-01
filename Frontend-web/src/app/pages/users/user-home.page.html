@@ -99,8 +99,21 @@
             </div>
           </div>
 
+          @if (isLoadingProgress()) {
+            <div class="rounded-[8px] border border-[#E0E0E0] bg-white px-6 py-8 text-sm font-semibold text-[#616161]">
+              A carregar progresso...
+            </div>
+          } @else if (progressError()) {
+            <div class="rounded-[8px] border border-[#E0E0E0] bg-white px-6 py-8 text-sm font-semibold text-[#8A3F50]">
+              {{ progressError() }}
+            </div>
+          } @else if (progressItems().length === 0) {
+            <div class="rounded-[8px] border border-[#E0E0E0] bg-white px-6 py-8 text-sm font-semibold text-[#616161]">
+              Ainda não há progresso guardado. Abra um conteúdo para começar a acompanhar a leitura.
+            </div>
+          } @else {
           <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            @for (item of resumeItems; track item.id) {
+            @for (item of progressItems(); track item.id) {
               <article class="group flex min-h-[318px] flex-col overflow-hidden rounded-[18px] border border-[#E0E0E0] bg-white shadow-[0_16px_40px_rgba(64,8,26,0.07)] transition duration-300 hover:-translate-y-1 hover:border-[#E6D5B8] hover:shadow-[0_22px_55px_rgba(64,8,26,0.14)]">
                 <a [routerLink]="item.route" class="flex h-full flex-col">
                   <div class="relative h-40 overflow-hidden bg-[#F2E6E9]">
@@ -123,44 +136,36 @@
                 </a>
               </article>
             }
-
-            <article class="group min-h-[318px] overflow-hidden rounded-[18px] border border-[#E6D5B8]/70 bg-[#212121] text-white shadow-[0_16px_40px_rgba(64,8,26,0.12)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(64,8,26,0.18)] md:col-span-2 xl:col-span-1">
-              <a [routerLink]="featuredResumeVideo.route" class="relative flex h-full items-end overflow-hidden">
-                <img [src]="featuredResumeVideo.imageUrl" [alt]="featuredResumeVideo.title" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-                <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,6,11,0.92)_0%,rgba(20,6,11,0.68)_48%,rgba(20,6,11,0.26)_100%)]"></div>
-                <div class="relative z-10 flex h-full w-full flex-col justify-end p-6">
-                  <span class="w-fit rounded-[4px] bg-white/14 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.08em] text-white ring-1 ring-white/20">Video em destaque</span>
-                  <small class="mt-5 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#d4af37]">{{ featuredResumeVideo.meta }}</small>
-                  <h3 class="mt-2 max-w-[520px] font-display text-[27px] font-extrabold leading-tight text-white">{{ featuredResumeVideo.title }}</h3>
-                  <p class="mt-3 max-w-[540px] line-clamp-2 text-sm leading-6 text-white/82">{{ featuredResumeVideo.summary }}</p>
-                  <div class="mt-5 h-2 max-w-[360px] overflow-hidden rounded-full bg-white/20">
-                    <span class="block h-full rounded-full bg-[#d4af37]" [style.width.%]="featuredResumeVideo.progress"></span>
-                  </div>
-                  <div class="mt-4 flex max-w-[360px] items-center justify-between gap-4">
-                    <small class="text-xs font-bold text-white/86">{{ featuredResumeVideo.progress }}% concluido</small>
-                    <span class="text-xs font-bold text-[#d4af37]">Continuar video</span>
-                  </div>
-                </div>
-              </a>
-            </article>
           </div>
+          }
         </section>
 
         <section class="fluid-container py-10 lg:py-14">
           <div class="grid gap-6 lg:grid-cols-[minmax(0,0.85fr)_minmax(300px,0.55fr)]">
             <article class="overflow-hidden rounded-[8px] border border-[#E6D5B8] bg-[#5C1E2F] text-white shadow-[0_20px_60px_rgba(64,8,26,0.18)]">
               <div class="grid gap-6 p-7 lg:grid-cols-[1fr_220px] lg:items-center">
+                @if (isLoadingJindungo()) {
+                <div class="lg:col-span-2">
+                  <p class="text-sm font-semibold text-white/82">A carregar texto Jindungo...</p>
+                </div>
+                } @else if (featuredJindungo(); as text) {
                 <div>
                   <p class="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#d4af37]">Texto com Jindungo</p>
-                  <h2 class="mt-3 font-display text-[31px] font-extrabold leading-tight">O Impacto das Reservas Internacionais no Kwanza</h2>
+                  <h2 class="mt-3 font-display text-[31px] font-extrabold leading-tight">{{ text.title }}</h2>
                   <p class="mt-3 text-sm leading-7 text-white/82">
-                    Relatorio premium com leitura historica, dados economicos, balanca comercial e efeitos sociais da estabilidade cambial.
+                    {{ text.summary }}
                   </p>
-                  <a routerLink="/app/subscriptions" class="mt-6 inline-flex min-h-11 items-center justify-center rounded-[8px] bg-[#d4af37] px-6 text-xs font-extrabold text-[#5C1E2F]">
-                    Subscrever Jindungo
+                  <a [routerLink]="auth.canReadJindungo() ? text.route : '/app/subscriptions'" class="mt-6 inline-flex min-h-11 items-center justify-center rounded-[8px] bg-[#d4af37] px-6 text-xs font-extrabold text-[#5C1E2F]">
+                    {{ auth.canReadJindungo() ? 'Ler Jindungo' : 'Subscrever Jindungo' }}
                   </a>
                 </div>
-                <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80" alt="Relatorio economico premium" class="h-[210px] w-full rounded-[8px] object-cover" />
+                <img [src]="text.imageUrl" [alt]="text.title" class="h-[210px] w-full rounded-[8px] object-cover" />
+                } @else {
+                <div class="lg:col-span-2">
+                  <p class="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#d4af37]">Texto com Jindungo</p>
+                  <p class="mt-3 text-sm font-semibold text-white/82">{{ jindungoError() || 'Nenhum texto Jindungo disponível agora.' }}</p>
+                </div>
+                }
               </div>
             </article>
 

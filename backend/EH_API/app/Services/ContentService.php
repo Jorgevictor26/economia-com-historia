@@ -48,6 +48,11 @@ class ContentService
         return $this->repository->suggestions($actor, (bool) $includeJindungo, $limit);
     }
 
+    public function featuredJindungo(?User $actor): ?Content
+    {
+        return $this->repository->featuredJindungo($actor?->id);
+    }
+
     public function findById(int $id)
     {
         return $this->repository->findById($id);

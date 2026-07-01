@@ -92,6 +92,19 @@ class ContentRepository
         return $suggestions->values();
     }
 
+    public function featuredJindungo(?int $userId = null): ?Content
+    {
+        return $this->contentQuery([
+            'include_jindungo' => true,
+            'user_id' => $userId,
+        ])
+            ->whereHas('contentType', fn ($query) => $query->where('slug', 'jindungo'))
+            ->orderByDesc('reactions_count')
+            ->orderByDesc('views_count')
+            ->latest()
+            ->first();
+    }
+
     public function findById(int $id): ?Content
     {
         return Content::with(['author.roles', 'category', 'contentType'])

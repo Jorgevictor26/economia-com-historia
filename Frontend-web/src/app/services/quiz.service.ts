@@ -104,6 +104,29 @@ export interface QuizUserStats {
   completedQuizIds: string[];
 }
 
+export interface BackendQuizProgress {
+  id: number | string;
+  user_id: number | string;
+  quiz_id: number | string;
+  progress_percent: number | string;
+  current_question_index?: number | string | null;
+  answered_questions?: Array<{
+    question_id: number | string;
+    selected_option: 'a' | 'b' | 'c' | 'd';
+  }> | null;
+  completed_at?: string | null;
+  quiz?: BackendQuiz | null;
+}
+
+export interface UpdateQuizProgressPayload {
+  progress_percent: number;
+  current_question_index?: number;
+  answered_questions?: Array<{
+    question_id: number | string;
+    selected_option: 'a' | 'b' | 'c' | 'd';
+  }>;
+}
+
 @Injectable({ providedIn: 'root' })
 export class QuizService {
   private readonly http = inject(HttpClient);
@@ -149,6 +172,19 @@ export class QuizService {
 
   async submit(quizId: string | number, payload: SubmitQuizPayload): Promise<QuizSubmitResult> {
     const response = await firstValueFrom(this.http.post<{ data: QuizSubmitResult }>(`/quizzes/${quizId}/submit`, payload));
+
+    return response.data;
+  }
+
+  async getProgress(limit = 6): Promise<BackendQuizProgress[]> {
+    const params = new HttpParams().set('limit', String(limit));
+    const response = await firstValueFrom(this.http.get<BackendQuizProgress[]>('/quiz-progress', { params }));
+
+    return response;
+  }
+
+  async updateProgress(quizId: string | number, payload: UpdateQuizProgressPayload): Promise<BackendQuizProgress> {
+    const response = await firstValueFrom(this.http.put<{ data: BackendQuizProgress }>(`/quizzes/${quizId}/progress`, payload));
 
     return response.data;
   }

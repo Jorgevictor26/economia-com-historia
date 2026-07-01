@@ -32,6 +32,7 @@ import { AdminConsoleShellComponent } from '../../admin/components/admin-console
   ],
 })
 export class PodcastCreatePage {
+  private readonly maxAudioSizeMb = 50;
   readonly auth = inject(AuthStateService);
   private readonly router = inject(Router);
   private readonly categoryService = inject(CategoryService);
@@ -49,7 +50,6 @@ export class PodcastCreatePage {
   readonly audioFile = signal<File | null>(null);
   readonly audioFileName = signal('');
   readonly uploadProgress = signal(0);
-  readonly coverChanged = signal(false);
   readonly coverUploaded = signal(false);
   readonly coverPreview = signal<string | null>(null);
   readonly coverFile = signal<File | null>(null);
@@ -61,48 +61,13 @@ export class PodcastCreatePage {
   readonly formError = signal('');
   readonly steps = [
     { value: 1, title: 'Detalhes' },
-    { value: 2, title: 'Audio' },
-    { value: 3, title: 'Capa' },
-    { value: 4, title: 'Publicacao' },
+    { value: 2, title: 'Audio e capa' },
+    { value: 3, title: 'Revisao' },
   ];
-  readonly visibility = signal<'public' | 'premium' | 'private'>('public');
-  readonly scheduled = signal(false);
-  readonly scheduleDate = signal('');
-  readonly scheduleTime = signal('');
-  readonly toggle = (value: boolean) => !value;
-
-  readonly progress = computed(() => {
-    const checks = [this.title(), this.category(), this.duration(), this.description(), this.audioUploaded(), this.coverUploaded()];
-    return Math.round((checks.filter((value) => Boolean(String(value).trim())).length / checks.length) * 100);
-  });
-
   readonly previewTitle = computed(() => this.title().trim() || 'O Impacto das Rotas Comerciais no Seculo XVII');
   readonly previewDescription = computed(() => this.description().trim() || 'Episodio sobre redes comerciais, circulacao monetaria e memoria social, preparado para publicacao com contexto histórico e leitura económica.');
-  readonly durationLabel = computed(() => this.duration().trim() || '28 min');
-  readonly visibilityLabel = computed(() => this.visibilityOptions.find((option) => option.value === this.visibility())?.plainLabel ?? 'Publico');
-
-  readonly metrics = [
-    { icon: 'graphic_eq', value: '68%', label: 'Audio processado', badge: 'Upload', description: 'Ficheiro carregado e em validacao tecnica.' },
-    { icon: 'schedule', value: '28 min', label: 'Duracao prevista', badge: 'Aluno', description: 'Tempo estimado para escuta completa.' },
-    { icon: 'library_music', value: 'Serie 1', label: 'Playlist', badge: 'Acervo', description: 'Episodio ligado a uma colecao editorial.' },
-    { icon: 'verified_user', value: '72%', label: 'Pronto para revisão', badge: 'Editor', description: 'Checklist editorial parcialmente concluida.' },
-  ];
-
-  get validationChecklist() {
-    return [
-      { label: 'Detalhes editoriais preenchidos', done: this.title().trim().length > 0 && this.description().trim().length > 0 },
-      { label: 'Audio enviado para processamento', done: this.audioUploaded() },
-      { label: 'Capa do episodio definida', done: this.coverChanged() },
-      { label: 'Agendamento configurado', done: !this.scheduled() || Boolean(this.scheduleDate() && this.scheduleTime()) },
-      { label: 'Revisao editorial pendente', done: this.status() === 'Publicado' },
-    ];
-  }
-
-  readonly visibilityOptions = [
-    { value: 'public' as const, plainLabel: 'Publico', labelHtml: 'P&uacute;blico', descriptionHtml: 'Vis&iacute;vel para todos os visitantes do portal.' },
-    { value: 'premium' as const, plainLabel: 'Premium', labelHtml: 'Premium Only', descriptionHtml: 'Exclusivo para subscritores de planos anuais.' },
-    { value: 'private' as const, plainLabel: 'Privado', labelHtml: 'Privado', descriptionHtml: 'Apenas administradores podem acessar.' },
-  ];
+  readonly durationLabel = computed(() => this.duration().trim() || 'Duracao por calcular');
+  readonly visibilityLabel = computed(() => 'Publico para utilizadores autenticados');
 
   constructor() {
     void this.loadOptions();
@@ -111,10 +76,7 @@ export class PodcastCreatePage {
   setTitle(event: Event): void { this.title.set(this.eventValue(event)); }
   setCategory(event: Event): void { this.category.set(this.eventValue(event)); }
   setPlaylist(event: Event): void { this.playlist.set(this.eventValue(event)); }
-  setDuration(event: Event): void { this.duration.set(this.eventValue(event)); }
   setDescription(event: Event): void { this.description.set(this.eventValue(event)); }
-  setScheduleDate(event: Event): void { this.scheduleDate.set(this.eventValue(event)); }
-  setScheduleTime(event: Event): void { this.scheduleTime.set(this.eventValue(event)); }
 
   onAudioSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -124,10 +86,19 @@ export class PodcastCreatePage {
       return;
     }
 
+    if (file.size > this.maxAudioSizeMb * 1024 * 1024) {
+      this.formError.set(`O audio selecionado excede ${this.maxAudioSizeMb}MB.`);
+      input.value = '';
+      return;
+    }
+
+    this.formError.set('');
     this.audioFile.set(file);
     this.audioFileName.set(file.name);
     this.audioUploaded.set(true);
     this.uploadProgress.set(100);
+    this.duration.set('');
+    void this.readAudioDuration(file);
   }
 
   removeAudio(): void {
@@ -135,6 +106,7 @@ export class PodcastCreatePage {
     this.audioFileName.set('');
     this.audioUploaded.set(false);
     this.uploadProgress.set(0);
+    this.duration.set('');
   }
 
   async saveDraft(): Promise<void> {
@@ -176,7 +148,6 @@ export class PodcastCreatePage {
       this.coverFile.set(file);
       this.coverFileName.set(file.name);
       this.coverUploaded.set(true);
-      this.coverChanged.set(true);
     };
     reader.readAsDataURL(file);
   }
@@ -186,7 +157,6 @@ export class PodcastCreatePage {
     this.coverFile.set(null);
     this.coverFileName.set('');
     this.coverUploaded.set(false);
-    this.coverChanged.set(false);
   }
 
   private eventValue(event: Event): string {
@@ -215,9 +185,11 @@ export class PodcastCreatePage {
     this.formError.set('');
     this.isSaving.set(true);
     this.status.set(asDraft ? 'A guardar rascunho...' : 'A publicar...');
+    let createdContentId: number | string | null = null;
 
     try {
       let content = await this.contentService.create(this.buildPayload(asDraft));
+      createdContentId = content.id;
 
       content = await this.contentService.uploadMedia(content.id, 'audio', this.audioFile()!);
 
@@ -229,6 +201,10 @@ export class PodcastCreatePage {
       this.previewOpen.set(false);
       await this.router.navigate(['/app/podcasts', content.id]);
     } catch (error) {
+      if (createdContentId) {
+        await this.deleteCreatedContent(createdContentId);
+      }
+
       this.status.set('Rascunho');
       this.formError.set(this.errorMessage(error));
     } finally {
@@ -251,8 +227,16 @@ export class PodcastCreatePage {
       content: this.podcastBody(),
       image_url: null,
       video_url: null,
-      visibility: asDraft ? 'private' : this.mapVisibility(),
+      visibility: asDraft ? 'private' : 'public',
     };
+  }
+
+  private async deleteCreatedContent(contentId: number | string): Promise<void> {
+    try {
+      await this.contentService.delete(contentId);
+    } catch {
+      // If cleanup fails, keep the original upload error visible to the user.
+    }
   }
 
   private podcastBody(): string {
@@ -265,22 +249,7 @@ export class PodcastCreatePage {
       this.playlist().trim() ? `<p><strong>Serie:</strong> ${this.playlist().trim()}</p>` : '',
       this.duration().trim() ? `<p><strong>Duracao:</strong> ${this.duration().trim()}</p>` : '',
       `<p><strong>Audio:</strong> ${this.audioFileName() || 'ficheiro enviado'}</p>`,
-      this.scheduled() && this.scheduleDate() && this.scheduleTime()
-        ? `<p><strong>Agendado para:</strong> ${this.scheduleDate()} ${this.scheduleTime()}</p>`
-        : '',
     ].filter(Boolean).join('\n');
-  }
-
-  private mapVisibility(): 'public' | 'private' | 'followers' {
-    if (this.visibility() === 'private') {
-      return 'private';
-    }
-
-    if (this.visibility() === 'premium') {
-      return 'followers';
-    }
-
-    return 'public';
   }
 
   private resolveCategoryId(label: string): number | null {
@@ -309,6 +278,47 @@ export class PodcastCreatePage {
     return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   }
 
+  private async readAudioDuration(file: File): Promise<void> {
+    if (typeof Audio === 'undefined' || typeof URL === 'undefined') {
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    const audio = new Audio();
+    audio.preload = 'metadata';
+
+    await new Promise<void>((resolve) => {
+      audio.onloadedmetadata = () => {
+        URL.revokeObjectURL(url);
+        const seconds = Number.isFinite(audio.duration) ? audio.duration : 0;
+
+        if (seconds > 0) {
+          this.duration.set(this.formatDuration(seconds));
+        }
+
+        resolve();
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve();
+      };
+      audio.src = url;
+    });
+  }
+
+  private formatDuration(totalSeconds: number): string {
+    const minutes = Math.max(1, Math.round(totalSeconds / 60));
+
+    if (minutes < 60) {
+      return `${minutes} min`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}min` : `${hours}h`;
+  }
+
   private errorMessage(error: unknown): string {
     if (error instanceof Error) {
       return error.message;
@@ -319,6 +329,10 @@ export class PodcastCreatePage {
 
     if (validationErrors) {
       return Object.values(validationErrors).flat().join(' ');
+    }
+
+    if (response.status === 422 && response.error?.message?.toLowerCase().includes('upload')) {
+      return 'O audio nao foi enviado. O PHP local esta provavelmente limitado por upload_max_filesize/post_max_size.';
     }
 
     if (response.error?.message) {
@@ -332,4 +346,3 @@ export class PodcastCreatePage {
     return 'Nao foi possivel guardar o podcast.';
   }
 }
-

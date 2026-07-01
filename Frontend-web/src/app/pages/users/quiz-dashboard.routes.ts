@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink, Routes } from '@angular/router';
 import { AuthStateService } from '../../services/auth-state.service';
 import { QuizService, QuizSubmitResult } from '../../services/quiz.service';
+import { Quiz } from '../../models/quiz.model';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
@@ -17,6 +18,7 @@ export class QuizDashboardPage {
   readonly selectedLevel = signal('Todos');
   readonly isLoading = signal(false);
   readonly loadError = signal('');
+  readonly quizProgressById = signal<Record<string, number>>({});
   readonly quizPage = signal(1);
   readonly quizzesPerPage = 4;
   readonly levelFilters = ['Todos', 'Fácil', 'Médio', 'Difícil'];
@@ -47,7 +49,7 @@ export class QuizDashboardPage {
     summary: quiz.summary,
     coverImage: quiz.coverUrl ?? '',
     coverAlt: quiz.title,
-    progress: this.quizService.userStats().completedQuizIds.includes(quiz.id) ? 100 : 0,
+    progress: this.quizProgress(quiz),
     questions: this.questionCount(quiz),
     action: 'Iniciar',
     accent: index % 2 === 0 ? 'green' : 'wine',
@@ -124,10 +126,31 @@ export class QuizDashboardPage {
     if (this.auth.isAuthenticated()) {
       try {
         await this.quizService.loadMyStats();
+        await this.loadQuizProgress();
       } catch {
         this.quizService.userStats.set({ score: 0, completedQuizzes: 0, completedQuizIds: [] });
+        this.quizProgressById.set({});
       }
     }
+  }
+
+  private async loadQuizProgress(): Promise<void> {
+    const progressItems = await this.quizService.getProgress(12);
+    const progressByQuizId = progressItems.reduce<Record<string, number>>((result, item) => {
+      result[String(item.quiz_id)] = Number(item.progress_percent ?? 0);
+
+      return result;
+    }, {});
+
+    this.quizProgressById.set(progressByQuizId);
+  }
+
+  private quizProgress(quiz: Quiz): number {
+    if (this.quizService.userStats().completedQuizIds.includes(quiz.id)) {
+      return 100;
+    }
+
+    return this.quizProgressById()[quiz.id] ?? 0;
   }
 
   private levelLabel(level: 'facil' | 'medio' | 'dificil'): string {
@@ -176,7 +199,7 @@ export class QuizPlayPage {
 
   readonly totalQuestions = computed(() => this.quiz()?.questions.length ?? 0);
   readonly currentQuestion = computed(() => this.quiz()!.questions[this.currentIndex()]);
-  readonly progressPercent = computed(() => (this.totalQuestions() ? (this.correctCount() / this.totalQuestions()) * 100 : 0));
+  readonly progressPercent = computed(() => (this.totalQuestions() ? (this.selectedAnswers().length / this.totalQuestions()) * 100 : 0));
   readonly correctAnswer = computed(() => this.currentQuestion().options[this.currentQuestion().answerIndex]);
   readonly earnedXp = computed(() => this.submitResult()?.earned_xp ?? Math.round(((this.correctCount() / Math.max(this.totalQuestions(), 1)) * (this.quiz()?.xp ?? 0))));
 
@@ -214,6 +237,7 @@ export class QuizPlayPage {
         selected_option: (['a', 'b', 'c', 'd'] as const)[selected],
       },
     ]);
+    void this.savePartialProgress();
     this.playFeedbackSound(correct);
   }
 
@@ -257,9 +281,46 @@ export class QuizPlayPage {
         answers: this.selectedAnswers(),
       });
       this.submitResult.set(result);
+      await this.saveCompletedProgress();
       await this.quizService.loadMyStats();
     } catch {
       this.submitError.set('Nao foi possivel enviar o resultado do quiz.');
+    }
+  }
+
+  private async savePartialProgress(): Promise<void> {
+    const quiz = this.quiz();
+
+    if (!quiz || !this.totalQuestions()) {
+      return;
+    }
+
+    try {
+      await this.quizService.updateProgress(quiz.id, {
+        progress_percent: Math.min(99, Math.round((this.selectedAnswers().length / this.totalQuestions()) * 100)),
+        current_question_index: this.currentIndex(),
+        answered_questions: this.selectedAnswers(),
+      });
+    } catch {
+      // Progress is useful for resume, but quiz answering must remain uninterrupted.
+    }
+  }
+
+  private async saveCompletedProgress(): Promise<void> {
+    const quiz = this.quiz();
+
+    if (!quiz) {
+      return;
+    }
+
+    try {
+      await this.quizService.updateProgress(quiz.id, {
+        progress_percent: 100,
+        current_question_index: Math.max(this.totalQuestions() - 1, 0),
+        answered_questions: this.selectedAnswers(),
+      });
+    } catch {
+      // The backend submission also marks quiz progress after saving the result.
     }
   }
 

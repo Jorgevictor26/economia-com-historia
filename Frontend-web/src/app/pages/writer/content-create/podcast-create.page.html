@@ -27,7 +27,7 @@
               <span class="-mt-1 text-right text-[12px] text-[#9E9E9E]">{{ title().length }}/120</span>
             </label>
 
-            <div class="mt-4 grid gap-4 md:grid-cols-3">
+            <div class="mt-4 grid gap-4 md:grid-cols-2">
               <label class="grid gap-2">
                 <span class="text-[13px] font-bold text-[#616161]">Categoria principal</span>
                 <select [value]="category()" (change)="setCategory($event)" class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#616161] outline-none focus:border-[#8A3F50]">
@@ -42,10 +42,6 @@
                 <span class="text-[13px] font-bold text-[#616161]">Serie / playlist</span>
                 <input type="text" placeholder="Nome da colecao" [value]="playlist()" (input)="setPlaylist($event)" class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#616161] outline-none placeholder:text-[#9E9E9E] focus:border-[#8A3F50]" />
               </label>
-              <label class="grid gap-2">
-                <span class="text-[13px] font-bold text-[#616161]">Duracao estimada</span>
-                <input type="text" placeholder="Ex: 28 min" [value]="duration()" (input)="setDuration($event)" class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#616161] outline-none placeholder:text-[#9E9E9E] focus:border-[#8A3F50]" />
-              </label>
             </div>
 
             <label class="mt-4 grid gap-2">
@@ -57,7 +53,7 @@
         }
 
         @if (currentStep() === 2) {
-          <section class="rounded-[8px] border border-[#E0E0E0] bg-[#fff] p-6">
+          <section class="grid gap-5 rounded-[8px] border border-[#E0E0E0] bg-[#fff] p-6">
             <h2 class="text-[20px] font-extrabold text-[#5C1E2F]">Ficheiro de audio</h2>
             <label class="mt-5 grid min-h-[190px] w-full cursor-pointer place-items-center rounded-[8px] border border-dashed border-[#BDBDBD] bg-white text-center transition hover:border-[#8A3F50] hover:bg-[#F2E6E9]">
               <input type="file" accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav" class="sr-only" (change)="onAudioSelected($event)" />
@@ -73,9 +69,10 @@
               <span class="grid size-10 shrink-0 place-items-center rounded-[8px] bg-[#5c1e2f] text-white"><span class="material-icon" aria-hidden="true">graphic_eq</span></span>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center justify-between gap-4 text-[12px]">
-                  <span class="truncate font-extrabold text-[#212121]">{{ audioUploaded() ? audioFileName() : 'aguardando_audio.mp3' }}</span>
+                  <span class="truncate font-extrabold text-[#212121]">{{ audioUploaded() ? audioFileName() : 'Nenhum ficheiro selecionado' }}</span>
                   <span class="shrink-0 font-bold text-[#D4AF37]">{{ uploadProgress() === 100 ? 'Pronto' : 'A processar...' }} {{ uploadProgress() }}%</span>
                 </div>
+                <p class="mt-1 text-[11px] font-semibold text-[#616161]">{{ durationLabel() }}</p>
                 <div class="mt-2 h-2 overflow-hidden rounded-full bg-[#F2E6E9]">
                   <span class="block h-full rounded-full bg-[#5c1e2f]" [style.width.%]="uploadProgress()"></span>
                 </div>
@@ -84,54 +81,47 @@
                 <span class="material-icon" aria-hidden="true">close</span>
               </button>
             </div>
+
+            <div class="border-t border-[#E0E0E0] pt-5">
+              <h2 class="text-[20px] font-extrabold text-[#5C1E2F]">Capa do episodio <span class="text-[#9E9E9E]">(Opcional)</span></h2>
+              <p class="mt-2 text-[13px] leading-6 text-[#616161]">Adicione uma imagem para representar o podcast. Pode publicar sem capa.</p>
+
+              <label class="mt-6 grid min-h-[240px] w-full cursor-pointer place-items-center overflow-hidden rounded-[8px] border border-dashed border-[#BDBDBD] bg-white text-center transition hover:border-[#8A3F50] hover:bg-[#F2E6E9]">
+                <input type="file" accept="image/png,image/jpeg,image/webp" class="sr-only" (change)="onCoverSelected($event)" />
+                @if (coverPreview()) {
+                  <span class="grid w-full gap-4 p-4">
+                    <img [src]="coverPreview()!" alt="Capa selecionada do podcast" class="mx-auto aspect-video w-full max-w-3xl rounded-[8px] object-cover" />
+                    <span class="text-[13px] font-extrabold text-[#5C1E2F]">{{ coverFileName() }}</span>
+                    <small class="text-[12px] text-[#9E9E9E]">Clique para trocar</small>
+                  </span>
+                } @else {
+                  <span>
+                    <span class="material-icon mx-auto grid size-14 place-items-center rounded-[8px] bg-[#F2E6E9] text-[34px] text-[#8A3F50]" aria-hidden="true">add_photo_alternate</span>
+                    <strong class="mt-4 block text-[14px] font-extrabold text-[#5C1E2F]">Adicionar capa opcional</strong>
+                    <small class="mt-2 block text-[12px] text-[#9E9E9E]">PNG, JPG ou WebP</small>
+                  </span>
+                }
+              </label>
+
+              @if (coverUploaded()) {
+                <button type="button" (click)="clearCover()" class="mt-4 inline-flex h-10 items-center justify-center rounded-[8px] border border-[#E0E0E0] px-4 text-[12px] font-extrabold text-[#616161] transition hover:border-[#5C1E2F] hover:bg-[#F2E6E9] hover:text-[#5C1E2F]">Remover capa</button>
+              }
+            </div>
           </section>
         }
 
         @if (currentStep() === 3) {
-          <section class="rounded-[8px] border border-[#E0E0E0] bg-[#fff] p-6">
-            <h2 class="text-[20px] font-extrabold text-[#5C1E2F]">Capa do episodio <span class="text-[#9E9E9E]">(Opcional)</span></h2>
-            <p class="mt-2 text-[13px] leading-6 text-[#616161]">Adicione uma imagem para representar o podcast. Pode publicar sem capa.</p>
-
-            <label class="mt-6 grid min-h-[240px] w-full cursor-pointer place-items-center overflow-hidden rounded-[8px] border border-dashed border-[#BDBDBD] bg-white text-center transition hover:border-[#8A3F50] hover:bg-[#F2E6E9]">
-              <input type="file" accept="image/png,image/jpeg,image/webp" class="sr-only" (change)="onCoverSelected($event)" />
-              @if (coverPreview()) {
-                <span class="grid w-full gap-4 p-4">
-                  <img [src]="coverPreview()!" alt="Capa selecionada do podcast" class="mx-auto aspect-video w-full max-w-3xl rounded-[8px] object-cover" />
-                  <span class="text-[13px] font-extrabold text-[#5C1E2F]">{{ coverFileName() }}</span>
-                  <small class="text-[12px] text-[#9E9E9E]">Clique para trocar</small>
-                </span>
-              } @else {
-                <span>
-                  <span class="material-icon mx-auto grid size-14 place-items-center rounded-[8px] bg-[#F2E6E9] text-[34px] text-[#8A3F50]" aria-hidden="true">add_photo_alternate</span>
-                  <strong class="mt-4 block text-[14px] font-extrabold text-[#5C1E2F]">Adicionar capa opcional</strong>
-                  <small class="mt-2 block text-[12px] text-[#9E9E9E]">PNG, JPG ou WebP</small>
-                </span>
-              }
-            </label>
-
-            @if (coverUploaded()) {
-              <button type="button" (click)="clearCover()" class="mt-4 inline-flex h-10 items-center justify-center rounded-[8px] border border-[#E0E0E0] px-4 text-[12px] font-extrabold text-[#616161] transition hover:border-[#5C1E2F] hover:bg-[#F2E6E9] hover:text-[#5C1E2F]">Remover capa</button>
-            }
-          </section>
-        }
-
-        @if (currentStep() === 4) {
           <section class="rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] p-6 text-[#5C1E2F]">
-            <h2 class="flex items-center gap-2 text-[18px] font-extrabold"><span class="material-icon" aria-hidden="true">publish</span> Publicacao</h2>
+            <h2 class="flex items-center gap-2 text-[18px] font-extrabold"><span class="material-icon" aria-hidden="true">publish</span> Revisao e publicacao</h2>
 
-            <div class="mt-5 grid gap-4 md:grid-cols-3">
-              @for (option of visibilityOptions; track option.value) {
-                <label class="flex min-h-[120px] cursor-pointer items-start gap-4 rounded-[8px] border bg-white p-5" [class.border-[#8A3F50]]="visibility() === option.value" [class.bg-[#F2E6E9]]="visibility() === option.value" [class.border-[#E0E0E0]]="visibility() !== option.value">
-                  <input type="radio" name="podcastVisibility" class="mt-1 size-4 accent-bordeaux" [checked]="visibility() === option.value" (change)="visibility.set(option.value)" />
-                  <span>
-                    <strong class="text-[15px] text-[#5C1E2F]" [innerHTML]="option.labelHtml"></strong>
-                    <small class="mt-2 block text-[12px] leading-5 text-[#616161]" [innerHTML]="option.descriptionHtml"></small>
-                  </span>
-                </label>
-              }
+            <div class="mt-5 rounded-[8px] border border-[#E0E0E0] bg-white p-5">
+              <strong class="text-[15px] text-[#5C1E2F]">Publico para utilizadores autenticados</strong>
+              <small class="mt-2 block text-[12px] leading-5 text-[#616161]">
+                Podcasts publicados ficam com visibilidade publica no conteudo, mas a rota de podcasts exige login para ouvir.
+              </small>
             </div>
 
-            <p class="mt-5 text-[13px] leading-6 text-[#5C1E2F]">Abra a pre-visualizacao em modal antes de publicar. A capa continua opcional.</p>
+            <p class="mt-5 text-[13px] leading-6 text-[#5C1E2F]">Abra a pre-visualizacao em modal antes de publicar. A duracao e calculada a partir do audio e a capa continua opcional.</p>
 
             <div class="mt-5 grid gap-3 sm:grid-cols-3">
               <button type="button" (click)="openPreview()" class="inline-flex h-12 items-center justify-center gap-3 rounded-[8px] border border-[#8A3F50] bg-white px-4 text-[14px] font-extrabold text-[#8A3F50]"><span class="material-icon" aria-hidden="true">visibility</span> Pre-visualizar</button>

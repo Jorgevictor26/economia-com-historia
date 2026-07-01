@@ -122,23 +122,26 @@
           <section class="border-t border-[#E0E0E0] pt-6">
             <h2 class="font-display text-[17px] font-medium text-[#5c1e2f]">Relacionados</h2>
 
-            <a routerLink="/app/podcasts" class="mt-5 grid grid-cols-[86px_minmax(0,1fr)] gap-3">
-              <div class="podcast-radio row-span-2 h-[58px] w-full rounded-[4px]" role="img"
-                aria-label="Capa do episódio A Economia do Reino do Kongo"></div>
-              <p class="mt-2 text-[10px] font-bold uppercase text-[#D4AF37]">Episódio 21</p>
-              <h3 class="col-start-2 mt-1 line-clamp-2 text-[12px] font-bold leading-4 text-[#212121]">
-                A Economia do Reino do Kongo
-              </h3>
-            </a>
-
-            <a routerLink="/app/podcasts" class="mt-4 grid grid-cols-[86px_minmax(0,1fr)] gap-3">
-              <div class="podcast-wave row-span-2 h-[58px] w-full rounded-[4px]" role="img"
-                aria-label="Capa do episódio Rainha Ginga: Diplomacia e Guerra"></div>
-              <p class="mt-2 text-[10px] font-bold uppercase text-[#D4AF37]">Episódio 18</p>
-              <h3 class="col-start-2 mt-1 line-clamp-2 text-[12px] font-bold leading-4 text-[#212121]">
-                Rainha Ginga: Diplomacia e Guerra
-              </h3>
-            </a>
+            @if (isLoadingRelated()) {
+              <p class="mt-5 text-[12px] font-semibold text-[#9E9E9E]">A carregar relacionados...</p>
+            } @else if (relatedPodcasts().length) {
+              @for (item of relatedPodcasts(); track item.id) {
+                <a [routerLink]="['/app/podcasts', item.id]" class="mt-5 grid grid-cols-[86px_minmax(0,1fr)] gap-3">
+                  @if (item.coverUrl) {
+                    <img [src]="item.coverUrl" [alt]="'Capa de ' + item.title" class="row-span-2 h-[58px] w-full rounded-[4px] object-cover" />
+                  } @else {
+                    <div class="podcast-radio row-span-2 h-[58px] w-full rounded-[4px]" role="img"
+                      [attr.aria-label]="'Capa de ' + item.title"></div>
+                  }
+                  <p class="mt-2 text-[10px] font-bold uppercase text-[#D4AF37]">{{ item.category }}</p>
+                  <h3 class="col-start-2 mt-1 line-clamp-2 text-[12px] font-bold leading-4 text-[#212121]">
+                    {{ item.title }}
+                  </h3>
+                </a>
+              }
+            } @else {
+              <p class="mt-5 text-[12px] leading-5 text-[#616161]">Ainda não há podcasts relacionados.</p>
+            }
           </section>
         </div>
       </aside>
@@ -152,194 +155,130 @@
             Pontos Chave
           </h2>
           <div class="mt-7 grid gap-x-10 gap-y-6 sm:grid-cols-2">
-            <div class="grid grid-cols-[36px_minmax(0,1fr)] gap-3">
-              <span class="text-[15px] font-extrabold text-[#D4AF37]">01</span>
-              <p class="text-[13px] leading-6 text-[#616161]">
-                A estrutura de tributação Lunda e a sua eficiência no comércio de marfim e borracha.
-              </p>
-            </div>
-            <div class="grid grid-cols-[36px_minmax(0,1fr)] gap-3">
-              <span class="text-[15px] font-extrabold text-[#D4AF37]">02</span>
-              <p class="text-[13px] leading-6 text-[#616161]">
-                O papel das rotas de caravanas na integração económica da África Central.
-              </p>
-            </div>
-            <div class="grid grid-cols-[36px_minmax(0,1fr)] gap-3">
-              <span class="text-[15px] font-extrabold text-[#D4AF37]">03</span>
-              <p class="text-[13px] leading-6 text-[#616161]">
-                Diplomacia e comércio: a relação com os reinos vizinhos e potências europeias.
-              </p>
-            </div>
-            <div class="grid grid-cols-[36px_minmax(0,1fr)] gap-3">
-              <span class="text-[15px] font-extrabold text-[#D4AF37]">04</span>
-              <p class="text-[13px] leading-6 text-[#616161]">
-                A sucessão política como mecanismo de estabilidade económica de longo prazo.
-              </p>
-            </div>
+            @if (currentPodcast().keyPoints.length) {
+              @for (point of currentPodcast().keyPoints; track point; let index = $index) {
+                <div class="grid grid-cols-[36px_minmax(0,1fr)] gap-3">
+                  <span class="text-[15px] font-extrabold text-[#D4AF37]">{{ index + 1 < 10 ? '0' + (index + 1) : index + 1 }}</span>
+                  <p class="text-[13px] leading-6 text-[#616161]">
+                    {{ point }}
+                  </p>
+                </div>
+              }
+            } @else {
+              <p class="text-[13px] leading-6 text-[#616161]">Sem pontos chave disponíveis para este podcast.</p>
+            }
           </div>
         </section>
 
         <section class="mt-10 border-t border-[#E0E0E0] pt-9">
-          <h2 class="text-[14px] font-medium text-[#5c1e2f]">Comentários (3)</h2>
+          <h2 class="text-[14px] font-medium text-[#5c1e2f]">Comentários ({{ comments().length }})</h2>
 
           @if (isCommentComposerOpen()) {
           <div class="mt-6 flex gap-4">
             <span class="size-9 rounded-[10px] bg-[#E0E0E0]"></span>
             <div class="min-w-0 flex-1">
-              <textarea
+              <textarea #commentInput
                 class="h-[96px] w-full resize-none border border-[#E0E0E0] bg-[#F5F5F5] p-5 text-[13px] outline-none placeholder:text-[#BDBDBD] focus:border-[#8A3F50]"
                 placeholder="Partilhe a sua reflexão académica..."></textarea>
               <div class="-mt-px text-right">
-                <button type="button" class="h-10 bg-[#5C1E2F] px-6 text-[12px] font-bold text-white">
-                  Publicar
+                <button type="button" class="h-10 bg-[#5C1E2F] px-6 text-[12px] font-bold text-white disabled:opacity-60"
+                  [disabled]="isSavingComment()" (click)="submitComment(commentInput.value); commentInput.value = ''">
+                  {{ isSavingComment() ? 'A publicar...' : 'Publicar' }}
                 </button>
               </div>
             </div>
           </div>
           }
 
-          <div class="mt-9 grid gap-7">
-            <div class="flex gap-4">
-              <span class="grid size-9 place-items-center rounded-[8px] bg-[#E0E0E0] text-[11px] font-bold text-[#9E9E9E]">
-                AL
-              </span>
-              <div class="min-w-0 flex-1">
-                <div class="flex flex-wrap items-center gap-3">
-                  <p class="text-[13px] font-extrabold text-[#5c1e2f]">Ana Paula Lourenço</p>
-                  <span class="text-[10px] text-[#9E9E9E]">Há 2 horas</span>
-                </div>
-                <p class="mt-1 text-[13px] leading-5 text-[#212121]">
-                  Excelente análise sobre a fiscalidade Lunda. É impressionante notar as semelhanças com modelos de
-                  integração regional que discutimos hoje em dia na SADC.
-                </p>
-                <div class="mt-3 flex gap-6 text-[10px] text-[#616161]">
-                  <button type="button" class="content-action">
-                    <img src="/assets/icons/like.png" alt="" />
-                    <span>Gostar</span>
-                  </button>
-                  <button type="button">Responder</button>
-                  <button type="button" class="font-semibold text-[#5c1e2f]" (click)="toggleReplies('ana-paula')">
-                    Respostas (1)
-                  </button>
-                  <button type="button" class="content-action">
-                    <img src="/assets/icons/report.png" alt="" />
-                    <span>Denunciar</span>
-                  </button>
-                </div>
+          @if (commentError()) {
+            <p class="mt-4 text-[12px] font-semibold text-[#8A3F50]">{{ commentError() }}</p>
+          }
 
-                @if (areRepliesOpen('ana-paula')) {
-                <div class="mt-6 flex gap-4 border-l border-[#E0E0E0] pl-7">
-                  <span
-                    class="grid size-7 place-items-center rounded-[7px] bg-[#E0E0E0] text-[9px] font-bold text-[#9E9E9E]">
-                    PG
+          @if (commentSuccess()) {
+            <p class="mt-4 text-[12px] font-semibold text-[#2E7D32]">{{ commentSuccess() }}</p>
+          }
+
+          <div class="mt-9 grid gap-7">
+            @if (isLoadingComments()) {
+              <p class="text-[12px] font-semibold text-[#9E9E9E]">A carregar comentários...</p>
+            } @else if (!comments().length) {
+              <p class="text-[13px] leading-5 text-[#616161]">Ainda não há comentários neste podcast.</p>
+            } @else {
+              @for (comment of comments(); track comment.id) {
+                <div class="flex gap-4">
+                  <span class="grid size-9 shrink-0 place-items-center overflow-hidden rounded-[8px] bg-[#E0E0E0] text-[11px] font-bold text-[#9E9E9E]">
+                    @if (comment.authorPhotoUrl) {
+                      <img [src]="comment.authorPhotoUrl" [alt]="comment.author" class="h-full w-full object-cover" />
+                    } @else {
+                      {{ comment.authorInitials }}
+                    }
                   </span>
                   <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-center gap-3">
-                      <p class="text-[12px] font-medium text-[#5c1e2f]">Pedro Gonçalves</p>
-                      <span class="text-[10px] text-[#9E9E9E]">Há 1 hora</span>
+                      <p class="text-[13px] font-extrabold text-[#5c1e2f]">{{ comment.author }}</p>
+                      <span class="text-[10px] text-[#9E9E9E]">{{ formatDate(comment.createdAt) }}</span>
                     </div>
-                    <p class="mt-1 text-[12px] leading-5 text-[#212121]">
-                      Concordo, Ana. O Dr. Cassule foi muito feliz ao ligar a segurança das rotas ao título de Mwant
-                      Yav. Demonstra uma maturidade institucional incrível.
+                    <p class="mt-1 text-[13px] leading-5 text-[#212121]">
+                      {{ comment.text }}
                     </p>
                     <div class="mt-3 flex gap-6 text-[10px] text-[#616161]">
-                      <button type="button" class="content-action">
-                        <img src="/assets/icons/like.png" alt="" />
-                        <span>Gostar</span>
+                      <button type="button" (click)="toggleReplyComposer(comment.id)">
+                        {{ replyingToCommentId() === comment.id ? 'Cancelar' : 'Responder' }}
                       </button>
-                      <button type="button" class="content-action">
-                        <img src="/assets/icons/report.png" alt="" />
-                        <span>Denunciar</span>
-                      </button>
+                      @if (comment.replies.length) {
+                        <button type="button" class="font-semibold text-[#5c1e2f]" (click)="toggleReplies(comment.id)">
+                          Respostas ({{ comment.replies.length }})
+                        </button>
+                      }
                     </div>
+
+                    @if (replyingToCommentId() === comment.id) {
+                      <div class="mt-4 flex gap-3">
+                        <span class="size-7 rounded-[7px] bg-[#E0E0E0]"></span>
+                        <div class="min-w-0 flex-1">
+                          <textarea #replyInput
+                            class="h-[74px] w-full resize-none border border-[#E0E0E0] bg-[#F5F5F5] p-3 text-[12px] outline-none placeholder:text-[#BDBDBD] focus:border-[#8A3F50]"
+                            placeholder="Escreva uma resposta..."></textarea>
+                          <div class="-mt-px text-right">
+                            <button type="button" class="h-9 bg-[#5C1E2F] px-5 text-[11px] font-bold text-white disabled:opacity-60"
+                              [disabled]="isSavingReply()" (click)="submitReply(comment.id, replyInput.value); replyInput.value = ''">
+                              {{ isSavingReply() ? 'A responder...' : 'Responder' }}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    }
+
+                    @if (areRepliesOpen(comment.id)) {
+                      @for (reply of comment.replies; track reply.id) {
+                        <div class="mt-6 flex gap-4 border-l border-[#E0E0E0] pl-7">
+                          <span
+                            class="grid size-7 shrink-0 place-items-center overflow-hidden rounded-[7px] bg-[#E0E0E0] text-[9px] font-bold text-[#9E9E9E]">
+                            @if (reply.authorPhotoUrl) {
+                              <img [src]="reply.authorPhotoUrl" [alt]="reply.author" class="h-full w-full object-cover" />
+                            } @else {
+                              {{ reply.authorInitials }}
+                            }
+                          </span>
+                          <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3">
+                              <p class="text-[12px] font-medium text-[#5c1e2f]">{{ reply.author }}</p>
+                              <span class="text-[10px] text-[#9E9E9E]">{{ formatDate(reply.createdAt) }}</span>
+                            </div>
+                            <p class="mt-1 text-[12px] leading-5 text-[#212121]">
+                              {{ reply.text }}
+                            </p>
+                          </div>
+                        </div>
+                      }
+                    }
                   </div>
                 </div>
-                }
-              </div>
-            </div>
-
-            <div class="flex gap-4">
-              <span class="grid size-9 place-items-center rounded-[8px] bg-[#E0E0E0] text-[11px] font-bold text-[#9E9E9E]">
-                JB
-              </span>
-              <div class="min-w-0 flex-1">
-                <div class="flex flex-wrap items-center gap-3">
-                  <p class="text-[13px] font-extrabold text-[#5c1e2f]">Joaquim Bento</p>
-                  <span class="text-[10px] text-[#9E9E9E]">Há 5 horas</span>
-                </div>
-                <p class="mt-1 text-[13px] leading-5 text-[#212121]">
-                  Gostaria de saber mais sobre a influência do marfim especificamente na relação com os reinos a sul.
-                  Fica o pedido para um próximo episódio.
-                </p>
-                <div class="mt-3 flex gap-6 text-[10px] text-[#616161]">
-                  <button type="button" class="content-action">
-                    <img src="/assets/icons/like.png" alt="" />
-                    <span>Gostar</span>
-                  </button>
-                  <button type="button">Responder</button>
-                  <button type="button" class="content-action">
-                    <img src="/assets/icons/report.png" alt="" />
-                    <span>Denunciar</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+              }
+            }
           </div>
-
-          <button type="button" class="mt-8 text-[12px] font-extrabold text-[#5c1e2f]">
-            Carregar mais comentários
-            <span class="material-symbols-outlined ml-1 align-middle text-[16px]"
-              aria-hidden="true">keyboard_arrow_down</span>
-          </button>
         </section>
       </article>
-
-      <aside class="hidden">
-        <div class="grid gap-6">
-          <section class="border border-[#E0E0E0] bg-white px-6 py-6 text-center">
-            <div
-              class="mx-auto grid size-[70px] place-items-center rounded-[8px] bg-[#F2E6E9] font-display text-[20px] font-extrabold text-[#8A3F50]">
-              MC
-            </div>
-            <h2 class="mt-5 font-display text-[13px] font-medium text-[#5c1e2f]">Dr. Manuel Cassule</h2>
-            <p class="mt-1 text-[11px] font-semibold text-[#D4AF37]">Doutorado em História Económica</p>
-            <p class="mx-auto mt-2 max-w-[170px] text-[9px] leading-[1.35] text-[#616161]">
-              Investigador sénior na Universidade Agostinho Neto, especialista em sistemas políticos pré-coloniais da
-              África Central.
-            </p>
-            <div class="mt-5 flex justify-center gap-4 text-[#616161]">
-              <button type="button" class="cursor-pointer hover:text-[#5C1E2F]" aria-label="Partilhar perfil">
-                <span class="material-symbols-outlined text-[24px] leading-none">share</span>
-              </button>
-              <button type="button" class="cursor-pointer hover:text-[#5C1E2F]" aria-label="Guardar perfil">
-                <span class="material-symbols-outlined text-[24px] leading-none">bookmark</span>
-              </button>
-            </div>
-          </section>
-
-          <section class="border-t border-[#E0E0E0] pt-6">
-            <h2 class="font-display text-[17px] font-medium text-[#5c1e2f]">Relacionados</h2>
-
-            <a routerLink="/app/podcasts" class="mt-5 grid grid-cols-[86px_minmax(0,1fr)] gap-3">
-              <div class="podcast-radio row-span-2 h-[58px] w-full rounded-[4px]" role="img"
-                aria-label="Capa do episódio A Economia do Reino do Kongo"></div>
-              <p class="mt-2 text-[10px] font-bold uppercase text-[#D4AF37]">Episódio 21</p>
-              <h3 class="col-start-2 mt-1 line-clamp-2 text-[12px] font-bold leading-4 text-[#212121]">
-                A Economia do Reino do Kongo
-              </h3>
-            </a>
-
-            <a routerLink="/app/podcasts" class="mt-4 grid grid-cols-[86px_minmax(0,1fr)] gap-3">
-              <div class="podcast-wave row-span-2 h-[58px] w-full rounded-[4px]" role="img"
-                aria-label="Capa do episódio Rainha Ginga: Diplomacia e Guerra"></div>
-              <p class="mt-2 text-[10px] font-bold uppercase text-[#D4AF37]">Episódio 18</p>
-              <h3 class="col-start-2 mt-1 line-clamp-2 text-[12px] font-bold leading-4 text-[#212121]">
-                Rainha Ginga: Diplomacia e Guerra
-              </h3>
-            </a>
-          </section>
-        </div>
-      </aside>
     </div>
   </main>
 

@@ -39,6 +39,16 @@ export interface BackendContent {
   reactions_count?: number | string;
   comments_count?: number | string;
   liked_by_me?: boolean | number;
+  can_access?: boolean;
+}
+
+export interface BackendContentProgress {
+  id: number | string;
+  content_id: number | string;
+  progress_percent: number | string;
+  last_position_seconds?: number | string | null;
+  updated_at?: string | null;
+  content?: BackendContent | null;
 }
 
 export interface ContentPagination {
@@ -81,6 +91,11 @@ export interface ContentPayload {
   image_url?: string | null;
   video_url?: string | null;
   visibility: 'public' | 'private' | 'followers';
+}
+
+export interface UpdateContentProgressPayload {
+  progress_percent: number;
+  last_position_seconds?: number | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -148,10 +163,32 @@ export class ContentService {
     return firstValueFrom(this.http.get<BackendContent[]>('/contents/suggestions', { params }));
   }
 
+  async getFeaturedJindungo(): Promise<BackendContent> {
+    return firstValueFrom(this.http.get<BackendContent>('/contents/jindungo/featured'));
+  }
+
+  async getProgress(limit = 3): Promise<BackendContentProgress[]> {
+    const params = new HttpParams().set('limit', Math.min(Math.max(limit, 1), 6));
+
+    return firstValueFrom(this.http.get<BackendContentProgress[]>('/content-progress', { params }));
+  }
+
+  async updateProgress(contentId: string | number, payload: UpdateContentProgressPayload): Promise<BackendContentProgress> {
+    const response = await firstValueFrom(
+      this.http.put<{ data: BackendContentProgress }>(`/contents/${contentId}/progress`, payload),
+    );
+
+    return response.data;
+  }
+
   async create(payload: ContentPayload): Promise<BackendContent> {
     const response = await firstValueFrom(this.http.post<{ data: BackendContent }>('/contents', payload));
 
     return response.data;
+  }
+
+  async delete(id: string | number): Promise<void> {
+    await firstValueFrom(this.http.delete(`/contents/${id}`));
   }
 
   async uploadMedia(id: number | string, mediaType: 'image' | 'video' | 'audio' | 'document', file: File): Promise<BackendContent> {

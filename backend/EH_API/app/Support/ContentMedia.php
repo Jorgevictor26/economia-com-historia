@@ -16,7 +16,7 @@ final class ContentMedia
     public const VALIDATION_RULES = [
         'image' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         'video' => ['file', 'mimes:mp4,mov', 'max:102400'],
-        'audio' => ['file', 'mimes:mp3,wav', 'max:20480'],
+        'audio' => ['file', 'mimes:mp3,wav,mpeg,mpga', 'max:51200'],
         'document' => ['file', 'mimes:pdf', 'max:20480'],
     ];
 

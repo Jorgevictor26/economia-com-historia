@@ -28,12 +28,6 @@ return new class extends Migration
 
             $table->longText('content');
 
-            $table->string('image')
-                ->nullable();
-
-            $table->string('video')
-                ->nullable();
-
             $table->enum('visibility', [
                 'public',
                 'private',

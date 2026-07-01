@@ -5,6 +5,8 @@ namespace App\Services;
 use App\DTOs\Quiz\QuizAnswerDTO;
 use App\DTOs\Quiz\QuizResultDTO;
 use App\DTOs\Quiz\SubmitQuizDTO;
+use App\DTOs\ContentProgress\UpdateContentProgressDTO;
+use App\DTOs\QuizProgress\UpdateQuizProgressDTO;
 use App\Models\QuizResult;
 use App\Repositories\QuizAnswerRepository;
 use App\Repositories\QuizRepository;
@@ -20,6 +22,8 @@ class QuizSubmissionService
         private readonly QuizRepository $quizzes,
         private readonly QuizAnswerRepository $answers,
         private readonly QuizResultRepository $results,
+        private readonly ContentProgressService $contentProgress,
+        private readonly QuizProgressService $quizProgress,
     ) {
     }
 
@@ -85,6 +89,28 @@ class QuizSubmissionService
                     earnedXp: $earnedXp,
                 ))->toArray()
             );
+
+            if ($quiz->content_id !== null) {
+                $this->contentProgress->update(new UpdateContentProgressDTO(
+                    userId: $dto->userId,
+                    contentId: (int) $quiz->content_id,
+                    progressPercent: 100,
+                ));
+            }
+
+            $this->quizProgress->update(new UpdateQuizProgressDTO(
+                userId: $dto->userId,
+                quizId: $dto->quizId,
+                progressPercent: 100,
+                currentQuestionIndex: max($totalQuestions - 1, 0),
+                answeredQuestions: collect($dto->answers)
+                    ->map(fn (array $answer) => [
+                        'question_id' => $answer['question_id'],
+                        'selected_option' => $answer['selected_option'],
+                    ])
+                    ->values()
+                    ->all(),
+            ));
 
             return $this->formatResult($result, $savedAnswers);
         });

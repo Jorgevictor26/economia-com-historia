@@ -21,8 +21,7 @@ class UploadContentMediaRequest extends FormRequest
 
         return [
             'media_type' => ['sometimes', 'string', Rule::in(ContentMedia::TYPES)],
-            'file' => ['required_without:'.$mediaType, ...$mediaRules],
-            $mediaType => ['required_without:file', ...$mediaRules],
+            'file' => ['required', ...$mediaRules],
         ];
     }
 
@@ -33,7 +32,16 @@ class UploadContentMediaRequest extends FormRequest
 
     public function mediaFile(): UploadedFile
     {
-        return $this->file('file') ?? $this->file($this->validatedMediaType());
+        return $this->file('file');
+    }
+
+    public function messages(): array
+    {
+        return [
+            'file.uploaded' => 'O ficheiro nao foi enviado. Confirme upload_max_filesize e post_max_size no PHP.',
+            'file.max' => 'O ficheiro excede o tamanho maximo permitido para este tipo de media.',
+            'file.mimes' => 'O formato do ficheiro nao e suportado para este tipo de media.',
+        ];
     }
 
     private function validatedMediaType(): string

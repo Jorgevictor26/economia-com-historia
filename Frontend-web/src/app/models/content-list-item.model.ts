@@ -5,6 +5,7 @@ export interface ContentListItem {
   meta: string;
   title: string;
   excerpt: string;
+  authorId?: string;
   author: string;
   authorInitials: string;
   ownerId?: string;
@@ -14,4 +15,5 @@ export interface ContentListItem {
   commentsCount?: number;
   likedByMe?: boolean;
   searchText?: string;
+  authorPhotoUrl?: string;
 }

@@ -155,8 +155,8 @@ export class RegisterPage {
       password_confirmation: confirmPassword,
     };
 
-    if (this.selectedPhotoName()) {
-      payload.photo = this.selectedPhotoName();
+    if (this.photoPreviewUrl()) {
+      payload.photo = this.photoPreviewUrl();
     }
 
     if (biography) {

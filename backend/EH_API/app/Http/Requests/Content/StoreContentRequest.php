@@ -19,8 +19,8 @@ class StoreContentRequest extends FormRequest
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'content_type_id' => ['required', 'integer', 'exists:content_types,id'],
             'content' => ['required', 'string'],
-            'image' => ['nullable', 'string'],
-            'video' => ['nullable', 'string'],
+            'image_url' => ['nullable', 'string'],
+            'video_url' => ['nullable', 'string'],
             'visibility' => ['required', 'string', 'in:public,private,followers'],
         ];
     }

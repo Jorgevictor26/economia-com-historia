@@ -210,8 +210,8 @@ export class ArticleCreatePage {
       category_id: this.resolveCategoryId(this.category()),
       content_type_id: contentType.id,
       content: this.articleBody(),
-      image: null,
-      video: null,
+      image_url: null,
+      video_url: null,
       visibility: asDraft ? 'private' : this.mapVisibility(),
     };
   }

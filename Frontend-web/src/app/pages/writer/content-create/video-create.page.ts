@@ -228,8 +228,8 @@ export class VideoCreatePage {
       category_id: this.resolveCategoryId(this.category()),
       content_type_id: contentType.id,
       content: this.videoBody(),
-      image: null,
-      video: this.sourceMode() === 'url' ? this.requireText(this.videoUrl(), 'url do video') : null,
+      image_url: null,
+      video_url: this.sourceMode() === 'url' ? this.requireText(this.videoUrl(), 'url do video') : null,
       visibility: asDraft ? 'private' : 'public',
     };
   }

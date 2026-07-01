@@ -30,8 +30,8 @@ class ContentService
             'title' => $dto->title,
             'summary' => $dto->summary,
             'content' => $dto->content,
-            'image_url' => $dto->image,
-            'video_url' => $dto->video,
+            'image_url' => $dto->imageUrl,
+            'video_url' => $dto->videoUrl,
             'visibility' => $dto->visibility
         ]);
     }
@@ -39,6 +39,18 @@ class ContentService
     public function getAll(array $filters = [])
     {
         return $this->repository->all($filters);
+    }
+
+    public function getSuggestions(?User $actor, int $limit = 9)
+    {
+        $includeJindungo = $actor?->hasRoleName('super-admin') || $actor?->hasActiveJindungoSubscription();
+
+        return $this->repository->suggestions($actor, (bool) $includeJindungo, $limit);
+    }
+
+    public function featuredJindungo(?User $actor): ?Content
+    {
+        return $this->repository->featuredJindungo($actor?->id);
     }
 
     public function findById(int $id)

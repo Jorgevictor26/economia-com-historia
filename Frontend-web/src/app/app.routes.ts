@@ -24,7 +24,12 @@ const dashboardRoutes: DashboardRoute[] = [
     loadChildren: () => import('./pages/users/user-forums.routes').then((m) => m.USER_FORUMS_ROUTES),
   },
   { path: 'quizzes', loadChildren: () => import('./pages/users/quiz-dashboard.routes').then((m) => m.QUIZ_DASHBOARD_ROUTES) },
-  { path: 'podcasts', loadChildren: () => import('./pages/users/podcast-library.routes').then((m) => m.PODCAST_LIBRARY_ROUTES) },
+  {
+    path: 'podcasts',
+    canActivate: [authGuard],
+    loginOperation: 'ouvir podcasts',
+    loadChildren: () => import('./pages/users/podcast-library.routes').then((m) => m.PODCAST_LIBRARY_ROUTES),
+  },
   { path: 'map', loadChildren: () => import('./pages/users/economic-map.routes').then((m) => m.ECONOMIC_MAP_ROUTES) },
   { path: 'jindungo', loadChildren: () => import('./pages/users/jindungo-library.routes').then((m) => m.JINDUNGO_LIBRARY_ROUTES) },
   {

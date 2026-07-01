@@ -1,4 +1,4 @@
-<app-admin-console-shell activeItem="contents">
+﻿<app-admin-console-shell activeItem="contents">
   <main class="mx-auto grid max-w-6xl gap-5">
     <section
       class="rounded-[8px] border border-[#E0E0E0] bg-white px-8 py-7 shadow-[0_18px_45px_rgba(27,22,30,0.05)] max-md:px-5">
@@ -94,7 +94,7 @@
                 <span class="material-symbols-outlined text-[18px]">format_bold</span>
               </button>
 
-              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#F2E6E9] hover:text-[#5C1E2F]" aria-label="Itálico">
+              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#F2E6E9] hover:text-[#5C1E2F]" aria-label="ItÃ¡lico">
                 <span class="material-symbols-outlined text-[18px]">format_italic</span>
               </button>
 
@@ -118,7 +118,7 @@
                 <span class="material-symbols-outlined text-[18px]">image</span>
               </button>
 
-              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#F2E6E9] hover:text-[#5C1E2F]" aria-label="Citação">
+              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#F2E6E9] hover:text-[#5C1E2F]" aria-label="CitaÃ§Ã£o">
                 <span class="material-symbols-outlined text-[18px]">format_quote</span>
               </button>
 
@@ -126,7 +126,7 @@
                 <span class="material-symbols-outlined text-[18px]">table_chart</span>
               </button>
 
-              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#F2E6E9] hover:text-[#5C1E2F]" aria-label="Fórmula">
+              <button type="button" class="grid size-7 place-items-center rounded-[6px] transition hover:bg-[#F2E6E9] hover:text-[#5C1E2F]" aria-label="FÃ³rmula">
                 <span class="material-symbols-outlined text-[18px]">functions</span>
               </button>
 
@@ -223,9 +223,9 @@
 
   @if (previewOpen()) {
   <section class="fixed inset-0 z-[120] grid place-items-center bg-[#212121]/70 p-4" role="dialog" aria-modal="true"
-    aria-labelledby="article-preview-title">
+    aria-labelledby="article-preview-title" (click)="closePreview()">
     <article
-      class="flex h-[90dvh] w-[min(1100px,94vw)] flex-col overflow-hidden rounded-[8px] bg-white shadow-[0_28px_90px_rgba(0,0,0,0.28)]">
+      class="flex h-[90dvh] w-[min(1100px,94vw)] flex-col overflow-hidden rounded-[8px] bg-white shadow-[0_28px_90px_rgba(0,0,0,0.28)]" (click)="$event.stopPropagation()">
       <header class="flex min-h-16 items-center justify-between gap-4 border-b border-[#E0E0E0] px-6">
         <h2 id="article-preview-title" class="font-display text-[20px] font-extrabold text-[#5C1E2F]">
           Pr&eacute;-visualiza&ccedil;&atilde;o do artigo</h2>
@@ -287,3 +287,4 @@
   </section>
   }
 </app-admin-console-shell>
+

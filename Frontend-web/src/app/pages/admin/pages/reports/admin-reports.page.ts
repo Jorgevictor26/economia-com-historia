@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { AdminConsoleShellComponent } from '../../components/admin-console-shell.component';
 import { AdminPageHeaderComponent } from '../../shared/components';
 
@@ -54,7 +54,6 @@ export class AdminReportsPage {
   selectedStatus = 'Todos os status';
   activeTab = 'Todas';
   highPriorityOnly = false;
-  actionStatus = '';
   selectedReport: ReportItem | null = null;
   currentPage = 1;
   readonly pageSize = 4;
@@ -63,7 +62,7 @@ export class AdminReportsPage {
     { label: 'Pendentes', value: '23', change: '+5 hoje', icon: 'warning', tone: 'orange' },
     { label: 'Em análise', value: '12', change: '2 hoje', icon: 'visibility', tone: 'purple' },
     { label: 'Resolvidas', value: '89', change: '+18 esta semana', icon: 'check', tone: 'green' },
-    { label: 'Conteúdos removidos', value: '18', change: '+3 esta semana', icon: 'block', tone: 'red' },
+    { label: 'Itens moderados', value: '18', change: '+3 esta semana', icon: 'block', tone: 'red' },
     { label: 'Total de denúncias', value: '142', change: '+26 esta semana', icon: 'description', tone: 'blue' },
   ];
 
@@ -78,17 +77,17 @@ export class AdminReportsPage {
   readonly reports: ReportItem[] = [
     {
       id: 1,
-      title: 'História Económica de Angola no Período Colonial',
-      contentType: 'Artigo',
+      title: 'Fórum: História Económica no Período Colonial',
+      contentType: 'Fórum',
       author: 'João Pedro',
       age: 'Há 3 horas',
-      reason: 'Conteúdo enganoso',
-      description: 'O conteúdo apresenta informações que não correspondem à realidade histórica.',
-      reportedContent: 'Podcast sobre Economia Informal',
-      contentSummary: 'Podcast • ID: #POD-2024-0321',
-      contentCode: 'POD-2024-0321',
-      contentOwner: 'Carlos Manuel',
-      contentOwnerEmail: 'carlos.m@echa.ao',
+      reason: 'Informação enganosa',
+      description: 'O tópico apresenta informações históricas sem fonte e pode induzir outros utilizadores em erro.',
+      reportedContent: 'Fórum: História Económica no Período Colonial',
+      contentSummary: 'Fórum • ID: #FOR-2024-0321',
+      contentCode: 'FOR-2024-0321',
+      contentOwner: 'João Pedro',
+      contentOwnerEmail: 'joao.p@echa.ao',
       reporter: 'Maria Helena',
       reporterEmail: 'maria.h@echa.ao',
       reportsCount: 3,
@@ -99,15 +98,15 @@ export class AdminReportsPage {
     },
     {
       id: 2,
-      title: 'Podcast sobre Economia Informal',
-      contentType: 'Podcast',
+      title: 'Comentário em fórum sobre Economia Informal',
+      contentType: 'Comentário',
       author: 'Carlos Manuel',
       age: 'Há 5 horas',
-      reason: 'Informação incompleta',
-      description: 'A denúncia indica que faltam fontes para validar alguns dados citados no episódio.',
-      reportedContent: 'Podcast sobre Economia Informal',
-      contentSummary: 'Podcast • ID: #POD-2024-0318',
-      contentCode: 'POD-2024-0318',
+      reason: 'Comentário ofensivo',
+      description: 'A denúncia indica que o comentário usa linguagem agressiva contra outro participante.',
+      reportedContent: 'Comentário em "Economia Informal nas Comunidades"',
+      contentSummary: 'Comentário • ID: #COM-2024-0318',
+      contentCode: 'COM-2024-0318',
       contentOwner: 'Carlos Manuel',
       contentOwnerEmail: 'carlos.m@echa.ao',
       reporter: 'Ana Silva',
@@ -120,15 +119,15 @@ export class AdminReportsPage {
     },
     {
       id: 3,
-      title: 'Vídeo: Corrupção em Angola',
-      contentType: 'Vídeo',
+      title: 'Fórum: Corrupção e transparência em Angola',
+      contentType: 'Fórum',
       author: 'Paulo Mendes',
       age: 'Há 1 dia',
-      reason: 'Linguagem ofensiva',
-      description: 'Há trechos denunciados por linguagem imprópria e acusações sem contextualização.',
-      reportedContent: 'Vídeo: Corrupção em Angola',
-      contentSummary: 'Vídeo • ID: #VID-2024-0189',
-      contentCode: 'VID-2024-0189',
+      reason: 'Acusações sem contexto',
+      description: 'O fórum foi denunciado por apresentar acusações diretas sem contexto e sem base verificável.',
+      reportedContent: 'Fórum: Corrupção e transparência em Angola',
+      contentSummary: 'Fórum • ID: #FOR-2024-0189',
+      contentCode: 'FOR-2024-0189',
       contentOwner: 'Paulo Mendes',
       contentOwnerEmail: 'paulo.m@echa.ao',
       reporter: 'Lucas Neto',
@@ -141,15 +140,15 @@ export class AdminReportsPage {
     },
     {
       id: 4,
-      title: 'Debate: Desenvolvimento Sustentável',
-      contentType: 'Fórum',
+      title: 'Comentário no debate sobre Desenvolvimento Sustentável',
+      contentType: 'Comentário',
       author: 'Teresa A.',
       age: 'Há 2 dias',
-      reason: 'Baixa qualidade',
-      description: 'O tópico foi sinalizado por repetição de argumentos e pouca relação com a categoria.',
-      reportedContent: 'Debate: Desenvolvimento Sustentável',
-      contentSummary: 'Fórum • ID: #FOR-2024-0104',
-      contentCode: 'FOR-2024-0104',
+      reason: 'Spam',
+      description: 'O comentário repete a mesma mensagem várias vezes e prejudica a leitura do debate.',
+      reportedContent: 'Comentário no debate "Desenvolvimento Sustentável"',
+      contentSummary: 'Comentário • ID: #COM-2024-0104',
+      contentCode: 'COM-2024-0104',
       contentOwner: 'Teresa Afonso',
       contentOwnerEmail: 'teresa.a@echa.ao',
       reporter: 'Miguel Bento',
@@ -162,15 +161,15 @@ export class AdminReportsPage {
     },
     {
       id: 5,
-      title: 'Texto Jindungo sobre Tradições',
-      contentType: 'Jindungo',
+      title: 'Fórum sobre tradições económicas locais',
+      contentType: 'Fórum',
       author: 'Maria João',
       age: 'Há 3 dias',
-      reason: 'Uso indevido de fonte',
-      description: 'A denúncia aponta ausência de crédito em parte do texto publicado.',
-      reportedContent: 'Texto Jindungo sobre Tradições',
-      contentSummary: 'Jindungo • ID: #JIN-2024-0072',
-      contentCode: 'JIN-2024-0072',
+      reason: 'Discussão fora do tema',
+      description: 'A denúncia aponta que o tópico saiu do assunto da categoria e passou a incentivar conflitos entre participantes.',
+      reportedContent: 'Fórum sobre tradições económicas locais',
+      contentSummary: 'Fórum • ID: #FOR-2024-0072',
+      contentCode: 'FOR-2024-0072',
       contentOwner: 'Maria João',
       contentOwnerEmail: 'maria.j@echa.ao',
       reporter: 'Fernando Lima',
@@ -182,7 +181,6 @@ export class AdminReportsPage {
       date: '20 de Junho de 2024 às 16:42',
     },
   ];
-
   metricToneClasses(tone: ReportMetric['tone']): string {
     const classes: Record<ReportMetric['tone'], string> = {
       orange: 'bg-[#F2E6E9] text-[#8A3F50]',
@@ -305,6 +303,10 @@ export class AdminReportsPage {
       return;
     }
 
-    this.actionStatus = `${action}: "${this.selectedReport.title}" foi atualizado.`;
+    this.closeDetails();
   }
 }
+
+
+
+

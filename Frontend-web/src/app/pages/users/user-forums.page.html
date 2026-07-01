@@ -1,24 +1,13 @@
-<section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
+﻿<section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
   <app-public-navbar />
-
-  @if (toast(); as currentToast) {
-    <aside class="eh-toast" [attr.data-kind]="currentToast.kind" role="status" aria-live="polite">
-      <div class="eh-toast-content">
-        <strong class="eh-toast-title">{{ currentToast.kind === 'error' ? 'Atenção' : 'Concluído' }}</strong>
-        <span class="eh-toast-message">{{ currentToast.message }}</span>
-      </div>
-      <span class="eh-toast-progress" aria-hidden="true"></span>
-    </aside>
-  }
-
   <main class="fluid-container pb-14 pt-6">
     <header class="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 class="mt-2 font-display text-[34px] font-extrabold leading-tight text-[#5C1E2F] md:text-[42px]">Fóruns</h1>
+        <h1 class="mt-2 font-display text-[34px] font-extrabold leading-tight text-[#5C1E2F] md:text-[42px]">FÃ³runs</h1>
       </div>
 
       <button type="button" class="eh-card-action min-h-11 px-5" (click)="openCreateModal()">
-        + Criar Fórum
+        + Criar FÃ³rum
       </button>
     </header>
 
@@ -36,14 +25,14 @@
               <div class="min-w-0">
               <div class="flex items-start justify-between gap-4">
                 <span class="rounded-full bg-[#F2E6E9] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#D4AF37]">
-                  {{ room.category || 'Fórum' }}
+                  {{ room.category || 'FÃ³rum' }}
                 </span>
                 <span class="rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em]"
                   [class.bg-[#F2E6E9]]="room.visibility === 'public'"
                   [class.text-[#5C1E2F]]="room.visibility === 'public'"
                   [class.bg-[#212121]]="room.visibility === 'private'"
                   [class.text-white]="room.visibility === 'private'">
-                  {{ room.visibility === 'public' ? 'Público' : 'Privado' }}
+                  {{ room.visibility === 'public' ? 'PÃºblico' : 'Privado' }}
                 </span>
               </div>
 
@@ -63,7 +52,7 @@
                 </span>
                 <span class="inline-flex items-center gap-1.5">
                   <span class="material-symbols-outlined text-[16px] text-[#5C1E2F]">link</span>
-                  {{ room.linkedContents.length }} conteúdos
+                  {{ room.linkedContents.length }} conteÃºdos
                 </span>
               </div>
               </div>
@@ -75,8 +64,8 @@
           </article>
         } @empty {
           <article class="rounded-[8px] border border-[#E0E0E0] bg-white p-8 text-center">
-            <h3 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">Nenhum fórum encontrado</h3>
-            <p class="mt-2 text-[13px] text-[#616161]">Crie a primeira discussão vinculada aos conteúdos da plataforma.</p>
+            <h3 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">Nenhum fÃ³rum encontrado</h3>
+            <p class="mt-2 text-[13px] text-[#616161]">Crie a primeira discussÃ£o vinculada aos conteÃºdos da plataforma.</p>
           </article>
         }
       </div>
@@ -92,7 +81,7 @@
               {{ forumPage() }}
             </div>
             <button type="button" class="eh-pagination-button" (click)="goToNextForumPage()" [disabled]="!hasNextForumPage()">
-              Próximo
+              PrÃ³ximo
               <span class="text-[16px] leading-none" aria-hidden="true">&rarr;</span>
             </button>
           </div>
@@ -102,18 +91,18 @@
   </main>
 
   @if (createModalOpen()) {
-    <section class="fixed inset-0 z-[120] grid place-items-center bg-[#212121]/70 p-4" role="dialog" aria-modal="true" aria-labelledby="forum-create-title">
-      <form class="modal-panel flex max-h-[90dvh] w-[min(940px,94vw)] flex-col overflow-hidden rounded-[8px] bg-white shadow-[0_28px_90px_rgba(0,0,0,0.28)]" (submit)="$event.preventDefault(); createDebateRoom(debateTitle, debateObjective)">
+    <section class="fixed inset-0 z-[120] grid place-items-center bg-[#212121]/70 p-4" role="dialog" aria-modal="true" aria-labelledby="forum-create-title" (click)="closeCreateModal()">
+      <form class="modal-panel flex max-h-[90dvh] w-[min(940px,94vw)] flex-col overflow-hidden rounded-[8px] bg-white shadow-[0_28px_90px_rgba(0,0,0,0.28)]" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); createDebateRoom(debateTitle, debateObjective)">
         <header class="flex min-h-16 items-center justify-between gap-4 border-b border-[#E0E0E0] px-6">
-          <h2 id="forum-create-title" class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Criar discussão</h2>
+          <h2 id="forum-create-title" class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Criar discussÃ£o</h2>
           <button type="button" (click)="closeCreateModal()" class="grid size-10 place-items-center rounded-[8px] border border-[#E0E0E0] text-[22px] font-bold text-[#5C1E2F]" aria-label="Fechar">&times;</button>
         </header>
 
         <div class="min-h-0 flex-1 overflow-y-auto px-6 py-6">
           <section class="grid gap-5">
             <label class="grid gap-2 text-[12px] font-bold text-[#616161]">
-              Título da discussão
-              <input #debateTitle type="text" class="h-11 rounded-[8px] border border-[#C48A96] bg-white px-4 text-[14px] font-bold text-[#5C1E2F] outline-none focus:border-[#5C1E2F]" placeholder="Ex: O impacto da diversificação económica no pós-guerra" />
+              TÃ­tulo da discussÃ£o
+              <input #debateTitle type="text" class="h-11 rounded-[8px] border border-[#C48A96] bg-white px-4 text-[14px] font-bold text-[#5C1E2F] outline-none focus:border-[#5C1E2F]" placeholder="Ex: O impacto da diversificaÃ§Ã£o econÃ³mica no pÃ³s-guerra" />
             </label>
 
             <label class="grid max-w-[360px] gap-2 text-[12px] font-bold text-[#616161]">
@@ -126,14 +115,14 @@
             </label>
 
             <label class="grid gap-2 text-[12px] font-bold text-[#616161]">
-              Descrição e objetivo
-              <textarea #debateObjective class="min-h-[120px] resize-y rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-4 py-3 text-[13px] leading-6 text-[#616161] outline-none focus:border-[#C48A96]" placeholder="Descreva o propósito desta discussão e os pontos-chave que espera explorar..."></textarea>
+              DescriÃ§Ã£o e objetivo
+              <textarea #debateObjective class="min-h-[120px] resize-y rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-4 py-3 text-[13px] leading-6 text-[#616161] outline-none focus:border-[#C48A96]" placeholder="Descreva o propÃ³sito desta discussÃ£o e os pontos-chave que espera explorar..."></textarea>
             </label>
           </section>
 
           <section class="mt-6 grid gap-4 md:grid-cols-2">
             <button type="button" class="min-h-[88px] rounded-[8px] border p-4 text-left" [class.border-[#5C1E2F]]="privacy() === 'public'" [class.bg-white]="privacy() === 'public'" [class.border-[#E0E0E0]]="privacy() !== 'public'" [class.bg-[#F5F5F5]]="privacy() !== 'public'" (click)="setPrivacy('public')">
-              <strong class="block text-[13px] text-[#5C1E2F]">Público</strong>
+              <strong class="block text-[13px] text-[#5C1E2F]">PÃºblico</strong>
               <span class="mt-1 block text-[11px] leading-5 text-[#616161]">Todos os utilizadores autenticados podem participar.</span>
             </button>
 
@@ -171,11 +160,11 @@
           <section class="mt-6">
             <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">Conteúdos vinculados</h3>
-                <p class="mt-1 text-[12px] text-[#616161]">Selecione pelo menos um conteúdo da plataforma.</p>
+                <h3 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">ConteÃºdos vinculados</h3>
+                <p class="mt-1 text-[12px] text-[#616161]">Selecione pelo menos um conteÃºdo da plataforma.</p>
               </div>
               <button type="button" class="rounded-[8px] border border-[#C48A96] px-4 py-2 text-[12px] font-extrabold text-[#8A3F50]" (click)="showAllResources.update(show => !show)">
-                {{ showAllResources() ? 'Mostrar selecionados' : 'Ver mais conteúdos' }}
+                {{ showAllResources() ? 'Mostrar selecionados' : 'Ver mais conteÃºdos' }}
               </button>
             </div>
 
@@ -187,7 +176,7 @@
                   </span>
                   <span>
                     <strong class="block truncate text-[12px] text-[#212121]">{{ content.title }}</strong>
-                    <small class="text-[10px] text-[#616161]">{{ content.type === 'podcast' ? 'Podcast' : 'Artigo Académico' }} &middot; {{ content.readingMinutes }} min de leitura</small>
+                    <small class="text-[10px] text-[#616161]">{{ content.type === 'podcast' ? 'Podcast' : 'Artigo AcadÃ©mico' }} &middot; {{ content.readingMinutes }} min de leitura</small>
                   </span>
                   <input type="checkbox" class="size-4 accent-[#5C1E2F]" [checked]="selectedContentIds().includes(content.id)" (change)="toggleResource(content.id)" />
                 </label>
@@ -200,7 +189,7 @@
 
         <footer class="flex flex-wrap items-center justify-end gap-3 border-t border-[#E0E0E0] bg-white px-6 py-4">
           <button type="button" class="h-11 px-5 text-[13px] font-extrabold text-[#616161]" (click)="closeCreateModal()">Cancelar</button>
-          <button type="submit" class="eh-card-action min-h-11 px-6">Criar discussão</button>
+          <button type="submit" class="eh-card-action min-h-11 px-6">Criar discussÃ£o</button>
         </footer>
       </form>
     </section>
@@ -208,3 +197,4 @@
 
   <app-back-to-top />
 </section>
+

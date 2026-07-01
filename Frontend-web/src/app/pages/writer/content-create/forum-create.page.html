@@ -1,4 +1,4 @@
-<app-admin-console-shell activeItem="contents">
+﻿<app-admin-console-shell activeItem="contents">
   <main class="mx-auto grid max-w-6xl gap-5">
     <section class="rounded-[8px] border border-[#E0E0E0] bg-white px-8 py-7 shadow-[0_18px_45px_rgba(27,22,30,0.05)] max-md:px-5">
       <header class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -102,7 +102,7 @@
             <div class="mt-5 grid gap-4 md:grid-cols-2">
               @for (setting of accessSettings; track setting.label) {
                 <button type="button" (click)="setting.toggle()" class="flex min-h-[120px] items-start gap-4 rounded-[8px] border p-5 text-left transition" [class.border-[#8A3F50]]="setting.checked()" [class.bg-[#F2E6E9]]="setting.checked()" [class.border-[#E0E0E0]]="!setting.checked()" [class.bg-white]="!setting.checked()">
-                  <span class="mt-1 grid size-5 place-items-center rounded border border-current text-[12px] text-[#8A3F50]">{{ setting.checked() ? '✓' : '' }}</span>
+                  <span class="mt-1 grid size-5 place-items-center rounded border border-current text-[12px] text-[#8A3F50]">{{ setting.checked() ? 'âœ“' : '' }}</span>
                   <span>
                     <strong class="text-[15px] text-[#5C1E2F]">{{ setting.label }}</strong>
                     <small class="mt-2 block text-[12px] leading-5 text-[#616161]">{{ setting.description }}</small>
@@ -142,8 +142,8 @@
   </main>
 
   @if (previewOpen()) {
-    <section class="fixed inset-0 z-[120] grid place-items-center bg-[#212121]/70 p-4" role="dialog" aria-modal="true" aria-labelledby="forum-preview-title">
-      <article class="flex max-h-[90dvh] w-[min(900px,94vw)] flex-col overflow-hidden rounded-[8px] bg-white shadow-[0_28px_90px_rgba(0,0,0,0.28)]">
+    <section class="fixed inset-0 z-[120] grid place-items-center bg-[#212121]/70 p-4" role="dialog" aria-modal="true" aria-labelledby="forum-preview-title" (click)="closePreview()">
+      <article class="flex max-h-[90dvh] w-[min(900px,94vw)] flex-col overflow-hidden rounded-[8px] bg-white shadow-[0_28px_90px_rgba(0,0,0,0.28)]" (click)="$event.stopPropagation()">
         <header class="flex min-h-16 items-center justify-between gap-4 border-b border-[#E0E0E0] px-6">
           <h2 id="forum-preview-title" class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Pre-visualizacao do forum</h2>
           <button type="button" (click)="closePreview()" class="grid size-10 place-items-center rounded-[8px] border border-[#E0E0E0] text-[22px] font-bold text-[#5c1e2f]" aria-label="Fechar">&times;</button>
@@ -172,3 +172,4 @@
     </section>
   }
 </app-admin-console-shell>
+

@@ -1,16 +1,5 @@
-<section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
+﻿<section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
   <app-public-navbar />
-
-  @if (toast(); as currentToast) {
-    <aside class="eh-toast" [attr.data-kind]="currentToast.kind" role="status" aria-live="polite">
-      <div class="eh-toast-content">
-        <strong class="eh-toast-title">{{ currentToast.kind === 'error' ? 'Atenção' : currentToast.kind === 'success' ? 'Concluído' : 'Nota' }}</strong>
-        <span class="eh-toast-message">{{ currentToast.message }}</span>
-      </div>
-      <span class="eh-toast-progress" aria-hidden="true"></span>
-    </aside>
-  }
-
   <main class="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-7 px-4 pb-20 pt-6 sm:px-6 lg:grid-cols-[minmax(190px,0.72fr)_minmax(0,2fr)] xl:grid-cols-[minmax(190px,0.72fr)_minmax(0,2fr)_minmax(220px,0.85fr)] xl:px-8">
     <aside class="hidden lg:block">
       <div class="sticky top-[82px]">
@@ -28,18 +17,18 @@
           <div class="mt-5 border-t border-[#E0E0E0] pt-4 text-left">
             <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#9E9E9E]">Biografia</p>
             <p class="mt-2 text-[11px] leading-5 text-[#616161]">
-              {{ (detail()?.authorBio || 'Biografia indisponível para este autor.').length > 150 ? (detail()?.authorBio || 'Biografia indisponível para este autor.').slice(0, 150) + '...' : (detail()?.authorBio || 'Biografia indisponível para este autor.') }}
+              {{ (detail()?.authorBio || 'Biografia indisponÃ­vel para este autor.').length > 150 ? (detail()?.authorBio || 'Biografia indisponÃ­vel para este autor.').slice(0, 150) + '...' : (detail()?.authorBio || 'Biografia indisponÃ­vel para este autor.') }}
             </p>
           </div>
 
         </section>
 
         <section class="mt-7 border-t border-[#E0E0E0] pt-6">
-          <h3 class="mb-5 text-[11px] font-medium uppercase tracking-[0.18em] text-[#9E9E9E]">Métricas</h3>
+          <h3 class="mb-5 text-[11px] font-medium uppercase tracking-[0.18em] text-[#9E9E9E]">MÃ©tricas</h3>
           <div class="grid gap-4 text-[11px] text-[#616161]">
             <p class="flex items-center gap-3"><span class="material-symbols-outlined text-[18px]">article</span>{{ detail()?.contentType || 'Texto' }}
             </p>
-            <p class="flex items-center gap-3"><span class="material-symbols-outlined text-[18px]">visibility</span>{{ formatCompactNumber(detail()?.viewsCount) }} visualizações</p>
+            <p class="flex items-center gap-3"><span class="material-symbols-outlined text-[18px]">visibility</span>{{ formatCompactNumber(detail()?.viewsCount) }} visualizaÃ§Ãµes</p>
           </div>
         </section>
       </div>
@@ -47,7 +36,7 @@
 
     <article class="px-0 pb-12 pt-0">
       <div class="mb-4 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#D4AF37]">
-        {{ detail()?.category || 'Conteúdo' }} - {{ detail()?.meta || 'A carregar...' }}
+        {{ detail()?.category || 'ConteÃºdo' }} - {{ detail()?.meta || 'A carregar...' }}
       </div>
 
       <h1 class="font-display max-w-[540px] text-[34px] font-extrabold leading-[1.08] text-[#5c1e2f]">
@@ -78,22 +67,22 @@
 
       <p
         class="mt-6 max-w-[510px] border-l-4 border-[#d4af37] pl-7 font-display text-[14px] italic leading-7 text-[#616161]">
-        {{ detail()?.summary || 'A carregar o resumo do conteúdo...' }}
+        {{ detail()?.summary || 'A carregar o resumo do conteÃºdo...' }}
       </p>
 
       @if (detail()?.imageUrl) {
       <figure class="mt-7">
-        <img [src]="detail()?.imageUrl" [alt]="detail()?.title || 'Imagem do conteúdo'"
+        <img [src]="detail()?.imageUrl" [alt]="detail()?.title || 'Imagem do conteÃºdo'"
           class="h-[310px] w-full object-cover" />
         <figcaption class="mt-2 text-center text-[10px] text-[#9E9E9E]">
-          Imagem associada ao conteúdo.
+          Imagem associada ao conteÃºdo.
         </figcaption>
       </figure>
       } @else {
       <figure class="mt-7">
         <div class="default-category-cover h-[310px] w-full rounded-[8px]">
           <span>
-            <strong>{{ detail()?.category || 'Conteúdo' }}</strong>
+            <strong>{{ detail()?.category || 'ConteÃºdo' }}</strong>
             <small>{{ detail()?.contentType || 'Texto' }}</small>
           </span>
         </div>
@@ -102,7 +91,7 @@
 
       @if (isLoading()) {
       <div class="mt-8 space-y-4 text-[14px] leading-7 text-[#616161]">
-        <p>A carregar o conteúdo...</p>
+        <p>A carregar o conteÃºdo...</p>
       </div>
       } @else {
       <div class="mt-8 space-y-6 text-[16px] leading-8 text-[#212121]" [innerHTML]="detail()?.body"></div>
@@ -112,7 +101,7 @@
         @if (isPremiumContent() && !auth.canReadJindungo()) {
         <div class="mb-8 border border-[#d4af37] bg-[#fff] px-6 py-5 text-center">
           <h2 class="font-display text-[18px] font-extrabold text-[#5c1e2f]">Texto com Jindungo reservado</h2>
-          <p class="mx-auto mt-2 max-w-[440px] text-[12px] leading-5 text-[#616161]">A subscrição é gratuita, mas
+          <p class="mx-auto mt-2 max-w-[440px] text-[12px] leading-5 text-[#616161]">A subscriÃ§Ã£o Ã© gratuita, mas
             precisa de uma conta para desbloquear esta camada editorial.</p>
           <a [routerLink]="auth.isAuthenticated() ? '/app/subscriptions' : null"
             class="mt-4 inline-flex h-10 items-center justify-center bg-[#5C1E2F] px-6 text-[12px] font-bold text-white"
@@ -154,8 +143,8 @@
           </div>
           }
           @if (shareMenuOpen()) {
-          <div class="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4">
-            <section class="w-full max-w-[470px] rounded-[8px] bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
+          <div class="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4" (click)="toggleShareMenu($event)">
+            <section class="w-full max-w-[470px] rounded-[8px] bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]" (click)="$event.stopPropagation()">
               <div class="flex items-start justify-between gap-4">
                 <div>
                   <h2 class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Partilhar</h2>
@@ -198,7 +187,7 @@
           }
         </div>
 
-        <h2 id="comments" class="mt-10 text-[14px] font-medium text-[#5c1e2f]">Comentários ({{ comments().length }})</h2>
+        <h2 id="comments" class="mt-10 text-[14px] font-medium text-[#5c1e2f]">ComentÃ¡rios ({{ comments().length }})</h2>
 
         @if (auth.isAuthenticated() && isCommentComposerOpen()) {
         <div class="mt-6 flex gap-4">
@@ -206,7 +195,7 @@
           <div class="min-w-0 flex-1">
             <textarea #commentInput
               class="h-[96px] w-full resize-none border border-[#E0E0E0] bg-[#F5F5F5] p-5 text-[13px] outline-none placeholder:text-[#BDBDBD] focus:border-[#8A3F50]"
-              placeholder="Partilhe a sua reflexão académica..."></textarea>
+              placeholder="Partilhe a sua reflexÃ£o acadÃ©mica..."></textarea>
             <div class="-mt-px text-right">
               <button type="button" class="h-10 bg-[#5C1E2F] px-6 text-[12px] font-bold text-white"
                 [disabled]="isSavingComment()" (click)="submitComment(commentInput.value); commentInput.value = ''">
@@ -219,7 +208,7 @@
 
         <div class="mt-9 grid gap-7">
           @if (isLoadingComments()) {
-          <p class="text-[13px] text-[#616161]">A carregar comentários...</p>
+          <p class="text-[13px] text-[#616161]">A carregar comentÃ¡rios...</p>
           } @else if (comments().length) {
           @for (comment of comments(); track comment.id) {
           <div class="flex gap-4">
@@ -248,7 +237,7 @@
               <div class="mt-4 flex gap-3">
                 <input #replyInput type="text"
                   class="min-h-9 min-w-0 flex-1 border border-[#E0E0E0] bg-[#F5F5F5] px-3 text-[12px] outline-none focus:border-[#8A3F50]"
-                  placeholder="Responder a este comentário..." />
+                  placeholder="Responder a este comentÃ¡rio..." />
                 <button type="button" class="bg-[#5C1E2F] px-4 text-[11px] font-bold text-white"
                   (click)="submitReply(comment.id, replyInput.value); replyInput.value = ''">Responder</button>
               </div>
@@ -277,17 +266,17 @@
           </div>
           }
           } @else {
-          <p class="text-[13px] text-[#616161]">Ainda não há comentários neste conteúdo.</p>
+          <p class="text-[13px] text-[#616161]">Ainda nÃ£o hÃ¡ comentÃ¡rios neste conteÃºdo.</p>
           }
         </div>
 
         @if (reportTarget(); as target) {
-        <div class="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4" role="dialog" aria-modal="true">
-          <section class="w-full max-w-[460px] rounded-[8px] bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
+        <div class="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4" role="dialog" aria-modal="true" (click)="closeReportModal()">
+          <section class="w-full max-w-[460px] rounded-[8px] bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]" (click)="$event.stopPropagation()">
             <div class="flex items-start justify-between gap-4">
               <div>
-                <h2 class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Denunciar comentário</h2>
-                <p class="mt-1 text-[12px] text-[#616161]">Comentário de {{ target.author }}</p>
+                <h2 class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Denunciar comentÃ¡rio</h2>
+                <p class="mt-1 text-[12px] text-[#616161]">ComentÃ¡rio de {{ target.author }}</p>
               </div>
               <button type="button" class="grid size-9 place-items-center rounded-full text-[#616161] hover:bg-[#F5F5F5]" aria-label="Fechar" (click)="closeReportModal()">
                 <span class="material-symbols-outlined text-[20px]">close</span>
@@ -300,15 +289,15 @@
               Motivo
               <select class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] outline-none focus:border-[#8A3F50]" [value]="reportReason()" (change)="updateReportReason($event)">
                 <option value="spam">Spam</option>
-                <option value="offensive_comment">Comentário ofensivo</option>
-                <option value="fake_information">Informação falsa</option>
+                <option value="offensive_comment">ComentÃ¡rio ofensivo</option>
+                <option value="fake_information">InformaÃ§Ã£o falsa</option>
                 <option value="copyright">Direitos autorais</option>
                 <option value="other">Outro</option>
               </select>
             </label>
 
             <label class="mt-4 grid gap-2 text-[12px] font-bold text-[#616161]">
-              Descrição opcional
+              DescriÃ§Ã£o opcional
               <textarea class="h-[96px] resize-none rounded-[8px] border border-[#E0E0E0] bg-white p-3 text-[13px] outline-none focus:border-[#8A3F50]" [value]="reportDescription()" (input)="updateReportDescription($event)" placeholder="Explique brevemente o problema..."></textarea>
             </label>
 
@@ -319,7 +308,7 @@
             <div class="mt-5 flex justify-end gap-3">
               <button type="button" class="h-10 px-5 text-[12px] font-bold text-[#616161]" (click)="closeReportModal()">Cancelar</button>
               <button type="button" class="h-10 rounded-[8px] bg-[#5C1E2F] px-5 text-[12px] font-bold text-white disabled:opacity-60" [disabled]="isSubmittingReport()" (click)="submitCommentReport()">
-                {{ isSubmittingReport() ? 'A enviar...' : 'Enviar denúncia' }}
+                {{ isSubmittingReport() ? 'A enviar...' : 'Enviar denÃºncia' }}
               </button>
             </div>
           </section>
@@ -350,22 +339,22 @@
               <span class="block">
                 <span class="mt-3 block text-[10px] font-extrabold uppercase text-[#D4AF37]">{{ item.category }}</span>
                 <strong class="mt-1 line-clamp-2 font-display text-[17px] font-extrabold leading-tight text-[#5c1e2f]">{{ item.title }}</strong>
-                <span class="hidden">{{ item.category }} • {{ item.author }}</span>
+                <span class="hidden">{{ item.category }} â€¢ {{ item.author }}</span>
                 <span class="hidden">
                   <span>{{ item.reactionsCount ?? 0 }} gostos</span>
-                  <span>{{ item.commentsCount ?? 0 }} comentários</span>
+                  <span>{{ item.commentsCount ?? 0 }} comentÃ¡rios</span>
                 </span>
               </span>
             </a>
             }
             } @else {
-            <p class="text-[12px] text-[#616161]">Sem conteúdos relacionados por agora.</p>
+            <p class="text-[12px] text-[#616161]">Sem conteÃºdos relacionados por agora.</p>
             }
           </div>
         </section>
 
         <div class="mt-5 bg-[#5C1E2F] p-6 text-white">
-          <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#d4af37]">Quiz do conteúdo</p>
+          <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#d4af37]">Quiz do conteÃºdo</p>
           @if (relatedQuiz(); as quiz) {
           <h3 class="font-display mt-3 text-[16px] font-medium leading-tight">{{ quiz.title }}</h3>
           <p class="mt-3 text-[12px] leading-5 text-white/82">
@@ -378,7 +367,7 @@
           } @else {
           <h3 class="font-display mt-3 text-[16px] font-medium leading-tight">Continue com um quiz</h3>
           <p class="mt-3 text-[12px] leading-5 text-white/82">
-            Veja os quizzes disponíveis e pratique os temas ligados aos conteúdos.
+            Veja os quizzes disponÃ­veis e pratique os temas ligados aos conteÃºdos.
           </p>
           <a routerLink="/app/quizzes"
             class="mt-6 inline-flex h-11 w-full items-center justify-center bg-[#d4af37] text-[13px] font-medium text-[#5c1e2f]">
@@ -392,3 +381,4 @@
 
   <app-back-to-top />
 </section>
+

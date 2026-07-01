@@ -1,16 +1,5 @@
-<section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
+﻿<section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
   <app-public-navbar />
-
-  @if (toast(); as currentToast) {
-    <aside class="eh-toast" [attr.data-kind]="currentToast.kind" role="status" aria-live="polite">
-      <div class="eh-toast-content">
-        <strong class="eh-toast-title">{{ currentToast.kind === 'error' ? 'Atenção' : 'Concluído' }}</strong>
-        <span class="eh-toast-message">{{ currentToast.message }}</span>
-      </div>
-      <span class="eh-toast-progress" aria-hidden="true"></span>
-    </aside>
-  }
-
   <main class="fluid-container pb-16 pt-6">
     <section class="mb-8">
       <h1 class="font-display text-[32px] font-extrabold leading-tight text-[#5C1E2F] md:text-[40px]">Guardados</h1> 
@@ -38,7 +27,7 @@
       <section class="rounded-[8px] border border-[#E0E0E0] bg-white px-6 py-12 text-center">
         <h2 class="font-display text-[22px] font-extrabold text-[#5c1e2f]">A carregar guardados...</h2>
         <p class="mx-auto mt-3 max-w-[460px] text-[13px] leading-6 text-[#616161]">
-          Estamos a procurar os conteúdos que guardou na sua conta.
+          Estamos a procurar os conteÃºdos que guardou na sua conta.
         </p>
       </section>
     } @else if (filteredFavorites().length === 0) {
@@ -48,7 +37,7 @@
           Quando guardar itens, eles aparecem nesta lista.
         </p>
         <a routerLink="/app/contents" class="mt-5 inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5C1E2F] px-5 text-[13px] font-bold text-white">
-          Explorar conteúdos
+          Explorar conteÃºdos
         </a>
       </section>
     } @else {
@@ -117,7 +106,7 @@
           </div>
 
           <button type="button" class="eh-pagination-button" [disabled]="!hasNextPage()" (click)="goToNextPage()">
-            Próximo
+            PrÃ³ximo
             <span class="text-[16px] leading-none" aria-hidden="true">&rarr;</span>
           </button>
         </div>
@@ -127,3 +116,4 @@
 
   <app-back-to-top />
 </section>
+

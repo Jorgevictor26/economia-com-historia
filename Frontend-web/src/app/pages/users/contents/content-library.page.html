@@ -1,24 +1,13 @@
-<section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
+﻿<section class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
   <app-public-navbar />
-
-  @if (toast(); as currentToast) {
-    <aside class="eh-toast" [attr.data-kind]="currentToast.kind" role="status" aria-live="polite">
-      <div class="eh-toast-content">
-        <strong class="eh-toast-title">{{ currentToast.kind === 'error' ? 'Atenção' : currentToast.kind === 'success' ? 'Concluído' : 'Nota' }}</strong>
-        <span class="eh-toast-message">{{ currentToast.message }}</span>
-      </div>
-      <span class="eh-toast-progress" aria-hidden="true"></span>
-    </aside>
-  }
-
   <main class="fluid-container pb-14 pt-6">
    <section class="mb-8">
   <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
-    <!-- Título -->
+    <!-- TÃ­tulo -->
     <div>
       <h1 class="font-display text-[32px] font-extrabold leading-tight text-[#5C1E2F]">
-        Explorar Conteúdos
+        Explorar ConteÃºdos
       </h1>
     </div>
 
@@ -33,7 +22,7 @@
       <input
         class="w-full bg-transparent text-[14px] text-[#212121] outline-none placeholder:text-[#9E9E9E]"
         type="text"
-        placeholder="Pesquisar conteúdos..."
+        placeholder="Pesquisar conteÃºdos..."
         [value]="searchTerm()"
         (input)="updateSearch($event)" />
 
@@ -88,8 +77,8 @@
     </div>
 
     @if (shareContentTarget(); as content) {
-    <div class="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4" role="dialog" aria-modal="true">
-      <section class="w-full max-w-[470px] rounded-[8px] bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
+    <div class="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4" role="dialog" aria-modal="true" (click)="closeShareModal()">
+      <section class="w-full max-w-[470px] rounded-[8px] bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]" (click)="$event.stopPropagation()">
         <div class="flex items-start justify-between gap-4">
           <div>
             <h2 class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Partilhar</h2>
@@ -142,7 +131,7 @@
         </div>
 
         <button type="button" class="eh-pagination-button" [disabled]="!hasMoreContents() || isLoadingContents()" (click)="goToNextPage()">
-          Próximo
+          PrÃ³ximo
           <span class="text-[16px] leading-none" aria-hidden="true">&rarr;</span>
         </button>
       </div>
@@ -153,3 +142,4 @@
 
   <app-back-to-top />
 </section>
+

@@ -27,8 +27,7 @@ export class AdminSubscriptionsPage {
   periodLabel = 'Últimos 30 dias';
   searchOpen = false;
   searchTerm = '';
-  pendingOnly = false;
-  actionStatus = '';
+  selectedStatus = 'Todos';
 
   readonly metrics: SubscriptionMetric[] = [
     { label: 'Total de subscritores', value: '12.450', note: '+12% novos seguidores' },
@@ -53,15 +52,14 @@ export class AdminSubscriptionsPage {
 
     return this.subscribers.filter((subscriber) => {
       const matchesSearch = !query || this.normalize(`${subscriber.name} ${subscriber.email} ${subscriber.accessLevel}`).includes(query);
-      const matchesPending = !this.pendingOnly || subscriber.status === 'Pendente';
+      const matchesStatus = this.selectedStatus === 'Todos' || subscriber.status === this.selectedStatus;
 
-      return matchesSearch && matchesPending;
+      return matchesSearch && matchesStatus;
     });
   }
 
   togglePeriod(): void {
     this.periodLabel = this.periodLabel === 'Últimos 30 dias' ? 'Últimos 7 dias' : 'Últimos 30 dias';
-    this.actionStatus = `Período alterado para ${this.periodLabel}.`;
   }
 
   toggleSearch(): void {
@@ -75,9 +73,8 @@ export class AdminSubscriptionsPage {
     this.searchTerm = (event.target as HTMLInputElement).value;
   }
 
-  togglePendingFilter(): void {
-    this.pendingOnly = !this.pendingOnly;
-    this.actionStatus = this.pendingOnly ? 'A mostrar apenas subscrições pendentes.' : 'Filtro de pendentes removido.';
+  updateStatusFilter(event: Event): void {
+    this.selectedStatus = (event.target as HTMLSelectElement).value;
   }
 
   approveSubscription(subscriber: Subscriber): void {
@@ -85,12 +82,10 @@ export class AdminSubscriptionsPage {
     if (subscriber.accessLevel === 'Gratuito') {
       subscriber.accessLevel = 'Premium Académico';
     }
-    this.actionStatus = `${subscriber.name} foi aprovado.`;
   }
 
   expireSubscription(subscriber: Subscriber): void {
     subscriber.status = 'Expirado';
-    this.actionStatus = `${subscriber.name} foi marcado como expirado.`;
   }
 
   private normalize(value: string): string {

@@ -21,24 +21,22 @@
           <p class="mt-1 text-[12px] font-semibold text-[#9E9E9E]">{{ pendingCount }} subscrições pendentes para aprovar</p>
           </div>
 
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <select [value]="selectedStatus" (change)="updateStatusFilter($event)" class="h-9 rounded-[6px] border border-[#E0E0E0] bg-white px-3 text-[12px] font-bold text-[#616161] outline-none">
+              <option>Todos</option>
+              <option>Ativo</option>
+              <option>Pendente</option>
+              <option>Expirado</option>
+            </select>
             <button type="button" (click)="toggleSearch()" class="grid size-9 place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]" aria-label="Pesquisar">
               <span class="material-symbols-outlined text-[18px]" aria-hidden="true">search</span>
-            </button>
-            <button type="button" (click)="togglePendingFilter()" class="grid size-9 place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]" [class.bg-[#F2E6E9]]="pendingOnly" aria-label="Filtrar">
-              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">filter_list</span>
             </button>
           </div>
         </header>
 
-        @if (searchOpen || actionStatus) {
+        @if (searchOpen) {
           <div class="grid gap-3 border-b border-[#E0E0E0] px-5 py-4">
-            @if (searchOpen) {
-              <input type="search" placeholder="Pesquisar por nome, email ou plano..." [value]="searchTerm" (input)="updateSearch($event)" class="h-10 rounded-[6px] border border-[#E0E0E0] px-3 text-[12px] outline-none focus:border-[#8A3F50]" />
-            }
-            @if (actionStatus) {
-              <p class="text-[12px] font-extrabold text-[#5C1E2F]">{{ actionStatus }}</p>
-            }
+            <input type="search" placeholder="Pesquisar por nome, email ou plano..." [value]="searchTerm" (input)="updateSearch($event)" class="h-10 rounded-[6px] border border-[#E0E0E0] px-3 text-[12px] outline-none focus:border-[#8A3F50]" />
           </div>
         }
 

@@ -1797,9 +1797,13 @@
   input[type="password"],
   input[type="search"],
   input[type="number"],
-  select,
   textarea {
     cursor: text;
+    font-weight: 400;
+  }
+
+  select {
+    cursor: pointer !important;
     font-weight: 400;
   }
 

@@ -2,9 +2,13 @@ export interface QuizQuestion {
   id: string;
   prompt: string;
   options: string[];
+  optionIds: string[];
   answerIndex: number;
   explanation: string;
   contentLocation: string;
+  timeSeconds?: number;
+  score?: number;
+  xp?: number;
 }
 
 export interface Quiz {

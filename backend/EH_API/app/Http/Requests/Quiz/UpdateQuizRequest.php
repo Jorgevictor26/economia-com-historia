@@ -15,12 +15,14 @@ class UpdateQuizRequest extends FormRequest
     {
         return [
             'content_id' => ['sometimes', 'required', 'integer', 'exists:contents,id'],
+            'category_id' => ['sometimes', 'required', 'integer', 'exists:categories,id'],
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'cover_url' => ['nullable', 'string'],
-            'difficulty' => ['sometimes', 'required', 'string', 'in:facil,medio,dificil'],
-            'xp_per_question' => ['sometimes', 'required', 'integer', 'in:10'],
-            'time_limit' => ['nullable', 'integer', 'min:1'],
+            'status' => ['sometimes', 'required', 'string', 'in:active,inactive,ativo,inativo'],
+            'difficulty' => ['sometimes', 'required', 'string', 'in:Fácil,Facil,facil,fácil,Média,Media,medio,médio,Difícil,Dificil,dificil,difícil'],
+            'xp_per_question' => ['prohibited'],
+            'time_limit' => ['prohibited'],
         ];
     }
 }

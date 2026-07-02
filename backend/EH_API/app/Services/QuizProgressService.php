@@ -33,7 +33,8 @@ class QuizProgressService
                 'user_id' => $dto->userId,
                 'quiz_id' => $dto->quizId,
             ],
-            [
+            array_filter([
+                'started_at' => $dto->startedAt,
                 'progress_percent' => $dto->progressPercent,
                 'current_question_index' => $dto->currentQuestionIndex,
                 'correct_count' => $dto->correctCount,
@@ -41,7 +42,7 @@ class QuizProgressService
                 'answered_questions' => $dto->answeredQuestions,
                 'question_order' => $dto->questionOrder,
                 'completed_at' => $dto->progressPercent >= 100 ? now() : null,
-            ]
+            ], fn (mixed $value): bool => $value !== null)
         );
     }
 }

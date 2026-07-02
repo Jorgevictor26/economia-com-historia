@@ -2,7 +2,7 @@
 import { ActivatedRoute, RouterLink, Routes } from '@angular/router';
 import { OnDestroy } from '@angular/core';
 import { AuthStateService } from '../../services/auth-state.service';
-import { QuizService, QuizSubmitResult } from '../../services/quiz.service';
+import { QuizRankingEntry, QuizService, QuizSubmitResult } from '../../services/quiz.service';
 import { ToastService } from '../../services/toast.service';
 import { Quiz, QuizQuestion } from '../../models/quiz.model';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
@@ -12,7 +12,7 @@ interface QuizProgressSnapshot {
   currentQuestionIndex: number;
   correctCount: number;
   elapsedSeconds: number;
-  answers: Array<{ question_id: string; selected_option: 'a' | 'b' | 'c' | 'd' }>;
+  answers: Array<{ question_id: string; alternative_id: string; selected_option?: 'a' | 'b' | 'c' | 'd' }>;
   questionOrder: string[];
 }
 
@@ -30,6 +30,9 @@ export class QuizDashboardPage {
   readonly isLoading = signal(false);
   readonly loadError = signal('');
   readonly quizProgressById = signal<Record<string, number>>({});
+  readonly topFive = signal<QuizRankingEntry[]>([]);
+  readonly rankingLoading = signal(false);
+  readonly rankingTitle = signal('Top 5');
   readonly quizPage = signal(1);
   readonly quizzesPerPage = 4;
   readonly levelFilters = ['Todos', 'Fácil', 'Médio', 'Difícil'];
@@ -37,18 +40,11 @@ export class QuizDashboardPage {
     const stats = this.quizService.userStats();
 
     return [
-      { label: 'Pontuação', value: `${stats.score} XP`, icon: 'military_tech' },
-      { label: 'Ranking', value: '#8', icon: 'leaderboard' },
+      { label: 'Pontuação', value: `${stats.totalXp ?? stats.score} XP`, icon: 'military_tech' },
+      { label: 'Ranking', value: stats.rankingPosition ? `#${stats.rankingPosition}` : 'Sem ranking', icon: 'leaderboard' },
       { label: 'Quiz Completados', value: `${stats.completedQuizzes}`, icon: 'trophy' },
     ];
   });
-  readonly topFive = [
-    { position: 1, name: 'Isabel Marques', score: 1960, icon: 'emoji_events' },
-    { position: 2, name: 'Carlos Tchipia', score: 1840, icon: 'workspace_premium' },
-    { position: 3, name: 'Jussana Paim', score: 1795, icon: 'military_tech' },
-    { position: 4, name: 'David Jaspe', score: 1710, icon: 'stars' },
-    { position: 5, name: 'L\u00edria B\u00e1', score: 1650, icon: 'auto_awesome' },
-  ];
 
   readonly featuredQuiz = computed(() => this.quizService.quizzes()[1] ?? this.quizService.quizzes()[0]);
   readonly quizCards = computed(() => this.quizService.quizzes().map((quiz, index) => ({
@@ -128,6 +124,7 @@ export class QuizDashboardPage {
 
     try {
       await this.quizService.loadAll();
+      await this.loadFeaturedRanking();
     } catch {
       this.toastService.error('Nao foi possivel carregar os quizzes.');
     } finally {
@@ -139,7 +136,7 @@ export class QuizDashboardPage {
         await this.quizService.loadMyStats();
         await this.loadQuizProgress();
       } catch {
-        this.quizService.userStats.set({ score: 0, completedQuizzes: 0, completedQuizIds: [] });
+        this.quizService.userStats.set({ score: 0, completedQuizzes: 0, completedQuizIds: [], rankingPosition: null });
         this.quizProgressById.set({});
       }
     }
@@ -154,6 +151,27 @@ export class QuizDashboardPage {
     }, {});
 
     this.quizProgressById.set(progressByQuizId);
+  }
+
+  private async loadFeaturedRanking(): Promise<void> {
+    const quiz = this.featuredQuiz();
+
+    if (!quiz) {
+      this.topFive.set([]);
+      this.rankingTitle.set('Top 5');
+      return;
+    }
+
+    this.rankingLoading.set(true);
+    this.rankingTitle.set(`Top 5 - ${quiz.title}`);
+
+    try {
+      this.topFive.set(await this.quizService.getRanking(quiz.id, 5));
+    } catch {
+      this.topFive.set([]);
+    } finally {
+      this.rankingLoading.set(false);
+    }
   }
 
   private quizProgress(quiz: Quiz): number {
@@ -199,26 +217,42 @@ export class QuizPlayPage implements OnDestroy {
   readonly currentIndex = signal(0);
   readonly selectedIndex = signal<number | null>(null);
   readonly answered = signal(false);
+  readonly timedOut = signal(false);
   readonly correctCount = signal(0);
   readonly finished = signal(false);
   readonly isCorrect = signal(false);
   readonly isLoading = signal(false);
   readonly submitError = signal('');
   readonly submitResult = signal<QuizSubmitResult | null>(null);
-  readonly selectedAnswers = signal<Array<{ question_id: string; selected_option: 'a' | 'b' | 'c' | 'd' }>>([]);
+  readonly selectedAnswers = signal<Array<{ question_id: string; alternative_id: string; selected_option?: 'a' | 'b' | 'c' | 'd'; elapsed_seconds?: number }>>([]);
   readonly resumePromptOpen = signal(false);
   readonly savedProgress = signal<QuizProgressSnapshot | null>(null);
   readonly baseElapsedSeconds = signal(0);
   readonly attemptStartedAt = signal(Date.now());
+  readonly questionStartedAt = signal(Date.now());
+  readonly questionStoppedAt = signal<number | null>(null);
   readonly startedAt = signal(new Date().toISOString());
   readonly nowTick = signal(Date.now());
-  private readonly elapsedTimerId = window.setInterval(() => this.nowTick.set(Date.now()), 1000);
+  private readonly elapsedTimerId = window.setInterval(() => {
+    this.nowTick.set(Date.now());
+    this.expireQuestionIfNeeded();
+  }, 1000);
 
   readonly totalQuestions = computed(() => this.quiz()?.questions.length ?? 0);
   readonly currentQuestion = computed(() => this.quiz()!.questions[this.currentIndex()]);
   readonly progressPercent = computed(() => (this.totalQuestions() ? (this.selectedAnswers().length / this.totalQuestions()) * 100 : 0));
   readonly correctAnswer = computed(() => this.currentQuestion().options[this.currentQuestion().answerIndex]);
-  readonly elapsedSeconds = computed(() => this.baseElapsedSeconds() + Math.floor((this.nowTick() - this.attemptStartedAt()) / 1000));
+  readonly questionTimeLimit = computed(() => this.currentQuestion().timeSeconds ?? this.rulesForDifficulty(this.quiz()?.difficulty ?? 'facil').timeSeconds);
+  readonly questionElapsedSeconds = computed(() => Math.max(0, Math.floor(((this.questionStoppedAt() ?? this.nowTick()) - this.questionStartedAt()) / 1000)));
+  readonly remainingSeconds = computed(() => Math.max(this.questionTimeLimit() - this.questionElapsedSeconds(), 0));
+  readonly timePercent = computed(() => Math.max(0, Math.min(100, (this.remainingSeconds() / Math.max(this.questionTimeLimit(), 1)) * 100)));
+  readonly finalElapsedSeconds = signal<number | null>(null);
+  readonly elapsedSeconds = computed(() => {
+    const final = this.finalElapsedSeconds();
+    if (final !== null) return final;
+
+    return this.baseElapsedSeconds() + Math.floor((this.nowTick() - this.attemptStartedAt()) / 1000);
+  });
   readonly earnedXp = computed(() => this.submitResult()?.score ?? this.scoreFromCorrect(this.correctCount(), this.totalQuestions()));
   readonly wrongCount = computed(() => this.submitResult()?.wrong_answers ?? Math.max(this.totalQuestions() - this.correctCount(), 0));
   readonly aproveitamento = computed(() => this.submitResult()?.percentage ?? Math.round((this.correctCount() / Math.max(this.totalQuestions(), 1)) * 100));
@@ -237,7 +271,7 @@ export class QuizPlayPage implements OnDestroy {
   }
 
   selectOption(index: number): void {
-    if (!this.answered()) {
+    if (!this.answered() && !this.timedOut()) {
       this.selectedIndex.set(index);
     }
   }
@@ -249,6 +283,7 @@ export class QuizPlayPage implements OnDestroy {
     }
 
     const correct = selected === this.currentQuestion().answerIndex;
+    this.questionStoppedAt.set(Date.now());
     this.isCorrect.set(correct);
     this.answered.set(true);
     if (correct) {
@@ -259,15 +294,48 @@ export class QuizPlayPage implements OnDestroy {
       ...answers.filter((answer) => answer.question_id !== this.currentQuestion().id),
       {
         question_id: this.currentQuestion().id,
+        alternative_id: this.currentQuestion().optionIds[selected],
         selected_option: (['a', 'b', 'c', 'd'] as const)[selected],
+        elapsed_seconds: Math.max(0, Math.floor((Date.now() - this.questionStartedAt()) / 1000)),
       },
     ]);
     void this.savePartialProgress();
     this.playFeedbackSound(correct);
   }
 
+  submitExpiredAnswer(): void {
+    if (this.answered() || this.timedOut()) {
+      return;
+    }
+
+    const fallbackIndex = this.selectedIndex() ?? 0;
+    const alternativeId = this.currentQuestion().optionIds[fallbackIndex];
+
+    if (!alternativeId) {
+      return;
+    }
+
+    this.questionStoppedAt.set(Date.now());
+    this.selectedIndex.set(fallbackIndex);
+    this.isCorrect.set(false);
+    this.timedOut.set(true);
+    this.answered.set(true);
+    this.selectedAnswers.update((answers) => [
+      ...answers.filter((answer) => answer.question_id !== this.currentQuestion().id),
+      {
+        question_id: this.currentQuestion().id,
+        alternative_id: alternativeId,
+        selected_option: (['a', 'b', 'c', 'd'] as const)[fallbackIndex],
+        elapsed_seconds: this.questionTimeLimit() + 1,
+      },
+    ]);
+    void this.savePartialProgress();
+    this.playFeedbackSound(false);
+  }
+
   async nextQuestion(): Promise<void> {
     if (this.currentIndex() + 1 >= this.totalQuestions()) {
+      this.finalElapsedSeconds.set(this.currentElapsedSeconds());
       this.finished.set(true);
       await this.submitQuiz();
       return;
@@ -276,7 +344,10 @@ export class QuizPlayPage implements OnDestroy {
     this.currentIndex.update((index) => index + 1);
     this.selectedIndex.set(null);
     this.answered.set(false);
+    this.timedOut.set(false);
     this.isCorrect.set(false);
+    this.questionStartedAt.set(Date.now());
+    this.questionStoppedAt.set(null);
   }
 
   private async loadQuiz(id: string): Promise<void> {
@@ -306,13 +377,19 @@ export class QuizPlayPage implements OnDestroy {
       const result = await this.quizService.submit(quiz.id, {
         started_at: this.startedAt(),
         elapsed_seconds: this.currentElapsedSeconds(),
-        answers: this.selectedAnswers(),
+        answers: this.selectedAnswers().map((answer) => ({
+          question_id: answer.question_id,
+          ...(this.isNumericId(answer.alternative_id)
+            ? { alternative_id: answer.alternative_id }
+            : { selected_option: answer.selected_option }),
+          elapsed_seconds: answer.elapsed_seconds,
+        })),
       });
       this.submitResult.set(result);
       await this.saveCompletedProgress();
       await this.quizService.loadMyStats();
-    } catch {
-      this.submitError.set('Nao foi possivel enviar o resultado do quiz.');
+    } catch (error) {
+      this.submitError.set(this.errorMessage(error));
     }
   }
 
@@ -398,7 +475,10 @@ export class QuizPlayPage implements OnDestroy {
     this.currentIndex.set(this.nextQuestionIndex(progress));
     this.selectedIndex.set(null);
     this.answered.set(false);
+    this.timedOut.set(false);
     this.isCorrect.set(false);
+    this.questionStartedAt.set(Date.now());
+    this.questionStoppedAt.set(null);
     this.resumePromptOpen.set(false);
   }
 
@@ -413,13 +493,17 @@ export class QuizPlayPage implements OnDestroy {
     this.currentIndex.set(0);
     this.selectedIndex.set(null);
     this.answered.set(false);
+    this.timedOut.set(false);
     this.correctCount.set(0);
     this.finished.set(false);
+    this.finalElapsedSeconds.set(null);
     this.isCorrect.set(false);
     this.submitResult.set(null);
     this.selectedAnswers.set([]);
     this.baseElapsedSeconds.set(0);
     this.attemptStartedAt.set(Date.now());
+    this.questionStartedAt.set(Date.now());
+    this.questionStoppedAt.set(null);
     this.startedAt.set(new Date().toISOString());
     this.resumePromptOpen.set(false);
 
@@ -461,7 +545,7 @@ export class QuizPlayPage implements OnDestroy {
     current_question_index?: number | string | null;
     correct_count?: number | string | null;
     elapsed_seconds?: number | string | null;
-    answered_questions?: Array<{ question_id: number | string; selected_option: 'a' | 'b' | 'c' | 'd' }> | null;
+    answered_questions?: Array<{ question_id: number | string; alternative_id?: number | string; selected_option?: 'a' | 'b' | 'c' | 'd' }> | null;
     question_order?: Array<number | string> | null;
   }): QuizProgressSnapshot {
     return {
@@ -470,8 +554,9 @@ export class QuizPlayPage implements OnDestroy {
       elapsedSeconds: Number(progress.elapsed_seconds ?? 0),
       answers: (progress.answered_questions ?? []).map((answer) => ({
         question_id: String(answer.question_id),
+        alternative_id: String(answer.alternative_id ?? ''),
         selected_option: answer.selected_option,
-      })),
+      })).filter((answer) => Boolean(answer.alternative_id)),
       questionOrder: (progress.question_order ?? []).map((questionId) => String(questionId)),
     };
   }
@@ -486,7 +571,7 @@ export class QuizPlayPage implements OnDestroy {
   private withQuestionOrder(quiz: Quiz): Quiz {
     return {
       ...quiz,
-      questions: [...quiz.questions].sort(() => Math.random() - 0.5).slice(0, 10),
+      questions: [...quiz.questions].sort(() => Math.random() - 0.5),
     };
   }
 
@@ -512,11 +597,57 @@ export class QuizPlayPage implements OnDestroy {
   }
 
   private currentElapsedSeconds(): number {
+    const final = this.finalElapsedSeconds();
+    if (final !== null) return final;
+
     return this.baseElapsedSeconds() + Math.floor((Date.now() - this.attemptStartedAt()) / 1000);
   }
 
+  private isNumericId(value: string | number | undefined): boolean {
+    return value !== undefined && /^\d+$/.test(String(value));
+  }
+
+  private errorMessage(error: unknown): string {
+    const response = error as { error?: { message?: string; errors?: Record<string, string[]> }; status?: number };
+    const validationErrors = response.error?.errors;
+
+    if (validationErrors) {
+      return Object.values(validationErrors).flat().join(' ');
+    }
+
+    if (response.error?.message) {
+      return response.error.message;
+    }
+
+    return 'Nao foi possivel enviar o resultado do quiz.';
+  }
+
   private scoreFromCorrect(correct: number, total: number): number {
-    return (correct * 10) + (total === 10 && correct === total ? 10 : 0);
+    const points = this.rulesForDifficulty(this.quiz()?.difficulty ?? 'facil').score;
+
+    return correct * points;
+  }
+
+  private expireQuestionIfNeeded(): void {
+    if (this.resumePromptOpen() || this.finished() || this.answered() || !this.quiz() || !this.totalQuestions()) {
+      return;
+    }
+
+    if (this.questionElapsedSeconds() >= this.questionTimeLimit()) {
+      this.submitExpiredAnswer();
+    }
+  }
+
+  private rulesForDifficulty(difficulty: Quiz['difficulty']): { timeSeconds: number; score: number; xp: number } {
+    if (difficulty === 'dificil') {
+      return { timeSeconds: 15, score: 30, xp: 30 };
+    }
+
+    if (difficulty === 'medio') {
+      return { timeSeconds: 20, score: 20, xp: 20 };
+    }
+
+    return { timeSeconds: 30, score: 10, xp: 10 };
   }
 }
 
@@ -524,4 +655,3 @@ export const QUIZ_DASHBOARD_ROUTES: Routes = [
   { path: '', component: QuizDashboardPage },
   { path: ':id/play', component: QuizPlayPage },
 ];
-

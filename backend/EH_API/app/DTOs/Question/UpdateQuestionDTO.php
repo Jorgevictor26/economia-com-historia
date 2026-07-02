@@ -6,11 +6,8 @@ readonly class UpdateQuestionDTO
 {
     public function __construct(
         public ?string $question = null,
-        public ?string $optionA = null,
-        public ?string $optionB = null,
-        public ?string $optionC = null,
-        public ?string $optionD = null,
-        public ?string $correctOption = null,
+        public ?int $order = null,
+        public ?array $alternatives = null,
         public ?string $explanation = null,
     ) {
     }
@@ -19,11 +16,8 @@ readonly class UpdateQuestionDTO
     {
         return new self(
             question: $data['question'] ?? null,
-            optionA: $data['option_a'] ?? null,
-            optionB: $data['option_b'] ?? null,
-            optionC: $data['option_c'] ?? null,
-            optionD: $data['option_d'] ?? null,
-            correctOption: $data['correct_option'] ?? null,
+            order: isset($data['order']) ? (int) $data['order'] : null,
+            alternatives: isset($data['alternatives']) ? array_values($data['alternatives']) : null,
             explanation: $data['explanation'] ?? null,
         );
     }
@@ -32,12 +26,25 @@ readonly class UpdateQuestionDTO
     {
         return array_filter([
             'question' => $this->question,
-            'option_a' => $this->optionA,
-            'option_b' => $this->optionB,
-            'option_c' => $this->optionC,
-            'option_d' => $this->optionD,
-            'correct_option' => $this->correctOption,
+            'order' => $this->order,
+            'option_a' => $this->alternatives[0]['text'] ?? null,
+            'option_b' => $this->alternatives[1]['text'] ?? null,
+            'option_c' => $this->alternatives[2]['text'] ?? null,
+            'option_d' => $this->alternatives[3]['text'] ?? null,
+            'correct_option' => $this->legacyCorrectOption(),
             'explanation' => $this->explanation,
         ], fn (mixed $value): bool => $value !== null);
+    }
+
+    private function legacyCorrectOption(): ?string
+    {
+        if ($this->alternatives === null) {
+            return null;
+        }
+
+        $index = collect($this->alternatives)
+            ->search(fn (array $alternative): bool => (bool) ($alternative['is_correct'] ?? false));
+
+        return ['a', 'b', 'c', 'd'][(int) $index] ?? 'a';
     }
 }

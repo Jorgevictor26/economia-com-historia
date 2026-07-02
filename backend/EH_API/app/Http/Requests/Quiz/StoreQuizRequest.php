@@ -15,11 +15,13 @@ class StoreQuizRequest extends FormRequest
     {
         return [
             'content_id' => ['required', 'integer', 'exists:contents,id'],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'difficulty' => ['required', 'string', 'in:facil,medio,dificil'],
-            'xp_per_question' => ['nullable', 'integer', 'in:10'],
-            'time_limit' => ['nullable', 'integer', 'min:1'],
+            'status' => ['nullable', 'string', 'in:active,inactive,ativo,inativo'],
+            'difficulty' => ['required', 'string', 'in:Fácil,Facil,facil,fácil,Média,Media,medio,médio,Difícil,Dificil,dificil,difícil'],
+            'xp_per_question' => ['prohibited'],
+            'time_limit' => ['prohibited'],
         ];
     }
 }

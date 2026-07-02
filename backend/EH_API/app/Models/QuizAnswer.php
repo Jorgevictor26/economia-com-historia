@@ -15,18 +15,26 @@ class QuizAnswer extends Model
     protected $fillable = [
         'quiz_result_id',
         'question_id',
+        'quiz_alternative_id',
         'user_id',
         'selected_option',
         'is_correct',
+        'elapsed_seconds',
     ];
 
     protected $casts = [
         'is_correct' => 'boolean',
+        'elapsed_seconds' => 'integer',
     ];
 
     public function question(): BelongsTo
     {
         return $this->belongsTo(Question::class);
+    }
+
+    public function alternative(): BelongsTo
+    {
+        return $this->belongsTo(QuizAlternative::class, 'quiz_alternative_id');
     }
 
     public function result(): BelongsTo

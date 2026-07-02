@@ -14,8 +14,10 @@ class Quiz extends Model
     protected $fillable = [
         'user_id',
         'content_id',
+        'category_id',
         'title',
         'description',
+        'status',
         'cover_url',
         'difficulty',
         'xp_per_question',
@@ -37,6 +39,11 @@ class Quiz extends Model
         return $this->belongsTo(Content::class);
     }
 
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
     public function questions(): HasMany
     {
         return $this->hasMany(Question::class);
@@ -45,5 +52,10 @@ class Quiz extends Model
     public function results(): HasMany
     {
         return $this->hasMany(QuizResult::class);
+    }
+
+    public function rankings(): HasMany
+    {
+        return $this->hasMany(QuizRanking::class);
     }
 }

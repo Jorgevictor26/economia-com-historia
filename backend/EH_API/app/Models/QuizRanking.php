@@ -5,40 +5,32 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class QuizResult extends Model
+class QuizRanking extends Model
 {
     use HasFactory;
 
-    public const CREATED_AT = 'completed_at';
-    public const UPDATED_AT = null;
-
     protected $fillable = [
+        'quiz_result_id',
         'quiz_id',
         'user_id',
         'score',
-        'total_questions',
-        'correct_answers',
-        'wrong_answers',
-        'percentage',
         'earned_xp',
         'duration_seconds',
-        'is_best',
         'completed_at',
     ];
 
     protected $casts = [
         'score' => 'integer',
-        'total_questions' => 'integer',
-        'correct_answers' => 'integer',
-        'wrong_answers' => 'integer',
-        'percentage' => 'decimal:2',
         'earned_xp' => 'integer',
         'duration_seconds' => 'integer',
-        'is_best' => 'boolean',
         'completed_at' => 'datetime',
     ];
+
+    public function result(): BelongsTo
+    {
+        return $this->belongsTo(QuizResult::class, 'quiz_result_id');
+    }
 
     public function quiz(): BelongsTo
     {
@@ -48,10 +40,5 @@ class QuizResult extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function ranking(): HasOne
-    {
-        return $this->hasOne(QuizRanking::class);
     }
 }

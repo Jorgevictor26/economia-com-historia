@@ -55,7 +55,31 @@
 
       @if (!resumePromptOpen() && !finished()) {
         <div class="mx-auto w-full max-w-2xl">
-          <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#D4AF37]">{{ quiz()!.topic }}</p>
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#D4AF37]">{{ quiz()!.topic }}</p>
+            <div
+              class="inline-flex items-center gap-2 rounded-[8px] border px-3 py-2 text-[12px] font-extrabold"
+              [class.border-[#2A9D8F]]="remainingSeconds() > 10"
+              [class.text-[#1E6F62]]="remainingSeconds() > 10"
+              [class.border-[#D4AF37]]="remainingSeconds() <= 10 && remainingSeconds() > 5"
+              [class.text-[#8A6D1D]]="remainingSeconds() <= 10 && remainingSeconds() > 5"
+              [class.border-[#8A3F50]]="remainingSeconds() <= 5"
+              [class.text-[#8A3F50]]="remainingSeconds() <= 5"
+            >
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">timer</span>
+              {{ remainingSeconds() }}s
+            </div>
+          </div>
+
+          <div class="mt-4 h-2 overflow-hidden rounded-full bg-[#E0E0E0]">
+            <span
+              class="block h-full rounded-full transition-all duration-300"
+              [class.bg-[#2A9D8F]]="remainingSeconds() > 10"
+              [class.bg-[#D4AF37]]="remainingSeconds() <= 10 && remainingSeconds() > 5"
+              [class.bg-[#8A3F50]]="remainingSeconds() <= 5"
+              [style.width.%]="timePercent()"
+            ></span>
+          </div>
           <h1 class="mt-4 font-display text-[28px] font-extrabold leading-tight text-[#5C1E2F]">{{ currentQuestion().prompt }}</h1>
 
           <div class="mt-8 grid gap-3">
@@ -93,7 +117,7 @@
             <button
               type="button"
               class="mt-8 h-12 w-full rounded-[8px] bg-[#5c1e2f] px-6 text-[13px] font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"
-              [disabled]="selectedIndex() === null"
+              [disabled]="selectedIndex() === null || remainingSeconds() <= 0"
               (click)="submitAnswer()"
             >
               Confirmar
@@ -116,10 +140,6 @@
               <dd class="mt-1 font-display text-[22px] font-extrabold text-[#5c1e2f]">{{ formatDuration(submitResult()?.duration_seconds ?? elapsedSeconds()) }}</dd>
             </div>
             <div class="rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] p-4">
-              <dt class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#616161]">Melhor pontuação</dt>
-              <dd class="mt-1 font-display text-[22px] font-extrabold text-[#5c1e2f]">{{ bestScore() }} pts</dd>
-            </div>
-            <div class="rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] p-4">
               <dt class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#616161]">Pontuação obtida</dt>
               <dd class="mt-1 font-display text-[22px] font-extrabold text-[#5c1e2f]">{{ earnedXp() }} pts</dd>
             </div>
@@ -129,7 +149,8 @@
             <p class="mt-4 rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] px-4 py-3 text-[12px] font-bold text-[#8A3F50]">{{ submitError() }}</p>
           }
           <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <button type="button" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white" (click)="restartQuiz()">Repetir</button>
+            <button type="button" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white" (click)="restartQuiz()">Refazer quiz</button>
+            <a routerLink="/app/quizzes" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#E6D5B8] px-5 text-[13px] font-bold text-[#5c1e2f]">Ver outros quizzes</a>
             <a [routerLink]="quiz()!.relatedContent.route" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#E6D5B8] px-5 text-[13px] font-bold text-[#5c1e2f]">Voltar aos conteúdos</a>
           </div>
         </section>
@@ -141,9 +162,12 @@
         <div class="mx-auto grid max-w-5xl gap-5 px-5 py-5 md:grid-cols-[1fr_auto] md:items-center">
           <div>
             <p class="font-display text-[22px] font-extrabold" [class.text-[#1E6F62]]="isCorrect()" [class.text-[#8A3F50]]="!isCorrect()">
-              {{ isCorrect() ? 'Acertou!' : 'Ainda não.' }}
+              {{ isCorrect() ? 'Acertou!' : timedOut() ? 'Tempo esgotado.' : 'Ainda não.' }}
             </p>
             <p class="mt-2 text-[14px] leading-6 text-[#616161]">
+              @if (timedOut()) {
+                O tempo desta pergunta terminou e a resposta foi marcada como incorreta.
+              }
               Resposta certa: <strong>{{ correctAnswer() }}</strong>. {{ currentQuestion().explanation }}
             </p>
             <p class="mt-2 text-[12px] leading-5 text-[#616161]">

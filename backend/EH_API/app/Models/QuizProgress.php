@@ -10,9 +10,12 @@ class QuizProgress extends Model
 {
     use HasFactory;
 
+    protected $table = 'quiz_progresses';
+
     protected $fillable = [
         'user_id',
         'quiz_id',
+        'started_at',
         'progress_percent',
         'current_question_index',
         'correct_count',
@@ -24,6 +27,7 @@ class QuizProgress extends Model
 
     protected $casts = [
         'progress_percent' => 'integer',
+        'started_at' => 'datetime',
         'current_question_index' => 'integer',
         'correct_count' => 'integer',
         'elapsed_seconds' => 'integer',

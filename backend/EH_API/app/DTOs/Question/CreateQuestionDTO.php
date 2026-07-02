@@ -7,11 +7,8 @@ readonly class CreateQuestionDTO
     public function __construct(
         public int $quizId,
         public string $question,
-        public string $optionA,
-        public string $optionB,
-        public string $optionC,
-        public string $optionD,
-        public string $correctOption,
+        public int $order,
+        public array $alternatives,
         public ?string $explanation = null,
     ) {
     }
@@ -21,11 +18,8 @@ readonly class CreateQuestionDTO
         return new self(
             quizId: $quizId,
             question: $data['question'],
-            optionA: $data['option_a'],
-            optionB: $data['option_b'],
-            optionC: $data['option_c'],
-            optionD: $data['option_d'],
-            correctOption: $data['correct_option'],
+            order: (int) ($data['order'] ?? 1),
+            alternatives: array_values($data['alternatives']),
             explanation: $data['explanation'] ?? null,
         );
     }
@@ -35,12 +29,21 @@ readonly class CreateQuestionDTO
         return [
             'quiz_id' => $this->quizId,
             'question' => $this->question,
-            'option_a' => $this->optionA,
-            'option_b' => $this->optionB,
-            'option_c' => $this->optionC,
-            'option_d' => $this->optionD,
-            'correct_option' => $this->correctOption,
+            'order' => $this->order,
+            'option_a' => $this->alternatives[0]['text'] ?? '',
+            'option_b' => $this->alternatives[1]['text'] ?? '',
+            'option_c' => $this->alternatives[2]['text'] ?? '',
+            'option_d' => $this->alternatives[3]['text'] ?? '',
+            'correct_option' => $this->legacyCorrectOption(),
             'explanation' => $this->explanation,
         ];
+    }
+
+    private function legacyCorrectOption(): string
+    {
+        $index = collect($this->alternatives)
+            ->search(fn (array $alternative): bool => (bool) ($alternative['is_correct'] ?? false));
+
+        return ['a', 'b', 'c', 'd'][(int) $index] ?? 'a';
     }
 }

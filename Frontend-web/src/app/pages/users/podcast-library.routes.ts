@@ -4,9 +4,12 @@ import { Routes } from '@angular/router';
 import { AuthStateService } from '../../services/auth-state.service';
 import { BackendComment, CommentService } from '../../services/comment.service';
 import { BackendContent, ContentService } from '../../services/content.service';
+import { ReactionService } from '../../services/reaction.service';
+import { SavedContentService } from '../../services/saved-content.service';
 import { ToastService } from '../../services/toast.service';
 import { normalizeMediaUrl } from '../../services/media-url.util';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
+import { ContentForumActionComponent } from '../shared/content-forum-action/content-forum-action.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
 interface PodcastView {
@@ -53,7 +56,7 @@ interface RelatedPodcastView {
 
 @Component({
   selector: 'app-podcast-library-page',
-  imports: [RouterLink, PublicNavbarComponent, BackToTopComponent],
+  imports: [RouterLink, PublicNavbarComponent, BackToTopComponent, ContentForumActionComponent],
   templateUrl: './podcast-library.page.html'
 })
 export class PodcastLibraryPage {
@@ -62,6 +65,8 @@ export class PodcastLibraryPage {
   private readonly auth = inject(AuthStateService);
   private readonly commentService = inject(CommentService);
   private readonly contentService = inject(ContentService);
+  private readonly reactionService = inject(ReactionService);
+  private readonly savedContentService = inject(SavedContentService);
   private readonly toastService = inject(ToastService);
 
   readonly isCommentComposerOpen = signal(false);
@@ -74,6 +79,9 @@ export class PodcastLibraryPage {
   readonly isLoadingComments = signal(false);
   readonly isSavingComment = signal(false);
   readonly isSavingReply = signal(false);
+  readonly isSavingReaction = signal(false);
+  readonly isSavingContent = signal(false);
+  readonly podcastLiked = signal(false);
   readonly isLoadingRelated = signal(false);
   readonly loadError = signal('');
   readonly commentError = signal('');
@@ -81,6 +89,7 @@ export class PodcastLibraryPage {
   readonly audioPlaying = signal(false);
   readonly audioReady = signal(false);
   readonly audioEnded = signal(false);
+  readonly audioLoop = signal(false);
   readonly audioLoadError = signal(false);
   readonly audioProgressText = signal('00:00 / 00:00');
   readonly audioStatusText = computed(() => {
@@ -146,6 +155,85 @@ export class PodcastLibraryPage {
     this.isCommentComposerOpen.set(true);
   }
 
+  async likePodcast(event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.auth.isAuthenticated()) {
+      this.auth.requireLoginFor('gostar');
+      return;
+    }
+
+    const contentId = this.podcast()?.id;
+
+    if (!contentId || this.isSavingReaction()) {
+      return;
+    }
+
+    const previous = this.podcastLiked();
+    this.podcastLiked.set(!previous);
+    this.isSavingReaction.set(true);
+
+    try {
+      const response = await this.reactionService.toggle(contentId, 'like');
+      this.podcastLiked.set(response.data.reacted);
+    } catch {
+      this.podcastLiked.set(previous);
+      this.toastService.error('Não foi possível registar o gosto.');
+    } finally {
+      this.isSavingReaction.set(false);
+    }
+  }
+
+  async savePodcast(event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.auth.isAuthenticated()) {
+      this.auth.requireLoginFor('guardar');
+      return;
+    }
+
+    const contentId = this.podcast()?.id;
+
+    if (!contentId || this.isSavingContent()) {
+      return;
+    }
+
+    this.isSavingContent.set(true);
+
+    try {
+      await this.savedContentService.save(contentId);
+      this.toastService.success('Podcast guardado.');
+    } catch {
+      this.toastService.error('Não foi possível guardar este podcast.');
+    } finally {
+      this.isSavingContent.set(false);
+    }
+  }
+
+  async sharePodcast(event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const podcast = this.podcast();
+
+    if (!podcast) {
+      return;
+    }
+
+    const url = window.location.href.split('#')[0];
+    const text = `${podcast.title} - Economia com História`;
+
+    if (navigator.share) {
+      await navigator.share({ title: podcast.title, text, url }).catch(() => undefined);
+      return;
+    }
+
+    await navigator.clipboard?.writeText(url);
+    this.toastService.success('Link copiado.');
+  }
+
   toggleReplyComposer(commentId: string): void {
     if (!this.auth.isAuthenticated()) {
       this.auth.requireLoginFor('responder');
@@ -189,27 +277,26 @@ export class PodcastLibraryPage {
     audio.pause();
   }
 
-  async restartAudio(audio: HTMLAudioElement): Promise<void> {
+  toggleAudioLoop(audio: HTMLAudioElement): void {
+    const nextValue = !this.audioLoop();
+
+    this.audioLoop.set(nextValue);
+    audio.loop = nextValue;
+  }
+
+  skipAudio(audio: HTMLAudioElement, seconds: number): void {
     const audioUrl = this.currentPodcast().audioUrl;
 
     if (!audioUrl) {
       return;
     }
 
-    this.prepareAudioElement(audio, audioUrl);
-    audio.currentTime = 0;
+    const duration = Number.isFinite(audio.duration) ? audio.duration : Number.POSITIVE_INFINITY;
+    const nextTime = Math.max(0, Math.min(duration, audio.currentTime + seconds));
+
+    audio.currentTime = nextTime;
     this.audioEnded.set(false);
-
-    try {
-      await audio.play();
-    } catch {
-      this.audioPlaying.set(false);
-      this.audioLoadError.set(true);
-    }
-  }
-
-  skipAudio(audio: HTMLAudioElement, seconds: number): void {
-    audio.currentTime = Math.max(0, Math.min(audio.duration || audio.currentTime + seconds, audio.currentTime + seconds));
+    this.syncAudioProgress(audio);
   }
 
   markAudioPlaying(): void {
@@ -224,6 +311,7 @@ export class PodcastLibraryPage {
   markAudioReady(audio: HTMLAudioElement): void {
     this.audioReady.set(true);
     this.audioLoadError.set(false);
+    audio.loop = this.audioLoop();
     this.syncAudioProgress(audio);
   }
 
@@ -290,6 +378,7 @@ export class PodcastLibraryPage {
     this.audioPlaying.set(false);
     this.audioReady.set(false);
     this.audioEnded.set(false);
+    this.audioLoop.set(false);
     this.audioLoadError.set(false);
     this.audioProgressText.set('00:00 / 00:00');
   }
@@ -368,6 +457,7 @@ export class PodcastLibraryPage {
       const content = await this.contentService.getById(id);
 
       this.podcast.set(this.toPodcastView(content));
+      this.podcastLiked.set(Boolean(content.liked_by_me));
       await Promise.all([
         this.loadComments(String(content.id)),
         this.loadRelatedPodcasts(content),

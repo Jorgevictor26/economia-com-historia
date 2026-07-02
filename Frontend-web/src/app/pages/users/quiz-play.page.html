@@ -51,14 +51,28 @@
                   <button
                     type="button"
                     class="min-h-14 rounded-[8px] border-2 bg-white px-5 text-left text-[15px] font-bold transition"
-                    [class.border-[#5c1e2f]]="selectedIndex() === index"
-                    [class.bg-[#F2E6E9]]="selectedIndex() === index"
-                    [class.border-[#E6D5B8]]="selectedIndex() !== index"
-                    [class.opacity-70]="answered() && selectedIndex() !== index"
+                    [class.border-[#5c1e2f]]="!answered() && selectedIndex() === index"
+                    [class.bg-[#F2E6E9]]="!answered() && selectedIndex() === index"
+                    [class.border-[#E6D5B8]]="!answered() && selectedIndex() !== index"
+                    [class.border-[#2A9D8F]]="answered() && currentQuestion().answerIndex === index"
+                    [class.bg-[#E8F5F1]]="answered() && currentQuestion().answerIndex === index"
+                    [class.text-[#1E6F62]]="answered() && currentQuestion().answerIndex === index"
+                    [class.border-[#8A3F50]]="answered() && selectedIndex() === index && currentQuestion().answerIndex !== index"
+                    [class.bg-[#F2E6E9]]="answered() && selectedIndex() === index && currentQuestion().answerIndex !== index"
+                    [class.text-[#8A3F50]]="answered() && selectedIndex() === index && currentQuestion().answerIndex !== index"
+                    [class.border-[#E0E0E0]]="answered() && selectedIndex() !== index && currentQuestion().answerIndex !== index"
+                    [class.opacity-60]="answered() && selectedIndex() !== index && currentQuestion().answerIndex !== index"
                     [disabled]="answered()"
                     (click)="selectOption(index)"
                   >
-                    {{ option }}
+                    <span class="flex items-center justify-between gap-4">
+                      <span>{{ option }}</span>
+                      @if (answered() && currentQuestion().answerIndex === index) {
+                        <span class="material-symbols-outlined text-[20px] leading-none" aria-hidden="true">check_circle</span>
+                      } @else if (answered() && selectedIndex() === index && currentQuestion().answerIndex !== index) {
+                        <span class="material-symbols-outlined text-[20px] leading-none" aria-hidden="true">cancel</span>
+                      }
+                    </span>
                   </button>
                 }
               </div>
@@ -93,10 +107,10 @@
         </section>
 
         @if (answered() && !finished()) {
-          <section class="fixed inset-x-0 bottom-0 z-40 border-t bg-white shadow-[0_-18px_45px_rgba(22,19,21,0.12)]" [class.border-[#BDBDBD]]="isCorrect()" [class.border-[#E6D5B8]]="!isCorrect()">
+          <section class="fixed inset-x-0 bottom-0 z-40 border-t bg-white shadow-[0_-18px_45px_rgba(22,19,21,0.12)]" [class.border-[#2A9D8F]]="isCorrect()" [class.border-[#8A3F50]]="!isCorrect()">
             <div class="mx-auto grid max-w-5xl gap-5 px-5 py-5 md:grid-cols-[1fr_auto] md:items-center">
               <div>
-                <p class="font-display text-[22px] font-extrabold" [class.text-[#616161]]="isCorrect()" [class.text-[#8A3F50]]="!isCorrect()">
+                <p class="font-display text-[22px] font-extrabold" [class.text-[#1E6F62]]="isCorrect()" [class.text-[#8A3F50]]="!isCorrect()">
                   {{ isCorrect() ? 'Acertou!' : 'Ainda não.' }}
                 </p>
                 <p class="mt-2 text-[14px] leading-6 text-[#616161]">

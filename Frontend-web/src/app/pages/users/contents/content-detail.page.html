@@ -126,27 +126,29 @@
             </button>
 
           </div>
-          <button type="button" class="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#9E9E9E] transition hover:text-[#5C1E2F]" [disabled]="isSavingContent()" (click)="saveContent($event)">
-            <span class="material-symbols-outlined text-[19px] leading-none">bookmark_add</span>
-            <span>Guardar</span>
-          </button>
-          @if (canManageDetail()) {
-          <details class="relative">
-            <summary class="grid size-9 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" aria-label="Mais ações">
-              <span class="material-symbols-outlined text-[22px] leading-none">more_vert</span>
-            </summary>
-            <div class="absolute right-0 z-20 mt-2 grid min-w-40 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
-              <a [routerLink]="editContentRoute()" class="flex items-center gap-2 px-3 py-2 text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]">
-                <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
-                <span>Editar post</span>
-              </a>
-              <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]" (click)="deleteCurrentContent($event)">
-                <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
-                <span>Apagar post</span>
-              </button>
-            </div>
-          </details>
-          }
+          <div class="flex items-center gap-5">
+            <button type="button" class="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#9E9E9E] transition hover:text-[#5C1E2F]" [disabled]="isSavingContent()" (click)="saveContent($event)">
+              <span class="material-symbols-outlined text-[19px] leading-none">bookmark_add</span>
+              <span>Guardar</span>
+            </button>
+            @if (canManageDetail()) {
+            <details class="relative">
+              <summary class="grid size-9 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" aria-label="Mais ações">
+                <span class="material-symbols-outlined text-[22px] leading-none">more_vert</span>
+              </summary>
+              <div class="absolute right-0 z-20 mt-2 grid min-w-40 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
+                <a [routerLink]="editContentRoute()" class="flex items-center gap-2 px-3 py-2 text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]">
+                  <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
+                  <span>Editar post</span>
+                </a>
+                <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]" (click)="deleteCurrentContent($event)">
+                  <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
+                  <span>Apagar post</span>
+                </button>
+              </div>
+            </details>
+            }
+          </div>
           @if (shareMenuOpen()) {
           <div class="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4" (click)="toggleShareMenu($event)">
             <section class="w-full max-w-[470px] rounded-[8px] bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]" (click)="$event.stopPropagation()">
@@ -384,6 +386,9 @@
     </aside>
   </main>
 
+  @if (detail(); as currentDetail) {
+    <app-content-forum-action [contentId]="currentDetail.id" [contentTitle]="currentDetail.title" />
+  }
   <app-back-to-top />
 </section>
 

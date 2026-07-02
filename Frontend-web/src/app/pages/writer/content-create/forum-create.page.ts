@@ -1,5 +1,7 @@
 ﻿import { Component, computed, inject, signal } from '@angular/core';
 import { BackendContent, ContentService } from '../../../services/content.service';
+import { Category } from '../../../models/category.model';
+import { CategoryService } from '../../../services/category.service';
 import { ForumService } from '../../../services/forum.service';
 import { ToastService } from '../../../services/toast.service';
 import { AdminConsoleShellComponent } from '../../admin/components/admin-console-shell.component';
@@ -30,13 +32,16 @@ import { AdminConsoleShellComponent } from '../../admin/components/admin-console
 export class ForumCreatePage {
   private readonly forumService = inject(ForumService);
   private readonly contentService = inject(ContentService);
+  private readonly categoryService = inject(CategoryService);
   private readonly toastService = inject(ToastService);
 
   readonly title = signal('');
   readonly rules = signal('');
   readonly category = signal('Economia Política');
+  readonly categories = signal<Category[]>([]);
   readonly availableContents = signal<BackendContent[]>([]);
   readonly selectedContentIds = signal<Array<number | string>>([]);
+  readonly privateAccessCode = signal('');
   readonly publicVisible = signal(true);
   readonly contentPermission = signal<'public' | 'subscribers'>('public');
   readonly allowAttachments = signal(false);
@@ -57,20 +62,21 @@ export class ForumCreatePage {
   ];
 
   constructor() {
+    void this.loadCategories();
     void this.loadContents();
   }
 
   readonly previewTitle = computed(() => this.title().trim() || 'Mantenha a moderacao activa para garantir rigor.');
   readonly previewRules = computed(() => this.rules().trim() || 'O rigor histórico e a clareza para uma economia sustentavel serao apresentados como pontos de partida do debate.');
   readonly progress = computed(() => {
-    const checks = [this.title(), this.rules(), this.category(), this.selectedContentIds().length, this.publicVisible()];
+    const checks = [this.title(), this.rules(), this.category(), this.publicVisible()];
     return Math.round((checks.filter((value) => Boolean(String(value).trim())).length / checks.length) * 100);
   });
 
   readonly metrics = [
     { icon: 'forum', value: 'Aberto', label: 'Tipo de debate', badge: 'Acesso', description: 'Visivel para todos os utilizadores.' },
     { icon: 'attach_file', value: 'PDF', label: 'Anexos permitidos', badge: 'Fontes', description: 'Documentos academicos para apoio.' },
-    { icon: 'hub', value: '2', label: 'Conteúdos ligados', badge: 'Base', description: 'Materiais para orientar a discussao.' },
+    { icon: 'hub', value: 'Opcional', label: 'Conteúdos ligados', badge: 'Base', description: 'Materiais podem orientar a discussao, mas nao sao obrigatorios.' },
     { icon: 'verified_user', value: '36%', label: 'Configuracao pronta', badge: 'Editor', description: 'Regras e acesso em progresso.' },
   ];
 
@@ -83,7 +89,7 @@ export class ForumCreatePage {
 
   get accessSettings() {
     return [
-      { label: 'Visibilidade publica', description: 'Acessivel a todos os utilizadores', checked: this.publicVisible, toggle: () => this.publicVisible.update((value) => !value) },
+      { label: 'Visibilidade publica', description: 'Acessivel a todos os utilizadores', checked: this.publicVisible, toggle: () => this.setPublicVisible(!this.publicVisible()) },
       {
         label: 'Conteudos para subscritores',
         description: 'Apenas utilizadores com acesso aos conteudos subscritos podem ler os recursos vinculados',
@@ -97,7 +103,7 @@ export class ForumCreatePage {
   get validationChecklist() {
     return [
       { label: 'Titulo e regras iniciados', done: this.title().trim().length > 0 && this.rules().trim().length > 0 },
-      { label: 'Conteudo base selecionado', done: this.selectedContentIds().length > 0 },
+      { label: 'Conteudo base opcional', done: true },
       { label: 'Categoria definida', done: this.category().trim().length > 0 },
       { label: 'Moderacao revisada', done: this.publicVisible() || this.allowAttachments() },
       { label: 'Publicacao autorizada', done: this.status() === 'Publicado' },
@@ -107,6 +113,14 @@ export class ForumCreatePage {
   setTitle(event: Event): void { this.title.set(this.eventValue(event)); }
   setRules(event: Event): void { this.rules.set(this.eventValue(event)); }
   setCategory(event: Event): void { this.category.set(this.eventValue(event)); }
+
+  setPublicVisible(value: boolean): void {
+    this.publicVisible.set(value);
+
+    if (!value && !this.privateAccessCode()) {
+      this.privateAccessCode.set(this.generateAccessCode());
+    }
+  }
 
   toggleContent(contentId: number | string): void {
     this.selectedContentIds.update((ids) =>
@@ -135,6 +149,8 @@ export class ForumCreatePage {
         category: this.category(),
         image: this.coverPreview(),
         visibility: this.publicVisible() ? 'public' : 'private',
+        access_code: this.publicVisible() ? null : this.privateAccessCode(),
+        join_approval_required: !this.publicVisible(),
         content_permission: this.contentPermission(),
         allow_attachments: this.allowAttachments(),
         content_ids: this.selectedContentIds(),
@@ -199,10 +215,26 @@ export class ForumCreatePage {
     try {
       const response = await this.contentService.getAll();
       this.availableContents.set(response.data);
-      this.selectedContentIds.set(response.data.slice(0, 2).map((content) => content.id));
     } catch {
       this.showError('Nao foi possivel carregar os conteudos base.');
     }
+  }
+
+  private async loadCategories(): Promise<void> {
+    try {
+      const categories = await this.categoryService.getAll();
+      this.categories.set(categories);
+
+      if (categories.length) {
+        this.category.set(categories[0].name);
+      }
+    } catch {
+      this.categories.set([]);
+    }
+  }
+
+  private generateAccessCode(): string {
+    return `EH-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
   }
 
   private requireText(value: string, field: string): string {

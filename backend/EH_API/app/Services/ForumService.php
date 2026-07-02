@@ -23,6 +23,8 @@ class ForumService
             'category' => $dto->category,
             'image_url' => $dto->imageUrl,
             'visibility' => $dto->visibility,
+            'access_code' => $dto->visibility === 'private' ? ($dto->accessCode ?: $this->generateAccessCode()) : null,
+            'join_approval_required' => $dto->visibility === 'private' ? $dto->joinApprovalRequired : false,
             'content_permission' => $dto->contentPermission,
             'allow_attachments' => $dto->allowAttachments,
             'status' => 'pending',
@@ -86,5 +88,10 @@ class ForumService
         }
 
         return $this->repository->updateStatus($forum, 'rejected', $reviewerId);
+    }
+
+    private function generateAccessCode(): string
+    {
+        return 'EH-'.strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
     }
 }

@@ -15,6 +15,7 @@ import { SavedContentService } from '../../../services/saved-content.service';
 import { ToastService } from '../../../services/toast.service';
 import { normalizeMediaUrl } from '../../../services/media-url.util';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
+import { ContentForumActionComponent } from '../../shared/content-forum-action/content-forum-action.component';
 import { PublicNavbarComponent } from '../../shared/public-navbar/public-navbar.component';
 import { ContentCardComponent } from './components/content-card.component';
 import { ContentListItem } from '../../../models/content-list-item.model';
@@ -619,7 +620,7 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
 
 @Component({
   selector: 'app-content-detail-page',
-  imports: [RouterLink, PublicNavbarComponent, BackToTopComponent],
+  imports: [RouterLink, PublicNavbarComponent, BackToTopComponent, ContentForumActionComponent],
   templateUrl: './content-detail.page.html'
 })
 export class ContentDetailPage implements OnDestroy {
@@ -1243,26 +1244,31 @@ export class ContentDetailPage implements OnDestroy {
 
 @Component({
   selector: 'app-video-content-detail-page',
-  imports: [RouterLink, PublicNavbarComponent, BackToTopComponent],
+  imports: [RouterLink, PublicNavbarComponent, BackToTopComponent, ContentForumActionComponent],
   templateUrl: './video-content-detail.page.html'
 })
 export class VideoContentDetailPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly commentService = inject(CommentService);
   private readonly contentService = inject(ContentService);
+  private readonly reactionService = inject(ReactionService);
   private readonly savedContentService = inject(SavedContentService);
   private readonly toastService = inject(ToastService);
   readonly auth = inject(AuthStateService);
   readonly saveStatus = signal('');
   readonly toast = signal<PageToast | null>(null);
   readonly videoLiked = signal(false);
+  readonly isSavingVideoReaction = signal(false);
   readonly isVideoCommentComposerOpen = signal(false);
+  readonly isSavingVideoComment = signal(false);
   readonly isLoading = signal(false);
   readonly loadError = signal('');
   readonly loadedVideo = signal<VideoDetail | null>(null);
   readonly relatedContents = signal<ContentListItem[]>([]);
   readonly isLoadingRelated = signal(false);
   readonly videoPlaying = signal(false);
+  readonly videoReady = signal(false);
   readonly videoLoadError = signal(false);
   private toastTimeout?: ReturnType<typeof setTimeout>;
 
@@ -1279,7 +1285,7 @@ export class VideoContentDetailPage implements OnDestroy {
   ngOnDestroy(): void {
     this.clearToastTimeout();
   }
-  readonly comments: VideoComment[] = [];
+  readonly comments = signal<VideoComment[]>([]);
 
   constructor() {
     void this.loadVideo();
@@ -1288,6 +1294,9 @@ export class VideoContentDetailPage implements OnDestroy {
   async toggleVideoPlayback(video: HTMLVideoElement): Promise<void> {
     if (video.paused) {
       try {
+        if (video.readyState === video.HAVE_NOTHING) {
+          video.load();
+        }
         await video.play();
       } catch {
         this.videoPlaying.set(false);
@@ -1297,6 +1306,22 @@ export class VideoContentDetailPage implements OnDestroy {
     }
 
     video.pause();
+  }
+
+  seekVideo(video: HTMLVideoElement, seconds: number): void {
+    if (video.readyState === video.HAVE_NOTHING || !this.videoReady()) {
+      return;
+    }
+
+    const duration = Number.isFinite(video.duration) ? video.duration : Number.POSITIVE_INFINITY;
+    const nextTime = Math.max(0, Math.min(duration, video.currentTime + seconds));
+
+    video.currentTime = nextTime;
+  }
+
+  markVideoReady(): void {
+    this.videoReady.set(true);
+    this.videoLoadError.set(false);
   }
 
   markVideoPlaying(): void {
@@ -1326,6 +1351,7 @@ export class VideoContentDetailPage implements OnDestroy {
 
     this.isLoading.set(true);
     this.loadError.set('');
+    this.videoReady.set(false);
     this.videoLoadError.set(false);
 
     try {
@@ -1338,7 +1364,11 @@ export class VideoContentDetailPage implements OnDestroy {
       }
 
       this.loadedVideo.set(this.toVideoDetail(content));
-      await this.loadRelatedContents(content);
+      this.videoLiked.set(Boolean(content.liked_by_me));
+      await Promise.all([
+        this.loadVideoComments(String(content.id)),
+        this.loadRelatedContents(content),
+      ]);
     } catch {
       this.showToast('Não foi possível carregar este vídeo.', 'error');
     } finally {
@@ -1352,15 +1382,34 @@ export class VideoContentDetailPage implements OnDestroy {
     this.auth.requireLoginFor(operation);
   }
 
-  likeVideo(event: Event): void {
+  async likeVideo(event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
     if (!this.auth.isAuthenticated()) {
       this.requireLogin(event, 'gostar');
       return;
     }
 
-    event.preventDefault();
-    event.stopPropagation();
-    this.videoLiked.update((liked) => !liked);
+    const contentId = this.video()?.id;
+
+    if (!contentId || this.isSavingVideoReaction()) {
+      return;
+    }
+
+    const previous = this.videoLiked();
+    this.videoLiked.set(!previous);
+    this.isSavingVideoReaction.set(true);
+
+    try {
+      const response = await this.reactionService.toggle(contentId, 'like');
+      this.videoLiked.set(response.data.reacted);
+    } catch {
+      this.videoLiked.set(previous);
+      this.showToast('Não foi possível registar o gosto.', 'error');
+    } finally {
+      this.isSavingVideoReaction.set(false);
+    }
   }
 
   openVideoCommentComposer(event: Event): void {
@@ -1372,6 +1421,29 @@ export class VideoContentDetailPage implements OnDestroy {
     event.preventDefault();
     event.stopPropagation();
     this.isVideoCommentComposerOpen.set(true);
+  }
+
+  async submitVideoComment(value: string): Promise<void> {
+    const contentId = this.video()?.id;
+    const comment = value.trim();
+
+    if (!contentId || !comment || this.isSavingVideoComment()) {
+      this.showToast('Escreva um comentário antes de publicar.', 'error');
+      return;
+    }
+
+    this.isSavingVideoComment.set(true);
+
+    try {
+      await this.commentService.create(contentId, comment);
+      await this.loadVideoComments(contentId);
+      this.isVideoCommentComposerOpen.set(false);
+      this.showToast('Comentário publicado com sucesso.', 'success');
+    } catch {
+      this.showToast('Não foi possível publicar o comentário.', 'error');
+    } finally {
+      this.isSavingVideoComment.set(false);
+    }
   }
 
   share(event: Event): void {
@@ -1460,6 +1532,27 @@ export class VideoContentDetailPage implements OnDestroy {
       clearTimeout(this.toastTimeout);
       this.toastTimeout = undefined;
     }
+  }
+
+  private async loadVideoComments(contentId: string): Promise<void> {
+    try {
+      const comments = await this.commentService.getByContent(contentId);
+      this.comments.set(comments.map((comment) => this.toVideoComment(comment)));
+    } catch {
+      this.comments.set([]);
+    }
+  }
+
+  private toVideoComment(comment: BackendComment): VideoComment {
+    const authorName = comment.user?.name ?? 'Utilizador';
+
+    return {
+      author: authorName,
+      initials: this.initials(authorName),
+      time: this.formatCommentDate(comment.created_at),
+      text: comment.comment,
+      likes: 0,
+    };
   }
 
   private toVideoDetail(content: BackendContent): VideoDetail {
@@ -1565,6 +1658,16 @@ export class VideoContentDetailPage implements OnDestroy {
         : 'Sem data';
 
     return `${formattedDate} - ${contentType}`;
+  }
+
+  private formatCommentDate(value: string | null | undefined): string {
+    const date = value ? new Date(value) : null;
+
+    if (!date || Number.isNaN(date.getTime())) {
+      return 'Agora';
+    }
+
+    return new Intl.DateTimeFormat('pt-AO', { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
   }
 
   private extractDuration(content: string | null | undefined): string | null {

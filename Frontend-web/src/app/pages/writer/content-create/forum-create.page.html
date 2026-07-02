@@ -31,13 +31,20 @@
               <label class="grid gap-2">
                 <span class="text-[13px] font-bold text-[#616161]">Categoria</span>
                 <select [value]="category()" (change)="setCategory($event)" class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#616161] outline-none focus:border-[#8A3F50]">
-                  <option>Economia Politica</option>
-                  <option>Historia Economica</option>
-                  <option>Financas Publicas</option>
+                  @if (categories().length) {
+                    @for (item of categories(); track item.id) {
+                      <option [value]="item.name">{{ item.name }}</option>
+                    }
+                  } @else {
+                    <option>Economia Política</option>
+                    <option>História Económica</option>
+                    <option>Finanças Públicas</option>
+                  }
                 </select>
               </label>
               <label class="grid gap-2">
-                <span class="text-[13px] font-bold text-[#616161]">Conteudo base</span>
+                <span class="text-[13px] font-bold text-[#616161]">Conteúdo base <small class="font-medium text-[#9E9E9E]">(Opcional)</small></span>
+                <p class="-mt-1 text-[11px] leading-5 text-[#616161]">Use apenas se quiser ligar este fórum a publicações existentes. O fórum também pode nascer só da categoria.</p>
                 <div class="max-h-[180px] overflow-y-auto rounded-[8px] border border-[#E0E0E0] bg-white p-2">
                   @for (content of linkedContents(); track content.id) {
                     <label class="flex cursor-pointer items-center gap-3 rounded-[6px] px-3 py-2 text-[12px] text-[#616161] hover:bg-[#F2E6E9]">
@@ -110,6 +117,13 @@
                 </button>
               }
             </div>
+            @if (!publicVisible()) {
+              <label class="mt-5 grid max-w-sm gap-2 text-[12px] font-bold text-[#616161]">
+                Código de entrada
+                <input type="text" maxlength="24" class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] font-extrabold uppercase tracking-[0.08em] text-[#5C1E2F] outline-none focus:border-[#8A3F50]" [value]="privateAccessCode()" (input)="privateAccessCode.set($any($event.target).value.toUpperCase())" />
+                <small class="font-medium text-[#616161]">Mesmo com o código, o utilizador envia pedido e precisa de aprovação para entrar.</small>
+              </label>
+            }
           </section>
         }
 

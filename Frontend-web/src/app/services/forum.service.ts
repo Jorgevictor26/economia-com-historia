@@ -13,6 +13,8 @@ export interface BackendForum {
   category?: string | null;
   image_url?: string | null;
   visibility?: 'public' | 'private' | string;
+  access_code?: string | null;
+  join_approval_required?: boolean | number;
   content_permission?: 'public' | 'subscribers' | string;
   allow_attachments?: boolean | number;
   status?: 'pending' | 'approved' | 'rejected' | string;
@@ -27,6 +29,21 @@ export interface BackendForum {
   contents?: BackendContent[];
 }
 
+export interface BackendForumTopic {
+  id: number | string;
+  forum_id: number | string;
+  user_id?: number | string;
+  title: string;
+  content: string;
+  created_at?: string | null;
+  replies_count?: number;
+  user?: {
+    id: number | string;
+    name: string;
+    photo?: string | null;
+  } | null;
+}
+
 export interface CreateForumPayload {
   name: string;
   description?: string | null;
@@ -34,16 +51,22 @@ export interface CreateForumPayload {
   category?: string | null;
   image?: string | null;
   visibility?: 'public' | 'private';
+  access_code?: string | null;
+  join_approval_required?: boolean;
   content_permission?: 'public' | 'subscribers';
   allow_attachments?: boolean;
   content_ids?: Array<number | string>;
 }
+
+export type UpdateForumPayload = Partial<CreateForumPayload>;
 
 export interface CreateForumRoomPayload {
   name: string;
   category: string;
   objective: string;
   visibility: 'public' | 'private';
+  accessCode?: string | null;
+  joinApprovalRequired?: boolean;
   inviteEmails: string[];
   protectedByPassword: boolean;
   linkedContents: ForumLinkedContent[];
@@ -58,6 +81,8 @@ export class ForumService {
       id: 'publica-economia',
       name: 'Economia no quotidiano',
       visibility: 'public',
+      accessCode: null,
+      joinApprovalRequired: false,
       members: 1280,
       activeDebates: 18,
       description: 'Debates moderados sobre precos, trabalho, banca e politicas publicas.',
@@ -73,6 +98,8 @@ export class ForumService {
       id: 'privada-jindungo',
       name: 'Mesa Jindungo',
       visibility: 'private',
+      accessCode: 'EH-JINDUNGO',
+      joinApprovalRequired: true,
       members: 214,
       activeDebates: 7,
       description: 'Sala premium para leituras profundas e encontros com especialistas.',
@@ -91,6 +118,8 @@ export class ForumService {
       id: `room-${Date.now()}`,
       name: payload.name,
       visibility: payload.visibility,
+      accessCode: payload.visibility === 'private' ? (payload.accessCode ?? this.generateAccessCode()) : null,
+      joinApprovalRequired: payload.visibility === 'private' ? (payload.joinApprovalRequired ?? true) : false,
       members: 1,
       activeDebates: 0,
       description: payload.objective,
@@ -120,6 +149,32 @@ export class ForumService {
     const response = await firstValueFrom(this.http.post<{ data: BackendForum }>('/forums', payload));
 
     return response.data;
+  }
+
+  async update(id: number | string, payload: UpdateForumPayload): Promise<BackendForum> {
+    const response = await firstValueFrom(this.http.put<{ data: BackendForum }>(`/forums/${id}`, payload));
+
+    return response.data;
+  }
+
+  async delete(id: number | string): Promise<void> {
+    await firstValueFrom(this.http.delete(`/forums/${id}`));
+  }
+
+  async getTopics(forumId: number | string): Promise<BackendForumTopic[]> {
+    return firstValueFrom(this.http.get<BackendForumTopic[]>(`/forums/${forumId}/topics`));
+  }
+
+  async createTopic(forumId: number | string, title: string, content: string): Promise<BackendForumTopic> {
+    const response = await firstValueFrom(
+      this.http.post<{ data: BackendForumTopic }>(`/forums/${forumId}/topics`, { title, content }),
+    );
+
+    return response.data;
+  }
+
+  private generateAccessCode(): string {
+    return `EH-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
   }
 }
 

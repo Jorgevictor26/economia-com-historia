@@ -128,7 +128,7 @@
 
             <button type="button" class="min-h-[88px] rounded-[8px] border p-4 text-left" [class.border-[#5C1E2F]]="privacy() === 'private'" [class.bg-white]="privacy() === 'private'" [class.border-[#E0E0E0]]="privacy() !== 'private'" [class.bg-[#F5F5F5]]="privacy() !== 'private'" (click)="setPrivacy('private')">
               <strong class="block text-[13px] text-[#5C1E2F]">Privado</strong>
-              <span class="mt-1 block text-[11px] leading-5 text-[#616161]">Apenas convidados ou utilizadores com palavra-passe podem participar.</span>
+              <span class="mt-1 block text-[11px] leading-5 text-[#616161]">Entrada por código, sempre sujeita a aprovação.</span>
             </button>
           </section>
 
@@ -150,9 +150,10 @@
                 </div>
               }
 
-              <label class="mt-4 inline-flex items-center gap-2 text-[12px] text-[#212121]">
-                <input type="checkbox" class="size-4 accent-[#5C1E2F]" [checked]="protectedByPassword()" (change)="protectedByPassword.set($any($event.target).checked)" />
-                Proteger com palavra-passe
+              <label class="mt-4 grid gap-2 text-[12px] font-bold text-[#616161]">
+                Código de entrada
+                <input type="text" maxlength="24" class="h-10 rounded-[8px] bg-[#F5F5F5] px-3 text-[12px] font-extrabold uppercase tracking-[0.08em] text-[#5C1E2F] outline-none focus:ring-2 focus:ring-[#F2E6E9]" [value]="privateAccessCode()" (input)="privateAccessCode.set($any($event.target).value.toUpperCase())" />
+                <small class="text-[11px] font-medium text-[#616161]">Quem usar o código envia um pedido. A entrada só acontece depois da aprovação.</small>
               </label>
             </section>
           }
@@ -161,7 +162,7 @@
             <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">Conteúdos vinculados</h3>
-                <p class="mt-1 text-[12px] text-[#616161]">Selecione pelo menos um conteúdo da plataforma.</p>
+                <p class="mt-1 text-[12px] text-[#616161]">Opcional. Pode criar um fórum apenas pela categoria, desde que mantenha o propósito da plataforma.</p>
               </div>
               <button type="button" class="rounded-[8px] border border-[#C48A96] px-4 py-2 text-[12px] font-extrabold text-[#8A3F50]" (click)="showAllResources.update(show => !show)">
                 {{ showAllResources() ? 'Mostrar selecionados' : 'Ver mais conteúdos' }}
@@ -176,7 +177,7 @@
                   </span>
                   <span>
                     <strong class="block truncate text-[12px] text-[#212121]">{{ content.title }}</strong>
-                    <small class="text-[10px] text-[#616161]">{{ content.type === 'podcast' ? 'Podcast' : 'Artigo Académico' }} &middot; {{ content.readingMinutes }} min de leitura</small>
+                    <small class="text-[10px] text-[#616161]">{{ content.type }} &middot; {{ content.meta }}</small>
                   </span>
                   <input type="checkbox" class="size-4 accent-[#5C1E2F]" [checked]="selectedContentIds().includes(content.id)" (change)="toggleResource(content.id)" />
                 </label>

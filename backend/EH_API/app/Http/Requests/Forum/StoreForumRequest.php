@@ -20,6 +20,8 @@ class StoreForumRequest extends FormRequest
             'category' => ['nullable', 'string', 'max:255'],
             'image' => ['nullable', 'string'],
             'visibility' => ['nullable', 'string', 'in:public,private'],
+            'access_code' => ['nullable', 'string', 'min:4', 'max:24'],
+            'join_approval_required' => ['nullable', 'boolean'],
             'content_permission' => ['nullable', 'string', 'in:public,subscribers'],
             'allow_attachments' => ['nullable', 'boolean'],
             'content_ids' => ['nullable', 'array'],

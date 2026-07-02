@@ -1,10 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AdminUserService, BackendManagedUser } from '../../../../services/admin-user.service';
-import { BackendCommentReport, CommentReportService } from '../../../../services/comment-report.service';
-import { BackendContent, ContentService } from '../../../../services/content.service';
-import { BackendForum, ForumService } from '../../../../services/forum.service';
-import { QuizService } from '../../../../services/quiz.service';
+import { AdminDashboardActivity, AdminDashboardMetricSummary, AdminDashboardService } from '../../../../services/admin-dashboard.service';
 import { AdminConsoleShellComponent } from '../../components/admin-console-shell.component';
 import { AdminMetricCardComponent, AdminPageHeaderComponent } from '../../shared/components';
 
@@ -46,25 +42,14 @@ interface AlertItem {
   templateUrl: './admin-dashboard.page.html',
 })
 export class AdminDashboardPage {
-  private readonly contentService = inject(ContentService);
-  private readonly usersService = inject(AdminUserService);
-  private readonly forumService = inject(ForumService);
-  private readonly quizService = inject(QuizService);
-  private readonly reportsService = inject(CommentReportService);
+  private readonly dashboardService = inject(AdminDashboardService);
 
   readonly isLoading = signal(true);
   readonly loadError = signal('');
   readonly metrics = signal<DashboardMetric[]>(this.emptyMetrics());
   readonly activities = signal<ActivityItem[]>([]);
   readonly alerts = signal<AlertItem[]>([]);
-  readonly contentMix = signal([
-    { label: 'Artigos', value: 72 },
-    { label: 'Videos', value: 54 },
-    { label: 'Podcasts', value: 33 },
-    { label: 'Quizzes', value: 28 },
-    { label: 'Foruns', value: 47 },
-    { label: 'Jindungo', value: 18 },
-  ]);
+  readonly contentMix = signal<{ label: string; value: number; count: number }[]>([]);
 
   readonly quickActions: QuickAction[] = [
     { label: 'Novo Conteudo', route: '/admin/contents/create', icon: 'add_circle', tone: 'primary' },
@@ -108,122 +93,73 @@ export class AdminDashboardPage {
     this.isLoading.set(true);
     this.loadError.set('');
 
-    const [contentsResult, usersResult, forumsResult, quizzesResult, reportsResult] = await Promise.allSettled([
-      this.contentService.getAll(),
-      this.usersService.getAll({ perPage: 100 }),
-      this.forumService.getAll(),
-      this.quizService.loadAll(),
-      this.reportsService.getAll({ perPage: 100 }),
-    ]);
+    try {
+      const overview = await this.dashboardService.getOverview();
 
-    const contentsPage = contentsResult.status === 'fulfilled' ? contentsResult.value : null;
-    const contents = contentsPage?.data ?? [];
-    const users = usersResult.status === 'fulfilled' ? usersResult.value.data : [];
-    const forums = forumsResult.status === 'fulfilled' ? forumsResult.value : [];
-    const quizzes = quizzesResult.status === 'fulfilled' ? quizzesResult.value : [];
-    const reports = reportsResult.status === 'fulfilled' ? reportsResult.value.data : [];
-
-    this.metrics.set(this.buildMetrics(contents, contentsPage?.pagination.total ?? contents.length, users));
-    this.activities.set(this.buildActivities(contents, users, forums, reports));
-    this.alerts.set(this.buildAlerts(contents, forums, reports, quizzes.length));
-
-    if ([contentsResult, usersResult, forumsResult, quizzesResult, reportsResult].some((result) => result.status === 'rejected')) {
-      this.loadError.set('Alguns dados nao puderam ser carregados agora.');
+      this.metrics.set(this.buildMetrics(overview.metrics));
+      this.activities.set(this.buildActivities(overview.activities));
+      this.alerts.set(this.buildAlerts(overview.metrics));
+      this.contentMix.set(overview.content_mix);
+    } catch {
+      this.metrics.set(this.emptyMetrics());
+      this.activities.set([]);
+      this.alerts.set([]);
+      this.contentMix.set([]);
+      this.loadError.set('Nao foi possivel carregar o painel geral agora.');
+    } finally {
+      this.isLoading.set(false);
     }
-
-    this.isLoading.set(false);
   }
 
-  private buildMetrics(contents: BackendContent[], totalContents: number, users: BackendManagedUser[]): DashboardMetric[] {
-    const published = contents.filter((content) => (content.visibility ?? 'public') === 'public').length;
-    const drafts = Math.max(totalContents - published, contents.filter((content) => (content.visibility ?? 'public') !== 'public').length);
-    const activeUsers = users.filter((user) => (user.status ?? 'active').toLowerCase() !== 'inactive').length;
-    const todayComments = contents
-      .filter((content) => this.isToday(content.updated_at ?? content.created_at))
-      .reduce((total, content) => total + Number(content.comments_count ?? 0), 0);
-
+  private buildMetrics(summary: AdminDashboardMetricSummary): DashboardMetric[] {
     return [
-      { label: 'Conteudos publicados', value: this.formatNumber(published), note: 'Visiveis na plataforma', accent: '#5C1E2F', progress: this.percent(published, totalContents) },
-      { label: 'Pendentes / rascunhos', value: this.formatNumber(drafts), note: 'A rever ou completar', accent: '#8A3F50', progress: this.percent(drafts, totalContents) },
-      { label: 'Utilizadores ativos', value: this.formatNumber(activeUsers), note: `${this.formatNumber(users.length)} registados`, accent: '#2A9D8F', progress: this.percent(activeUsers, users.length) },
-      { label: 'Total de conteudos', value: this.formatNumber(totalContents), note: 'Todos os formatos', accent: '#616161', progress: 100 },
-      { label: 'Novos comentarios hoje', value: this.formatNumber(todayComments), note: 'Em conteudos atualizados hoje', accent: '#D4AF37', progress: Math.min(todayComments * 8, 100) },
+      { label: 'Artigos publicados', value: this.formatNumber(summary.articles_published), note: 'Artigos visiveis na plataforma', accent: '#5C1E2F', progress: this.percent(summary.articles_published, summary.total_contents) },
+      { label: 'Pendentes / rascunhos', value: this.formatNumber(summary.pending_contents), note: 'A rever ou completar', accent: '#8A3F50', progress: this.percent(summary.pending_contents, summary.total_contents) },
+      { label: 'Comentarios hoje', value: this.formatNumber(summary.today_comments), note: 'Novos comentarios do dia', accent: '#D4AF37', progress: Math.min(summary.today_comments * 8, 100) },
+      { label: 'Notificacoes hoje', value: this.formatNumber(summary.today_notifications), note: 'Novas notificacoes criadas', accent: '#616161', progress: Math.min(summary.today_notifications * 8, 100) },
+      { label: 'Utilizadores ativos', value: this.formatNumber(summary.active_users), note: `${this.formatNumber(summary.total_users)} registados`, accent: '#2A9D8F', progress: this.percent(summary.active_users, summary.total_users) },
     ];
   }
 
-  private buildActivities(
-    contents: BackendContent[],
-    users: BackendManagedUser[],
-    forums: BackendForum[],
-    reports: BackendCommentReport[],
-  ): ActivityItem[] {
-    const contentActivities = contents.slice(0, 3).map((content) => ({
-      title: content.title,
-      meta: `${content.content_type?.name ?? 'Conteudo'} - ${this.relativeDate(content.updated_at ?? content.created_at)}`,
-      icon: 'article',
-      tone: 'content' as const,
+  private buildActivities(activities: AdminDashboardActivity[]): ActivityItem[] {
+    return activities.map((activity) => ({
+      title: activity.title,
+      meta: `${activity.meta} - ${this.relativeDate(activity.created_at)}`,
+      icon: activity.icon,
+      tone: activity.tone,
     }));
-    const userActivities = users.slice(0, 2).map((user) => ({
-      title: user.name,
-      meta: `Utilizador ${this.relativeDate(user.created_at)}`,
-      icon: 'person_add',
-      tone: 'user' as const,
-    }));
-    const forumActivities = forums.slice(0, 2).map((forum) => ({
-      title: forum.name,
-      meta: `${forum.visibility === 'private' ? 'Forum privado' : 'Forum publico'} - ${this.relativeDate(forum.updated_at ?? forum.created_at)}`,
-      icon: 'forum',
-      tone: 'forum' as const,
-    }));
-    const reportActivities = reports.slice(0, 2).map((report) => ({
-      title: `Denuncia #${report.id}`,
-      meta: `${this.reportStatusLabel(report.status)} - ${this.relativeDate(report.created_at)}`,
-      icon: 'flag',
-      tone: 'report' as const,
-    }));
-
-    return [...reportActivities, ...contentActivities, ...forumActivities, ...userActivities].slice(0, 7);
   }
 
-  private buildAlerts(
-    contents: BackendContent[],
-    forums: BackendForum[],
-    reports: BackendCommentReport[],
-    quizzesCount: number,
-  ): AlertItem[] {
-    const pendingReports = reports.filter((report) => report.status === 'pending').length;
-    const privateForumRequests = forums.filter((forum) => forum.visibility === 'private' || forum.join_approval_required).length;
-    const pendingContents = contents.filter((content) => (content.visibility ?? 'public') !== 'public').length;
-
+  private buildAlerts(summary: AdminDashboardMetricSummary): AlertItem[] {
     return [
       {
         title: 'Denuncias por moderar',
         description: 'Comentarios marcados por utilizadores aguardam revisao.',
-        value: this.formatNumber(pendingReports),
+        value: this.formatNumber(summary.pending_reports),
         icon: 'report',
-        tone: pendingReports ? 'danger' : 'info',
+        tone: summary.pending_reports ? 'danger' : 'info',
         route: '/admin/reports',
       },
       {
         title: 'Conteudos com pendencia',
         description: 'Itens privados, rascunhos ou em revisao editorial.',
-        value: this.formatNumber(pendingContents),
+        value: this.formatNumber(summary.pending_contents),
         icon: 'pending_actions',
-        tone: pendingContents ? 'warning' : 'info',
+        tone: summary.pending_contents ? 'warning' : 'info',
         route: '/admin/contents',
       },
       {
         title: 'Pedidos de foruns privados',
         description: 'Comunidades com acesso restrito ou aprovacao obrigatoria.',
-        value: this.formatNumber(privateForumRequests),
+        value: this.formatNumber(summary.private_forums),
         icon: 'lock_person',
-        tone: privateForumRequests ? 'warning' : 'info',
+        tone: summary.private_forums ? 'warning' : 'info',
         route: '/admin/forum/create',
       },
       {
         title: 'Quizzes disponiveis',
         description: 'Banco de avaliacao ativo para aprendizagem.',
-        value: this.formatNumber(quizzesCount),
+        value: this.formatNumber(summary.total_quizzes),
         icon: 'quiz',
         tone: 'info',
         route: '/admin/quiz',
@@ -233,23 +169,16 @@ export class AdminDashboardPage {
 
   private emptyMetrics(): DashboardMetric[] {
     return [
-      'Conteudos publicados',
+      'Artigos publicados',
       'Pendentes / rascunhos',
+      'Comentarios hoje',
+      'Notificacoes hoje',
       'Utilizadores ativos',
-      'Total de conteudos',
-      'Novos comentarios hoje',
     ].map((label) => ({ label, value: '0', note: 'A carregar', accent: '#8A3F50', progress: 0 }));
   }
 
   private percent(value: number, total: number): number {
     return total > 0 ? Math.min(100, Math.round((value / total) * 100)) : 0;
-  }
-
-  private isToday(value: string | null | undefined): boolean {
-    const date = value ? new Date(value) : null;
-    const today = new Date();
-
-    return Boolean(date && !Number.isNaN(date.getTime()) && date.toDateString() === today.toDateString());
   }
 
   private relativeDate(value: string | null | undefined): string {
@@ -266,18 +195,6 @@ export class AdminDashboardPage {
     }
 
     return `ha ${diffDays} ${diffDays === 1 ? 'dia' : 'dias'}`;
-  }
-
-  private reportStatusLabel(status: string): string {
-    if (status === 'approved') {
-      return 'aprovada';
-    }
-
-    if (status === 'rejected') {
-      return 'reprovada';
-    }
-
-    return 'pendente';
   }
 
   private formatNumber(value: number): string {

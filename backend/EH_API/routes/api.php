@@ -18,6 +18,8 @@ use App\Http\Controllers\ForumController;
 use App\Http\Controllers\ForumReplyController;
 use App\Http\Controllers\ForumTopicController;
 use App\Http\Controllers\Api\V1\ReactionController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminStatisticsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuizAnswerController;
@@ -69,6 +71,10 @@ Route::prefix('v1')->group(function () {
             ->middleware('role:SuperAdmin');
         Route::patch('/users/{user}/jindungo-subscription', [UserController::class, 'updateJindungoSubscription'])
             ->middleware('role:SuperAdmin');
+        Route::get('/admin/dashboard', AdminDashboardController::class)
+            ->middleware('role:Admin,SuperAdmin');
+        Route::get('/admin/statistics', AdminStatisticsController::class)
+            ->middleware('role:Admin,SuperAdmin');
         Route::get('/my-results', [QuizAnswerController::class, 'myResults']);
         Route::get('/my-comment-reports', [CommentReportController::class, 'myCommentReports']);
         Route::get('/content-progress', [ContentProgressController::class, 'mine']);

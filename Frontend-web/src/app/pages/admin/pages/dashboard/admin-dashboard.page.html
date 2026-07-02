@@ -1,60 +1,130 @@
 <app-admin-console-shell activeItem="dashboard">
   <section class="mx-auto grid max-w-6xl gap-5">
-    <app-admin-page-header title="Painel Global" />
+    <app-admin-page-header title="Painel Geral" eyebrow="Resumo executivo da plataforma">
+      <div class="flex flex-wrap items-center gap-3">
+        @for (action of quickActions; track action.route) {
+          <a [routerLink]="action.route" [class]="actionClasses(action) + ' inline-flex h-11 items-center gap-2 rounded-[8px] border px-4 text-[12px] font-extrabold transition'">
+            <span class="material-symbols-outlined text-[18px]">{{ action.icon }}</span>
+            {{ action.label }}
+          </a>
+        }
+      </div>
+    </app-admin-page-header>
 
-    <section class="grid gap-4 md:grid-cols-4">
-      @for (metric of metrics; track metric.label) {
-        <app-admin-metric-card [label]="metric.label" [value]="metric.value" [note]="metric.note" [accent]="metric.accent" />
+    @if (loadError()) {
+      <div class="rounded-[8px] border border-[#E8D5DB] bg-[#F2E6E9] px-4 py-3 text-[12px] font-bold text-[#8A3F50]">
+        {{ loadError() }}
+      </div>
+    }
+
+    <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      @for (metric of metrics(); track metric.label) {
+        <app-admin-metric-card [label]="metric.label" [value]="metric.value" [note]="metric.note" [accent]="metric.accent" [progress]="metric.progress" [showProgress]="true" />
       }
     </section>
 
-    <section class="grid items-stretch gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
-      <article class="rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] p-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
-        <header>
-          <h2 class="text-[22px] font-extrabold leading-none text-[#5C1E2F]">Top Estudantes</h2>
-          <p class="mt-1 text-[12px] font-semibold text-[#9E9E9E]">Estudantes com pontuacoes mais altas nos quizzes</p>
-        </header>
-
-        <div class="mt-5 grid gap-2.5">
-          @for (student of topStudents(); track student.name) {
-            <article class="grid min-h-12 grid-cols-[28px_42px_minmax(0,1fr)_64px] items-center gap-3 rounded-[7px] px-1 transition hover:bg-[#F5F5F5]">
-              <span class="grid size-7 place-items-center rounded-full bg-[#616161] text-[12px] font-extrabold text-white">{{ student.position }}</span>
-              <span class="grid size-10 place-items-center rounded-full bg-[#F2E6E9] text-[12px] font-extrabold text-[#8A3F50]">{{ student.avatar }}</span>
-              <div class="min-w-0">
-                <h3 class="truncate text-[13px] font-extrabold leading-5 text-[#212121]">{{ student.name }}</h3>
-                <p class="text-[12px] font-semibold text-[#9E9E9E]">{{ student.course }}</p>
-              </div>
-              <strong class="font-number inline-flex items-center justify-end gap-2 text-[14px] font-extrabold text-[#5C1E2F]">
-                <span class="material-symbols-outlined text-[16px]" aria-hidden="true">military_tech</span>
-                {{ student.score }}
-              </strong>
-            </article>
-          }
-        </div>
-      </article>
-
-      <article class="rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] p-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
-        <h2 class="text-[16px] font-extrabold leading-none text-[#212121]">Grafico</h2>
-
-        <div class="mt-5 grid grid-cols-[38px_minmax(0,1fr)] gap-4">
-          <div class="grid h-56 content-between pb-8 text-right text-[10px] font-semibold text-[#9E9E9E]">
-            <span>30K</span>
-            <span>20K</span>
-            <span>10K</span>
-            <span>0</span>
+    <section class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div class="grid gap-5">
+        <article class="rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] p-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 class="text-[18px] font-extrabold text-[#5C1E2F]">Acoes rapidas</h2>
+              <p class="mt-1 text-[12px] text-[#616161]">Operacoes frequentes para administrar a plataforma.</p>
+            </div>
+            @if (isLoading()) {
+              <span class="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#616161]">A carregar</span>
+            } @else {
+              <span class="rounded-full bg-[#E9F4F2] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#2A9D8F]">Atualizado</span>
+            }
           </div>
 
-          <div class="grid h-56 grid-cols-6 items-end gap-4 border-l border-[#E0E0E0] pl-5">
-            @for (bar of contentBars; track bar.label) {
-              <div class="grid h-full grid-rows-[1fr_22px] items-end justify-items-center gap-2">
-                <span class="w-full max-w-9 rounded-t-[8px] bg-[#5c1e2f] shadow-[0_10px_20px_rgba(92,30,47,0.12)]" [style.height.%]="bar.value"></span>
-                <span class="truncate text-[10px] font-semibold text-[#9E9E9E]">{{ bar.label }}</span>
+          <div class="mt-5 grid gap-3 sm:grid-cols-2">
+            @for (action of quickActions; track action.route) {
+              <a [routerLink]="action.route" class="group flex min-h-20 items-center gap-3 rounded-[8px] border border-[#E0E0E0] bg-white p-4 text-start transition hover:border-[#8A3F50] hover:bg-[#F2E6E9]">
+                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#F2E6E9] text-[#5C1E2F] transition group-hover:bg-white">
+                  <span class="material-symbols-outlined text-[20px]">{{ action.icon }}</span>
+                </span>
+                <span class="text-[13px] font-extrabold text-[#5C1E2F]">{{ action.label }}</span>
+              </a>
+            }
+          </div>
+        </article>
+
+        <article class="rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] p-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 class="text-[18px] font-extrabold text-[#5C1E2F]">Alertas importantes</h2>
+              <p class="mt-1 text-[12px] text-[#616161]">Pendencias, denuncias e pedidos que precisam de atencao.</p>
+            </div>
+            <a routerLink="/admin/reports" class="inline-flex h-9 items-center gap-2 rounded-[8px] bg-white px-3 text-[11px] font-extrabold text-[#5C1E2F] transition hover:bg-[#F2E6E9]">
+              <span class="material-symbols-outlined text-[17px]">open_in_new</span>
+              Rever
+            </a>
+          </div>
+
+          <div class="mt-5 grid gap-3 lg:grid-cols-2">
+            @for (alert of alerts(); track alert.title) {
+              <a [routerLink]="alert.route" class="group rounded-[8px] border px-4 py-4 transition hover:shadow-[0_12px_28px_rgba(45,33,37,0.08)]" [class]="alertClasses(alert)">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="text-[12px] font-extrabold uppercase tracking-[0.08em]">{{ alert.title }}</p>
+                    <p class="mt-1 text-[12px] leading-5">{{ alert.description }}</p>
+                  </div>
+                  <span class="material-symbols-outlined grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[18px] text-[#5C1E2F]">{{ alert.icon }}</span>
+                </div>
+                <p class="mt-4 text-[24px] font-extrabold text-[#212121]">{{ alert.value }}</p>
+              </a>
+            }
+          </div>
+        </article>
+      </div>
+
+      <aside class="grid gap-5">
+        <article class="rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] p-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-[18px] font-extrabold text-[#5C1E2F]">Ultimas atividades</h2>
+              <p class="mt-1 text-[12px] text-[#616161]">Movimentos recentes da aplicacao.</p>
+            </div>
+            <span class="material-symbols-outlined text-[#8A3F50]">history</span>
+          </div>
+
+          <div class="mt-5 grid gap-3">
+            @for (activity of activities(); track activity.title) {
+              <article class="flex items-start gap-3 rounded-[8px] border border-[#E0E0E0] bg-white p-4">
+                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full" [class]="activityToneClasses(activity)">
+                  <span class="material-symbols-outlined text-[19px]">{{ activity.icon }}</span>
+                </span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-[13px] font-extrabold text-[#212121]">{{ activity.title }}</p>
+                  <p class="mt-1 text-[11px] text-[#9E9E9E]">{{ activity.meta }}</p>
+                </div>
+              </article>
+            } @empty {
+              <p class="rounded-[8px] bg-white p-4 text-[12px] font-bold text-[#616161]">Sem atividades recentes para mostrar.</p>
+            }
+          </div>
+        </article>
+
+        <article class="rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] p-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
+          <h2 class="text-[18px] font-extrabold text-[#5C1E2F]">Composicao de conteudos</h2>
+          <p class="mt-1 text-[12px] text-[#616161]">Leitura rapida por formato editorial.</p>
+
+          <div class="mt-5 grid gap-3">
+            @for (item of contentMix(); track item.label) {
+              <div>
+                <div class="flex items-center justify-between gap-3">
+                  <span class="text-[12px] font-extrabold text-[#212121]">{{ item.label }}</span>
+                  <span class="text-[12px] font-bold text-[#5C1E2F]">{{ item.value }}%</span>
+                </div>
+                <div class="mt-2 h-2 overflow-hidden rounded-full bg-white">
+                  <span class="block h-full rounded-full bg-[#5C1E2F]" [style.width.%]="item.value"></span>
+                </div>
               </div>
             }
           </div>
-        </div>
-      </article>
+        </article>
+      </aside>
     </section>
-
   </section>
 </app-admin-console-shell>

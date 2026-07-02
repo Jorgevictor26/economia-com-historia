@@ -24,64 +24,45 @@
       </section>
     }
 
-    <section class="grid gap-4 md:grid-cols-3">
-      <article class="flex min-h-20 items-center gap-4 rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
-        <span class="grid size-10 place-items-center rounded-[7px] bg-[#F2E6E9] text-[#8A3F50]">
-          <span class="material-symbols-outlined text-[21px]" aria-hidden="true">groups</span>
-        </span>
-        <div>
-          <strong class="block text-[17px] text-[#5c1e2f]">{{ adminCount }}</strong>
-          <span class="text-[10px] font-extrabold uppercase tracking-[0.04em] text-[#9E9E9E]">Total de admins</span>
-        </div>
-      </article>
-
-      <article class="flex min-h-20 items-center gap-4 rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
-        <span class="grid size-10 place-items-center rounded-[7px] bg-[#F2E6E9] text-[#8A3F50]">
-          <span class="material-symbols-outlined text-[21px]" aria-hidden="true">shield</span>
-        </span>
-        <div>
-          <strong class="block text-[17px] text-[#5c1e2f]">{{ superAdminCount }}</strong>
-          <span class="text-[10px] font-extrabold uppercase tracking-[0.04em] text-[#9E9E9E]">Super admins</span>
-        </div>
-      </article>
-
-      <article class="flex min-h-20 items-center gap-4 rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
-        <span class="grid size-10 place-items-center rounded-[7px] bg-[#F2E6E9] text-[#8A3F50]">
-          <span class="material-symbols-outlined text-[21px]" aria-hidden="true">history</span>
-        </span>
-        <div>
-          <strong class="block text-[17px] text-[#5c1e2f]">{{ pendingCount }}</strong>
-          <span class="text-[10px] font-extrabold uppercase tracking-[0.04em] text-[#9E9E9E]">Solicitações pendentes</span>
-        </div>
-      </article>
+    <section class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      @for (metric of metrics; track metric.label) {
+        <article class="flex min-h-[108px] items-center gap-4 rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
+          <span class="grid size-12 shrink-0 place-items-center rounded-full" [class]="metricToneClasses(metric.tone)">
+            <span class="material-symbols-outlined text-[25px]" aria-hidden="true">{{ metric.icon }}</span>
+          </span>
+          <div class="min-w-0">
+            <span class="block text-[11px] font-extrabold text-[#616161]">{{ metric.label }}</span>
+            <strong class="mt-1 block text-[24px] font-black leading-none text-[#212121]">{{ metric.value }}</strong>
+            <span class="mt-1 block text-[10px] font-bold text-[#9E9E9E]">{{ metric.change }}</span>
+          </div>
+        </article>
+      }
     </section>
 
-    <section class="grid gap-3">
-      <div class="grid gap-3 md:grid-cols-[minmax(220px,1fr)_minmax(180px,0.65fr)]">
-        <label class="grid gap-1">
-          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50]">Pesquisar</span>
-          <div class="flex h-9 items-center gap-2 rounded-[6px] border border-[#E0E0E0] bg-white px-3 shadow-[0_10px_24px_rgba(27,22,30,0.035)]">
-            <span class="material-symbols-outlined text-[16px] text-[#9E9E9E]" aria-hidden="true">search</span>
-            <input type="search" placeholder="Nome ou email..." [value]="searchTerm" (input)="updateSearch($event)" class="min-w-0 flex-1 border-0 bg-transparent text-[12px] text-[#212121] outline-none placeholder:text-[#9E9E9E]" />
-          </div>
-        </label>
-
-        <label class="grid gap-1">
-          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50]">Nível de acesso</span>
-          <select [value]="selectedRole" (change)="updateRole($event)" class="h-9 rounded-[6px] border border-[#E0E0E0] bg-white px-3 text-[12px] text-[#212121] shadow-[0_10px_24px_rgba(27,22,30,0.035)] outline-none">
-            <option>Todos os cargos</option>
-            <option>Super admin</option>
-            <option>Administrador</option>
-            <option>Escritor</option>
-            <option>Utilizador</option>
-          </select>
+    <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-3 shadow-[0_12px_28px_rgba(45,33,37,0.04)] sm:p-4">
+      <div class="grid gap-3">
+        <label class="flex h-10 items-center gap-2 rounded-[6px] border border-[#E0E0E0] bg-white px-3 text-[#9E9E9E]">
+          <span class="material-symbols-outlined text-[17px]" aria-hidden="true">search</span>
+          <input type="search" placeholder="Pesquisar por nome, email ou categoria..." [value]="searchTerm" (input)="updateSearch($event)" class="min-w-0 flex-1 border-0 bg-transparent text-[12px] font-semibold text-[#212121] outline-none placeholder:text-[#9E9E9E]" />
         </label>
       </div>
 
-      <section class="overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
+      <nav class="mt-4 flex gap-6 overflow-x-auto border-b border-[#E0E0E0] px-1" aria-label="Categorias de utilizadores">
+        @for (tab of tabs; track tab.label) {
+          <button type="button" (click)="setActiveTab(tab)" class="relative flex h-10 shrink-0 items-center gap-2 text-[11px] font-extrabold transition" [class.text-[#8A3F50]]="activeTab === tab.label" [class.text-[#616161]]="activeTab !== tab.label">
+            {{ tab.label }}
+            <span class="rounded-full px-2 py-0.5 text-[9px]" [class.bg-[#F2E6E9]]="activeTab === tab.label" [class.text-[#8A3F50]]="activeTab === tab.label" [class.bg-[#F5F5F5]]="activeTab !== tab.label" [class.text-[#9E9E9E]]="activeTab !== tab.label">{{ tab.count }}</span>
+            @if (activeTab === tab.label) {
+              <span class="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#8A3F50]"></span>
+            }
+          </button>
+        }
+      </nav>
+
+      <section class="mt-5 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white shadow-[0_18px_45px_rgba(27,22,30,0.05)]">
         <div class="grid grid-cols-[minmax(210px,1.2fr)_minmax(130px,0.58fr)_minmax(90px,0.42fr)_minmax(115px,0.5fr)_48px] gap-4 border-b border-[#E0E0E0] bg-[#F5F5F5] px-5 py-3 text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50] max-xl:hidden">
-          <span>Administrador</span>
-          <span>Cargo</span>
+          <span>Users</span>
+          <span>Categoria</span>
           <span>Status</span>
           <span>Último acesso</span>
           <span class="text-right">Ações</span>
@@ -104,7 +85,7 @@
               </div>
 
               <span class="w-fit rounded-[4px] bg-[#F5F5F5] px-2.5 py-1 text-[9px] font-extrabold uppercase text-[#616161]">
-                {{ user.position }}
+                {{ user.category }}
               </span>
 
               <span class="inline-flex items-center gap-2 text-[12px] font-bold" [class.text-[#616161]]="user.status === 'Ativo'" [class.text-[#8A3F50]]="user.status === 'Pendente'" [class.text-[#616161]]="user.status === 'Inativo'">
@@ -123,7 +104,7 @@
                   <div class="absolute right-0 z-20 mt-2 grid min-w-40 gap-1 rounded-[8px] border border-[#E0E0E0] bg-white p-2 shadow-[0_18px_45px_rgba(27,22,30,0.12)] max-xl:left-0 max-xl:right-auto">
                     @if (canPromoteToWriter(user)) {
                       <button type="button" (click)="promoteToWriter(user)" [disabled]="isSaving" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9] disabled:opacity-50">
-                        Promover a escritor
+                        Tornar writer
                       </button>
                     }
 
@@ -153,7 +134,7 @@
         }
 
         <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-[#E0E0E0] px-5 py-4 text-[11px] text-[#9E9E9E]">
-          <span>Mostrando {{ pageStart }}-{{ pageEnd }} de {{ filteredUsers.length }} administradores</span>
+          <span>Mostrando {{ pageStart }}-{{ pageEnd }} de {{ filteredUsers.length }} users</span>
           <div class="flex items-center gap-2">
             <button type="button" (click)="previousPage()" [disabled]="currentPage === 1" class="h-8 rounded-[5px] border border-[#E0E0E0] bg-white px-3 text-[11px] font-bold text-[#616161] transition hover:border-[#8A3F50] disabled:cursor-not-allowed disabled:opacity-50">Anterior</button>
             <button type="button" (click)="nextPage()" [disabled]="currentPage === totalPages" class="h-8 rounded-[5px] border border-[#8A3F50] bg-white px-3 text-[11px] font-bold text-[#8A3F50] transition hover:bg-[#F2E6E9] disabled:cursor-not-allowed disabled:opacity-50">Próxima</button>
@@ -171,7 +152,7 @@
             <p class="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#9E9E9E]">Utilizadores elegíveis</p>
             <h2 id="promotion-modal-title" class="mt-1 text-[22px] font-extrabold text-[#5C1E2F]">Promover membro</h2>
             <p class="mt-1 max-w-xl text-[12px] font-semibold leading-5 text-[#616161]">
-              Super administradores podem promover para escritor ou administrador. Administradores promovem apenas para escritor.
+              Super admins podem promover para writer ou admin. Admins promovem apenas users para writer.
             </p>
           </div>
 
@@ -185,7 +166,7 @@
             <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50]">Pesquisar utilizador</span>
             <div class="flex h-10 items-center gap-2 rounded-[6px] border border-[#E0E0E0] bg-white px-3 shadow-[0_10px_24px_rgba(27,22,30,0.035)]">
               <span class="material-symbols-outlined text-[16px] text-[#9E9E9E]" aria-hidden="true">search</span>
-              <input type="search" placeholder="Nome, email, cargo ou nível..." [value]="promotionSearchTerm" (input)="updatePromotionSearch($event)" class="min-w-0 flex-1 border-0 bg-transparent text-[12px] text-[#212121] outline-none placeholder:text-[#9E9E9E]" />
+              <input type="search" placeholder="Nome, email ou categoria..." [value]="promotionSearchTerm" (input)="updatePromotionSearch($event)" class="min-w-0 flex-1 border-0 bg-transparent text-[12px] text-[#212121] outline-none placeholder:text-[#9E9E9E]" />
             </div>
           </label>
         </div>
@@ -204,7 +185,7 @@
               <div class="flex flex-wrap items-center gap-2">
                 @if (canPromoteToWriter(user)) {
                   <button type="button" (click)="promoteToWriter(user)" class="inline-flex h-8 items-center justify-center rounded-[5px] border border-[#E0E0E0] bg-white px-3 text-[11px] font-extrabold text-[#8A3F50] transition hover:border-[#8A3F50]">
-                    Promover a escritor
+                    Tornar writer
                   </button>
                 }
 

@@ -11,9 +11,23 @@ interface ManagedUser {
   name: string;
   email: string;
   role: UserRole;
-  position: string;
+  category: string;
   status: 'Ativo' | 'Inativo' | 'Pendente';
   lastAccess: string;
+}
+
+interface UserMetric {
+  label: string;
+  value: string;
+  change: string;
+  icon: string;
+  tone: 'orange' | 'purple' | 'green' | 'blue';
+}
+
+interface UserTab {
+  label: string;
+  count: number;
+  roles?: UserRole[];
 }
 
 @Component({
@@ -31,7 +45,7 @@ export class AdminUsersPage {
   superAdminModalOpen = false;
   promotionSearchTerm = '';
   searchTerm = '';
-  selectedRole = 'Todos os cargos';
+  activeTab = 'Todos';
   currentPage = 1;
   readonly pageSize = 4;
   users: ManagedUser[] = [];
@@ -43,20 +57,22 @@ export class AdminUsersPage {
     void this.loadUsers();
   }
 
-  get adminCount(): number {
-    return this.users.filter((user) => user.role === 'admin' || user.role === 'super-admin').length;
-  }
+  get metrics(): UserMetric[] {
+    const metrics: UserMetric[] = [
+      { label: 'Total de users', value: String(this.visibleUsers.length), change: 'Utilizadores visíveis', icon: 'groups', tone: 'blue' },
+      { label: 'Users', value: String(this.countByRoles(['student'])), change: 'Contas comuns', icon: 'person', tone: 'orange' },
+      { label: 'Writers', value: String(this.countByRoles(['writer'])), change: 'Podem criar conteúdos', icon: 'edit_square', tone: 'green' },
+    ];
 
-  get superAdminCount(): number {
-    return this.users.filter((user) => user.role === 'super-admin').length;
-  }
+    if (this.auth.isSuperAdmin()) {
+      metrics.push({ label: 'Admins', value: String(this.countByRoles(['admin', 'super-admin'])), change: 'Gestão da plataforma', icon: 'admin_panel_settings', tone: 'purple' });
+    }
 
-  get pendingCount(): number {
-    return this.users.filter((user) => user.status === 'Pendente').length;
+    return metrics;
   }
 
   get canPromoteUsers(): boolean {
-    return this.users.some((user) => this.canPromoteToWriter(user) || this.canPromoteToAdmin(user) || this.canPromoteToSuperAdmin(user));
+    return this.visibleUsers.some((user) => this.canPromoteToWriter(user) || this.canPromoteToAdmin(user) || this.canPromoteToSuperAdmin(user));
   }
 
   get canCreateSuperAdmin(): boolean {
@@ -64,17 +80,36 @@ export class AdminUsersPage {
   }
 
   get visibleUsers(): ManagedUser[] {
-    return this.users;
+    if (this.auth.isSuperAdmin()) {
+      return this.users;
+    }
+
+    return this.users.filter((user) => user.role === 'student' || user.role === 'writer');
+  }
+
+  get tabs(): UserTab[] {
+    const tabs: UserTab[] = [
+      { label: 'Todos', count: this.visibleUsers.length },
+      { label: 'Users', count: this.countByRoles(['student']), roles: ['student'] },
+      { label: 'Writers', count: this.countByRoles(['writer']), roles: ['writer'] },
+    ];
+
+    if (this.auth.isSuperAdmin()) {
+      tabs.push({ label: 'Admins', count: this.countByRoles(['admin', 'super-admin']), roles: ['admin', 'super-admin'] });
+    }
+
+    return tabs;
   }
 
   get filteredUsers(): ManagedUser[] {
     const query = this.normalize(this.searchTerm);
 
     return this.visibleUsers.filter((user) => {
-      const matchesSearch = !query || this.normalize(`${user.name} ${user.email}`).includes(query);
-      const matchesRole = this.selectedRole === 'Todos os cargos' || this.roleLabel(user.role) === this.selectedRole || user.position === this.selectedRole;
+      const activeTab = this.tabs.find((tab) => tab.label === this.activeTab);
+      const matchesSearch = !query || this.normalize(`${user.name} ${user.email} ${user.category} ${this.roleLabel(user.role)}`).includes(query);
+      const matchesTab = !activeTab?.roles || activeTab.roles.includes(user.role);
 
-      return matchesSearch && matchesRole;
+      return matchesSearch && matchesTab;
     });
   }
 
@@ -124,6 +159,17 @@ export class AdminUsersPage {
     return labels[role];
   }
 
+  metricToneClasses(tone: UserMetric['tone']): string {
+    const classes: Record<UserMetric['tone'], string> = {
+      orange: 'bg-[#F2E6E9] text-[#8A3F50]',
+      purple: 'bg-[#F2E6E9] text-[#8A3F50]',
+      green: 'bg-[#E9F4F2] text-[#2A9D8F]',
+      blue: 'bg-[#F5F5F5] text-[#616161]',
+    };
+
+    return classes[tone];
+  }
+
   canPromoteToWriter(user: ManagedUser): boolean {
     return ['admin', 'super-admin'].includes(this.auth.user()?.role ?? 'student') && user.role === 'student';
   }
@@ -141,7 +187,7 @@ export class AdminUsersPage {
 
     return this.visibleUsers.filter((user) => {
       const isEligible = this.canPromoteToWriter(user) || this.canPromoteToAdmin(user) || this.canPromoteToSuperAdmin(user);
-      const matchesSearch = !query || this.normalize(`${user.name} ${user.email} ${user.position} ${this.roleLabel(user.role)}`).includes(query);
+      const matchesSearch = !query || this.normalize(`${user.name} ${user.email} ${user.category} ${this.roleLabel(user.role)}`).includes(query);
 
       return isEligible && matchesSearch;
     });
@@ -177,8 +223,8 @@ export class AdminUsersPage {
     this.currentPage = 1;
   }
 
-  updateRole(event: Event): void {
-    this.selectedRole = (event.target as HTMLSelectElement).value;
+  setActiveTab(tab: UserTab): void {
+    this.activeTab = tab.label;
     this.currentPage = 1;
   }
 
@@ -299,7 +345,7 @@ export class AdminUsersPage {
       name: user.name,
       email: user.email,
       role,
-      position: this.roleLabel(role),
+      category: this.userCategory(role),
       status: this.toStatus(user.status),
       lastAccess: this.formatDate(user.updated_at ?? user.created_at),
     };
@@ -325,6 +371,22 @@ export class AdminUsersPage {
     }
 
     return 'student';
+  }
+
+  private countByRoles(roles: UserRole[]): number {
+    return this.visibleUsers.filter((user) => roles.includes(user.role)).length;
+  }
+
+  private userCategory(role: UserRole): string {
+    const labels: Record<UserRole, string> = {
+      student: 'User',
+      writer: 'Writer',
+      moderator: 'Moderador',
+      admin: 'Admin',
+      'super-admin': 'Super admin',
+    };
+
+    return labels[role];
   }
 
   private toStatus(status: string | null | undefined): ManagedUser['status'] {

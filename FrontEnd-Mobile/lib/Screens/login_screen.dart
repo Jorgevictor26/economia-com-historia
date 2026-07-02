@@ -1,7 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../config/google_auth_config.dart';
 import '../core/exceptions/app_exceptions.dart';
 import '../services/perfil_service.dart';
 import '../shared/main_navigation_screen.dart';
@@ -20,8 +22,10 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _senhaController = TextEditingController();
+  final _googleSignIn = buildGoogleSignIn();
   bool _obscureSenha = true;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
 
   @override
   void dispose() {
@@ -57,8 +61,50 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _handleGoogle() {
-    _showSnackBar('Login com Google estará disponível em breve.');
+  Future<void> _handleGoogle() async {
+    if (_isLoading || _isGoogleLoading) return;
+
+    setState(() => _isGoogleLoading = true);
+    try {
+      final account = await _googleSignIn.signIn();
+      if (account == null) return;
+
+      final auth = await account.authentication;
+      final idToken = auth.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        _showSnackBar('Não foi possível validar a conta Google.');
+        return;
+      }
+
+      if (!mounted) return;
+      await context.read<PerfilService>().loginWithGoogle(idToken);
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+        (route) => false,
+      );
+    } on AppException catch (e) {
+      if (mounted) _showSnackBar(e.message);
+    } on PlatformException catch (e) {
+      debugPrint('Platform auth error: ${e.code} ${e.message}');
+      if (mounted) _showSnackBar(_platformAuthErrorMessage(e));
+    } catch (_) {
+      if (mounted) _showSnackBar('Erro ao iniciar sessão com Google.');
+    } finally {
+      if (mounted) setState(() => _isGoogleLoading = false);
+    }
+  }
+
+  String _platformAuthErrorMessage(PlatformException error) {
+    final raw = '${error.code} ${error.message ?? ''}'.toLowerCase();
+    if (raw.contains('network')) {
+      return 'Sem conexao a internet. Verifique a rede e tente novamente.';
+    }
+    if (raw.contains('10') || raw.contains('sign_in_failed')) {
+      return 'Nao foi possivel validar a configuracao Google deste dispositivo.';
+    }
+    return 'Nao foi possivel autenticar com Google. Tente novamente.';
   }
 
   void _showSnackBar(String message) {
@@ -201,51 +247,68 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 28),
-              Row(
-                children: [
-                  const Expanded(child: Divider(color: AppColors.borderSoft)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      'OU ACEDA COM',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textLight,
-                        letterSpacing: 0.8,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    const Expanded(child: Divider(color: AppColors.borderSoft)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'OU ACEDA COM',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textLight,
+                          letterSpacing: 0.8,
+                        ),
                       ),
                     ),
-                  ),
-                  const Expanded(child: Divider(color: AppColors.borderSoft)),
-                ],
+                    const Expanded(child: Divider(color: AppColors.borderSoft)),
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: OutlinedButton.icon(
-                  onPressed: _handleGoogle,
-                  icon: Image.asset(
-                    'assets/images/Google.png',
-                    width: 20,
-                    height: 20,
-                  ),
-                  label: const Text(
-                    'Google',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: OutlinedButton.icon(
+                    onPressed: (_isLoading || _isGoogleLoading)
+                        ? null
+                        : _handleGoogle,
+                    icon: _isGoogleLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.primary,
+                            ),
+                          )
+                        : Image.asset(
+                            'assets/images/Google.png',
+                            width: 20,
+                            height: 20,
+                          ),
+                    label: Text(
+                      _isGoogleLoading ? 'A entrar...' : 'Google',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                      ),
                     ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: AppColors.cardBackground,
-                    side: const BorderSide(
-                      color: AppColors.borderSoft,
-                      width: 1.2,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(1),
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: AppColors.cardBackground,
+                      side: const BorderSide(
+                        color: AppColors.borderSoft,
+                        width: 1.2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
                 ),

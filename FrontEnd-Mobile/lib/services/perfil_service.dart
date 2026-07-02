@@ -99,14 +99,17 @@ class PerfilService extends ChangeNotifier {
         email: email,
         password: password,
       );
-      _usuario = session.user;
-      if (_usuario?.isSuspended ?? false) {
-        await logout();
-        throw const ForbiddenException(
-          'A sua conta está suspensa. Contacte o suporte.',
-        );
-      }
-      notifyListeners();
+      await _applySession(session.user);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> loginWithGoogle(String idToken) async {
+    _setLoading(true);
+    try {
+      final session = await _authService.loginWithGoogle(idToken: idToken);
+      await _applySession(session.user);
     } finally {
       _setLoading(false);
     }
@@ -175,6 +178,17 @@ class PerfilService extends ChangeNotifier {
   Future<void> logout() async {
     await _authService.logout();
     clearLocalSession();
+  }
+
+  Future<void> _applySession(User user) async {
+    _usuario = user;
+    if (_usuario?.isSuspended ?? false) {
+      await logout();
+      throw const ForbiddenException(
+        'A sua conta está suspensa. Contacte o suporte.',
+      );
+    }
+    notifyListeners();
   }
 
   void clearLocalSession() {

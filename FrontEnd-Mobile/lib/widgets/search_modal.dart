@@ -18,19 +18,20 @@ import '../theme/app_colors.dart';
 
 class SearchModal {
   static void show(BuildContext context) {
+    final navigator = Navigator.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _SearchModalContent(parentContext: context),
+      builder: (_) => _SearchModalContent(navigator: navigator),
     );
   }
 }
 
 class _SearchModalContent extends StatefulWidget {
-  final BuildContext parentContext;
+  final NavigatorState navigator;
 
-  const _SearchModalContent({required this.parentContext});
+  const _SearchModalContent({required this.navigator});
 
   @override
   State<_SearchModalContent> createState() => _SearchModalContentState();
@@ -164,9 +165,13 @@ class _SearchModalContentState extends State<_SearchModalContent> {
   }
 
   void _open(Widget screen) {
-    final navigator = Navigator.of(widget.parentContext);
+    final navigator = widget.navigator;
+    FocusManager.instance.primaryFocus?.unfocus();
     Navigator.of(context).pop();
-    navigator.push(MaterialPageRoute(builder: (_) => screen));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!navigator.mounted) return;
+      navigator.push(MaterialPageRoute(builder: (_) => screen));
+    });
   }
 
   @override

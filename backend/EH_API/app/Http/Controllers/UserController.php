@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\DTOs\User\CreateUserDTO;
+use App\Http\Requests\User\CreateSuperAdminRequest;
 use App\DTOs\User\UpdateUserDTO;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\User;
@@ -22,6 +24,38 @@ class UserController extends Controller
         return response()->json([
             'data' => $request->user()->load('roles'),
         ]);
+    }
+
+    public function index(Request $request): JsonResponse
+    {
+        try {
+            $users = $this->users->all($request->user(), $request->only(['search', 'per_page']));
+        } catch (AuthorizationException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 403);
+        }
+
+        return response()->json($users);
+    }
+
+    public function createSuperAdmin(CreateSuperAdminRequest $request): JsonResponse
+    {
+        try {
+            $user = $this->users->createSuperAdmin(
+                CreateUserDTO::fromArray($request->validated()),
+                $request->user()
+            );
+        } catch (AuthorizationException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 403);
+        }
+
+        return response()->json([
+            'message' => 'SuperAdmin criado com sucesso',
+            'data' => $user,
+        ], 201);
     }
 
     public function updateProfile(UpdateUserRequest $request)

@@ -24,4 +24,13 @@ class QuizAnswerRepository
             ->sortBy('id')
             ->values();
     }
+
+    public function byResult(int $resultId): Collection
+    {
+        return QuizAnswer::query()
+            ->with('question')
+            ->where('quiz_result_id', $resultId)
+            ->oldest()
+            ->get();
+    }
 }

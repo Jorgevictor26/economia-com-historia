@@ -18,6 +18,8 @@ class Forum extends Model
         'category',
         'image_url',
         'visibility',
+        'access_code',
+        'join_approval_required',
         'content_permission',
         'allow_attachments',
         'status',
@@ -28,6 +30,7 @@ class Forum extends Model
     protected $casts = [
         'reviewed_at' => 'datetime',
         'allow_attachments' => 'boolean',
+        'join_approval_required' => 'boolean',
     ];
 
     public function user()

@@ -36,7 +36,10 @@ class QuizProgressService
             [
                 'progress_percent' => $dto->progressPercent,
                 'current_question_index' => $dto->currentQuestionIndex,
+                'correct_count' => $dto->correctCount,
+                'elapsed_seconds' => $dto->elapsedSeconds,
                 'answered_questions' => $dto->answeredQuestions,
+                'question_order' => $dto->questionOrder,
                 'completed_at' => $dto->progressPercent >= 100 ? now() : null,
             ]
         );

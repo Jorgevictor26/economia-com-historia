@@ -13,6 +13,7 @@ class QuizAnswer extends Model
     public const UPDATED_AT = null;
 
     protected $fillable = [
+        'quiz_result_id',
         'question_id',
         'user_id',
         'selected_option',
@@ -26,6 +27,11 @@ class QuizAnswer extends Model
     public function question(): BelongsTo
     {
         return $this->belongsTo(Question::class);
+    }
+
+    public function result(): BelongsTo
+    {
+        return $this->belongsTo(QuizResult::class, 'quiz_result_id');
     }
 
     public function user(): BelongsTo

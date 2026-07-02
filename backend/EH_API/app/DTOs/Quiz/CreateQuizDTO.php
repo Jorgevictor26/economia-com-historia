@@ -11,7 +11,7 @@ readonly class CreateQuizDTO
         public ?string $description = null,
         public ?string $coverUrl = null,
         public string $difficulty = 'medio',
-        public int $xpPerQuestion = 15,
+        public int $xpPerQuestion = 10,
         public ?int $timeLimit = null,
     ) {
     }
@@ -25,7 +25,7 @@ readonly class CreateQuizDTO
             description: $data['description'] ?? null,
             coverUrl: $data['cover_url'] ?? null,
             difficulty: $data['difficulty'],
-            xpPerQuestion: (int) $data['xp_per_question'],
+            xpPerQuestion: 10,
             timeLimit: isset($data['time_limit']) ? (int) $data['time_limit'] : null,
         );
     }

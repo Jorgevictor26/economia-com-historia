@@ -57,6 +57,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', LogoutController::class);
         Route::get('/profile', [UserController::class, 'me']);
         Route::put('/profile', [UserController::class, 'updateProfile']);
+        Route::get('/users', [UserController::class, 'index'])
+            ->middleware('role:Admin,SuperAdmin');
+        Route::post('/users/super-admin', [UserController::class, 'createSuperAdmin'])
+            ->middleware('role:SuperAdmin');
         Route::patch('/users/{user}/roles/writer', [UserController::class, 'promoteToWriter'])
             ->middleware('role:Admin,SuperAdmin');
         Route::patch('/users/{user}/roles/admin', [UserController::class, 'promoteToAdmin'])

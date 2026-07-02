@@ -11,7 +11,7 @@ class QuizRepository
     public function all(array $filters = []): LengthAwarePaginator
     {
         return Quiz::query()
-            ->with(['user', 'content'])
+            ->with(['user', 'content.category'])
             ->withCount('questions')
             ->when($filters['search'] ?? null, function ($query, string $search) {
                 $query->where(function ($searchQuery) use ($search) {
@@ -28,19 +28,19 @@ class QuizRepository
 
     public function findById(int $id): ?Quiz
     {
-        return Quiz::with(['user', 'content', 'questions'])->find($id);
+        return Quiz::with(['user', 'content.category', 'questions'])->find($id);
     }
 
     public function create(array $data): Quiz
     {
-        return Quiz::create($data)->load(['user', 'content', 'questions']);
+        return Quiz::create($data)->load(['user', 'content.category', 'questions']);
     }
 
     public function update(Quiz $quiz, array $data): Quiz
     {
         $quiz->update($data);
 
-        return $quiz->fresh(['user', 'content', 'questions']);
+        return $quiz->fresh(['user', 'content.category', 'questions']);
     }
 
     public function delete(Quiz $quiz): bool
@@ -53,6 +53,14 @@ class QuizRepository
         return Quiz::findOrFail($quizId)
             ->questions()
             ->latest()
+            ->get();
+    }
+
+    public function allByTheme(string $theme): Collection
+    {
+        return Quiz::query()
+            ->with(['content.category'])
+            ->whereHas('content.category', fn ($query) => $query->where('name', $theme))
             ->get();
     }
 }

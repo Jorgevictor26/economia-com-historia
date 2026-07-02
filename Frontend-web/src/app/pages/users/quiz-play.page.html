@@ -1,117 +1,160 @@
-    @if (!auth.isAuthenticated()) {
-      <main class="-m-6 grid min-h-dvh place-items-center bg-[#F5F5F5] px-5 text-[#212121]">
-        <section class="w-full max-w-[420px] rounded-[8px] border border-[#E6D5B8] bg-white p-7 text-center shadow-xl">
-          <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#D4AF37]">Login obrigatório</p>
-          <h1 class="mt-3 font-display text-[28px] font-extrabold text-[#5c1e2f]">Entre para fazer o quiz</h1>
-          <p class="mt-3 text-[14px] leading-6 text-[#616161]">Pode ver os quizzes e ler os conteúdos relacionados, mas precisa iniciar sessão para responder.</p>
-          <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <a routerLink="/auth/login" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-6 text-[13px] font-bold text-white">Entrar</a>
-            <a routerLink="/app/quizzes" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#E6D5B8] px-6 text-[13px] font-bold text-[#5c1e2f]">Voltar</a>
+@if (!auth.isAuthenticated()) {
+  <main class="-m-6 grid min-h-dvh place-items-center bg-[#F5F5F5] px-5 text-[#212121]">
+    <section class="w-full max-w-[420px] rounded-[8px] border border-[#E6D5B8] bg-white p-7 text-center shadow-xl">
+      <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#D4AF37]">Login obrigatório</p>
+      <h1 class="mt-3 font-display text-[28px] font-extrabold text-[#5c1e2f]">Entre para fazer o quiz</h1>
+      <p class="mt-3 text-[14px] leading-6 text-[#616161]">Pode ver os quizzes e ler os conteúdos relacionados, mas precisa iniciar sessão para responder.</p>
+      <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <a routerLink="/auth/login" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-6 text-[13px] font-bold text-white">Entrar</a>
+        <a routerLink="/app/quizzes" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#E6D5B8] px-6 text-[13px] font-bold text-[#5c1e2f]">Voltar</a>
+      </div>
+    </section>
+  </main>
+} @else if (isLoading()) {
+  <main class="-m-6 grid min-h-dvh place-items-center bg-[#F5F5F5] px-5">
+    <section class="rounded-[8px] border border-[#E6D5B8] bg-white p-7 text-center">
+      <h1 class="font-display text-[24px] font-extrabold text-[#5c1e2f]">A carregar quiz...</h1>
+    </section>
+  </main>
+} @else if (!quiz()) {
+  <main class="-m-6 grid min-h-dvh place-items-center bg-[#F5F5F5] px-5">
+    <section class="rounded-[8px] border border-[#E6D5B8] bg-white p-7 text-center">
+      <h1 class="font-display text-[24px] font-extrabold text-[#5c1e2f]">Quiz não encontrado</h1>
+      <a routerLink="/app/quizzes" class="mt-5 inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-4 text-[12px] font-bold text-white">Ver quizzes</a>
+    </section>
+  </main>
+} @else {
+  <main class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
+    <header class="sticky top-0 z-30 border-b border-[#F2E6E9] bg-white/95 backdrop-blur">
+      <div class="mx-auto flex h-16 max-w-5xl items-center gap-4 px-5">
+        <a routerLink="/app/quizzes" class="grid size-10 place-items-center rounded-[100%] border border-[#E6D5B8] text-[20px] text-[#5c1e2f]" aria-label="Sair do quiz">×</a>
+        <div class="min-w-0 flex-1">
+          <div class="h-3 overflow-hidden rounded-[999px] bg-[#E0E0E0]">
+            <span class="block h-full rounded-[999px] bg-[#5c1e2f] transition-all duration-300" [style.width.%]="progressPercent()"></span>
           </div>
-        </section>
-      </main>
-    } @else if (isLoading()) {
-      <main class="-m-6 grid min-h-dvh place-items-center bg-[#F5F5F5] px-5">
-        <section class="rounded-[8px] border border-[#E6D5B8] bg-white p-7 text-center">
-          <h1 class="font-display text-[24px] font-extrabold text-[#5c1e2f]">A carregar quiz...</h1>
-        </section>
-      </main>
-    } @else if (!quiz()) {
-      <main class="-m-6 grid min-h-dvh place-items-center bg-[#F5F5F5] px-5">
-        <section class="rounded-[8px] border border-[#E6D5B8] bg-white p-7 text-center">
-          <h1 class="font-display text-[24px] font-extrabold text-[#5c1e2f]">Quiz não encontrado</h1>
-          <a routerLink="/app/quizzes" class="mt-5 inline-flex h-9 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-4 text-[12px] font-bold text-white">Ver quizzes</a>
-        </section>
-      </main>
-    } @else {
-      <main class="-m-6 min-h-dvh bg-[#F5F5F5] text-[#212121]">
-        <header class="sticky top-0 z-30 border-b border-[#F2E6E9] bg-white/95 backdrop-blur">
-          <div class="mx-auto flex h-16 max-w-5xl items-center gap-4 px-5">
-            <a routerLink="/app/quizzes" class="grid size-10 place-items-center rounded-[100%] border border-[#E6D5B8] text-[20px] text-[#5c1e2f]" aria-label="Sair do quiz">×</a>
-            <div class="min-w-0 flex-1">
-              <div class="h-3 overflow-hidden rounded-[999px] bg-[#E0E0E0]">
-                <span class="block h-full rounded-[999px] bg-[#5c1e2f] transition-all duration-300" [style.width.%]="progressPercent()"></span>
-              </div>
-              <div class="mt-2 flex justify-between gap-3 text-[11px] font-bold text-[#616161]">
-                <span>Pergunta {{ currentIndex() + 1 }} de {{ totalQuestions() }}</span>
-                <span>{{ correctCount() }} acertos</span>
-              </div>
-            </div>
+          <div class="mt-2 flex justify-between gap-3 text-[11px] font-bold text-[#616161]">
+            <span>Pergunta {{ currentIndex() + 1 }} de {{ totalQuestions() }}</span>
+            <span>{{ correctCount() }} acertos</span>
           </div>
-        </header>
+        </div>
+      </div>
+    </header>
 
-        <section class="mx-auto grid min-h-[calc(100dvh-64px)] max-w-5xl content-start px-5 py-8">
-          @if (!finished()) {
-            <div class="mx-auto w-full max-w-2xl">
-              <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#D4AF37]">{{ quiz()!.topic }}</p>
-              <h1 class="mt-4 font-display text-[28px] font-extrabold leading-tight text-[#5C1E2F]">{{ currentQuestion().prompt }}</h1>
+    <section class="mx-auto grid min-h-[calc(100dvh-64px)] max-w-5xl content-start px-5 py-8">
+      @if (resumePromptOpen()) {
+        <div class="mx-auto mb-6 w-full max-w-2xl rounded-[8px] border border-[#E6D5B8] bg-white p-5 shadow-xl">
+          <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#D4AF37]">Quiz em progresso</p>
+          <h2 class="mt-2 font-display text-[24px] font-extrabold text-[#5c1e2f]">Continuar Quiz?</h2>
+          <p class="mt-2 text-[13px] leading-6 text-[#616161]">Encontramos uma tentativa guardada. Pode continuar do ponto onde parou ou recomeçar o quiz.</p>
+          <div class="mt-5 flex flex-col gap-3 sm:flex-row">
+            <button type="button" class="h-11 rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white" (click)="continueSavedQuiz()">Continuar Quiz</button>
+            <button type="button" class="h-11 rounded-[8px] border border-[#E6D5B8] px-5 text-[13px] font-bold text-[#5c1e2f]" (click)="restartQuiz()">Recomeçar Quiz</button>
+          </div>
+        </div>
+      }
 
-              <div class="mt-8 grid gap-3">
-                @for (option of currentQuestion().options; track option; let index = $index) {
-                  <button
-                    type="button"
-                    class="min-h-14 rounded-[8px] border-2 bg-white px-5 text-left text-[15px] font-bold transition"
-                    [class.border-[#5c1e2f]]="selectedIndex() === index"
-                    [class.bg-[#F2E6E9]]="selectedIndex() === index"
-                    [class.border-[#E6D5B8]]="selectedIndex() !== index"
-                    [class.opacity-70]="answered() && selectedIndex() !== index"
-                    [disabled]="answered()"
-                    (click)="selectOption(index)"
-                  >
-                    {{ option }}
-                  </button>
-                }
-              </div>
+      @if (!resumePromptOpen() && !finished()) {
+        <div class="mx-auto w-full max-w-2xl">
+          <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#D4AF37]">{{ quiz()!.topic }}</p>
+          <h1 class="mt-4 font-display text-[28px] font-extrabold leading-tight text-[#5C1E2F]">{{ currentQuestion().prompt }}</h1>
 
-              @if (!answered()) {
-                <button
-                  type="button"
-                  class="mt-8 h-12 w-full rounded-[8px] bg-[#5c1e2f] px-6 text-[13px] font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"
-                  [disabled]="selectedIndex() === null"
-                  (click)="submitAnswer()"
-                >
-                  Confirmar
-                </button>
-              }
-            </div>
-          } @else {
-            <section class="mx-auto w-full max-w-xl rounded-[8px] border border-[#E6D5B8] bg-white p-7 text-center shadow-xl">
-              <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#D4AF37]">Quiz concluído</p>
-              <h1 class="mt-3 font-display text-[32px] font-extrabold text-[#5c1e2f]">{{ correctCount() }} de {{ totalQuestions() }} acertos</h1>
-              <p class="mt-3 text-[14px] leading-6 text-[#616161]">
-                Ganhou {{ earnedXp() }} XP. Revise o conteúdo relacionado para consolidar o que aprendeu.
-              </p>
-              @if (submitError()) {
-                <p class="mt-4 rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] px-4 py-3 text-[12px] font-bold text-[#8A3F50]">{{ submitError() }}</p>
-              }
-              <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-                <a [routerLink]="quiz()!.relatedContent.route" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#E6D5B8] px-5 text-[13px] font-bold text-[#5c1e2f]">Rever conteúdo</a>
-                <a routerLink="/app/quizzes" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white">Ver ranking</a>
-              </div>
-            </section>
-          }
-        </section>
-
-        @if (answered() && !finished()) {
-          <section class="fixed inset-x-0 bottom-0 z-40 border-t bg-white shadow-[0_-18px_45px_rgba(22,19,21,0.12)]" [class.border-[#BDBDBD]]="isCorrect()" [class.border-[#E6D5B8]]="!isCorrect()">
-            <div class="mx-auto grid max-w-5xl gap-5 px-5 py-5 md:grid-cols-[1fr_auto] md:items-center">
-              <div>
-                <p class="font-display text-[22px] font-extrabold" [class.text-[#616161]]="isCorrect()" [class.text-[#8A3F50]]="!isCorrect()">
-                  {{ isCorrect() ? 'Acertou!' : 'Ainda não.' }}
-                </p>
-                <p class="mt-2 text-[14px] leading-6 text-[#616161]">
-                  Resposta certa: <strong>{{ correctAnswer() }}</strong>. {{ currentQuestion().explanation }}
-                </p>
-                <p class="mt-2 text-[12px] leading-5 text-[#616161]">
-                  Encontra isto em: <a [routerLink]="quiz()!.relatedContent.route" class="font-bold text-[#5c1e2f] underline">{{ currentQuestion().contentLocation }}</a>
-                </p>
-              </div>
-              <button type="button" class="h-12 rounded-[8px] bg-[#5c1e2f] px-8 text-[13px] font-extrabold text-white" (click)="nextQuestion()">
-                Continuar
+          <div class="mt-8 grid gap-3">
+            @for (option of currentQuestion().options; track option; let index = $index) {
+              <button
+                type="button"
+                class="min-h-14 rounded-[8px] border-2 bg-white px-5 text-left text-[15px] font-bold transition"
+                [class.border-[#5c1e2f]]="!answered() && selectedIndex() === index"
+                [class.bg-[#F2E6E9]]="!answered() && selectedIndex() === index"
+                [class.border-[#E6D5B8]]="!answered() && selectedIndex() !== index"
+                [class.border-[#2A9D8F]]="answered() && currentQuestion().answerIndex === index"
+                [class.bg-[#E8F5F1]]="answered() && currentQuestion().answerIndex === index"
+                [class.text-[#1E6F62]]="answered() && currentQuestion().answerIndex === index"
+                [class.border-[#8A3F50]]="answered() && selectedIndex() === index && currentQuestion().answerIndex !== index"
+                [class.bg-[#F2E6E9]]="answered() && selectedIndex() === index && currentQuestion().answerIndex !== index"
+                [class.text-[#8A3F50]]="answered() && selectedIndex() === index && currentQuestion().answerIndex !== index"
+                [class.border-[#E0E0E0]]="answered() && selectedIndex() !== index && currentQuestion().answerIndex !== index"
+                [class.opacity-60]="answered() && selectedIndex() !== index && currentQuestion().answerIndex !== index"
+                [disabled]="answered()"
+                (click)="selectOption(index)"
+              >
+                <span class="flex items-center justify-between gap-4">
+                  <span>{{ option }}</span>
+                  @if (answered() && currentQuestion().answerIndex === index) {
+                    <span class="material-symbols-outlined text-[20px] leading-none" aria-hidden="true">check_circle</span>
+                  } @else if (answered() && selectedIndex() === index && currentQuestion().answerIndex !== index) {
+                    <span class="material-symbols-outlined text-[20px] leading-none" aria-hidden="true">cancel</span>
+                  }
+                </span>
               </button>
-            </div>
-          </section>
-        }
-      </main>
-    }
+            }
+          </div>
 
+          @if (!answered()) {
+            <button
+              type="button"
+              class="mt-8 h-12 w-full rounded-[8px] bg-[#5c1e2f] px-6 text-[13px] font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"
+              [disabled]="selectedIndex() === null"
+              (click)="submitAnswer()"
+            >
+              Confirmar
+            </button>
+          }
+        </div>
+      } @else {
+        <section class="mx-auto w-full max-w-xl rounded-[8px] border border-[#E6D5B8] bg-white p-7 text-center shadow-xl">
+          <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#D4AF37]">Quiz concluído</p>
+          <h1 class="mt-3 font-display text-[32px] font-extrabold text-[#5c1e2f]">{{ earnedXp() }} pontos</h1>
+          <p class="mt-3 text-[14px] leading-6 text-[#616161]">Terminou com {{ correctCount() }} acertos e {{ wrongCount() }} erros.</p>
+
+          <dl class="mt-6 grid grid-cols-2 gap-3 text-left">
+            <div class="rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] p-4">
+              <dt class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#616161]">Aproveitamento</dt>
+              <dd class="mt-1 font-display text-[22px] font-extrabold text-[#5c1e2f]">{{ aproveitamento() }}%</dd>
+            </div>
+            <div class="rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] p-4">
+              <dt class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#616161]">Tempo gasto</dt>
+              <dd class="mt-1 font-display text-[22px] font-extrabold text-[#5c1e2f]">{{ formatDuration(submitResult()?.duration_seconds ?? elapsedSeconds()) }}</dd>
+            </div>
+            <div class="rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] p-4">
+              <dt class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#616161]">Melhor pontuação</dt>
+              <dd class="mt-1 font-display text-[22px] font-extrabold text-[#5c1e2f]">{{ bestScore() }} pts</dd>
+            </div>
+            <div class="rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] p-4">
+              <dt class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#616161]">Pontuação obtida</dt>
+              <dd class="mt-1 font-display text-[22px] font-extrabold text-[#5c1e2f]">{{ earnedXp() }} pts</dd>
+            </div>
+          </dl>
+
+          @if (submitError()) {
+            <p class="mt-4 rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] px-4 py-3 text-[12px] font-bold text-[#8A3F50]">{{ submitError() }}</p>
+          }
+          <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <button type="button" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white" (click)="restartQuiz()">Repetir</button>
+            <a [routerLink]="quiz()!.relatedContent.route" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#E6D5B8] px-5 text-[13px] font-bold text-[#5c1e2f]">Voltar aos conteúdos</a>
+          </div>
+        </section>
+      }
+    </section>
+
+    @if (answered() && !finished()) {
+      <section class="fixed inset-x-0 bottom-0 z-40 border-t bg-white shadow-[0_-18px_45px_rgba(22,19,21,0.12)]" [class.border-[#2A9D8F]]="isCorrect()" [class.border-[#8A3F50]]="!isCorrect()">
+        <div class="mx-auto grid max-w-5xl gap-5 px-5 py-5 md:grid-cols-[1fr_auto] md:items-center">
+          <div>
+            <p class="font-display text-[22px] font-extrabold" [class.text-[#1E6F62]]="isCorrect()" [class.text-[#8A3F50]]="!isCorrect()">
+              {{ isCorrect() ? 'Acertou!' : 'Ainda não.' }}
+            </p>
+            <p class="mt-2 text-[14px] leading-6 text-[#616161]">
+              Resposta certa: <strong>{{ correctAnswer() }}</strong>. {{ currentQuestion().explanation }}
+            </p>
+            <p class="mt-2 text-[12px] leading-5 text-[#616161]">
+              Encontra isto em: <a [routerLink]="quiz()!.relatedContent.route" class="font-bold text-[#5c1e2f] underline">{{ currentQuestion().contentLocation }}</a>
+            </p>
+          </div>
+          <button type="button" class="h-12 rounded-[8px] bg-[#5c1e2f] px-8 text-[13px] font-extrabold text-white" (click)="nextQuestion()">
+            Continuar
+          </button>
+        </div>
+      </section>
+    }
+  </main>
+}

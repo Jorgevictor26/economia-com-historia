@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -31,6 +32,15 @@ class UserService
     {
     }
 
+    public function all(User $actor, array $filters = []): LengthAwarePaginator
+    {
+        if (! $actor->isAdminOrSuperAdmin()) {
+            throw new AuthorizationException('Only Admin and SuperAdmin users can list users');
+        }
+
+        return $this->users->all($filters);
+    }
+
     public function create(CreateUserDTO $dto): User
     {
         return DB::transaction(function () use ($dto): User {
@@ -49,6 +59,21 @@ class UserService
     public function update(User $user, UpdateUserDTO $dto): User
     {
         return $this->users->update($user, $dto);
+    }
+
+    public function createSuperAdmin(CreateUserDTO $dto, User $actor): User
+    {
+        if (! $actor->hasRoleName(self::ROLE_SUPER_ADMIN)) {
+            throw new AuthorizationException('Only SuperAdmin users can create a new SuperAdmin');
+        }
+
+        return DB::transaction(function () use ($dto, $actor): User {
+            $user = $this->users->create($dto);
+            $newSuperAdmin = $this->setExclusiveRole($user, self::ROLE_SUPER_ADMIN, $actor);
+            $this->ensureSingleSuperAdmin($newSuperAdmin);
+
+            return $newSuperAdmin;
+        });
     }
 
     public function updateJindungoSubscription(User $target, User $actor, ?string $expiresAt): User

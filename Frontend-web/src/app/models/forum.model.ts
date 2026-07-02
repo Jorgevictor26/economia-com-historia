@@ -1,7 +1,11 @@
 export interface ForumRoom {
   id: string;
+  ownerId?: string;
+  creatorName?: string;
   name: string;
   visibility: 'public' | 'private';
+  accessCode?: string | null;
+  joinApprovalRequired?: boolean;
   members: number;
   activeDebates: number;
   description: string;

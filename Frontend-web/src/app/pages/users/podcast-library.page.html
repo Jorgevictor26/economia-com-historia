@@ -41,43 +41,44 @@
             <p class="mt-3 text-center text-[12px] font-bold text-[#8A3F50]">{{ loadError() }}</p>
           }
 
-          <div class="mx-auto mt-4 grid max-w-[560px] grid-cols-5 items-center gap-4">
-            <button type="button" class="grid size-11 place-items-center text-[#9E9E9E] transition hover:text-[#5c1e2f] disabled:cursor-not-allowed disabled:opacity-40" aria-label="Reiniciar episódio" [disabled]="!currentPodcast().audioUrl" (click)="restartAudio(podcastAudio)">
-              <span class="material-symbols-outlined text-[34px]" aria-hidden="true">restart_alt</span>
+          <div class="mx-auto mt-4 grid max-w-[560px] grid-cols-5 items-center gap-8">
+            <button type="button" class="grid size-11 place-items-center text-[#9E9E9E] transition hover:text-[#5c1e2f] disabled:cursor-not-allowed disabled:opacity-40" aria-label="Modo aleatório indisponível" disabled>
+              <span class="material-symbols-outlined text-[34px]" aria-hidden="true">shuffle</span>
             </button>
-            <button type="button" class="grid size-12 place-items-center text-[#212121] transition hover:text-[#5c1e2f] disabled:cursor-not-allowed disabled:opacity-40" aria-label="Recuar 10 segundos" [disabled]="!currentPodcast().audioUrl" (click)="skipAudio(podcastAudio, -10)">
-              <span class="material-symbols-outlined text-[42px]" aria-hidden="true">replay_10</span>
+            <button type="button" class="grid size-12 place-items-center text-[#212121] transition hover:text-[#5c1e2f] disabled:cursor-not-allowed disabled:opacity-40" aria-label="Recuar 10 segundos" [disabled]="!currentPodcast().audioUrl || !audioReady()" (click)="skipAudio(podcastAudio, -10)">
+              <span class="material-symbols-outlined text-[42px]" aria-hidden="true">skip_previous</span>
             </button>
             <button type="button" class="mx-auto grid size-[50px] place-items-center rounded-full bg-[#5C1E2F] text-white shadow-[0_18px_34px_rgba(104,26,49,0.28)] transition hover:bg-[#5C1E2F] disabled:cursor-not-allowed disabled:opacity-45" [attr.aria-label]="audioPlaying() ? 'Pausar episódio' : 'Reproduzir episódio'" [disabled]="!currentPodcast().audioUrl" (click)="toggleAudio(podcastAudio)">
               <span class="material-symbols-outlined text-[44px]" aria-hidden="true">{{ audioPlaying() ? 'pause' : 'play_arrow' }}</span>
             </button>
-            <button type="button" class="grid size-12 place-items-center text-[#212121] transition hover:text-[#5c1e2f] disabled:cursor-not-allowed disabled:opacity-40" aria-label="Avançar 10 segundos" [disabled]="!currentPodcast().audioUrl" (click)="skipAudio(podcastAudio, 10)">
-              <span class="material-symbols-outlined text-[42px]" aria-hidden="true">forward_10</span>
+            <button type="button" class="grid size-12 place-items-center text-[#212121] transition hover:text-[#5c1e2f] disabled:cursor-not-allowed disabled:opacity-40" aria-label="Avançar 10 segundos" [disabled]="!currentPodcast().audioUrl || !audioReady()" (click)="skipAudio(podcastAudio, 10)">
+              <span class="material-symbols-outlined text-[42px]" aria-hidden="true">skip_next</span>
             </button>
-            <button type="button" class="grid size-11 place-items-center text-[#9E9E9E] transition hover:text-[#5c1e2f] disabled:cursor-not-allowed disabled:opacity-40" aria-label="Repetir episódio" [disabled]="!currentPodcast().audioUrl" (click)="restartAudio(podcastAudio)">
+            <button type="button" class="grid size-11 place-items-center text-[#9E9E9E] transition hover:text-[#5c1e2f] disabled:cursor-not-allowed disabled:opacity-40" [class.text-[#5C1E2F]]="audioLoop()" [class.font-extrabold]="audioLoop()" [attr.aria-pressed]="audioLoop()" aria-label="Repetir automaticamente quando terminar" [disabled]="!currentPodcast().audioUrl" (click)="toggleAudioLoop(podcastAudio)">
               <span class="material-symbols-outlined text-[34px]" aria-hidden="true">repeat</span>
             </button>
           </div>
         </div>
         <div
           class="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-[#E0E0E0] pt-4 text-[11px] text-[#616161]">
-          <div class="flex flex-wrap gap-5">
-            <button type="button" class="content-action font-semibold">
-              <span class="material-symbols-outlined text-[17px]" aria-hidden="true">favorite</span>
+          <div class="flex flex-wrap items-center gap-8">
+            <button type="button" class="content-action font-semibold" [disabled]="isSavingReaction()" (click)="likePodcast($event)">
+              <span class="material-symbols-outlined text-[17px]" [class.text-[#8A3F50]]="podcastLiked()" aria-hidden="true">favorite</span>
               <span>Gostar</span>
             </button>
             <button type="button" class="content-action" (click)="openCommentComposer()">
               <span class="material-symbols-outlined text-[17px]" aria-hidden="true">chat_bubble</span>
               <span>Comentar</span>
             </button>
-            <button type="button" class="content-action">
+            <button type="button" class="content-action" (click)="sharePodcast($event)">
               <span class="material-symbols-outlined text-[17px]" aria-hidden="true">share</span>
               <span>Partilhar</span>
             </button>
           </div>
-          <div class="flex flex-wrap items-center gap-5">
+          <div class="flex items-center gap-5">
             <button type="button"
-              class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-[0.08em] text-[#9E9E9E]">
+              class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-[0.08em] text-[#9E9E9E] transition hover:text-[#5C1E2F] disabled:opacity-60"
+              [disabled]="isSavingContent()" (click)="savePodcast($event)">
               <span class="material-symbols-outlined text-[15px]" aria-hidden="true">bookmark_add</span>
              Guardar
             </button>
@@ -117,10 +118,10 @@
               África Central.
             </p>
             <div class="mt-5 flex justify-center gap-4 text-[#616161]">
-              <button type="button" class="cursor-pointer hover:text-[#5C1E2F]" aria-label="Partilhar perfil">
+              <button type="button" class="cursor-pointer hover:text-[#5C1E2F]" aria-label="Partilhar podcast" (click)="sharePodcast($event)">
                 <span class="material-symbols-outlined text-[24px] leading-none">share</span>
               </button>
-              <button type="button" class="cursor-pointer hover:text-[#5C1E2F]" aria-label="Guardar perfil">
+              <button type="button" class="cursor-pointer hover:text-[#5C1E2F] disabled:opacity-60" aria-label="Guardar podcast" [disabled]="isSavingContent()" (click)="savePodcast($event)">
                 <span class="material-symbols-outlined text-[24px] leading-none">bookmark</span>
               </button>
             </div>
@@ -289,6 +290,9 @@
     </div>
   </main>
 
+  @if (podcast(); as currentPodcastAction) {
+    <app-content-forum-action [contentId]="currentPodcastAction.id" [contentTitle]="currentPodcastAction.title" />
+  }
   <app-back-to-top />
 </section>
 

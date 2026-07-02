@@ -40,6 +40,8 @@ class ForumController extends Controller
             $request->input('category'),
             $request->input('image'),
             $request->input('visibility', 'public'),
+            $request->input('access_code'),
+            (bool) $request->boolean('join_approval_required'),
             $request->input('content_permission', 'public'),
             (bool) $request->boolean('allow_attachments'),
             $request->input('content_ids', [])

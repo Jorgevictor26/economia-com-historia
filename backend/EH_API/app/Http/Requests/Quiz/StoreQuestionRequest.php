@@ -20,7 +20,7 @@ class StoreQuestionRequest extends FormRequest
             'option_c' => ['required', 'string', 'max:255'],
             'option_d' => ['required', 'string', 'max:255'],
             'correct_option' => ['required', 'in:a,b,c,d'],
-            'explanation' => ['nullable', 'string'],
+            'explanation' => ['required', 'string'],
         ];
     }
 }

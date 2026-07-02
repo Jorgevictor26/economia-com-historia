@@ -31,6 +31,9 @@ class QuizProgressController extends Controller
                 progressPercent: $request->integer('progress_percent'),
                 currentQuestionIndex: $request->has('current_question_index') ? $request->integer('current_question_index') : null,
                 answeredQuestions: $request->input('answered_questions'),
+                correctCount: $request->integer('correct_count', 0),
+                elapsedSeconds: $request->integer('elapsed_seconds', 0),
+                questionOrder: $request->input('question_order'),
             ));
         } catch (ValidationException $exception) {
             return response()->json([

@@ -1,17 +1,60 @@
 ﻿import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink, Routes } from '@angular/router';
-import { Content } from '../../models/content.model';
+import { ActivatedRoute, Router, RouterLink, Routes } from '@angular/router';
 import { AuthStateService } from '../../services/auth-state.service';
 import { authGuard } from '../../services/auth.guard';
 import { ContentService } from '../../services/content.service';
-import { BackendForum, ForumService } from '../../services/forum.service';
+import { BackendForum, BackendForumReply, BackendForumTopic, ForumService } from '../../services/forum.service';
 import { ToastService } from '../../services/toast.service';
+import { ForumRoom } from '../../models/forum.model';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
 interface PageToast {
   message: string;
   kind: 'success' | 'error' | 'info';
+}
+
+interface ForumContentOption {
+  id: string;
+  title: string;
+  type: string;
+  meta: string;
+}
+
+type PrivateForumAccessStatus = 'none' | 'pending' | 'invited' | 'member' | 'rejected' | 'invitation_rejected';
+
+interface ForumTopicPreview {
+  id: string;
+  title: string;
+  author: string;
+  ownerId?: string;
+  replies: number;
+  lastActivity: string;
+}
+
+interface ForumReplyView {
+  id: string;
+  ownerId?: string;
+  author: string;
+  initials: string;
+  text: string;
+  createdAt: string;
+}
+
+interface ForumCommentView {
+  id: string;
+  ownerId?: string;
+  author: string;
+  initials: string;
+  title: string;
+  text: string;
+  createdAt: string;
+  replies: ForumReplyView[];
+  replyComposerOpen: boolean;
+  isLoadingReplies: boolean;
+  isSavingReply: boolean;
+  editing: boolean;
+  editingReplyId: string | null;
 }
 
 @Component({
@@ -22,6 +65,7 @@ interface PageToast {
 })
 export class UserForumsPage {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   readonly auth = inject(AuthStateService);
   readonly contentService = inject(ContentService);
   readonly forumService = inject(ForumService);
@@ -30,9 +74,10 @@ export class UserForumsPage {
   readonly categories = ['Economia', 'Hist\u00f3ria', 'Jindungo', 'Podcast'];
   readonly selectedCategory = signal(this.categories[0]);
   readonly privacy = signal<'public' | 'private'>('public');
-  readonly protectedByPassword = signal(false);
+  readonly privateAccessCode = signal('');
   readonly inviteEmails = signal<string[]>([]);
-  readonly selectedContentIds = signal<string[]>(['1', '2']);
+  readonly selectedContentIds = signal<string[]>([]);
+  readonly contentOptions = signal<ForumContentOption[]>([]);
   readonly showAllResources = signal(false);
   readonly createModalOpen = signal(false);
   readonly resourceError = signal(false);
@@ -42,15 +87,16 @@ export class UserForumsPage {
   private toastTimeout?: ReturnType<typeof setTimeout>;
 
   constructor() {
+    void this.loadContentOptions();
     void this.loadForums();
   }
 
   readonly selectedResources = computed(() =>
-    this.contentService.contents().filter((content) => this.selectedContentIds().includes(content.id)),
+    this.contentOptions().filter((content) => this.selectedContentIds().includes(content.id)),
   );
 
   readonly visibleResources = computed(() =>
-    this.showAllResources() ? this.contentService.contents() : this.selectedResources(),
+    this.showAllResources() ? this.contentOptions() : this.selectedResources(),
   );
 
   readonly forumTotalPages = computed(() => Math.max(1, Math.ceil(this.forumService.rooms().length / this.forumPageSize)));
@@ -92,10 +138,15 @@ export class UserForumsPage {
 
   closeCreateModal(): void {
     this.createModalOpen.set(false);
+    this.returnToSourceContentIfNeeded();
   }
 
   setPrivacy(privacy: 'public' | 'private'): void {
     this.privacy.set(privacy);
+
+    if (privacy === 'private' && !this.privateAccessCode()) {
+      this.privateAccessCode.set(this.generateAccessCode());
+    }
   }
 
   toggleResource(contentId: string): void {
@@ -130,34 +181,38 @@ export class UserForumsPage {
     const objective = objectiveInput.value.trim();
     const linkedContents = this.selectedResources().map((content) => this.toLinkedContent(content));
 
-    this.resourceError.set(!linkedContents.length);
+    this.resourceError.set(false);
 
-    if (!title || !objective || !linkedContents.length) {
-      this.showToast('Preencha o título, o objetivo e vincule pelo menos um conteúdo da plataforma.', 'error');
+    if (!title || !objective) {
+      this.showToast('Preencha o título e o objetivo da discussão.', 'error');
       return;
     }
 
     try {
-      await this.forumService.create({
+      const forum = await this.forumService.create({
         name: title,
         description: objective,
         rules: objective,
         category: this.selectedCategory(),
         visibility: this.privacy(),
-        content_permission: this.protectedByPassword() ? 'subscribers' : 'public',
+        access_code: this.privacy() === 'private' ? this.privateAccessCode() : null,
+        join_approval_required: this.privacy() === 'private',
+        content_permission: 'public',
         allow_attachments: false,
         content_ids: linkedContents.map((content) => content.id),
       });
 
+      this.forumService.rooms.update((rooms) => [this.toForumRoom(forum), ...rooms.filter((room) => room.id !== String(forum.id))]);
       titleInput.value = '';
       objectiveInput.value = '';
       this.inviteEmails.set([]);
-      this.selectedContentIds.set(['1', '2']);
+      this.selectedContentIds.set([]);
       this.privacy.set('public');
-      this.protectedByPassword.set(false);
+      this.privateAccessCode.set('');
       this.showAllResources.set(false);
       this.createModalOpen.set(false);
-      this.showToast('Sala de debate enviada para aprovação.', 'success');
+      this.returnToSourceContentIfNeeded();
+      this.showToast('Fórum criado com sucesso.', 'success');
     } catch {
       this.showToast('Não foi possível criar a sala de debate.', 'error');
     }
@@ -167,12 +222,24 @@ export class UserForumsPage {
     try {
       const forums = await this.forumService.getAll();
 
-      if (forums.length > 0) {
-        this.forumService.rooms.set(forums.map((forum) => this.toForumRoom(forum)));
-        this.forumPage.set(1);
-      }
+      this.forumService.rooms.set(forums.map((forum) => this.toForumRoom(forum)));
+      this.forumPage.set(1);
     } catch {
       this.showToast('Não foi possível carregar os fóruns.', 'error');
+    }
+  }
+
+  private async loadContentOptions(): Promise<void> {
+    try {
+      const response = await this.contentService.getAll();
+      this.contentOptions.set(response.data.map((content) => ({
+        id: String(content.id),
+        title: content.title,
+        type: content.content_type?.name ?? 'Conteúdo',
+        meta: content.category?.name ?? content.content_type?.name ?? 'Biblioteca',
+      })));
+    } catch {
+      this.contentOptions.set([]);
     }
   }
 
@@ -188,18 +255,32 @@ export class UserForumsPage {
     this.toastService[kind](message);
   }
 
+  private returnToSourceContentIfNeeded(): void {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+
+    if (!returnUrl) {
+      return;
+    }
+
+    void this.router.navigateByUrl(returnUrl, { replaceUrl: true });
+  }
+
   private toForumRoom(forum: BackendForum) {
     return {
       id: String(forum.id),
+      ownerId: forum.user_id === undefined || forum.user_id === null ? (forum.user?.id === undefined || forum.user?.id === null ? undefined : String(forum.user.id)) : String(forum.user_id),
+      creatorName: forum.user?.name,
       name: forum.name,
       visibility: forum.visibility === 'private' ? 'private' as const : 'public' as const,
+      accessCode: forum.access_code ?? null,
+      joinApprovalRequired: Boolean(forum.join_approval_required),
       members: 0,
       activeDebates: forum.topics_count ?? 0,
       description: forum.description ?? forum.rules ?? 'Sem descrição.',
       category: forum.category ?? 'Fórum',
       objective: forum.description ?? forum.rules ?? '',
       inviteEmails: [],
-      protectedByPassword: forum.content_permission === 'subscribers',
+      protectedByPassword: forum.visibility === 'private',
       linkedContents: (forum.contents ?? []).map((content) => ({
         id: String(content.id),
         title: content.title,
@@ -218,24 +299,17 @@ export class UserForumsPage {
       .join('') || 'EH';
   }
 
-  private toLinkedContent(content: Content) {
+  private toLinkedContent(content: ForumContentOption) {
     return {
       id: content.id,
       title: content.title,
-      type: this.contentTypeLabel(content.type),
-      meta: `${content.readingMinutes} min de leitura`,
+      type: content.type,
+      meta: content.meta,
     };
   }
 
-  private contentTypeLabel(type: Content['type']): string {
-    const labels: Record<Content['type'], string> = {
-      historia: 'Artigo Acad\u00e9mico',
-      economia: 'Artigo Acad\u00e9mico',
-      podcast: 'Podcast',
-      jindungo: 'Jindungo',
-    };
-
-    return labels[type];
+  private generateAccessCode(): string {
+    return `EH-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
   }
 }
 
@@ -247,11 +321,23 @@ export class UserForumsPage {
 })
 export class UserForumDetailPage {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   readonly auth = inject(AuthStateService);
   readonly forumService = inject(ForumService);
   readonly likedByMe = signal(false);
   readonly commentComposerOpen = signal(false);
+  readonly editingForum = signal(false);
+  readonly isSavingForum = signal(false);
   readonly forumFeedback = signal('');
+  readonly forumComments = signal<ForumCommentView[]>([]);
+  readonly isLoadingForumComments = signal(false);
+  readonly isSavingForumComment = signal(false);
+  readonly accessRequestCode = signal('');
+  readonly accessRequestStatus = signal('');
+  readonly privateAccessStatus = signal<PrivateForumAccessStatus>('none');
+  readonly invitationNoticeOpen = signal(false);
+  readonly forumTopicPreviews = signal<ForumTopicPreview[]>([]);
+  private readonly accessStoragePrefix = 'economia-com-historia.private-forum-access.v2';
 
   readonly room = computed(() => {
     const roomId = this.route.snapshot.paramMap.get('id');
@@ -259,15 +345,33 @@ export class UserForumDetailPage {
     return this.forumService.rooms().find((room) => room.id === roomId) ?? null;
   });
 
+  readonly privateTeaserActive = computed(() => {
+    const room = this.room();
+
+    return Boolean(room && room.visibility === 'private' && !this.canEnterPrivateForum());
+  });
+
   readonly accessNotice = computed(() => {
     const room = this.room();
 
-    if (!room || room.visibility !== 'private' || this.auth.canAccessForum(room.id, room.visibility)) {
+    if (!room || room.visibility !== 'private' || this.canEnterPrivateForum()) {
       return '';
     }
 
-    return 'Este f\u00f3rum \u00e9 privado. Precisa de convite ou palavra-passe para participar.';
+    return 'Este fórum é privado. Pode conhecer a proposta da comunidade antes de solicitar participação.';
   });
+
+  readonly canManageForum = computed(() => {
+    return this.auth.canManagePlatform();
+  });
+
+  constructor() {
+    const roomId = this.route.snapshot.paramMap.get('id');
+
+    if (roomId) {
+      void this.prepareForum(roomId);
+    }
+  }
 
   roomInitials(name: string): string {
     return name
@@ -282,6 +386,109 @@ export class UserForumDetailPage {
     event.preventDefault();
     event.stopPropagation();
     this.auth.requireLoginFor(operation);
+  }
+
+  canEnterPrivateForum(): boolean {
+    const room = this.room();
+
+    if (!room) {
+      return false;
+    }
+
+    if (room.visibility === 'public') {
+      return true;
+    }
+
+    return this.privateAccessStatus() === 'member';
+  }
+
+  requestParticipation(): void {
+    if (!this.auth.isAuthenticated()) {
+      this.auth.requireLoginFor('solicitar participação no fórum');
+      return;
+    }
+
+    this.setPrivateAccessStatus('member');
+    this.accessRequestStatus.set('');
+  }
+
+  acceptInvitation(): void {
+    if (!this.auth.isAuthenticated()) {
+      this.auth.requireLoginFor('aceitar convite do fórum');
+      return;
+    }
+
+    this.setPrivateAccessStatus('member');
+    this.invitationNoticeOpen.set(false);
+    this.accessRequestStatus.set('');
+  }
+
+  rejectInvitation(): void {
+    this.setPrivateAccessStatus('invitation_rejected');
+    this.invitationNoticeOpen.set(false);
+    this.accessRequestStatus.set('Convite recusado. Pode solicitar participação mais tarde se mudar de ideia.');
+  }
+
+  enterPrivateForum(): void {
+    if (!this.canEnterPrivateForum()) {
+      this.accessRequestStatus.set('Informe o código do fórum para entrar.');
+      return;
+    }
+
+    this.accessRequestStatus.set('');
+  }
+
+  primaryAccessButtonLabel(): string {
+    switch (this.privateAccessStatus()) {
+      case 'pending':
+        return 'Pedido enviado';
+      case 'member':
+        return 'Entrar no fórum';
+      case 'rejected':
+      case 'invitation_rejected':
+        return 'Solicitar novamente';
+      case 'invited':
+        return 'Aceitar convite';
+      default:
+        return 'Solicitar participação';
+    }
+  }
+
+  primaryAccessButtonDisabled(): boolean {
+    return this.privateAccessStatus() === 'pending';
+  }
+
+  handlePrimaryPrivateAction(): void {
+    switch (this.privateAccessStatus()) {
+      case 'member':
+        this.enterPrivateForum();
+        return;
+      case 'invited':
+        this.acceptInvitation();
+        return;
+      case 'pending':
+        return;
+      default:
+        this.requestParticipation();
+    }
+  }
+
+  memberPreviewAvatars(roomName: string): string[] {
+    const initials = this.roomInitials(roomName);
+
+    return [initials, 'EH', 'EA', 'HA', 'AO'];
+  }
+
+  remainingMemberCount(members: number): number {
+    return Math.max(0, members - 5);
+  }
+
+  forumValueProposition(): string {
+    const room = this.room();
+    const category = room?.category || 'Economia e História de Angola';
+    const activity = (room?.activeDebates ?? 0) > 10 ? 'alto movimento' : 'discussões focadas';
+
+    return `Debates sobre ${category.toLowerCase()}, com ${activity}, análise histórica e troca de ideias entre membros interessados no propósito da plataforma.`;
   }
 
   likeForum(event: Event): void {
@@ -336,20 +543,615 @@ export class UserForumDetailPage {
     this.forumFeedback.set('F\u00f3rum guardado.');
   }
 
-  reportForum(event: Event): void {
+  requestPrivateAccess(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
     if (!this.auth.isAuthenticated()) {
-      this.requireLogin(event, 'denunciar f\u00f3rum');
+      this.auth.requireLoginFor('pedir acesso ao fórum');
       return;
     }
 
+    const room = this.room();
+    const code = this.accessRequestCode().trim().toUpperCase();
+
+    if (!room || room.visibility !== 'private') {
+      return;
+    }
+
+    if (!code) {
+      this.accessRequestStatus.set('Informe o código de entrada.');
+      return;
+    }
+
+    if (room.accessCode && code !== room.accessCode.toUpperCase()) {
+      this.accessRequestStatus.set('Código inválido para este fórum.');
+      return;
+    }
+
+    this.requestParticipation();
+  }
+
+  async submitForumComment(value: string): Promise<void> {
+    const room = this.room();
+    const text = value.trim();
+
+    if (!this.auth.isAuthenticated()) {
+      return;
+    }
+
+    if (!room || !text) {
+      this.forumFeedback.set('Escreva uma resposta antes de publicar.');
+      return;
+    }
+
+    if (this.isSavingForumComment()) {
+      return;
+    }
+
+    const user = this.auth.user();
+    const author = user?.name ?? 'Utilizador';
+    const title = text.length > 70 ? `${text.slice(0, 67)}...` : text;
+
+    if (this.isBackendForumId(room.id)) {
+      this.isSavingForumComment.set(true);
+
+      try {
+        await this.forumService.createTopic(room.id, title, text);
+        await this.loadForumTopics(room.id);
+        this.commentComposerOpen.set(false);
+        this.forumFeedback.set('');
+      } catch {
+        this.forumFeedback.set('Não foi possível publicar a resposta.');
+      } finally {
+        this.isSavingForumComment.set(false);
+      }
+
+      return;
+    }
+
+    this.forumComments.update((comments) => [
+      {
+        id: `${room.id}-${Date.now()}`,
+        ownerId: user?.id ? String(user.id) : undefined,
+        author,
+        initials: this.roomInitials(author),
+        title,
+        text,
+        createdAt: 'Agora',
+        replies: [],
+        replyComposerOpen: false,
+        isLoadingReplies: false,
+        isSavingReply: false,
+        editing: false,
+        editingReplyId: null,
+      },
+      ...comments,
+    ]);
+    this.commentComposerOpen.set(false);
+    this.forumFeedback.set('');
+  }
+
+  private async prepareForum(roomId: string): Promise<void> {
+    if (!this.room() && this.isBackendForumId(roomId)) {
+      await this.loadSingleForumForDirectAccess(roomId);
+    }
+
+    if (!this.room()) {
+      await this.loadForumListForDirectAccess();
+    }
+
+    const room = this.room();
+    if (!room) {
+      return;
+    }
+
+    this.privateAccessStatus.set(this.resolvePrivateAccessStatus(room));
+    this.invitationNoticeOpen.set(room.visibility === 'private' && this.privateAccessStatus() === 'invited');
+
+    if (this.isBackendForumId(roomId)) {
+      await this.loadForumTopics(roomId);
+    }
+  }
+
+  private async loadForumListForDirectAccess(): Promise<void> {
+    try {
+      const forums = await this.forumService.getAll();
+
+      this.forumService.rooms.set(forums.map((forum) => this.toForumRoom(forum)));
+    } catch {
+      this.forumService.rooms.set(this.forumService.rooms());
+    }
+  }
+
+  private async loadSingleForumForDirectAccess(roomId: string): Promise<void> {
+    try {
+      const forum = await this.forumService.getById(roomId);
+      const room = this.toForumRoom(forum);
+
+      this.forumService.rooms.update((rooms) => [room, ...rooms.filter((item) => item.id !== room.id)]);
+    } catch {
+      // Missing or inaccessible forum; keep the standard not-found state.
+    }
+  }
+
+  private async loadForumTopics(roomId: string): Promise<void> {
+    this.isLoadingForumComments.set(true);
+
+    try {
+      const topics = await this.forumService.getTopics(roomId);
+      const comments = await Promise.all(topics.map(async (topic) => {
+        const replies = await this.loadRepliesForTopic(topic.id);
+
+        return this.toForumComment(topic, replies);
+      }));
+
+      this.forumComments.set(comments);
+      this.forumTopicPreviews.set(topics.map((topic) => this.toForumTopicPreview(topic)));
+      this.forumService.rooms.update((rooms) =>
+        rooms.map((room) => room.id === roomId ? { ...room, activeDebates: topics.length } : room),
+      );
+    } catch {
+      this.forumComments.set([]);
+      this.forumTopicPreviews.set([]);
+    } finally {
+      this.isLoadingForumComments.set(false);
+    }
+  }
+
+  private async loadRepliesForTopic(topicId: number | string): Promise<BackendForumReply[]> {
+    try {
+      return await this.forumService.getReplies(topicId);
+    } catch {
+      return [];
+    }
+  }
+
+  private toForumComment(topic: BackendForumTopic, replies: BackendForumReply[] = []): ForumCommentView {
+    const author = topic.user?.name ?? 'Utilizador';
+
+    return {
+      id: String(topic.id),
+      ownerId: topic.user_id === undefined || topic.user_id === null ? (topic.user?.id === undefined || topic.user?.id === null ? undefined : String(topic.user.id)) : String(topic.user_id),
+      author,
+      initials: this.roomInitials(author),
+      title: topic.title,
+      text: topic.content,
+      createdAt: this.formatForumDate(topic.created_at),
+      replies: replies.map((reply) => this.toForumReply(reply)),
+      replyComposerOpen: false,
+      isLoadingReplies: false,
+      isSavingReply: false,
+      editing: false,
+      editingReplyId: null,
+    };
+  }
+
+  private toForumReply(reply: BackendForumReply): ForumReplyView {
+    const author = reply.user?.name ?? 'Utilizador';
+
+    return {
+      id: String(reply.id),
+      ownerId: reply.user_id === undefined || reply.user_id === null ? (reply.user?.id === undefined || reply.user?.id === null ? undefined : String(reply.user.id)) : String(reply.user_id),
+      author,
+      initials: this.roomInitials(author),
+      text: reply.reply,
+      createdAt: this.formatForumDate(reply.created_at),
+    };
+  }
+
+  private toForumTopicPreview(topic: BackendForumTopic): ForumTopicPreview {
+    return {
+      id: String(topic.id),
+      title: topic.title,
+      author: topic.user?.name ?? 'Utilizador',
+      ownerId: topic.user_id === undefined || topic.user_id === null ? (topic.user?.id === undefined || topic.user?.id === null ? undefined : String(topic.user.id)) : String(topic.user_id),
+      replies: Number(topic.replies_count ?? 0),
+      lastActivity: this.formatForumDate(topic.created_at),
+    };
+  }
+
+  canEditTopic(comment: ForumCommentView): boolean {
+    const userId = this.auth.user()?.id;
+
+    return Boolean(comment.ownerId && userId && String(comment.ownerId) === String(userId));
+  }
+
+  canDeleteTopic(comment: ForumCommentView): boolean {
+    const userId = this.auth.user()?.id;
+
+    return this.auth.canManagePlatform() || Boolean(comment.ownerId && userId && String(comment.ownerId) === String(userId));
+  }
+
+  canEditReply(reply: ForumReplyView): boolean {
+    const userId = this.auth.user()?.id;
+
+    return Boolean(reply.ownerId && userId && String(reply.ownerId) === String(userId));
+  }
+
+  canDeleteReply(reply: ForumReplyView): boolean {
+    const userId = this.auth.user()?.id;
+
+    return this.auth.canManagePlatform() || Boolean(reply.ownerId && userId && String(reply.ownerId) === String(userId));
+  }
+
+  openTopicReplyComposer(topicId: string): void {
+    if (!this.auth.isAuthenticated()) {
+      this.auth.requireLoginFor('responder no fórum');
+      return;
+    }
+
+    this.forumComments.update((comments) =>
+      comments.map((comment) =>
+        comment.id === topicId
+          ? { ...comment, replyComposerOpen: !comment.replyComposerOpen, editingReplyId: null }
+          : comment,
+      ),
+    );
+  }
+
+  async submitTopicReply(topicId: string, value: string): Promise<void> {
+    const text = value.trim();
+
+    if (!this.auth.isAuthenticated()) {
+      this.auth.requireLoginFor('responder no fórum');
+      return;
+    }
+
+    if (!text) {
+      this.forumFeedback.set('Escreva uma resposta antes de publicar.');
+      return;
+    }
+
+    this.forumComments.update((comments) =>
+      comments.map((comment) => comment.id === topicId ? { ...comment, isSavingReply: true } : comment),
+    );
+
+    try {
+      const reply = await this.forumService.createReply(topicId, text);
+      const mappedReply = this.toForumReply(reply);
+
+      this.forumComments.update((comments) =>
+        comments.map((comment) =>
+          comment.id === topicId
+            ? {
+                ...comment,
+                replies: [...comment.replies, mappedReply],
+                replyComposerOpen: false,
+                isSavingReply: false,
+              }
+            : comment,
+        ),
+      );
+      this.refreshTopicReplyCount(topicId, 1);
+      this.forumFeedback.set('');
+    } catch {
+      this.forumComments.update((comments) =>
+        comments.map((comment) => comment.id === topicId ? { ...comment, isSavingReply: false } : comment),
+      );
+      this.forumFeedback.set('Não foi possível publicar a resposta.');
+    }
+  }
+
+  openEditTopic(topicId: string): void {
+    this.forumComments.update((comments) =>
+      comments.map((comment) => comment.id === topicId ? { ...comment, editing: true, replyComposerOpen: false } : comment),
+    );
+  }
+
+  closeEditTopic(topicId: string): void {
+    this.forumComments.update((comments) =>
+      comments.map((comment) => comment.id === topicId ? { ...comment, editing: false } : comment),
+    );
+  }
+
+  async saveEditedTopic(topicId: string, titleInput: HTMLInputElement, contentInput: HTMLTextAreaElement): Promise<void> {
+    const title = titleInput.value.trim();
+    const content = contentInput.value.trim();
+
+    if (!title || !content) {
+      this.forumFeedback.set('Preencha o título e o conteúdo do tópico.');
+      return;
+    }
+
+    try {
+      const updated = await this.forumService.updateTopic(topicId, title, content);
+      const current = this.forumComments().find((comment) => comment.id === topicId);
+      const mapped = {
+        ...this.toForumComment(updated),
+        replies: current?.replies ?? [],
+      };
+
+      this.forumComments.update((comments) => comments.map((comment) => comment.id === topicId ? mapped : comment));
+      this.forumTopicPreviews.update((topics) =>
+        topics.map((topic) => topic.id === topicId ? { ...topic, title: mapped.title, lastActivity: mapped.createdAt } : topic),
+      );
+      this.forumFeedback.set('Tópico atualizado.');
+    } catch {
+      this.forumFeedback.set('Não foi possível atualizar este tópico.');
+    }
+  }
+
+  async deleteTopic(topicId: string): Promise<void> {
+    if (!window.confirm('Apagar este tópico e as respetivas respostas?')) {
+      return;
+    }
+
+    try {
+      await this.forumService.deleteTopic(topicId);
+      this.forumComments.update((comments) => comments.filter((comment) => comment.id !== topicId));
+      this.forumTopicPreviews.update((topics) => topics.filter((topic) => topic.id !== topicId));
+      this.forumService.rooms.update((rooms) =>
+        rooms.map((room) =>
+          room.id === this.route.snapshot.paramMap.get('id')
+            ? { ...room, activeDebates: Math.max(0, room.activeDebates - 1) }
+            : room,
+        ),
+      );
+      this.forumFeedback.set('Tópico apagado.');
+    } catch {
+      this.forumFeedback.set('Não foi possível apagar este tópico.');
+    }
+  }
+
+  openEditReply(topicId: string, replyId: string): void {
+    this.forumComments.update((comments) =>
+      comments.map((comment) => comment.id === topicId ? { ...comment, editingReplyId: replyId, replyComposerOpen: false } : comment),
+    );
+  }
+
+  closeEditReply(topicId: string): void {
+    this.forumComments.update((comments) =>
+      comments.map((comment) => comment.id === topicId ? { ...comment, editingReplyId: null } : comment),
+    );
+  }
+
+  async saveEditedReply(topicId: string, replyId: string, replyInput: HTMLTextAreaElement): Promise<void> {
+    const text = replyInput.value.trim();
+
+    if (!text) {
+      this.forumFeedback.set('Escreva a resposta antes de guardar.');
+      return;
+    }
+
+    try {
+      const updated = await this.forumService.updateReply(replyId, text);
+      const mapped = this.toForumReply(updated);
+
+      this.forumComments.update((comments) =>
+        comments.map((comment) =>
+          comment.id === topicId
+            ? {
+                ...comment,
+                replies: comment.replies.map((reply) => reply.id === replyId ? mapped : reply),
+                editingReplyId: null,
+              }
+            : comment,
+        ),
+      );
+      this.forumFeedback.set('Resposta atualizada.');
+    } catch {
+      this.forumFeedback.set('Não foi possível atualizar esta resposta.');
+    }
+  }
+
+  async deleteReply(topicId: string, replyId: string): Promise<void> {
+    if (!window.confirm('Apagar esta resposta?')) {
+      return;
+    }
+
+    try {
+      await this.forumService.deleteReply(replyId);
+      this.forumComments.update((comments) =>
+        comments.map((comment) =>
+          comment.id === topicId
+            ? { ...comment, replies: comment.replies.filter((reply) => reply.id !== replyId) }
+            : comment,
+        ),
+      );
+      this.refreshTopicReplyCount(topicId, -1);
+      this.forumFeedback.set('Resposta apagada.');
+    } catch {
+      this.forumFeedback.set('Não foi possível apagar esta resposta.');
+    }
+  }
+
+  private refreshTopicReplyCount(topicId: string, delta: number): void {
+    this.forumTopicPreviews.update((topics) =>
+      topics.map((topic) => topic.id === topicId ? { ...topic, replies: Math.max(0, topic.replies + delta) } : topic),
+    );
+  }
+
+  private toForumRoom(forum: BackendForum): ForumRoom {
+    return {
+      id: String(forum.id),
+      ownerId: forum.user_id === undefined || forum.user_id === null ? (forum.user?.id === undefined || forum.user?.id === null ? undefined : String(forum.user.id)) : String(forum.user_id),
+      creatorName: forum.user?.name,
+      name: forum.name,
+      visibility: forum.visibility === 'private' ? 'private' : 'public',
+      accessCode: forum.access_code ?? null,
+      joinApprovalRequired: Boolean(forum.join_approval_required),
+      members: 0,
+      activeDebates: forum.topics_count ?? forum.topics?.length ?? 0,
+      description: forum.description ?? forum.rules ?? 'Sem descrição.',
+      category: forum.category ?? 'Fórum',
+      objective: forum.description ?? forum.rules ?? '',
+      inviteEmails: [],
+      protectedByPassword: forum.visibility === 'private',
+      linkedContents: (forum.contents ?? []).map((content) => ({
+        id: String(content.id),
+        title: content.title,
+        type: content.content_type?.name ?? 'Conteúdo',
+        meta: content.category?.name ?? '',
+      })),
+    };
+  }
+
+  private resolvePrivateAccessStatus(room: ForumRoom): PrivateForumAccessStatus {
+    if (room.visibility === 'public') {
+      return 'member';
+    }
+
+    const storedStatus = this.readPrivateAccessStatus(room.id);
+    if (storedStatus) {
+      return storedStatus;
+    }
+
+    const user = this.auth.user();
+    const invitedById = Boolean(user?.invitedForumIds?.includes(room.id));
+    const invitedByEmail = Boolean(user?.email && room.inviteEmails?.some((email) => email.toLowerCase() === user.email.toLowerCase()));
+
+    return invitedById || invitedByEmail ? 'invited' : 'none';
+  }
+
+  private setPrivateAccessStatus(status: PrivateForumAccessStatus): void {
+    const room = this.room();
+
+    if (!room) {
+      return;
+    }
+
+    this.privateAccessStatus.set(status);
+
+    try {
+      window.localStorage.setItem(this.privateAccessStorageKey(room.id), status);
+    } catch {
+      // Local UI state only; failing to persist must not block the flow.
+    }
+  }
+
+  private readPrivateAccessStatus(roomId: string): PrivateForumAccessStatus | null {
+    try {
+      const status = window.localStorage.getItem(this.privateAccessStorageKey(roomId)) as PrivateForumAccessStatus | null;
+      const validStatuses: PrivateForumAccessStatus[] = ['none', 'pending', 'invited', 'member', 'rejected', 'invitation_rejected'];
+
+      return status && validStatuses.includes(status) ? status : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private privateAccessStorageKey(roomId: string): string {
+    return `${this.accessStoragePrefix}.${this.auth.user()?.id ?? 'guest'}.${roomId}`;
+  }
+
+  private isBackendForumId(value: string): boolean {
+    return /^\d+$/.test(value);
+  }
+
+  private formatForumDate(value: string | null | undefined): string {
+    const date = value ? new Date(value) : null;
+
+    if (!date || Number.isNaN(date.getTime())) {
+      return 'Agora';
+    }
+
+    return new Intl.DateTimeFormat('pt-AO', { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
+  }
+
+  openEditForum(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
-    this.forumFeedback.set('Den\u00fancia enviada. A equipa vai rever.');
+
+    if (!this.canManageForum()) {
+      this.forumFeedback.set('Apenas o dono ou a moderação podem editar este fórum.');
+      return;
+    }
+
+    this.editingForum.set(true);
+    this.forumFeedback.set('');
   }
+
+  closeEditForum(): void {
+    this.editingForum.set(false);
+  }
+
+  async saveEditedForum(
+    nameInput: HTMLInputElement,
+    descriptionInput: HTMLTextAreaElement,
+    categoryInput: HTMLInputElement,
+    visibilityInput: HTMLSelectElement,
+  ): Promise<void> {
+    const room = this.room();
+    const name = nameInput.value.trim();
+    const description = descriptionInput.value.trim();
+
+    if (!room || !this.canManageForum()) {
+      this.forumFeedback.set('Não tens permissão para editar este fórum.');
+      return;
+    }
+
+    if (!name || !description) {
+      this.forumFeedback.set('Preencha o título e a descrição do fórum.');
+      return;
+    }
+
+    this.isSavingForum.set(true);
+
+    try {
+      await this.forumService.update(room.id, {
+        name,
+        description,
+        rules: description,
+        category: categoryInput.value.trim() || room.category || 'Fórum',
+      visibility: visibilityInput.value === 'private' ? 'private' : 'public',
+        access_code: visibilityInput.value === 'private' ? (room.accessCode ?? `EH-${Date.now().toString(36).toUpperCase()}`) : null,
+        join_approval_required: visibilityInput.value === 'private',
+        content_permission: 'public',
+      });
+
+      this.forumService.rooms.update((rooms) =>
+        rooms.map((item) =>
+          item.id === room.id
+            ? {
+                ...item,
+                name,
+                description,
+                objective: description,
+                category: categoryInput.value.trim() || item.category,
+                visibility: visibilityInput.value === 'private' ? 'private' : 'public',
+                accessCode: visibilityInput.value === 'private' ? (item.accessCode ?? `EH-${Date.now().toString(36).toUpperCase()}`) : null,
+                joinApprovalRequired: visibilityInput.value === 'private',
+              }
+            : item,
+        ),
+      );
+      this.editingForum.set(false);
+      this.forumFeedback.set('Fórum atualizado.');
+    } catch {
+      this.forumFeedback.set('Não foi possível atualizar este fórum.');
+    } finally {
+      this.isSavingForum.set(false);
+    }
+  }
+
+  async deleteForum(event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const room = this.room();
+
+    if (!room || !this.canManageForum()) {
+      this.forumFeedback.set('Não tens permissão para apagar este fórum.');
+      return;
+    }
+
+    if (!window.confirm(`Apagar "${room.name}"?`)) {
+      return;
+    }
+
+    try {
+      await this.forumService.delete(room.id);
+      this.forumService.rooms.update((rooms) => rooms.filter((item) => item.id !== room.id));
+      await this.router.navigate(['/app/forums']);
+    } catch {
+      this.forumFeedback.set('Não foi possível apagar este fórum.');
+    }
+  }
+
 }
 
 export const USER_FORUMS_ROUTES: Routes = [
   { path: '', component: UserForumsPage },
   { path: ':id', canActivate: [authGuard], data: { loginOperation: 'ver detalhes do fórum' }, component: UserForumDetailPage },
 ];
-

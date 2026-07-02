@@ -12,6 +12,8 @@ readonly class CreateForumDTO
         public ?string $category = null,
         public ?string $imageUrl = null,
         public string $visibility = 'public',
+        public ?string $accessCode = null,
+        public bool $joinApprovalRequired = false,
         public string $contentPermission = 'public',
         public bool $allowAttachments = false,
         public array $contentIds = [],

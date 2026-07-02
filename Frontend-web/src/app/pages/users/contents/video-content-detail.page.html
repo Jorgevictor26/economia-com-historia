@@ -8,12 +8,18 @@
         <div class="group relative aspect-video bg-[#212121]">
 
           @if (currentVideo.videoUrl && isDirectVideoUrl(currentVideo.videoUrl)) {
-            <video #videoPlayer class="h-full w-full object-cover" [src]="currentVideo.videoUrl" [poster]="currentVideo.frameUrl" preload="metadata" playsinline (play)="markVideoPlaying()" (pause)="markVideoStopped()" (ended)="markVideoStopped()" (error)="markVideoError()"></video>
-            <div class="absolute inset-0 z-10 flex items-center justify-center">
+            <video #videoPlayer class="h-full w-full object-cover" [src]="currentVideo.videoUrl" [poster]="currentVideo.frameUrl" preload="auto" playsinline (loadedmetadata)="markVideoReady()" (canplay)="markVideoReady()" (play)="markVideoPlaying()" (pause)="markVideoStopped()" (ended)="markVideoStopped()" (error)="markVideoError()"></video>
+            <div class="absolute inset-0 z-10 flex items-center justify-center gap-5">
+              <button type="button" (click)="seekVideo(videoPlayer, -10)" [disabled]="!videoReady()" class="grid size-12 place-items-center rounded-full bg-black/55 text-white backdrop-blur-md transition duration-300 hover:scale-105 hover:bg-[#8A3F50] disabled:cursor-not-allowed disabled:opacity-45" aria-label="Recuar 10 segundos">
+                <span class="material-symbols-outlined text-[34px]">replay_10</span>
+              </button>
               <button type="button" (click)="toggleVideoPlayback(videoPlayer)" class="grid h-15 w-15 place-items-center rounded-full bg-black/70 text-white backdrop-blur-md transition duration-300 hover:scale-110 hover:bg-[#8A3F50]" [attr.aria-label]="videoPlaying() ? 'Pausar vídeo' : 'Reproduzir vídeo'">
                 <span class="material-symbols-outlined text-[50px]">
                   {{ videoPlaying() ? 'pause' : 'play_arrow' }}
                 </span>
+              </button>
+              <button type="button" (click)="seekVideo(videoPlayer, 10)" [disabled]="!videoReady()" class="grid size-12 place-items-center rounded-full bg-black/55 text-white backdrop-blur-md transition duration-300 hover:scale-105 hover:bg-[#8A3F50] disabled:cursor-not-allowed disabled:opacity-45" aria-label="Avançar 10 segundos">
+                <span class="material-symbols-outlined text-[34px]">forward_10</span>
               </button>
             </div>
           } @else {
@@ -91,7 +97,7 @@
       <section class="mt-8 border-t border-[#E0E0E0] py-5">
         <div class="flex flex-wrap items-center justify-between gap-5 text-[12px] text-[#616161]">
           <div class="flex flex-wrap items-center gap-8">
-            <button type="button" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]" (click)="likeVideo($event)">
+            <button type="button" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F] disabled:opacity-60" [disabled]="isSavingVideoReaction()" (click)="likeVideo($event)">
               <span class="material-symbols-outlined text-[26px] leading-none" [class.text-[#8A3F50]]="videoLiked()">favorite</span>
               <span>Gostar</span>
             </button>
@@ -108,27 +114,29 @@
 
           </div>
 
-          <button type="button" class="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#9E9E9E] transition hover:text-[#5C1E2F]" (click)="saveVideoContent($event)">
-            <span class="material-symbols-outlined text-[24px] leading-none">bookmark_add</span>
-            <span>Guardar</span>
-          </button>
-          @if (canManageVideo()) {
-          <details class="relative">
-            <summary class="grid size-9 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" aria-label="Mais ações">
-              <span class="material-symbols-outlined text-[22px] leading-none">more_vert</span>
-            </summary>
-            <div class="absolute right-0 z-20 mt-2 grid min-w-40 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
-              <a [routerLink]="editVideoRoute()" class="flex items-center gap-2 px-3 py-2 text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]">
-                <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
-                <span>Editar post</span>
-              </a>
-              <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]" (click)="deleteVideoContent($event)">
-                <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
-                <span>Apagar post</span>
-              </button>
-            </div>
-          </details>
-          }
+          <div class="flex items-center gap-5">
+            <button type="button" class="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#9E9E9E] transition hover:text-[#5C1E2F]" (click)="saveVideoContent($event)">
+              <span class="material-symbols-outlined text-[24px] leading-none">bookmark_add</span>
+              <span>Guardar</span>
+            </button>
+            @if (canManageVideo()) {
+            <details class="relative">
+              <summary class="grid size-9 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" aria-label="Mais ações">
+                <span class="material-symbols-outlined text-[22px] leading-none">more_vert</span>
+              </summary>
+              <div class="absolute right-0 z-20 mt-2 grid min-w-40 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
+                <a [routerLink]="editVideoRoute()" class="flex items-center gap-2 px-3 py-2 text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]">
+                  <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
+                  <span>Editar post</span>
+                </a>
+                <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]" (click)="deleteVideoContent($event)">
+                  <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
+                  <span>Apagar post</span>
+                </button>
+              </div>
+            </details>
+            }
+          </div>
         </div>
       </section>
 
@@ -143,23 +151,25 @@
         </blockquote>
       </section>
       <section class="mt-10 border-t border-[#E0E0E0] pt-9">
-        <h2 class="text-[14px] font-medium text-[#5c1e2f]">Comentários ({{ comments.length }})</h2>
+        <h2 class="text-[14px] font-medium text-[#5c1e2f]">Comentários ({{ comments().length }})</h2>
         @if (isVideoCommentComposerOpen()) {
         <div class="mt-6 flex gap-4">
           <span class="size-9 rounded-[10px] bg-[#E0E0E0]"></span>
           <div class="min-w-0 flex-1">
-            <textarea class="h-[96px] w-full resize-none border border-[#E0E0E0] bg-[#F5F5F5] p-5 text-[13px] outline-none placeholder:text-[#BDBDBD] focus:border-[#8A3F50]" placeholder="Partilhe a sua reflex&atilde;o sobre este v&iacute;deo..."></textarea>
+            <textarea #videoCommentInput class="h-[96px] w-full resize-none border border-[#E0E0E0] bg-[#F5F5F5] p-5 text-[13px] outline-none placeholder:text-[#BDBDBD] focus:border-[#8A3F50]" placeholder="Partilhe a sua reflex&atilde;o sobre este v&iacute;deo..."></textarea>
             <div class="-mt-px text-right">
-              <button type="button" class="h-10 bg-[#5C1E2F] px-6 text-[12px] font-bold text-white">Publicar</button>
+              <button type="button" class="h-10 bg-[#5C1E2F] px-6 text-[12px] font-bold text-white disabled:opacity-60" [disabled]="isSavingVideoComment()" (click)="submitVideoComment(videoCommentInput.value); videoCommentInput.value = ''">
+                {{ isSavingVideoComment() ? 'A publicar...' : 'Publicar' }}
+              </button>
             </div>
           </div>
         </div>
         }
         <div class="mt-9 grid gap-7">
-          @if (!comments.length) {
+          @if (!comments().length) {
           <p class="text-[13px] text-[#616161]">Ainda não há comentários neste vídeo.</p>
           }
-          @for (comment of comments; track comment.author) {
+          @for (comment of comments(); track comment.author + comment.time + comment.text) {
           <div class="flex gap-4">
             <span class="grid size-9 place-items-center rounded-[8px] bg-[#E0E0E0] text-[11px] font-bold text-[#9E9E9E]">
               {{ comment.initials }}
@@ -238,6 +248,9 @@
   </main>
   }
 
+  @if (video(); as currentVideoAction) {
+    <app-content-forum-action [contentId]="currentVideoAction.id" [contentTitle]="currentVideoAction.title" />
+  }
   <app-back-to-top />
 </section>
 

@@ -10,6 +10,9 @@ readonly class UpdateQuizProgressDTO
         public int $progressPercent,
         public ?int $currentQuestionIndex = null,
         public ?array $answeredQuestions = null,
+        public int $correctCount = 0,
+        public int $elapsedSeconds = 0,
+        public ?array $questionOrder = null,
     ) {
     }
 }

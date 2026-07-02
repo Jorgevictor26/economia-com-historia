@@ -8,6 +8,7 @@ use App\Models\Question;
 use App\Repositories\QuestionRepository;
 use App\Repositories\QuizRepository;
 use Illuminate\Database\Eloquent\Collection;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class QuestionService
 {
@@ -26,7 +27,11 @@ class QuestionService
 
     public function create(CreateQuestionDTO $dto): Question
     {
-        $this->quizzes->findById($dto->quizId) ?? abort(404, 'Quiz not found');
+        $quiz = $this->quizzes->findById($dto->quizId) ?? abort(404, 'Quiz not found');
+
+        if ($quiz->questions()->count() >= 10) {
+            throw new UnprocessableEntityHttpException('Quiz already has 10 questions');
+        }
 
         return $this->questions->create($dto->toArray());
     }

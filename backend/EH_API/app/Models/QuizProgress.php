@@ -15,14 +15,20 @@ class QuizProgress extends Model
         'quiz_id',
         'progress_percent',
         'current_question_index',
+        'correct_count',
+        'elapsed_seconds',
         'answered_questions',
+        'question_order',
         'completed_at',
     ];
 
     protected $casts = [
         'progress_percent' => 'integer',
         'current_question_index' => 'integer',
+        'correct_count' => 'integer',
+        'elapsed_seconds' => 'integer',
         'answered_questions' => 'array',
+        'question_order' => 'array',
         'completed_at' => 'datetime',
     ];
 

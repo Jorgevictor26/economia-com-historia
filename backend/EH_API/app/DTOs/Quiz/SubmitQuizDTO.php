@@ -9,6 +9,7 @@ readonly class SubmitQuizDTO
         public int $userId,
         public string $startedAt,
         public array $answers,
+        public int $elapsedSeconds = 0,
     ) {
     }
 
@@ -19,6 +20,7 @@ readonly class SubmitQuizDTO
             userId: $userId,
             startedAt: $data['started_at'],
             answers: $data['answers'],
+            elapsedSeconds: (int) ($data['elapsed_seconds'] ?? 0),
         );
     }
 }

@@ -128,8 +128,10 @@ Route::prefix('v1')->group(function () {
         Route::delete('/replies/{id}', [ForumReplyController::class, 'destroy']);
 
         // QUIZZES
+        Route::post('/quizzes/{id}/start', [QuizAnswerController::class, 'start']);
         Route::post('/quizzes/{id}/submit', [QuizAnswerController::class, 'submit']);
         Route::get('/quizzes/{id}/result', [QuizAnswerController::class, 'result']);
+        Route::get('/quizzes/{id}/ranking', [QuizAnswerController::class, 'ranking']);
 
         Route::middleware('role:Admin,SuperAdmin')->group(function () {
             Route::get('/comment-reports', [CommentReportController::class, 'index']);
@@ -152,6 +154,8 @@ Route::prefix('v1')->group(function () {
             Route::put('/quizzes/{id}', [QuizController::class, 'update']);
             Route::delete('/quizzes/{id}', [QuizController::class, 'destroy']);
             Route::post('/quizzes/{id}/questions', [QuestionController::class, 'store']);
+            Route::put('/questions/{id}', [QuestionController::class, 'update']);
+            Route::delete('/questions/{id}', [QuestionController::class, 'destroy']);
         });
     });
 });

@@ -29,16 +29,16 @@ class QuestionService
     {
         $quiz = $this->quizzes->findById($dto->quizId) ?? abort(404, 'Quiz not found');
 
-        if ($quiz->questions()->count() >= 10) {
-            throw new UnprocessableEntityHttpException('Quiz already has 10 questions');
+        if ($quiz->questions()->count() >= 15) {
+            throw new UnprocessableEntityHttpException('Quiz already has 15 questions');
         }
 
-        return $this->questions->create($dto->toArray());
+        return $this->questions->create($dto->toArray(), $dto->alternatives);
     }
 
     public function update(Question $question, UpdateQuestionDTO $dto): Question
     {
-        return $this->questions->update($question, $dto->toArray());
+        return $this->questions->update($question, $dto->toArray(), $dto->alternatives);
     }
 
     public function delete(Question $question): bool

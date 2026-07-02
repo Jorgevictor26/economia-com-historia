@@ -2,6 +2,8 @@
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Routes } from '@angular/router';
 import { AuthStateService } from '../../services/auth-state.service';
+import { ConfirmService } from '../../services/confirm.service';
+import { CommentReportReason, CommentReportService } from '../../services/comment-report.service';
 import { BackendComment, CommentService } from '../../services/comment.service';
 import { BackendContent, ContentService } from '../../services/content.service';
 import { ReactionService } from '../../services/reaction.service';
@@ -30,6 +32,7 @@ interface PodcastView {
 
 interface PodcastCommentView {
   id: string;
+  ownerId?: string;
   author: string;
   authorInitials: string;
   authorPhotoUrl?: string;
@@ -40,6 +43,7 @@ interface PodcastCommentView {
 
 interface PodcastCommentReplyView {
   id: string;
+  ownerId?: string;
   author: string;
   authorInitials: string;
   authorPhotoUrl?: string;
@@ -54,6 +58,12 @@ interface RelatedPodcastView {
   coverUrl: string | null;
 }
 
+interface CommentReportTarget {
+  id: string;
+  author: string;
+  text: string;
+}
+
 @Component({
   selector: 'app-podcast-library-page',
   imports: [RouterLink, PublicNavbarComponent, BackToTopComponent, ContentForumActionComponent],
@@ -64,13 +74,16 @@ export class PodcastLibraryPage {
   private readonly router = inject(Router);
   private readonly auth = inject(AuthStateService);
   private readonly commentService = inject(CommentService);
+  private readonly commentReportService = inject(CommentReportService);
   private readonly contentService = inject(ContentService);
   private readonly reactionService = inject(ReactionService);
   private readonly savedContentService = inject(SavedContentService);
   private readonly toastService = inject(ToastService);
+  readonly confirmService = inject(ConfirmService);
 
   readonly isCommentComposerOpen = signal(false);
   readonly replyingToCommentId = signal<string | null>(null);
+  readonly editingCommentId = signal<string | null>(null);
   readonly expandedReplies = signal<Record<string, boolean>>({});
   readonly podcast = signal<PodcastView | null>(null);
   readonly comments = signal<PodcastCommentView[]>([]);
@@ -78,7 +91,9 @@ export class PodcastLibraryPage {
   readonly isLoading = signal(false);
   readonly isLoadingComments = signal(false);
   readonly isSavingComment = signal(false);
+  readonly isSavingEditedComment = signal(false);
   readonly isSavingReply = signal(false);
+  readonly editingReplyId = signal<string | null>(null);
   readonly isSavingReaction = signal(false);
   readonly isSavingContent = signal(false);
   readonly podcastLiked = signal(false);
@@ -86,12 +101,20 @@ export class PodcastLibraryPage {
   readonly loadError = signal('');
   readonly commentError = signal('');
   readonly commentSuccess = signal('');
+  readonly reportTarget = signal<CommentReportTarget | null>(null);
+  readonly reportReason = signal<CommentReportReason>('offensive_comment');
+  readonly reportDescription = signal('');
+  readonly reportError = signal('');
+  readonly isSubmittingReport = signal(false);
   readonly audioPlaying = signal(false);
   readonly audioReady = signal(false);
   readonly audioEnded = signal(false);
   readonly audioLoop = signal(false);
   readonly audioLoadError = signal(false);
   readonly audioProgressText = signal('00:00 / 00:00');
+  readonly audioCurrentTimeText = signal('0:00');
+  readonly audioRemainingTimeText = signal('-0:00');
+  readonly audioProgressPercent = signal(0);
   readonly audioStatusText = computed(() => {
     if (!this.currentPodcast().audioUrl) {
       return 'Áudio indisponível';
@@ -256,6 +279,237 @@ export class PodcastLibraryPage {
     return this.expandedReplies()[commentId] ?? false;
   }
 
+  canManageComment(comment: PodcastCommentView): boolean {
+    const userId = this.auth.user()?.id;
+
+    return Boolean(comment.ownerId && userId && String(comment.ownerId) === String(userId));
+  }
+
+  canReportComment(comment: PodcastCommentView): boolean {
+    return !this.canManageComment(comment);
+  }
+
+  openEditComment(comment: PodcastCommentView): void {
+    if (!this.canManageComment(comment)) {
+      this.toastService.error('Apenas o dono pode editar este comentário.');
+      return;
+    }
+
+    this.commentError.set('');
+    this.commentSuccess.set('');
+    this.replyingToCommentId.set(null);
+    this.editingCommentId.set(comment.id);
+  }
+
+  cancelEditComment(): void {
+    this.editingCommentId.set(null);
+  }
+
+  async saveEditedComment(commentId: string, value: string): Promise<void> {
+    const contentId = this.podcast()?.id;
+    const comment = value.trim();
+
+    this.commentError.set('');
+    this.commentSuccess.set('');
+
+    if (!contentId || !comment || this.isSavingEditedComment()) {
+      this.commentError.set('Escreva um comentário antes de guardar.');
+      return;
+    }
+
+    this.isSavingEditedComment.set(true);
+
+    try {
+      await this.commentService.update(commentId, comment);
+      await this.loadComments(contentId);
+      this.commentSuccess.set('Comentário atualizado com sucesso.');
+      this.editingCommentId.set(null);
+    } catch {
+      this.commentError.set('Não foi possível atualizar o comentário.');
+    } finally {
+      this.isSavingEditedComment.set(false);
+    }
+  }
+
+  async deleteComment(comment: PodcastCommentView): Promise<void> {
+    const contentId = this.podcast()?.id;
+
+    if (!contentId || !this.canManageComment(comment)) {
+      this.toastService.error('Apenas o dono pode apagar este comentário.');
+      return;
+    }
+
+    const confirmed = await this.confirmService.confirm('Apagar este comentário?');
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await this.commentService.delete(comment.id);
+      await this.loadComments(contentId);
+      this.commentSuccess.set('Comentário apagado com sucesso.');
+    } catch {
+      this.commentError.set('Não foi possível apagar o comentário.');
+    }
+  }
+
+  openReportModal(event: Event, comment: PodcastCommentView): void {
+    if (!this.auth.isAuthenticated()) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.auth.requireLoginFor('denunciar comentário');
+      return;
+    }
+
+    if (!this.canReportComment(comment)) {
+      this.toastService.error('Não podes denunciar o teu próprio comentário.');
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.reportTarget.set({
+      id: comment.id,
+      author: comment.author,
+      text: comment.text,
+    });
+    this.reportReason.set('offensive_comment');
+    this.reportDescription.set('');
+    this.reportError.set('');
+  }
+
+  openEditReply(comment: PodcastCommentView, reply: PodcastCommentReplyView): void {
+    const userId = this.auth.user()?.id;
+
+    if (!reply || !reply.ownerId || !userId || String(reply.ownerId) !== String(userId)) {
+      this.toastService.error('Apenas o dono pode editar esta resposta.');
+      return;
+    }
+
+    this.replyingToCommentId.set(null);
+    this.editingReplyId.set(reply.id);
+  }
+
+  canManageReply(reply: PodcastCommentReplyView): boolean {
+    const userId = this.auth.user()?.id;
+
+    return Boolean(reply.ownerId && userId && String(reply.ownerId) === String(userId));
+  }
+
+  openReportReply(event: Event, reply: PodcastCommentReplyView): void {
+    if (!this.auth.isAuthenticated()) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.auth.requireLoginFor('denunciar comentário');
+      return;
+    }
+
+    if (!this.canManageReply(reply)) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.reportTarget.set({ id: reply.id, author: reply.author, text: reply.text });
+      this.reportReason.set('offensive_comment');
+      this.reportDescription.set('');
+      this.reportError.set('');
+      return;
+    }
+
+    this.toastService.error('Não podes denunciar a tua própria resposta.');
+  }
+
+  cancelEditReply(): void {
+    this.editingReplyId.set(null);
+  }
+
+  async saveEditedReply(commentId: string, replyId: string, value: string): Promise<void> {
+    const contentId = this.podcast()?.id;
+    const reply = value.trim();
+
+    this.commentError.set('');
+    this.commentSuccess.set('');
+
+    if (!contentId || !reply || this.isSavingEditedComment()) {
+      this.commentError.set('Escreva uma resposta antes de guardar.');
+      return;
+    }
+
+    this.isSavingEditedComment.set(true);
+
+    try {
+      await this.commentService.updateReply(replyId, reply);
+      await this.loadComments(contentId);
+      this.commentSuccess.set('Resposta atualizada com sucesso.');
+      this.editingReplyId.set(null);
+    } catch {
+      this.commentError.set('Não foi possível atualizar a resposta.');
+    } finally {
+      this.isSavingEditedComment.set(false);
+    }
+  }
+
+  async deleteReply(comment: PodcastCommentView, reply: PodcastCommentReplyView): Promise<void> {
+    const contentId = this.podcast()?.id;
+
+    if (!contentId || !reply || !reply.ownerId) {
+      this.toastService.error('Não foi possível apagar esta resposta.');
+      return;
+    }
+
+    const userId = this.auth.user()?.id;
+
+    if (!userId || String(reply.ownerId) !== String(userId)) {
+      this.toastService.error('Apenas o dono pode apagar esta resposta.');
+      return;
+    }
+
+    const confirmed = await this.confirmService.confirm('Apagar esta resposta?');
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await this.commentService.deleteReply(reply.id);
+      await this.loadComments(contentId);
+      this.commentSuccess.set('Resposta apagada com sucesso.');
+    } catch {
+      this.commentError.set('Não foi possível apagar a resposta.');
+    }
+  }
+
+  closeReportModal(): void {
+    this.reportTarget.set(null);
+    this.reportError.set('');
+  }
+
+  updateReportReason(event: Event): void {
+    this.reportReason.set((event.target as HTMLSelectElement).value as CommentReportReason);
+  }
+
+  updateReportDescription(event: Event): void {
+    this.reportDescription.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  async submitCommentReport(): Promise<void> {
+    const target = this.reportTarget();
+
+    if (!target || this.isSubmittingReport()) {
+      return;
+    }
+
+    this.isSubmittingReport.set(true);
+    this.reportError.set('');
+
+    try {
+      await this.commentReportService.create(target.id, this.reportReason(), this.reportDescription());
+      this.toastService.success('Comentário denunciado. A equipa vai rever.');
+      this.reportTarget.set(null);
+    } catch (error) {
+      this.reportError.set(error instanceof Error ? this.translateReportError(error.message) : 'Não foi possível enviar a denúncia.');
+    } finally {
+      this.isSubmittingReport.set(false);
+    }
+  }
+
   async toggleAudio(audio: HTMLAudioElement): Promise<void> {
     const audioUrl = this.currentPodcast().audioUrl;
 
@@ -324,7 +578,11 @@ export class PodcastLibraryPage {
   syncAudioProgress(audio: HTMLAudioElement): void {
     const current = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
     const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+
     this.audioProgressText.set(`${this.formatAudioTime(current)} / ${this.formatAudioTime(duration)}`);
+    this.audioCurrentTimeText.set(this.formatAudioTime(current));
+    this.audioRemainingTimeText.set(`-${this.formatAudioTime(Math.max(duration - current, 0))}`);
+    this.audioProgressPercent.set(duration > 0 ? Math.min(100, Math.max(0, (current / duration) * 100)) : 0);
   }
 
   markAudioError(): void {
@@ -354,7 +612,8 @@ export class PodcastLibraryPage {
       return;
     }
 
-    if (!window.confirm(`Apagar "${podcast.title}"?`)) {
+    const confirmed = await this.confirmService.confirm(`Apagar "${podcast.title}"?`);
+    if (!confirmed) {
       return;
     }
 
@@ -381,6 +640,9 @@ export class PodcastLibraryPage {
     this.audioLoop.set(false);
     this.audioLoadError.set(false);
     this.audioProgressText.set('00:00 / 00:00');
+    this.audioCurrentTimeText.set('0:00');
+    this.audioRemainingTimeText.set('-0:00');
+    this.audioProgressPercent.set(0);
   }
 
   private prepareAudioElement(audio: HTMLAudioElement, audioUrl: string): void {
@@ -545,6 +807,7 @@ export class PodcastLibraryPage {
 
     return {
       id: String(comment.id),
+      ownerId: this.commentOwnerId(comment),
       author: authorName,
       authorInitials: this.initials(authorName),
       authorPhotoUrl: normalizeMediaUrl(comment.user?.photo),
@@ -555,6 +818,7 @@ export class PodcastLibraryPage {
 
         return {
           id: String(reply.id),
+          ownerId: reply.user?.id ? String(reply.user.id) : undefined,
           author: replyAuthor,
           authorInitials: this.initials(replyAuthor),
           authorPhotoUrl: normalizeMediaUrl(reply.user?.photo),
@@ -563,6 +827,12 @@ export class PodcastLibraryPage {
         };
       }),
     };
+  }
+
+  private commentOwnerId(comment: BackendComment): string | undefined {
+    const ownerId = comment.user_id ?? comment.user?.id;
+
+    return ownerId === undefined || ownerId === null ? undefined : String(ownerId);
   }
 
   private toRelatedPodcast(content: BackendContent): RelatedPodcastView {
@@ -602,6 +872,16 @@ export class PodcastLibraryPage {
       .map((point) => point.trim())
       .filter((point) => point.length > 24)
       .slice(0, 4);
+  }
+
+  private translateReportError(message: string): string {
+    const translations: Record<string, string> = {
+      'You cannot report your own comment': 'Não podes denunciar o teu próprio comentário.',
+      'You have already reported this comment': 'Já denunciaste este comentário.',
+      'Comment not found': 'Comentário não encontrado.',
+    };
+
+    return translations[message] ?? message;
   }
 
   private initials(name: string): string {

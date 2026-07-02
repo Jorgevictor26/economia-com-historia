@@ -246,7 +246,7 @@ class MobileDemoDataSeeder extends Seeder
                 'title' => 'Quiz: Moeda e comercio em Angola',
                 'description' => 'Teste conhecimentos sobre moeda, precos e confianca economica.',
                 'difficulty' => 'medio',
-                'xp_per_question' => 15,
+                'xp_per_question' => 20,
                 'time_limit' => 12,
                 'questions' => [
                     ['question' => 'Qual e uma funcao basica da moeda?', 'a' => 'Medir valor', 'b' => 'Substituir producao', 'c' => 'Eliminar impostos', 'd' => 'Impedir comercio', 'correct' => 'a'],
@@ -274,7 +274,7 @@ class MobileDemoDataSeeder extends Seeder
                 'title' => 'Quiz Jindungo: Petroleo e divida',
                 'description' => 'Desafio sobre receitas petroliferas, divida e politica fiscal.',
                 'difficulty' => 'dificil',
-                'xp_per_question' => 20,
+                'xp_per_question' => 30,
                 'time_limit' => 15,
                 'questions' => [
                     ['question' => 'Uma economia dependente do petroleo fica mais sensivel a:', 'a' => 'Choques no preco internacional', 'b' => 'Mudancas de calendario escolar', 'c' => 'Tipos de papel', 'd' => 'Nomes de bairros', 'correct' => 'a'],
@@ -288,7 +288,7 @@ class MobileDemoDataSeeder extends Seeder
                 'title' => 'Quiz: Mercados populares e memoria urbana',
                 'description' => 'Perguntas sobre comercio informal e dinamicas urbanas.',
                 'difficulty' => 'medio',
-                'xp_per_question' => 15,
+                'xp_per_question' => 20,
                 'time_limit' => 12,
                 'questions' => [
                     ['question' => 'Mercados populares revelam:', 'a' => 'Praticas de comercio e sobrevivencia', 'b' => 'Ausencia total de economia', 'c' => 'Fim das trocas', 'd' => 'Somente lazer', 'correct' => 'a'],
@@ -308,6 +308,7 @@ class MobileDemoDataSeeder extends Seeder
                 [
                     'user_id' => $author->id,
                     'content_id' => $content->id,
+                    'category_id' => $content->category_id,
                     'description' => $item['description'],
                     'cover_url' => $content->image_url,
                     'difficulty' => $item['difficulty'],
@@ -317,7 +318,7 @@ class MobileDemoDataSeeder extends Seeder
             );
 
             foreach ($item['questions'] as $question) {
-                Question::updateOrCreate(
+                $createdQuestion = Question::updateOrCreate(
                     [
                         'quiz_id' => $quiz->id,
                         'question' => $question['question'],
@@ -331,6 +332,15 @@ class MobileDemoDataSeeder extends Seeder
                         'explanation' => 'Revise o conteudo associado para aprofundar este ponto.',
                     ]
                 );
+
+                $createdQuestion->alternatives()->delete();
+
+                foreach (['a', 'b', 'c', 'd'] as $option) {
+                    $createdQuestion->alternatives()->create([
+                        'text' => $question[$option],
+                        'is_correct' => $question['correct'] === $option,
+                    ]);
+                }
             }
 
             $quizzes[$key] = $quiz->fresh('questions');
@@ -626,12 +636,17 @@ class MobileDemoDataSeeder extends Seeder
 
         foreach ($questions as $index => $question) {
             $isCorrect = $index < $score;
+            $alternative = $isCorrect
+                ? $question->alternatives()->where('is_correct', true)->first()
+                : $question->alternatives()->where('is_correct', false)->first();
+
             QuizAnswer::updateOrCreate(
                 [
                     'question_id' => $question->id,
                     'user_id' => $user->id,
                 ],
                 [
+                    'quiz_alternative_id' => $alternative?->id,
                     'selected_option' => $isCorrect ? $question->correct_option : $this->wrongOption($question->correct_option),
                     'is_correct' => $isCorrect,
                 ]

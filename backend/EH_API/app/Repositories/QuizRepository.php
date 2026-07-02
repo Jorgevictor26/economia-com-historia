@@ -11,36 +11,40 @@ class QuizRepository
     public function all(array $filters = []): LengthAwarePaginator
     {
         return Quiz::query()
-            ->with(['user', 'content.category'])
+            ->with(['user', 'category', 'content.category'])
             ->withCount('questions')
+            ->when($filters['category_id'] ?? null, fn ($query, $categoryId) => $query->where('category_id', $categoryId))
+            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $this->normalizeStatus($status)))
             ->when($filters['search'] ?? null, function ($query, string $search) {
                 $query->where(function ($searchQuery) use ($search) {
                     $searchQuery
                         ->where('title', 'like', "%{$search}%")
                         ->orWhere('description', 'like', "%{$search}%")
                         ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('content', fn ($contentQuery) => $contentQuery->where('title', 'like', "%{$search}%"));
+                        ->orWhereHas('category', fn ($categoryQuery) => $categoryQuery->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('content', fn ($contentQuery) => $contentQuery->where('title', 'like', "%{$search}%"))
+                        ->orWhereHas('content.category', fn ($categoryQuery) => $categoryQuery->where('name', 'like', "%{$search}%"));
                 });
             })
             ->latest()
-            ->paginate(10);
+            ->paginate((int) ($filters['per_page'] ?? 10));
     }
 
     public function findById(int $id): ?Quiz
     {
-        return Quiz::with(['user', 'content.category', 'questions'])->find($id);
+        return Quiz::with(['user', 'category', 'content.category', 'questions.alternatives'])->find($id);
     }
 
     public function create(array $data): Quiz
     {
-        return Quiz::create($data)->load(['user', 'content.category', 'questions']);
+        return Quiz::create($data)->load(['user', 'category', 'content.category', 'questions.alternatives']);
     }
 
     public function update(Quiz $quiz, array $data): Quiz
     {
         $quiz->update($data);
 
-        return $quiz->fresh(['user', 'content.category', 'questions']);
+        return $quiz->fresh(['user', 'category', 'content.category', 'questions.alternatives']);
     }
 
     public function delete(Quiz $quiz): bool
@@ -62,5 +66,10 @@ class QuizRepository
             ->with(['content.category'])
             ->whereHas('content.category', fn ($query) => $query->where('name', $theme))
             ->get();
+    }
+
+    private function normalizeStatus(string $status): string
+    {
+        return in_array(strtolower($status), ['inactive', 'inativo'], true) ? 'inactive' : 'active';
     }
 }

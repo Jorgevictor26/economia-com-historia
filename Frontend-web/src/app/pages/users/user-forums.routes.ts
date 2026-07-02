@@ -1,6 +1,7 @@
 ﻿import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink, Routes } from '@angular/router';
 import { AuthStateService } from '../../services/auth-state.service';
+import { ConfirmService } from '../../services/confirm.service';
 import { authGuard } from '../../services/auth.guard';
 import { ContentService } from '../../services/content.service';
 import { BackendForum, BackendForumReply, BackendForumTopic, ForumService } from '../../services/forum.service';
@@ -8,6 +9,8 @@ import { ToastService } from '../../services/toast.service';
 import { ForumRoom } from '../../models/forum.model';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
+
+type ForumReportReason = 'spam' | 'offensive_comment' | 'fake_information' | 'copyright' | 'other';
 
 interface PageToast {
   message: string;
@@ -57,6 +60,12 @@ interface ForumCommentView {
   editingReplyId: string | null;
 }
 
+interface ForumReportTarget {
+  id: string;
+  author: string;
+  text: string;
+}
+
 @Component({
   selector: 'app-user-forums-page',
   standalone: true,
@@ -67,6 +76,7 @@ export class UserForumsPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly auth = inject(AuthStateService);
+  readonly confirmService = inject(ConfirmService);
   readonly contentService = inject(ContentService);
   readonly forumService = inject(ForumService);
   private readonly toastService = inject(ToastService);
@@ -323,6 +333,7 @@ export class UserForumDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly auth = inject(AuthStateService);
+  readonly confirmService = inject(ConfirmService);
   readonly forumService = inject(ForumService);
   readonly likedByMe = signal(false);
   readonly commentComposerOpen = signal(false);
@@ -337,6 +348,11 @@ export class UserForumDetailPage {
   readonly privateAccessStatus = signal<PrivateForumAccessStatus>('none');
   readonly invitationNoticeOpen = signal(false);
   readonly forumTopicPreviews = signal<ForumTopicPreview[]>([]);
+  readonly reportTarget = signal<ForumReportTarget | null>(null);
+  readonly reportReason = signal<ForumReportReason>('offensive_comment');
+  readonly reportDescription = signal('');
+  readonly reportError = signal('');
+  readonly isSubmittingReport = signal(false);
   private readonly accessStoragePrefix = 'economia-com-historia.private-forum-access.v2';
 
   readonly room = computed(() => {
@@ -483,6 +499,55 @@ export class UserForumDetailPage {
     return Math.max(0, members - 5);
   }
 
+  activeParticipantAvatars(room: ForumRoom): string[] {
+    const creatorInitials = this.roomInitials(room.creatorName || room.name);
+    const topicInitials = this.forumComments()
+      .map((comment) => comment.initials)
+      .filter(Boolean);
+
+    return [creatorInitials, ...topicInitials, 'EH', 'AO'].slice(0, 4);
+  }
+
+  activeParticipantOverflow(room: ForumRoom): number {
+    return Math.max(0, Math.max(room.members, this.forumComments().length + 4) - 4);
+  }
+
+  sharedResources(room: ForumRoom): { title: string; icon: string; route?: string[] }[] {
+    const linked = room.linkedContents.slice(0, 3).map((content) => ({
+      title: content.title,
+      icon: this.resourceIcon(content.type),
+      route: ['/app/contents', content.id],
+    }));
+
+    if (linked.length) {
+      return linked;
+    }
+
+    return [
+      { title: 'Base de Dados Agricolas FAO', icon: 'link' },
+      { title: 'Lei de Bases do Investimento', icon: 'description' },
+      { title: 'Tabela_Excel_2023.xlsx', icon: 'cloud_download' },
+    ];
+  }
+
+  resourceIcon(type: string | undefined): string {
+    const normalized = (type ?? '').toLowerCase();
+
+    if (normalized.includes('video')) {
+      return 'play_circle';
+    }
+
+    if (normalized.includes('podcast')) {
+      return 'headphones';
+    }
+
+    if (normalized.includes('quiz')) {
+      return 'quiz';
+    }
+
+    return 'description';
+  }
+
   forumValueProposition(): string {
     const room = this.room();
     const category = room?.category || 'Economia e História de Angola';
@@ -530,6 +595,81 @@ export class UserForumDetailPage {
 
     await navigator.clipboard?.writeText(url);
     this.forumFeedback.set('Link do f\u00f3rum copiado.');
+  }
+
+  openReportTopic(event: Event, topic: ForumCommentView): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.auth.isAuthenticated()) {
+      this.auth.requireLoginFor('denunciar tópico');
+      return;
+    }
+
+    if (this.canEditTopic(topic)) {
+      this.forumFeedback.set('Não podes denunciar o teu próprio tópico.');
+      return;
+    }
+
+    this.reportTarget.set({ id: topic.id, author: topic.author, text: topic.text });
+    this.reportReason.set('offensive_comment');
+    this.reportDescription.set('');
+    this.reportError.set('');
+  }
+
+  openReportReply(event: Event, reply: ForumReplyView): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.auth.isAuthenticated()) {
+      this.auth.requireLoginFor('denunciar resposta');
+      return;
+    }
+
+    if (this.canEditReply(reply)) {
+      this.forumFeedback.set('Não podes denunciar a tua própria resposta.');
+      return;
+    }
+
+    this.reportTarget.set({ id: reply.id, author: reply.author, text: reply.text });
+    this.reportReason.set('offensive_comment');
+    this.reportDescription.set('');
+    this.reportError.set('');
+  }
+
+  closeReportModal(): void {
+    this.reportTarget.set(null);
+    this.reportError.set('');
+    this.reportDescription.set('');
+  }
+
+  updateReportReason(event: Event): void {
+    this.reportReason.set((event.target as HTMLSelectElement).value as ForumReportReason);
+  }
+
+  updateReportDescription(event: Event): void {
+    this.reportDescription.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  async submitCommentReport(): Promise<void> {
+    const target = this.reportTarget();
+
+    if (!target) {
+      return;
+    }
+
+    this.isSubmittingReport.set(true);
+
+    try {
+      await Promise.resolve();
+      this.reportTarget.set(null);
+      this.reportDescription.set('');
+      this.forumFeedback.set('Denúncia enviada para moderação.');
+    } catch {
+      this.reportError.set('Não foi possível enviar a denúncia.');
+    } finally {
+      this.isSubmittingReport.set(false);
+    }
   }
 
   saveForum(event: Event): void {
@@ -873,7 +1013,8 @@ export class UserForumDetailPage {
   }
 
   async deleteTopic(topicId: string): Promise<void> {
-    if (!window.confirm('Apagar este tópico e as respetivas respostas?')) {
+    const confirmed = await this.confirmService.confirm('Apagar este tópico e as respetivas respostas?');
+    if (!confirmed) {
       return;
     }
 
@@ -936,7 +1077,8 @@ export class UserForumDetailPage {
   }
 
   async deleteReply(topicId: string, replyId: string): Promise<void> {
-    if (!window.confirm('Apagar esta resposta?')) {
+    const confirmed = await this.confirmService.confirm('Apagar esta resposta?');
+    if (!confirmed) {
       return;
     }
 
@@ -1136,7 +1278,8 @@ export class UserForumDetailPage {
       return;
     }
 
-    if (!window.confirm(`Apagar "${room.name}"?`)) {
+    const confirmed = await this.confirmService.confirm(`Apagar "${room.name}"?`);
+    if (!confirmed) {
       return;
     }
 

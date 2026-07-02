@@ -24,6 +24,7 @@ class User extends Authenticatable
         'photo',
         'bio',
         'status',
+        'total_xp',
         'jindungo_subscription_expires_at',
     ];
 
@@ -38,6 +39,7 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'total_xp' => 'integer',
             'jindungo_subscription_expires_at' => 'datetime',
         ];
     }
@@ -71,6 +73,23 @@ class User extends Authenticatable
     public function quizResults(): HasMany
     {
         return $this->hasMany(QuizResult::class);
+    }
+
+    public function quizRankings(): HasMany
+    {
+        return $this->hasMany(QuizRanking::class);
+    }
+
+    public function xpLevel(): string
+    {
+        $xp = (int) ($this->total_xp ?? 0);
+
+        return match (true) {
+            $xp <= 100 => 'Iniciante',
+            $xp <= 300 => 'Estudante',
+            $xp <= 600 => 'Especialista',
+            default => 'Mestre da Economia',
+        };
     }
 
     public function achievements(): HasMany

@@ -3,7 +3,7 @@ import { ActivatedRoute, Router, RouterLink, Routes } from '@angular/router';
 import { AuthStateService } from '../../services/auth-state.service';
 import { authGuard } from '../../services/auth.guard';
 import { ContentService } from '../../services/content.service';
-import { BackendForum, BackendForumTopic, ForumService } from '../../services/forum.service';
+import { BackendForum, BackendForumReply, BackendForumTopic, ForumService } from '../../services/forum.service';
 import { ToastService } from '../../services/toast.service';
 import { ForumRoom } from '../../models/forum.model';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
@@ -27,8 +27,34 @@ interface ForumTopicPreview {
   id: string;
   title: string;
   author: string;
+  ownerId?: string;
   replies: number;
   lastActivity: string;
+}
+
+interface ForumReplyView {
+  id: string;
+  ownerId?: string;
+  author: string;
+  initials: string;
+  text: string;
+  createdAt: string;
+}
+
+interface ForumCommentView {
+  id: string;
+  ownerId?: string;
+  author: string;
+  initials: string;
+  title: string;
+  text: string;
+  createdAt: string;
+  replies: ForumReplyView[];
+  replyComposerOpen: boolean;
+  isLoadingReplies: boolean;
+  isSavingReply: boolean;
+  editing: boolean;
+  editingReplyId: string | null;
 }
 
 @Component({
@@ -163,7 +189,7 @@ export class UserForumsPage {
     }
 
     try {
-      await this.forumService.create({
+      const forum = await this.forumService.create({
         name: title,
         description: objective,
         rules: objective,
@@ -176,6 +202,7 @@ export class UserForumsPage {
         content_ids: linkedContents.map((content) => content.id),
       });
 
+      this.forumService.rooms.update((rooms) => [this.toForumRoom(forum), ...rooms.filter((room) => room.id !== String(forum.id))]);
       titleInput.value = '';
       objectiveInput.value = '';
       this.inviteEmails.set([]);
@@ -185,7 +212,7 @@ export class UserForumsPage {
       this.showAllResources.set(false);
       this.createModalOpen.set(false);
       this.returnToSourceContentIfNeeded();
-      this.showToast('Fórum publicado com sucesso.', 'success');
+      this.showToast('Fórum criado com sucesso.', 'success');
     } catch {
       this.showToast('Não foi possível criar a sala de debate.', 'error');
     }
@@ -195,10 +222,8 @@ export class UserForumsPage {
     try {
       const forums = await this.forumService.getAll();
 
-      if (forums.length > 0) {
-        this.forumService.rooms.set(forums.map((forum) => this.toForumRoom(forum)));
-        this.forumPage.set(1);
-      }
+      this.forumService.rooms.set(forums.map((forum) => this.toForumRoom(forum)));
+      this.forumPage.set(1);
     } catch {
       this.showToast('Não foi possível carregar os fóruns.', 'error');
     }
@@ -304,7 +329,7 @@ export class UserForumDetailPage {
   readonly editingForum = signal(false);
   readonly isSavingForum = signal(false);
   readonly forumFeedback = signal('');
-  readonly forumComments = signal<Array<{ id: string; author: string; initials: string; title: string; text: string; createdAt: string }>>([]);
+  readonly forumComments = signal<ForumCommentView[]>([]);
   readonly isLoadingForumComments = signal(false);
   readonly isSavingForumComment = signal(false);
   readonly accessRequestCode = signal('');
@@ -337,10 +362,7 @@ export class UserForumDetailPage {
   });
 
   readonly canManageForum = computed(() => {
-    const ownerId = this.room()?.ownerId;
-    const userId = this.auth.user()?.id;
-
-    return this.auth.canManagePlatform() || Boolean(ownerId && userId && String(ownerId) === String(userId));
+    return this.auth.canManagePlatform();
   });
 
   constructor() {
@@ -386,8 +408,8 @@ export class UserForumDetailPage {
       return;
     }
 
-    this.setPrivateAccessStatus('pending');
-    this.accessRequestStatus.set('Seu pedido foi enviado e aguarda aprovação do proprietário.');
+    this.setPrivateAccessStatus('member');
+    this.accessRequestStatus.set('');
   }
 
   acceptInvitation(): void {
@@ -409,7 +431,7 @@ export class UserForumDetailPage {
 
   enterPrivateForum(): void {
     if (!this.canEnterPrivateForum()) {
-      this.accessRequestStatus.set('A entrada fica disponível depois da aprovação.');
+      this.accessRequestStatus.set('Informe o código do fórum para entrar.');
       return;
     }
 
@@ -591,11 +613,18 @@ export class UserForumDetailPage {
     this.forumComments.update((comments) => [
       {
         id: `${room.id}-${Date.now()}`,
+        ownerId: user?.id ? String(user.id) : undefined,
         author,
         initials: this.roomInitials(author),
         title,
         text,
         createdAt: 'Agora',
+        replies: [],
+        replyComposerOpen: false,
+        isLoadingReplies: false,
+        isSavingReply: false,
+        editing: false,
+        editingReplyId: null,
       },
       ...comments,
     ]);
@@ -604,6 +633,10 @@ export class UserForumDetailPage {
   }
 
   private async prepareForum(roomId: string): Promise<void> {
+    if (!this.room() && this.isBackendForumId(roomId)) {
+      await this.loadSingleForumForDirectAccess(roomId);
+    }
+
     if (!this.room()) {
       await this.loadForumListForDirectAccess();
     }
@@ -625,32 +658,20 @@ export class UserForumDetailPage {
     try {
       const forums = await this.forumService.getAll();
 
-      if (forums.length > 0) {
-        this.forumService.rooms.set(forums.map((forum) => ({
-          id: String(forum.id),
-          ownerId: forum.user_id === undefined || forum.user_id === null ? (forum.user?.id === undefined || forum.user?.id === null ? undefined : String(forum.user.id)) : String(forum.user_id),
-          creatorName: forum.user?.name,
-          name: forum.name,
-          visibility: forum.visibility === 'private' ? 'private' as const : 'public' as const,
-          accessCode: forum.access_code ?? null,
-          joinApprovalRequired: Boolean(forum.join_approval_required),
-          members: 0,
-          activeDebates: forum.topics_count ?? 0,
-          description: forum.description ?? forum.rules ?? 'Sem descrição.',
-          category: forum.category ?? 'Fórum',
-          objective: forum.description ?? forum.rules ?? '',
-          inviteEmails: [],
-          protectedByPassword: forum.visibility === 'private',
-          linkedContents: (forum.contents ?? []).map((content) => ({
-            id: String(content.id),
-            title: content.title,
-            type: content.content_type?.name ?? 'Conteúdo',
-            meta: content.category?.name ?? '',
-          })),
-        })));
-      }
+      this.forumService.rooms.set(forums.map((forum) => this.toForumRoom(forum)));
     } catch {
       this.forumService.rooms.set(this.forumService.rooms());
+    }
+  }
+
+  private async loadSingleForumForDirectAccess(roomId: string): Promise<void> {
+    try {
+      const forum = await this.forumService.getById(roomId);
+      const room = this.toForumRoom(forum);
+
+      this.forumService.rooms.update((rooms) => [room, ...rooms.filter((item) => item.id !== room.id)]);
+    } catch {
+      // Missing or inaccessible forum; keep the standard not-found state.
     }
   }
 
@@ -659,8 +680,17 @@ export class UserForumDetailPage {
 
     try {
       const topics = await this.forumService.getTopics(roomId);
-      this.forumComments.set(topics.map((topic) => this.toForumComment(topic)));
+      const comments = await Promise.all(topics.map(async (topic) => {
+        const replies = await this.loadRepliesForTopic(topic.id);
+
+        return this.toForumComment(topic, replies);
+      }));
+
+      this.forumComments.set(comments);
       this.forumTopicPreviews.set(topics.map((topic) => this.toForumTopicPreview(topic)));
+      this.forumService.rooms.update((rooms) =>
+        rooms.map((room) => room.id === roomId ? { ...room, activeDebates: topics.length } : room),
+      );
     } catch {
       this.forumComments.set([]);
       this.forumTopicPreviews.set([]);
@@ -669,16 +699,44 @@ export class UserForumDetailPage {
     }
   }
 
-  private toForumComment(topic: BackendForumTopic) {
+  private async loadRepliesForTopic(topicId: number | string): Promise<BackendForumReply[]> {
+    try {
+      return await this.forumService.getReplies(topicId);
+    } catch {
+      return [];
+    }
+  }
+
+  private toForumComment(topic: BackendForumTopic, replies: BackendForumReply[] = []): ForumCommentView {
     const author = topic.user?.name ?? 'Utilizador';
 
     return {
       id: String(topic.id),
+      ownerId: topic.user_id === undefined || topic.user_id === null ? (topic.user?.id === undefined || topic.user?.id === null ? undefined : String(topic.user.id)) : String(topic.user_id),
       author,
       initials: this.roomInitials(author),
       title: topic.title,
       text: topic.content,
       createdAt: this.formatForumDate(topic.created_at),
+      replies: replies.map((reply) => this.toForumReply(reply)),
+      replyComposerOpen: false,
+      isLoadingReplies: false,
+      isSavingReply: false,
+      editing: false,
+      editingReplyId: null,
+    };
+  }
+
+  private toForumReply(reply: BackendForumReply): ForumReplyView {
+    const author = reply.user?.name ?? 'Utilizador';
+
+    return {
+      id: String(reply.id),
+      ownerId: reply.user_id === undefined || reply.user_id === null ? (reply.user?.id === undefined || reply.user?.id === null ? undefined : String(reply.user.id)) : String(reply.user_id),
+      author,
+      initials: this.roomInitials(author),
+      text: reply.reply,
+      createdAt: this.formatForumDate(reply.created_at),
     };
   }
 
@@ -687,8 +745,245 @@ export class UserForumDetailPage {
       id: String(topic.id),
       title: topic.title,
       author: topic.user?.name ?? 'Utilizador',
+      ownerId: topic.user_id === undefined || topic.user_id === null ? (topic.user?.id === undefined || topic.user?.id === null ? undefined : String(topic.user.id)) : String(topic.user_id),
       replies: Number(topic.replies_count ?? 0),
       lastActivity: this.formatForumDate(topic.created_at),
+    };
+  }
+
+  canEditTopic(comment: ForumCommentView): boolean {
+    const userId = this.auth.user()?.id;
+
+    return Boolean(comment.ownerId && userId && String(comment.ownerId) === String(userId));
+  }
+
+  canDeleteTopic(comment: ForumCommentView): boolean {
+    const userId = this.auth.user()?.id;
+
+    return this.auth.canManagePlatform() || Boolean(comment.ownerId && userId && String(comment.ownerId) === String(userId));
+  }
+
+  canEditReply(reply: ForumReplyView): boolean {
+    const userId = this.auth.user()?.id;
+
+    return Boolean(reply.ownerId && userId && String(reply.ownerId) === String(userId));
+  }
+
+  canDeleteReply(reply: ForumReplyView): boolean {
+    const userId = this.auth.user()?.id;
+
+    return this.auth.canManagePlatform() || Boolean(reply.ownerId && userId && String(reply.ownerId) === String(userId));
+  }
+
+  openTopicReplyComposer(topicId: string): void {
+    if (!this.auth.isAuthenticated()) {
+      this.auth.requireLoginFor('responder no fórum');
+      return;
+    }
+
+    this.forumComments.update((comments) =>
+      comments.map((comment) =>
+        comment.id === topicId
+          ? { ...comment, replyComposerOpen: !comment.replyComposerOpen, editingReplyId: null }
+          : comment,
+      ),
+    );
+  }
+
+  async submitTopicReply(topicId: string, value: string): Promise<void> {
+    const text = value.trim();
+
+    if (!this.auth.isAuthenticated()) {
+      this.auth.requireLoginFor('responder no fórum');
+      return;
+    }
+
+    if (!text) {
+      this.forumFeedback.set('Escreva uma resposta antes de publicar.');
+      return;
+    }
+
+    this.forumComments.update((comments) =>
+      comments.map((comment) => comment.id === topicId ? { ...comment, isSavingReply: true } : comment),
+    );
+
+    try {
+      const reply = await this.forumService.createReply(topicId, text);
+      const mappedReply = this.toForumReply(reply);
+
+      this.forumComments.update((comments) =>
+        comments.map((comment) =>
+          comment.id === topicId
+            ? {
+                ...comment,
+                replies: [...comment.replies, mappedReply],
+                replyComposerOpen: false,
+                isSavingReply: false,
+              }
+            : comment,
+        ),
+      );
+      this.refreshTopicReplyCount(topicId, 1);
+      this.forumFeedback.set('');
+    } catch {
+      this.forumComments.update((comments) =>
+        comments.map((comment) => comment.id === topicId ? { ...comment, isSavingReply: false } : comment),
+      );
+      this.forumFeedback.set('Não foi possível publicar a resposta.');
+    }
+  }
+
+  openEditTopic(topicId: string): void {
+    this.forumComments.update((comments) =>
+      comments.map((comment) => comment.id === topicId ? { ...comment, editing: true, replyComposerOpen: false } : comment),
+    );
+  }
+
+  closeEditTopic(topicId: string): void {
+    this.forumComments.update((comments) =>
+      comments.map((comment) => comment.id === topicId ? { ...comment, editing: false } : comment),
+    );
+  }
+
+  async saveEditedTopic(topicId: string, titleInput: HTMLInputElement, contentInput: HTMLTextAreaElement): Promise<void> {
+    const title = titleInput.value.trim();
+    const content = contentInput.value.trim();
+
+    if (!title || !content) {
+      this.forumFeedback.set('Preencha o título e o conteúdo do tópico.');
+      return;
+    }
+
+    try {
+      const updated = await this.forumService.updateTopic(topicId, title, content);
+      const current = this.forumComments().find((comment) => comment.id === topicId);
+      const mapped = {
+        ...this.toForumComment(updated),
+        replies: current?.replies ?? [],
+      };
+
+      this.forumComments.update((comments) => comments.map((comment) => comment.id === topicId ? mapped : comment));
+      this.forumTopicPreviews.update((topics) =>
+        topics.map((topic) => topic.id === topicId ? { ...topic, title: mapped.title, lastActivity: mapped.createdAt } : topic),
+      );
+      this.forumFeedback.set('Tópico atualizado.');
+    } catch {
+      this.forumFeedback.set('Não foi possível atualizar este tópico.');
+    }
+  }
+
+  async deleteTopic(topicId: string): Promise<void> {
+    if (!window.confirm('Apagar este tópico e as respetivas respostas?')) {
+      return;
+    }
+
+    try {
+      await this.forumService.deleteTopic(topicId);
+      this.forumComments.update((comments) => comments.filter((comment) => comment.id !== topicId));
+      this.forumTopicPreviews.update((topics) => topics.filter((topic) => topic.id !== topicId));
+      this.forumService.rooms.update((rooms) =>
+        rooms.map((room) =>
+          room.id === this.route.snapshot.paramMap.get('id')
+            ? { ...room, activeDebates: Math.max(0, room.activeDebates - 1) }
+            : room,
+        ),
+      );
+      this.forumFeedback.set('Tópico apagado.');
+    } catch {
+      this.forumFeedback.set('Não foi possível apagar este tópico.');
+    }
+  }
+
+  openEditReply(topicId: string, replyId: string): void {
+    this.forumComments.update((comments) =>
+      comments.map((comment) => comment.id === topicId ? { ...comment, editingReplyId: replyId, replyComposerOpen: false } : comment),
+    );
+  }
+
+  closeEditReply(topicId: string): void {
+    this.forumComments.update((comments) =>
+      comments.map((comment) => comment.id === topicId ? { ...comment, editingReplyId: null } : comment),
+    );
+  }
+
+  async saveEditedReply(topicId: string, replyId: string, replyInput: HTMLTextAreaElement): Promise<void> {
+    const text = replyInput.value.trim();
+
+    if (!text) {
+      this.forumFeedback.set('Escreva a resposta antes de guardar.');
+      return;
+    }
+
+    try {
+      const updated = await this.forumService.updateReply(replyId, text);
+      const mapped = this.toForumReply(updated);
+
+      this.forumComments.update((comments) =>
+        comments.map((comment) =>
+          comment.id === topicId
+            ? {
+                ...comment,
+                replies: comment.replies.map((reply) => reply.id === replyId ? mapped : reply),
+                editingReplyId: null,
+              }
+            : comment,
+        ),
+      );
+      this.forumFeedback.set('Resposta atualizada.');
+    } catch {
+      this.forumFeedback.set('Não foi possível atualizar esta resposta.');
+    }
+  }
+
+  async deleteReply(topicId: string, replyId: string): Promise<void> {
+    if (!window.confirm('Apagar esta resposta?')) {
+      return;
+    }
+
+    try {
+      await this.forumService.deleteReply(replyId);
+      this.forumComments.update((comments) =>
+        comments.map((comment) =>
+          comment.id === topicId
+            ? { ...comment, replies: comment.replies.filter((reply) => reply.id !== replyId) }
+            : comment,
+        ),
+      );
+      this.refreshTopicReplyCount(topicId, -1);
+      this.forumFeedback.set('Resposta apagada.');
+    } catch {
+      this.forumFeedback.set('Não foi possível apagar esta resposta.');
+    }
+  }
+
+  private refreshTopicReplyCount(topicId: string, delta: number): void {
+    this.forumTopicPreviews.update((topics) =>
+      topics.map((topic) => topic.id === topicId ? { ...topic, replies: Math.max(0, topic.replies + delta) } : topic),
+    );
+  }
+
+  private toForumRoom(forum: BackendForum): ForumRoom {
+    return {
+      id: String(forum.id),
+      ownerId: forum.user_id === undefined || forum.user_id === null ? (forum.user?.id === undefined || forum.user?.id === null ? undefined : String(forum.user.id)) : String(forum.user_id),
+      creatorName: forum.user?.name,
+      name: forum.name,
+      visibility: forum.visibility === 'private' ? 'private' : 'public',
+      accessCode: forum.access_code ?? null,
+      joinApprovalRequired: Boolean(forum.join_approval_required),
+      members: 0,
+      activeDebates: forum.topics_count ?? forum.topics?.length ?? 0,
+      description: forum.description ?? forum.rules ?? 'Sem descrição.',
+      category: forum.category ?? 'Fórum',
+      objective: forum.description ?? forum.rules ?? '',
+      inviteEmails: [],
+      protectedByPassword: forum.visibility === 'private',
+      linkedContents: (forum.contents ?? []).map((content) => ({
+        id: String(content.id),
+        title: content.title,
+        type: content.content_type?.name ?? 'Conteúdo',
+        meta: content.category?.name ?? '',
+      })),
     };
   }
 
@@ -752,17 +1047,6 @@ export class UserForumDetailPage {
     }
 
     return new Intl.DateTimeFormat('pt-AO', { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
-  }
-
-  reportForum(event: Event): void {
-    if (!this.auth.isAuthenticated()) {
-      this.requireLogin(event, 'denunciar f\u00f3rum');
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-    this.forumFeedback.set('Den\u00fancia enviada. A equipa vai rever.');
   }
 
   openEditForum(event: Event): void {
@@ -871,4 +1155,3 @@ export const USER_FORUMS_ROUTES: Routes = [
   { path: '', component: UserForumsPage },
   { path: ':id', canActivate: [authGuard], data: { loginOperation: 'ver detalhes do fórum' }, component: UserForumDetailPage },
 ];
-

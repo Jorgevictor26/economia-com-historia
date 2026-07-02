@@ -6,6 +6,7 @@ import { QuizRankingEntry, QuizService, QuizSubmitResult } from '../../services/
 import { ToastService } from '../../services/toast.service';
 import { Quiz, QuizQuestion } from '../../models/quiz.model';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
+import { ContentForumActionComponent } from '../shared/content-forum-action/content-forum-action.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
 interface QuizProgressSnapshot {
@@ -205,7 +206,7 @@ export class QuizDashboardPage {
 
 @Component({
   selector: 'app-quiz-play-page',
-  imports: [RouterLink],
+  imports: [RouterLink, ContentForumActionComponent],
   templateUrl: './quiz-play.page.html'
 })
 export class QuizPlayPage implements OnDestroy {

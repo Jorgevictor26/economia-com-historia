@@ -32,7 +32,7 @@ class CommentReportController extends Controller
     public function index(Request $request): JsonResponse
     {
         return response()->json(
-            $this->commentReports->all($request->only('search'))
+            $this->commentReports->all($request->only(['search', 'status', 'per_page']))
         );
     }
 

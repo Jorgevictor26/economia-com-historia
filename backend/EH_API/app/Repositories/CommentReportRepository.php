@@ -9,10 +9,20 @@ class CommentReportRepository
 {
     public function all(array $filters = []): LengthAwarePaginator
     {
-        return CommentReport::with(['user', 'comment', 'reviewer'])
+        $perPage = min(max((int) ($filters['per_page'] ?? 25), 1), 100);
+
+        return CommentReport::with([
+                'user',
+                'comment.user',
+                'comment.content.author',
+                'comment.content.category',
+                'comment.content.contentType',
+                'reviewer',
+            ])
+            ->when($filters['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
             ->when($filters['search'] ?? null, fn ($query, string $search) => $this->applySearch($query, $search))
             ->latest()
-            ->paginate(10);
+            ->paginate($perPage);
     }
 
     public function create(array $data): CommentReport
@@ -22,7 +32,14 @@ class CommentReportRepository
 
     public function findById(int $id): ?CommentReport
     {
-        return CommentReport::with(['user', 'comment', 'reviewer'])->find($id);
+        return CommentReport::with([
+            'user',
+            'comment.user',
+            'comment.content.author',
+            'comment.content.category',
+            'comment.content.contentType',
+            'reviewer',
+        ])->find($id);
     }
 
     public function existsForUserAndComment(int $userId, int $commentId): bool
@@ -62,7 +79,14 @@ class CommentReportRepository
             'reviewed_by' => $reviewerId,
         ]);
 
-        return $report->fresh(['user', 'comment', 'reviewer']);
+        return $report->fresh([
+            'user',
+            'comment.user',
+            'comment.content.author',
+            'comment.content.category',
+            'comment.content.contentType',
+            'reviewer',
+        ]);
     }
 
     private function applySearch($query, string $search): void

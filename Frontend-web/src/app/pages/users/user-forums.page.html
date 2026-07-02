@@ -128,7 +128,7 @@
 
             <button type="button" class="min-h-[88px] rounded-[8px] border p-4 text-left" [class.border-[#5C1E2F]]="privacy() === 'private'" [class.bg-white]="privacy() === 'private'" [class.border-[#E0E0E0]]="privacy() !== 'private'" [class.bg-[#F5F5F5]]="privacy() !== 'private'" (click)="setPrivacy('private')">
               <strong class="block text-[13px] text-[#5C1E2F]">Privado</strong>
-              <span class="mt-1 block text-[11px] leading-5 text-[#616161]">Entrada por código, sempre sujeita a aprovação.</span>
+              <span class="mt-1 block text-[11px] leading-5 text-[#616161]">Entrada por código para manter o fórum reservado.</span>
             </button>
           </section>
 
@@ -153,7 +153,7 @@
               <label class="mt-4 grid gap-2 text-[12px] font-bold text-[#616161]">
                 Código de entrada
                 <input type="text" maxlength="24" class="h-10 rounded-[8px] bg-[#F5F5F5] px-3 text-[12px] font-extrabold uppercase tracking-[0.08em] text-[#5C1E2F] outline-none focus:ring-2 focus:ring-[#F2E6E9]" [value]="privateAccessCode()" (input)="privateAccessCode.set($any($event.target).value.toUpperCase())" />
-                <small class="text-[11px] font-medium text-[#616161]">Quem usar o código envia um pedido. A entrada só acontece depois da aprovação.</small>
+                <small class="text-[11px] font-medium text-[#616161]">Quem tiver o código pode entrar no fórum privado.</small>
               </label>
             </section>
           }
@@ -198,5 +198,4 @@
 
   <app-back-to-top />
 </section>
-
 

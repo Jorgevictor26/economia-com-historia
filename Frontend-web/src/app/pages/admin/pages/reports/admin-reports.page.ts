@@ -1,8 +1,15 @@
-﻿import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { AdminConsoleShellComponent } from '../../components/admin-console-shell.component';
 import { AdminPageHeaderComponent } from '../../shared/components';
+import {
+  BackendCommentReport,
+  BackendCommentReportStatus,
+  CommentReportReason,
+  CommentReportService,
+} from '../../../../services/comment-report.service';
+import { ToastService } from '../../../../services/toast.service';
 
-type ReportStatus = 'Pendente' | 'Em análise' | 'Resolvida' | 'Arquivada';
+type ReportStatus = 'Pendente' | 'Resolvida' | 'Arquivada';
 type ReportPriority = 'Alta prioridade' | 'Média prioridade' | 'Baixa prioridade';
 type ReportTone = 'red' | 'orange' | 'green';
 
@@ -21,7 +28,7 @@ interface ReportTab {
 }
 
 interface ReportItem {
-  id: number;
+  id: number | string;
   title: string;
   contentType: string;
   author: string;
@@ -35,11 +42,14 @@ interface ReportItem {
   contentOwnerEmail: string;
   reporter: string;
   reporterEmail: string;
+  reviewer: string;
   reportsCount: number;
   status: ReportStatus;
+  backendStatus: BackendCommentReportStatus | string;
   priority: ReportPriority;
   tone: ReportTone;
   date: string;
+  route: string[];
 }
 
 @Component({
@@ -49,138 +59,68 @@ interface ReportItem {
   templateUrl: './admin-reports.page.html',
 })
 export class AdminReportsPage {
+  private readonly commentReports = inject(CommentReportService);
+  private readonly toastService = inject(ToastService);
+
   searchTerm = '';
-  selectedType = 'Todos os tipos';
   selectedStatus = 'Todos os status';
   activeTab = 'Todas';
   highPriorityOnly = false;
   selectedReport: ReportItem | null = null;
   currentPage = 1;
   readonly pageSize = 4;
+  reports: ReportItem[] = [];
+  isLoading = false;
+  isModerating = false;
+  loadError = '';
 
-  readonly metrics: ReportMetric[] = [
-    { label: 'Pendentes', value: '23', change: '+5 hoje', icon: 'warning', tone: 'orange' },
-    { label: 'Em análise', value: '12', change: '2 hoje', icon: 'visibility', tone: 'purple' },
-    { label: 'Resolvidas', value: '89', change: '+18 esta semana', icon: 'check', tone: 'green' },
-    { label: 'Itens moderados', value: '18', change: '+3 esta semana', icon: 'block', tone: 'red' },
-    { label: 'Total de denúncias', value: '142', change: '+26 esta semana', icon: 'description', tone: 'blue' },
-  ];
+  constructor() {
+    void this.loadReports();
+  }
 
-  readonly tabs: ReportTab[] = [
-    { label: 'Todas', count: 142 },
-    { label: 'Pendentes', count: 23, status: 'Pendente' },
-    { label: 'Em análise', count: 12, status: 'Em análise' },
-    { label: 'Resolvidas', count: 89, status: 'Resolvida' },
-    { label: 'Arquivadas', count: 18, status: 'Arquivada' },
-  ];
+  get metrics(): ReportMetric[] {
+    const pending = this.countByStatus('Pendente');
+    const resolved = this.countByStatus('Resolvida');
+    const archived = this.countByStatus('Arquivada');
 
-  readonly reports: ReportItem[] = [
-    {
-      id: 1,
-      title: 'Fórum: História Económica no Período Colonial',
-      contentType: 'Fórum',
-      author: 'João Pedro',
-      age: 'Há 3 horas',
-      reason: 'Informação enganosa',
-      description: 'O tópico apresenta informações históricas sem fonte e pode induzir outros utilizadores em erro.',
-      reportedContent: 'Fórum: História Económica no Período Colonial',
-      contentSummary: 'Fórum • ID: #FOR-2024-0321',
-      contentCode: 'FOR-2024-0321',
-      contentOwner: 'João Pedro',
-      contentOwnerEmail: 'joao.p@echa.ao',
-      reporter: 'Maria Helena',
-      reporterEmail: 'maria.h@echa.ao',
-      reportsCount: 3,
-      status: 'Pendente',
-      priority: 'Alta prioridade',
-      tone: 'red',
-      date: '23 de Junho de 2024 às 14:30',
-    },
-    {
-      id: 2,
-      title: 'Comentário em fórum sobre Economia Informal',
-      contentType: 'Comentário',
-      author: 'Carlos Manuel',
-      age: 'Há 5 horas',
-      reason: 'Comentário ofensivo',
-      description: 'A denúncia indica que o comentário usa linguagem agressiva contra outro participante.',
-      reportedContent: 'Comentário em "Economia Informal nas Comunidades"',
-      contentSummary: 'Comentário • ID: #COM-2024-0318',
-      contentCode: 'COM-2024-0318',
-      contentOwner: 'Carlos Manuel',
-      contentOwnerEmail: 'carlos.m@echa.ao',
-      reporter: 'Ana Silva',
-      reporterEmail: 'ana.s@echa.ao',
-      reportsCount: 1,
-      status: 'Em análise',
-      priority: 'Média prioridade',
-      tone: 'orange',
-      date: '23 de Junho de 2024 às 10:05',
-    },
-    {
-      id: 3,
-      title: 'Fórum: Corrupção e transparência em Angola',
-      contentType: 'Fórum',
-      author: 'Paulo Mendes',
-      age: 'Há 1 dia',
-      reason: 'Acusações sem contexto',
-      description: 'O fórum foi denunciado por apresentar acusações diretas sem contexto e sem base verificável.',
-      reportedContent: 'Fórum: Corrupção e transparência em Angola',
-      contentSummary: 'Fórum • ID: #FOR-2024-0189',
-      contentCode: 'FOR-2024-0189',
-      contentOwner: 'Paulo Mendes',
-      contentOwnerEmail: 'paulo.m@echa.ao',
-      reporter: 'Lucas Neto',
-      reporterEmail: 'lucas.n@echa.ao',
-      reportsCount: 2,
-      status: 'Pendente',
-      priority: 'Alta prioridade',
-      tone: 'red',
-      date: '22 de Junho de 2024 às 18:12',
-    },
-    {
-      id: 4,
-      title: 'Comentário no debate sobre Desenvolvimento Sustentável',
-      contentType: 'Comentário',
-      author: 'Teresa A.',
-      age: 'Há 2 dias',
-      reason: 'Spam',
-      description: 'O comentário repete a mesma mensagem várias vezes e prejudica a leitura do debate.',
-      reportedContent: 'Comentário no debate "Desenvolvimento Sustentável"',
-      contentSummary: 'Comentário • ID: #COM-2024-0104',
-      contentCode: 'COM-2024-0104',
-      contentOwner: 'Teresa Afonso',
-      contentOwnerEmail: 'teresa.a@echa.ao',
-      reporter: 'Miguel Bento',
-      reporterEmail: 'miguel.b@echa.ao',
-      reportsCount: 1,
-      status: 'Resolvida',
-      priority: 'Baixa prioridade',
-      tone: 'green',
-      date: '21 de Junho de 2024 às 09:20',
-    },
-    {
-      id: 5,
-      title: 'Fórum sobre tradições económicas locais',
-      contentType: 'Fórum',
-      author: 'Maria João',
-      age: 'Há 3 dias',
-      reason: 'Discussão fora do tema',
-      description: 'A denúncia aponta que o tópico saiu do assunto da categoria e passou a incentivar conflitos entre participantes.',
-      reportedContent: 'Fórum sobre tradições económicas locais',
-      contentSummary: 'Fórum • ID: #FOR-2024-0072',
-      contentCode: 'FOR-2024-0072',
-      contentOwner: 'Maria João',
-      contentOwnerEmail: 'maria.j@echa.ao',
-      reporter: 'Fernando Lima',
-      reporterEmail: 'fernando.l@echa.ao',
-      reportsCount: 1,
-      status: 'Arquivada',
-      priority: 'Média prioridade',
-      tone: 'orange',
-      date: '20 de Junho de 2024 às 16:42',
-    },
-  ];
+    return [
+      { label: 'Pendentes', value: String(pending), change: 'Aguardam moderação', icon: 'warning', tone: 'orange' },
+      { label: 'Resolvidas', value: String(resolved), change: 'Comentário ocultado', icon: 'check', tone: 'green' },
+      { label: 'Arquivadas', value: String(archived), change: 'Sem ação no conteúdo', icon: 'archive', tone: 'purple' },
+      { label: 'Itens moderados', value: String(resolved), change: 'Ocultados por denúncia', icon: 'block', tone: 'red' },
+      { label: 'Total de denúncias', value: String(this.reports.length), change: 'Carregado da API', icon: 'description', tone: 'blue' },
+    ];
+  }
+
+  get tabs(): ReportTab[] {
+    return [
+      { label: 'Todas', count: this.reports.length },
+      { label: 'Pendentes', count: this.countByStatus('Pendente'), status: 'Pendente' },
+      { label: 'Resolvidas', count: this.countByStatus('Resolvida'), status: 'Resolvida' },
+      { label: 'Arquivadas', count: this.countByStatus('Arquivada'), status: 'Arquivada' },
+    ];
+  }
+
+  async loadReports(): Promise<void> {
+    this.isLoading = true;
+    this.loadError = '';
+
+    try {
+      const response = await this.commentReports.getAll({ perPage: 100 });
+      this.reports = response.data.map((report) => this.toReportItem(report));
+      this.currentPage = 1;
+
+      if (this.selectedReport) {
+        this.selectedReport = this.reports.find((report) => report.id === this.selectedReport?.id) ?? null;
+      }
+    } catch (error) {
+      this.loadError = error instanceof Error ? error.message : 'Não foi possível carregar as denúncias.';
+      this.toastService.error(this.loadError);
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
   metricToneClasses(tone: ReportMetric['tone']): string {
     const classes: Record<ReportMetric['tone'], string> = {
       orange: 'bg-[#F2E6E9] text-[#8A3F50]',
@@ -225,13 +165,20 @@ export class AdminReportsPage {
     return this.reports.filter((report) => {
       const matchesTab = this.activeTab === 'Todas' || this.tabs.find((tab) => tab.label === this.activeTab)?.status === report.status;
       const matchesPriority = !this.highPriorityOnly || report.priority === 'Alta prioridade';
-      const matchesType = this.selectedType === 'Todos os tipos' || report.contentType === this.selectedType;
       const matchesStatus = this.selectedStatus === 'Todos os status' || report.status === this.selectedStatus;
       const matchesSearch =
         !query ||
-        [report.title, report.author, report.reporter, report.reason, report.contentType].some((value) => value.toLowerCase().includes(query));
+        [
+          report.title,
+          report.author,
+          report.reporter,
+          report.reason,
+          report.contentType,
+          report.reportedContent,
+          report.description,
+        ].some((value) => value.toLowerCase().includes(query));
 
-      return matchesTab && matchesPriority && matchesType && matchesStatus && matchesSearch;
+      return matchesTab && matchesPriority && matchesStatus && matchesSearch;
     });
   }
 
@@ -278,11 +225,6 @@ export class AdminReportsPage {
     this.resetPagination();
   }
 
-  updateType(event: Event): void {
-    this.selectedType = (event.target as HTMLSelectElement).value;
-    this.resetPagination();
-  }
-
   updateStatus(event: Event): void {
     this.selectedStatus = (event.target as HTMLSelectElement).value;
     this.resetPagination();
@@ -298,15 +240,190 @@ export class AdminReportsPage {
     this.resetPagination();
   }
 
-  handleReportAction(action: string): void {
-    if (!this.selectedReport) {
+  async approveSelectedReport(): Promise<void> {
+    if (!this.selectedReport || this.selectedReport.backendStatus !== 'pending' || this.isModerating) {
       return;
     }
 
-    this.closeDetails();
+    this.isModerating = true;
+
+    try {
+      const updated = await this.commentReports.approve(this.selectedReport.id);
+      this.replaceReport(updated);
+      this.toastService.success('Denúncia aprovada e comentário ocultado.');
+    } catch (error) {
+      this.toastService.error(error instanceof Error ? error.message : 'Não foi possível aprovar a denúncia.');
+    } finally {
+      this.isModerating = false;
+    }
+  }
+
+  async rejectSelectedReport(): Promise<void> {
+    if (!this.selectedReport || this.selectedReport.backendStatus !== 'pending' || this.isModerating) {
+      return;
+    }
+
+    this.isModerating = true;
+
+    try {
+      const updated = await this.commentReports.reject(this.selectedReport.id);
+      this.replaceReport(updated);
+      this.toastService.success('Denúncia arquivada.');
+    } catch (error) {
+      this.toastService.error(error instanceof Error ? error.message : 'Não foi possível arquivar a denúncia.');
+    } finally {
+      this.isModerating = false;
+    }
+  }
+
+  openReportedItem(report: ReportItem): void {
+    if (!report.route.length) {
+      return;
+    }
+
+    window.open(report.route.join('/'), '_blank', 'noopener,noreferrer');
+  }
+
+  private replaceReport(report: BackendCommentReport): void {
+    const mapped = this.toReportItem(report);
+    this.reports = this.reports.map((item) => item.id === mapped.id ? mapped : item);
+    this.selectedReport = mapped;
+  }
+
+  private countByStatus(status: ReportStatus): number {
+    return this.reports.filter((report) => report.status === status).length;
+  }
+
+  private toReportItem(report: BackendCommentReport): ReportItem {
+    const comment = report.comment;
+    const content = comment?.content;
+    const contentOwner = comment?.user ?? content?.author ?? content?.user ?? null;
+    const title = content?.title ? `Comentário em "${content.title}"` : `Comentário #${report.comment_id}`;
+    const status = this.toReportStatus(report.status);
+    const priority = this.toPriority(report.reason, comment?.hidden_at, status);
+
+    return {
+      id: report.id,
+      title,
+      contentType: 'Comentário',
+      author: contentOwner?.name ?? 'Autor não identificado',
+      age: this.relativeDate(report.created_at),
+      reason: this.reasonLabel(report.reason),
+      description: report.description?.trim() || 'Sem descrição adicional.',
+      reportedContent: comment?.comment ?? 'Comentário indisponível.',
+      contentSummary: [
+        content?.content_type?.name ?? 'Comentário',
+        content?.category?.name,
+        content?.id ? `Conteúdo #${content.id}` : undefined,
+      ].filter(Boolean).join(' • '),
+      contentCode: `COM-${report.comment_id}`,
+      contentOwner: contentOwner?.name ?? 'Autor não identificado',
+      contentOwnerEmail: contentOwner?.email ?? 'Sem email',
+      reporter: report.user?.name ?? 'Utilizador',
+      reporterEmail: report.user?.email ?? 'Sem email',
+      reviewer: report.reviewer?.name ?? 'Ainda não revisto',
+      reportsCount: 1,
+      status,
+      backendStatus: report.status,
+      priority,
+      tone: this.toTone(status, priority),
+      date: this.absoluteDate(report.created_at),
+      route: content?.id ? ['', 'app', 'contents', String(content.id)] : [],
+    };
+  }
+
+  private toReportStatus(status: BackendCommentReport['status']): ReportStatus {
+    if (status === 'approved') {
+      return 'Resolvida';
+    }
+
+    if (status === 'rejected') {
+      return 'Arquivada';
+    }
+
+    return 'Pendente';
+  }
+
+  private toPriority(reason: string, hiddenAt: string | null | undefined, status: ReportStatus): ReportPriority {
+    if (hiddenAt || status === 'Resolvida') {
+      return 'Alta prioridade';
+    }
+
+    if (reason === 'offensive_comment' || reason === 'fake_information' || reason === 'copyright') {
+      return 'Alta prioridade';
+    }
+
+    if (reason === 'spam') {
+      return 'Média prioridade';
+    }
+
+    return 'Baixa prioridade';
+  }
+
+  private toTone(status: ReportStatus, priority: ReportPriority): ReportTone {
+    if (status === 'Resolvida') {
+      return 'green';
+    }
+
+    if (priority === 'Alta prioridade') {
+      return 'red';
+    }
+
+    return 'orange';
+  }
+
+  private reasonLabel(reason: CommentReportReason | string): string {
+    const labels: Record<CommentReportReason, string> = {
+      spam: 'Spam',
+      offensive_comment: 'Comentário ofensivo',
+      fake_information: 'Informação falsa ou enganosa',
+      copyright: 'Violação de direitos autorais',
+      other: 'Outro motivo',
+    };
+
+    return labels[reason as CommentReportReason] ?? reason;
+  }
+
+  private relativeDate(value: string | null | undefined): string {
+    const date = value ? new Date(value) : null;
+
+    if (!date || Number.isNaN(date.getTime())) {
+      return 'Data indisponível';
+    }
+
+    const diffMs = Date.now() - date.getTime();
+    const minutes = Math.floor(diffMs / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (minutes < 1) {
+      return 'Agora';
+    }
+
+    if (minutes < 60) {
+      return `Há ${minutes} min`;
+    }
+
+    if (hours < 24) {
+      return `Há ${hours} h`;
+    }
+
+    return `Há ${days} ${days === 1 ? 'dia' : 'dias'}`;
+  }
+
+  private absoluteDate(value: string | null | undefined): string {
+    const date = value ? new Date(value) : null;
+
+    if (!date || Number.isNaN(date.getTime())) {
+      return 'Data indisponível';
+    }
+
+    return new Intl.DateTimeFormat('pt-AO', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
   }
 }
-
-
-
-

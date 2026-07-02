@@ -27,7 +27,7 @@ export const ADMIN_ROUTES: Routes = [
   },
   {
     path: 'users',
-    loadComponent: () => import('./pages/users').then((m) => m.AdminUsersPage),
+    loadComponent: () => import('./pages/users/admin-users.page').then((m) => m.AdminUsersPage),
     canActivate: [userManagerGuard],
   },
   {

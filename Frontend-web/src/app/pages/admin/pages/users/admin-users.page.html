@@ -1,6 +1,6 @@
 ﻿<app-admin-console-shell activeItem="users">
   <section class="mx-auto grid max-w-6xl gap-5">
-    <app-admin-page-header title="Gestão de Admins">
+    <app-admin-page-header title="Gestão de Utilizadores">
       <div class="flex flex-wrap items-center gap-2">
         @if (canCreateSuperAdmin) {
           <button type="button" (click)="openSuperAdminModal()" class="inline-flex h-11 items-center justify-center gap-2 rounded-[6px] border border-[#8A3F50] bg-white px-5 text-[13px] font-extrabold text-[#8A3F50] shadow-[0_10px_24px_rgba(27,22,30,0.035)] transition hover:bg-[#F2E6E9]">
@@ -17,6 +17,12 @@
         }
       </div>
     </app-admin-page-header>
+
+    @if (loadError) {
+      <section class="rounded-[8px] border border-[#E8D5DB] bg-[#F2E6E9] p-4 text-[12px] font-bold text-[#8A3F50]">
+        {{ loadError }}
+      </section>
+    }
 
     <section class="grid gap-4 md:grid-cols-3">
       <article class="flex min-h-20 items-center gap-4 rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] px-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
@@ -81,6 +87,11 @@
           <span class="text-right">Ações</span>
         </div>
 
+        @if (isLoading) {
+          <div class="p-8 text-center text-[12px] font-semibold text-[#9E9E9E]">
+            A carregar utilizadores...
+          </div>
+        } @else {
         <div class="grid divide-y divide-[#F2E6E9]">
           @for (user of pagedUsers; track user.email) {
             <article class="grid grid-cols-[minmax(210px,1.2fr)_minmax(130px,0.58fr)_minmax(90px,0.42fr)_minmax(115px,0.5fr)_48px] items-center gap-4 px-5 py-4 transition hover:bg-[#fff] max-xl:grid-cols-1">
@@ -110,31 +121,36 @@
                   </summary>
 
                   <div class="absolute right-0 z-20 mt-2 grid min-w-40 gap-1 rounded-[8px] border border-[#E0E0E0] bg-white p-2 shadow-[0_18px_45px_rgba(27,22,30,0.12)] max-xl:left-0 max-xl:right-auto">
-                    <button type="button" (click)="editUser(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]">
-                      Editar membro
-                    </button>
-
-                    <button type="button" (click)="deleteUser(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]">
-                      Eliminar membro
-                    </button>
-
                     @if (canPromoteToWriter(user)) {
-                      <button type="button" (click)="promoteToWriter(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]">
+                      <button type="button" (click)="promoteToWriter(user)" [disabled]="isSaving" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9] disabled:opacity-50">
                         Promover a escritor
                       </button>
                     }
 
                     @if (canPromoteToAdmin(user)) {
-                      <button type="button" (click)="promoteToAdmin(user)" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]">
+                      <button type="button" (click)="promoteToAdmin(user)" [disabled]="isSaving" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9] disabled:opacity-50">
                         Promover a admin
                       </button>
+                    }
+
+                    @if (canPromoteToSuperAdmin(user)) {
+                      <button type="button" (click)="promoteToSuperAdmin(user)" [disabled]="isSaving" class="rounded-[5px] px-3 py-2 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9] disabled:opacity-50">
+                        Tornar super admin
+                      </button>
+                    }
+
+                    @if (!canPromoteToWriter(user) && !canPromoteToAdmin(user) && !canPromoteToSuperAdmin(user)) {
+                      <span class="px-3 py-2 text-[11px] font-semibold text-[#9E9E9E]">Sem ações disponíveis</span>
                     }
                   </div>
                 </details>
               </div>
             </article>
+          } @empty {
+            <p class="px-5 py-8 text-center text-[12px] font-semibold text-[#9E9E9E]">Nenhum utilizador encontrado.</p>
           }
         </div>
+        }
 
         <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-[#E0E0E0] px-5 py-4 text-[11px] text-[#9E9E9E]">
           <span>Mostrando {{ pageStart }}-{{ pageEnd }} de {{ filteredUsers.length }} administradores</span>
@@ -193,8 +209,14 @@
                 }
 
                 @if (canPromoteToAdmin(user)) {
-                  <button type="button" (click)="promoteToAdmin(user)" class="inline-flex h-8 items-center justify-center rounded-[5px] bg-[#5c1e2f] px-3 text-[11px] font-extrabold text-white transition hover:bg-[#8A3F50]">
+                  <button type="button" (click)="promoteToAdmin(user)" [disabled]="isSaving" class="inline-flex h-8 items-center justify-center rounded-[5px] bg-[#5c1e2f] px-3 text-[11px] font-extrabold text-white transition hover:bg-[#8A3F50] disabled:opacity-50">
                     Promover a administrador
+                  </button>
+                }
+
+                @if (canPromoteToSuperAdmin(user)) {
+                  <button type="button" (click)="promoteToSuperAdmin(user)" [disabled]="isSaving" class="inline-flex h-8 items-center justify-center rounded-[5px] border border-[#8A3F50] bg-white px-3 text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9] disabled:opacity-50">
+                    Tornar super admin
                   </button>
                 }
               </div>
@@ -266,64 +288,4 @@
     </section>
   }
 
-  @if (editingUser; as user) {
-    <section class="fixed inset-0 z-[110] grid place-items-center bg-[#212121]/45 p-5" role="dialog" aria-modal="true" aria-labelledby="edit-member-title" (click)="closeEditModal()">
-      <form class="grid max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white shadow-[0_24px_70px_rgba(27,22,30,0.2)]" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); saveEditedUser(memberName, memberEmail, memberPosition, memberStatus, memberRole)">
-        <header class="flex items-start justify-between gap-4 border-b border-[#E0E0E0] px-5 py-4">
-          <div>
-            <p class="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#9E9E9E]">Gestão de membro</p>
-            <h2 id="edit-member-title" class="mt-1 text-[22px] font-extrabold text-[#5C1E2F]">Editar membro</h2>
-          </div>
-
-          <button type="button" (click)="closeEditModal()" class="grid size-9 place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]" aria-label="Fechar modal">
-            <span class="material-symbols-outlined text-[20px]" aria-hidden="true">close</span>
-          </button>
-        </header>
-
-        <div class="grid gap-4 overflow-y-auto p-5 md:grid-cols-2">
-          <label class="grid gap-1 text-[11px] font-extrabold text-[#5C1E2F]">
-            Nome
-            <input #memberName type="text" [value]="user.name" class="h-10 rounded-[6px] border border-[#E0E0E0] px-3 text-[12px] font-semibold text-[#212121] outline-none focus:border-[#8A3F50]" />
-          </label>
-
-          <label class="grid gap-1 text-[11px] font-extrabold text-[#5C1E2F]">
-            E-mail
-            <input #memberEmail type="email" [value]="user.email" class="h-10 rounded-[6px] border border-[#E0E0E0] px-3 text-[12px] font-semibold text-[#212121] outline-none focus:border-[#8A3F50]" />
-          </label>
-
-          <label class="grid gap-1 text-[11px] font-extrabold text-[#5C1E2F]">
-            Nível
-            <select #memberRole [value]="user.role" class="h-10 rounded-[6px] border border-[#E0E0E0] bg-white px-3 text-[12px] font-semibold text-[#212121] outline-none focus:border-[#8A3F50]">
-              <option value="student">Utilizador</option>
-              <option value="writer">Escritor</option>
-              <option value="moderator">Moderador</option>
-              <option value="admin">Administrador</option>
-              @if (user.role === 'super-admin') {
-                <option value="super-admin">Super administrador</option>
-              }
-            </select>
-          </label>
-
-          <label class="grid gap-1 text-[11px] font-extrabold text-[#5C1E2F]">
-            Cargo
-            <input #memberPosition type="text" [value]="user.position" class="h-10 rounded-[6px] border border-[#E0E0E0] px-3 text-[12px] font-semibold text-[#212121] outline-none focus:border-[#8A3F50]" />
-          </label>
-
-          <label class="grid gap-1 text-[11px] font-extrabold text-[#5C1E2F] md:col-span-2">
-            Estado
-            <select #memberStatus [value]="user.status" class="h-10 rounded-[6px] border border-[#E0E0E0] bg-white px-3 text-[12px] font-semibold text-[#212121] outline-none focus:border-[#8A3F50]">
-              <option>Ativo</option>
-              <option>Inativo</option>
-              <option>Pendente</option>
-            </select>
-          </label>
-        </div>
-
-        <footer class="flex flex-wrap justify-end gap-3 border-t border-[#E0E0E0] px-5 py-4">
-          <button type="button" (click)="closeEditModal()" class="h-10 px-4 text-[12px] font-extrabold text-[#616161]">Cancelar</button>
-          <button type="submit" class="h-10 rounded-[6px] bg-[#5C1E2F] px-5 text-[12px] font-extrabold text-white transition hover:bg-[#8A3F50]">Guardar alterações</button>
-        </footer>
-      </form>
-    </section>
-  }
 </app-admin-console-shell>

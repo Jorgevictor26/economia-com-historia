@@ -66,7 +66,7 @@
                   </article>
                 } @empty {
                   <article class="rounded-[8px] border border-dashed border-[#E0E0E0] bg-[#FAFAFA] p-4 text-[12px] font-semibold text-[#616161]">
-                    Os tópicos deste fórum serão visíveis depois da aprovação.
+                    Os tópicos deste fórum serão visíveis depois de entrar.
                   </article>
                 }
               </div>
@@ -163,10 +163,6 @@
                 <span class="material-symbols-outlined text-[26px] leading-none">share</span>
                 <span>Partilhar</span>
               </button>
-              <button type="button" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]" (click)="reportForum($event)">
-                <span class="material-symbols-outlined text-[26px] leading-none">outlined_flag</span>
-                <span>Denunciar</span>
-              </button>
             </div>
             <div class="flex items-center gap-5">
               <button type="button" class="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#9E9E9E] transition hover:text-[#5C1E2F]" (click)="saveForum($event)">
@@ -240,7 +236,7 @@
               }
               <form class="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]" (submit)="requestPrivateAccess($event)">
                 <input type="text" maxlength="24" class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] font-extrabold uppercase tracking-[0.08em] text-[#5C1E2F] outline-none focus:border-[#8A3F50]" placeholder="Código do fórum" [value]="accessRequestCode()" (input)="accessRequestCode.set($any($event.target).value.toUpperCase())" />
-                <button type="submit" class="eh-card-action min-h-11 px-5">Pedir aprovação</button>
+                <button type="submit" class="eh-card-action min-h-11 px-5">Entrar no fórum</button>
               </form>
               @if (accessRequestStatus()) {
                 <p class="mt-3 text-[12px] font-semibold text-[#5C1E2F]">{{ accessRequestStatus() }}</p>
@@ -256,11 +252,11 @@
             <section class="mt-9 border-t border-[#E0E0E0] pt-5">
               <h2 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">Participa&ccedil;&atilde;o</h2>
               <form class="mt-4 grid gap-3" (submit)="$event.preventDefault(); submitForumComment(forumCommentInput.value); forumCommentInput.value = ''">
-                <textarea #forumCommentInput class="min-h-[120px] resize-y rounded-[8px] border border-[#E0E0E0] bg-white px-4 py-3 text-[13px] leading-6 outline-none focus:border-[#8A3F50]" placeholder="Escreva a sua contribui&ccedil;&atilde;o acad&eacute;mica..."></textarea>
+                <textarea #forumCommentInput class="min-h-[120px] resize-y rounded-[8px] border border-[#E0E0E0] bg-white px-4 py-3 text-[13px] leading-6 outline-none focus:border-[#8A3F50]" placeholder="Abra um tópico com a sua contribui&ccedil;&atilde;o acad&eacute;mica..."></textarea>
                 <div class="flex flex-wrap items-center justify-between gap-3">
-                  <span class="text-[11px] text-[#9E9E9E]">A participa&ccedil;&atilde;o deve respeitar o conte&uacute;do vinculado e as regras da comunidade.</span>
+                  <span class="text-[11px] text-[#9E9E9E]">A participa&ccedil;&atilde;o deve respeitar as regras da comunidade. Conte&uacute;dos vinculados s&atilde;o opcionais.</span>
                   <button type="submit" class="eh-card-action disabled:opacity-60" [disabled]="isSavingForumComment()">
-                    {{ isSavingForumComment() ? 'A publicar...' : 'Publicar resposta' }}
+                    {{ isSavingForumComment() ? 'A publicar...' : 'Criar tópico' }}
                   </button>
                 </div>
               </form>
@@ -272,17 +268,101 @@
             } @else if (forumComments().length) {
               <section class="mt-8 grid gap-5 border-t border-[#E0E0E0] pt-6">
                 @for (comment of forumComments(); track comment.id) {
-                  <article class="flex gap-4">
+                  <article class="flex gap-4 rounded-[8px] border border-[#E0E0E0] bg-white p-4">
                     <span class="grid size-9 shrink-0 place-items-center rounded-[8px] bg-[#E0E0E0] text-[11px] font-bold text-[#9E9E9E]">
                       {{ comment.initials }}
                     </span>
                     <div class="min-w-0 flex-1">
-                      <div class="flex flex-wrap items-center gap-3">
-                        <p class="text-[13px] font-extrabold text-[#5C1E2F]">{{ comment.author }}</p>
-                        <span class="text-[10px] text-[#9E9E9E]">{{ comment.createdAt }}</span>
+                      <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div class="flex flex-wrap items-center gap-3">
+                            <p class="text-[13px] font-extrabold text-[#5C1E2F]">{{ comment.author }}</p>
+                            <span class="text-[10px] text-[#9E9E9E]">{{ comment.createdAt }}</span>
+                          </div>
+                          <h3 class="mt-1 text-[13px] font-extrabold text-[#212121]">{{ comment.title }}</h3>
+                        </div>
+                        @if (canEditTopic(comment) || canDeleteTopic(comment)) {
+                          <div class="flex gap-2">
+                            @if (canEditTopic(comment)) {
+                              <button type="button" class="text-[11px] font-extrabold text-[#616161] hover:text-[#5C1E2F]" (click)="openEditTopic(comment.id)">Editar</button>
+                            }
+                            @if (canDeleteTopic(comment)) {
+                              <button type="button" class="text-[11px] font-extrabold text-[#8A3F50] hover:text-[#5C1E2F]" (click)="deleteTopic(comment.id)">Apagar</button>
+                            }
+                          </div>
+                        }
                       </div>
-                      <h3 class="mt-1 text-[13px] font-extrabold text-[#212121]">{{ comment.title }}</h3>
-                      <p class="mt-1 text-[13px] leading-6 text-[#212121]">{{ comment.text }}</p>
+                      @if (comment.editing) {
+                        <form class="mt-4 grid gap-3 rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] p-4" (submit)="$event.preventDefault(); saveEditedTopic(comment.id, editTopicTitle, editTopicContent)">
+                          <input #editTopicTitle type="text" class="h-10 rounded-[8px] border border-[#E0E0E0] px-3 text-[13px] outline-none focus:border-[#8A3F50]" [value]="comment.title" />
+                          <textarea #editTopicContent class="min-h-[90px] rounded-[8px] border border-[#E0E0E0] px-3 py-3 text-[13px] leading-6 outline-none focus:border-[#8A3F50]">{{ comment.text }}</textarea>
+                          <div class="flex justify-end gap-2">
+                            <button type="button" class="h-9 px-3 text-[11px] font-extrabold text-[#616161]" (click)="closeEditTopic(comment.id)">Cancelar</button>
+                            <button type="submit" class="h-9 rounded-[8px] bg-[#5C1E2F] px-4 text-[11px] font-extrabold text-white">Guardar</button>
+                          </div>
+                        </form>
+                      } @else {
+                        <p class="mt-1 text-[13px] leading-6 text-[#212121]">{{ comment.text }}</p>
+                      }
+
+                      <div class="mt-4 flex flex-wrap items-center gap-4">
+                        <button type="button" class="text-[11px] font-extrabold text-[#5C1E2F] hover:text-[#8A3F50]" (click)="openTopicReplyComposer(comment.id)">
+                          {{ comment.replyComposerOpen ? 'Fechar resposta' : 'Responder' }}
+                        </button>
+                        <span class="text-[11px] font-semibold text-[#9E9E9E]">{{ comment.replies.length }} respostas</span>
+                      </div>
+
+                      @if (comment.replyComposerOpen) {
+                        <form class="mt-4 grid gap-3" (submit)="$event.preventDefault(); submitTopicReply(comment.id, replyInput.value); replyInput.value = ''">
+                          <textarea #replyInput class="min-h-[86px] resize-y rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-3 py-3 text-[13px] leading-6 outline-none focus:border-[#8A3F50]" placeholder="Responder a este tópico..."></textarea>
+                          <div class="flex justify-end">
+                            <button type="submit" class="h-9 rounded-[8px] bg-[#5C1E2F] px-4 text-[11px] font-extrabold text-white disabled:opacity-60" [disabled]="comment.isSavingReply">
+                              {{ comment.isSavingReply ? 'A responder...' : 'Publicar resposta' }}
+                            </button>
+                          </div>
+                        </form>
+                      }
+
+                      @if (comment.replies.length) {
+                        <div class="mt-4 grid gap-3 border-l-2 border-[#F2E6E9] pl-4">
+                          @for (reply of comment.replies; track reply.id) {
+                            <article class="rounded-[8px] bg-[#FAFAFA] p-3">
+                              <div class="flex flex-wrap items-start justify-between gap-3">
+                                <div class="flex min-w-0 gap-3">
+                                  <span class="grid size-8 shrink-0 place-items-center rounded-[8px] bg-[#F2E6E9] text-[10px] font-bold text-[#5C1E2F]">{{ reply.initials }}</span>
+                                  <div class="min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                      <p class="text-[12px] font-extrabold text-[#5C1E2F]">{{ reply.author }}</p>
+                                      <span class="text-[10px] text-[#9E9E9E]">{{ reply.createdAt }}</span>
+                                    </div>
+                                    @if (comment.editingReplyId === reply.id) {
+                                      <form class="mt-3 grid gap-2" (submit)="$event.preventDefault(); saveEditedReply(comment.id, reply.id, editReplyInput)">
+                                        <textarea #editReplyInput class="min-h-[76px] rounded-[8px] border border-[#E0E0E0] bg-white px-3 py-2 text-[12px] leading-5 outline-none focus:border-[#8A3F50]">{{ reply.text }}</textarea>
+                                        <div class="flex justify-end gap-2">
+                                          <button type="button" class="h-8 px-3 text-[11px] font-extrabold text-[#616161]" (click)="closeEditReply(comment.id)">Cancelar</button>
+                                          <button type="submit" class="h-8 rounded-[8px] bg-[#5C1E2F] px-3 text-[11px] font-extrabold text-white">Guardar</button>
+                                        </div>
+                                      </form>
+                                    } @else {
+                                      <p class="mt-1 text-[12px] leading-5 text-[#212121]">{{ reply.text }}</p>
+                                    }
+                                  </div>
+                                </div>
+                                @if (canEditReply(reply) || canDeleteReply(reply)) {
+                                  <div class="flex shrink-0 gap-2">
+                                    @if (canEditReply(reply)) {
+                                      <button type="button" class="text-[10px] font-extrabold text-[#616161] hover:text-[#5C1E2F]" (click)="openEditReply(comment.id, reply.id)">Editar</button>
+                                    }
+                                    @if (canDeleteReply(reply)) {
+                                      <button type="button" class="text-[10px] font-extrabold text-[#8A3F50] hover:text-[#5C1E2F]" (click)="deleteReply(comment.id, reply.id)">Apagar</button>
+                                    }
+                                  </div>
+                                }
+                              </div>
+                            </article>
+                          }
+                        </div>
+                      }
                     </div>
                   </article>
                 }

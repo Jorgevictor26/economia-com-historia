@@ -157,9 +157,10 @@
           <span class="size-9 rounded-[10px] bg-[#E0E0E0]"></span>
           <div class="min-w-0 flex-1">
             <textarea #videoCommentInput class="h-[96px] w-full resize-none border border-[#E0E0E0] bg-white p-5 text-[13px] outline-none placeholder:text-[#BDBDBD] focus:border-[#8A3F50] rounded-[8px]" placeholder="Partilhe a sua reflex&atilde;o sobre este v&iacute;deo..."></textarea>
-            <div class="mt-3 text-right">
+            <div class="mt-3 text-right flex justify-end gap-3">
+              <button type="button" class="h-10 px-4 text-[12px] font-bold text-[#616161]" (click)="isVideoCommentComposerOpen.set(false); videoCommentInput.value = ''">Cancelar</button>
               <button type="button" class="h-10 bg-[#5C1E2F] px-6 text-[12px] font-bold text-white disabled:opacity-60" [disabled]="isSavingVideoComment()" (click)="submitVideoComment(videoCommentInput.value); videoCommentInput.value = ''">
-                {{ isSavingVideoComment() ? 'A publicar...' : 'Publicar' }}
+                {{ isSavingVideoComment() ? 'A comentar...' : 'Comentar' }}
               </button>
             </div>
           </div>

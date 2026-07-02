@@ -218,9 +218,6 @@ export class QuizGlobalRankingPage {
   readonly podium = computed(() => this.ranking().slice(0, 3));
   readonly remainingRanking = computed(() => this.ranking().slice(3));
   readonly totalParticipants = computed(() => this.ranking().length);
-  readonly totalCompletedQuizzes = computed(() =>
-    this.ranking().reduce((total, entry) => total + entry.completedQuizzes, 0),
-  );
   readonly topScore = computed(() => this.ranking()[0]?.totalScore ?? 0);
 
   constructor() {

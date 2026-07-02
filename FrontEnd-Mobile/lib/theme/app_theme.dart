@@ -7,7 +7,7 @@ class AppTheme {
       useMaterial3: true,
 
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primaryDark,
+        seedColor: AppColors.primary,
         brightness: Brightness.light,
       ),
 

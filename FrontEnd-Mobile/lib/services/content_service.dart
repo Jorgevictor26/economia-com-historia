@@ -34,6 +34,49 @@ class ContentService {
     return Content.fromJson(jsonMap(response));
   }
 
+  Future<List<Content>> getSuggestions({int limit = 9}) async {
+    final response = await _api.get(
+      '/contents/suggestions',
+      query: {'limit': limit},
+    );
+    final data = ApiClient.unwrapData(response);
+    if (data is List) return data.map(jsonMap).map(Content.fromJson).toList();
+    return <Content>[];
+  }
+
+  Future<Content> getFeaturedJindungo() async {
+    final response = await _api.get('/contents/jindungo/featured');
+    return Content.fromJson(jsonMap(response));
+  }
+
+  Future<List<ContentProgress>> getContentProgress({int limit = 3}) async {
+    final response = await _api.get(
+      '/content-progress',
+      query: {'limit': limit},
+    );
+    final data = ApiClient.unwrapData(response);
+    if (data is List) {
+      return data.map(jsonMap).map(ContentProgress.fromJson).toList();
+    }
+    return <ContentProgress>[];
+  }
+
+  Future<ContentProgress> updateProgress({
+    required int contentId,
+    required int progressPercent,
+    int? lastPositionSeconds,
+  }) async {
+    final response = await _api.put(
+      '/contents/$contentId/progress',
+      body: {
+        'progress_percent': progressPercent.clamp(0, 100).toInt(),
+        if (lastPositionSeconds != null)
+          'last_position_seconds': lastPositionSeconds,
+      },
+    );
+    return ContentProgress.fromJson(jsonMap(ApiClient.unwrapData(response)));
+  }
+
   Future<List<Comment>> getComments(int contentId, {String? search}) async {
     final response = await _api.get(
       '/comments/content/$contentId',
@@ -120,9 +163,29 @@ class PodcastService {
   Future<PaginatedResponse<Content>> getPodcasts({
     int page = 1,
     String? search,
+    int? categoryId,
+    int? contentTypeId,
   }) {
-    return _contents.getContents(page: page, type: 'podcast', search: search);
+    return _contents.getContents(
+      page: page,
+      type: 'podcast',
+      categoryId: categoryId,
+      contentTypeId: contentTypeId,
+      search: search,
+    );
   }
 
   Future<Content> getPodcast(int id) => _contents.getContent(id);
+
+  Future<ContentProgress> updateProgress({
+    required int contentId,
+    required int progressPercent,
+    int? lastPositionSeconds,
+  }) {
+    return _contents.updateProgress(
+      contentId: contentId,
+      progressPercent: progressPercent,
+      lastPositionSeconds: lastPositionSeconds,
+    );
+  }
 }

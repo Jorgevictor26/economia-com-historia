@@ -9,6 +9,8 @@ import '../exceptions/app_exceptions.dart';
 import 'session_storage.dart';
 
 class ApiClient {
+  static FutureOr<void> Function()? onUnauthorized;
+
   final http.Client _client;
   final SessionStorage _session;
 
@@ -80,7 +82,7 @@ class ApiClient {
     }
   }
 
-  dynamic _handleResponse(http.Response response) {
+  Future<dynamic> _handleResponse(http.Response response) async {
     final status = response.statusCode;
     final decoded = _decode(response.body);
 
@@ -89,9 +91,11 @@ class ApiClient {
     }
 
     final message = _messageFrom(decoded, status);
-    if (status == 401) {
-      _session.clearAuth();
-      throw UnauthorizedException(message);
+    if (status == 401 || status == 419) {
+      await _session.clearAuth();
+      final handler = onUnauthorized;
+      if (handler != null) unawaited(Future.sync(handler));
+      throw UnauthorizedException(message, status);
     }
     if (status == 403) throw ForbiddenException(message);
     if (status == 404) throw NotFoundException(message);
@@ -115,24 +119,51 @@ class ApiClient {
     if (decoded is Map) {
       final message = decoded['message'];
       if (message != null && message.toString().trim().isNotEmpty) {
-        return message.toString();
+        return _friendlyMessage(message.toString(), status);
       }
       final errors = decoded['errors'];
       if (errors is Map && errors.isNotEmpty) {
         final first = errors.values.first;
-        if (first is List && first.isNotEmpty) return first.first.toString();
-        return first.toString();
+        if (first is List && first.isNotEmpty) {
+          return _friendlyMessage(first.first.toString(), status);
+        }
+        return _friendlyMessage(first.toString(), status);
       }
     }
     return switch (status) {
-      400 => 'Pedido invalido.',
-      401 => 'Sessao expirada.',
+      400 => 'Pedido inválido.',
+      401 => 'Sessão expirada.',
+      419 => 'Sessão expirada.',
       403 => 'Acesso negado.',
-      404 => 'Recurso nao encontrado.',
-      409 => 'Nao foi possivel concluir a operacao.',
+      404 => 'Recurso não encontrado.',
+      409 => 'Não foi possível concluir a operação.',
       422 => 'Verifique os dados enviados.',
       _ => 'Erro inesperado. Tente novamente.',
     };
+  }
+
+  String _friendlyMessage(String message, int status) {
+    final normalized = message.toLowerCase();
+    if (status == 401 ||
+        status == 419 ||
+        normalized.contains('unauthenticated')) {
+      return 'Sessão expirada.';
+    }
+    if (normalized.contains('not found')) {
+      return 'Recurso não encontrado.';
+    }
+    if (normalized.contains('not allowed') ||
+        normalized.contains('forbidden')) {
+      return 'Acesso negado.';
+    }
+    if (normalized.contains('subscription')) {
+      return 'Este conteúdo requer uma subscrição ativa.';
+    }
+    if (normalized.contains('unable to')) {
+      return 'Não foi possível concluir a operação.';
+    }
+    if (status >= 500) return 'Erro no servidor. Tente mais tarde.';
+    return message;
   }
 
   static dynamic unwrapData(dynamic response) {

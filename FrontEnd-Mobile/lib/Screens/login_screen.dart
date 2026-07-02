@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/exceptions/app_exceptions.dart';
-import '../service/perfil_service.dart';
+import '../services/perfil_service.dart';
 import '../shared/main_navigation_screen.dart';
 import '../theme/app_colors.dart';
 import '../widgets/auth_widgets.dart';
@@ -83,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 16),
-              const AuthHeader(title: 'Bem-Vindo a\nEconomia com Historia'),
+              const AuthHeader(title: 'Bem-Vindo a\nEconomia com História'),
               const SizedBox(height: 32),
               Container(
                 width: double.infinity,
@@ -142,8 +142,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: _isLoading ? null : _handleEntrar,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
-                          disabledBackgroundColor: AppColors.primary
-                              .withValues(alpha: 0.6),
+                          disabledBackgroundColor: AppColors.primary.withValues(
+                            alpha: 0.6,
+                          ),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -177,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: AppColors.textMedium,
                           ),
                           children: [
-                            const TextSpan(text: 'Nao tem uma conta? '),
+                            const TextSpan(text: 'Não tem uma conta? '),
                             TextSpan(
                               text: 'Criar conta',
                               style: const TextStyle(

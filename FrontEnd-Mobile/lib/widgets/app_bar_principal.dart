@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../screens/login_screen.dart';
+import '../Screens/login_screen.dart';
 import '../theme/app_colors.dart';
-import '../screens/notificacoes_screen.dart';
-import '../screens/favoritos_screen.dart';
-import '../screens/perfil_screen.dart';
-import '../service/perfil_service.dart';
+import '../Screens/notificacoes_screen.dart';
+import '../Screens/favoritos_screen.dart';
+import '../Screens/perfil_screen.dart';
+import '../services/perfil_service.dart';
 import 'search_modal.dart';
 
 class AppBarPrincipal extends StatelessWidget implements PreferredSizeWidget {

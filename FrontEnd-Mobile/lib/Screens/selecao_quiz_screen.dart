@@ -59,6 +59,7 @@ class _SelecaoQuizScreenState extends State<SelecaoQuizScreen> {
         color: AppColors.primary,
         onRefresh: _load,
         child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -91,7 +92,7 @@ class _SelecaoQuizScreenState extends State<SelecaoQuizScreen> {
                   else if (_error != null)
                     ErrorState(message: _error!, onRetry: _load)
                   else if (_quizzes.isEmpty)
-                    const EmptyState(message: 'Nenhum quiz disponivel.')
+                    const EmptyState(message: 'Nenhum quiz disponível.')
                   else
                     _SecaoQuiz(
                       titulo: 'Quizzes disponiveis',
@@ -210,13 +211,13 @@ class _QuizCard extends StatelessWidget {
           Row(
             children: [
               const Icon(
-                Icons.grid_view_rounded,
+                Icons.quiz_outlined,
                 size: 14,
                 color: AppColors.textLight,
               ),
               const SizedBox(width: 5),
               Text(
-                '$questionsCount questoes',
+                '$questionsCount questões',
                 style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.textMedium,

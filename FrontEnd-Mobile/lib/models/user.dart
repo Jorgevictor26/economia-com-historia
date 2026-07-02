@@ -48,13 +48,6 @@ class User {
     return expires != null && expires.isAfter(DateTime.now());
   }
 
-  bool get canCreateContent {
-    final normalized = roles.map((role) => role.normalizedName).toSet();
-    return normalized.contains('writer') ||
-        normalized.contains('admin') ||
-        normalized.contains('superadmin');
-  }
-
   bool hasRole(String role) {
     final normalized = role.toLowerCase().replaceAll(RegExp(r'[\s_-]'), '');
     return roles.any((item) => item.normalizedName == normalized);

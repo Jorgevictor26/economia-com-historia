@@ -18,6 +18,8 @@ class Content {
   final String? audioUrl;
   final String? documentUrl;
   final String? visibility;
+  final String? authorPhotoUrl;
+  final bool? canAccess;
   final int viewsCount;
   final int reactionsCount;
   final int commentsCount;
@@ -43,6 +45,8 @@ class Content {
     this.audioUrl,
     this.documentUrl,
     this.visibility,
+    this.authorPhotoUrl,
+    this.canAccess,
     this.viewsCount = 0,
     this.reactionsCount = 0,
     this.commentsCount = 0,
@@ -70,6 +74,8 @@ class Content {
       audioUrl: jsonString(json['audio_url']),
       documentUrl: jsonString(json['document_url']),
       visibility: jsonString(json['visibility']),
+      authorPhotoUrl: jsonString(json['author_photo_url']),
+      canAccess: jsonBool(json['can_access']),
       viewsCount: jsonInt(json['views_count']) ?? 0,
       reactionsCount: jsonInt(json['reactions_count']) ?? 0,
       commentsCount: jsonInt(json['comments_count']) ?? 0,
@@ -103,6 +109,48 @@ class Content {
   bool get isVideo => typeSlug == 'video' || displayVideo != null;
 
   bool get isJindungo => typeSlug == 'jindungo';
+
+  bool get isLocked => canAccess == false;
+}
+
+class ContentProgress {
+  final int id;
+  final int userId;
+  final int contentId;
+  final int progressPercent;
+  final int? lastPositionSeconds;
+  final DateTime? completedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final Content? content;
+
+  const ContentProgress({
+    required this.id,
+    required this.userId,
+    required this.contentId,
+    required this.progressPercent,
+    this.lastPositionSeconds,
+    this.completedAt,
+    this.createdAt,
+    this.updatedAt,
+    this.content,
+  });
+
+  factory ContentProgress.fromJson(Map<String, dynamic> json) {
+    return ContentProgress(
+      id: jsonInt(json['id']) ?? 0,
+      userId: jsonInt(json['user_id']) ?? 0,
+      contentId: jsonInt(json['content_id']) ?? 0,
+      progressPercent: jsonInt(json['progress_percent']) ?? 0,
+      lastPositionSeconds: jsonInt(json['last_position_seconds']),
+      completedAt: jsonDate(json['completed_at']),
+      createdAt: jsonDate(json['created_at']),
+      updatedAt: jsonDate(json['updated_at']),
+      content: json['content'] != null
+          ? Content.fromJson(jsonMap(json['content']))
+          : null,
+    );
+  }
 }
 
 class SavedContent {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../core/exceptions/app_exceptions.dart';
@@ -43,7 +45,7 @@ class _PodcastSelecionadoScreenState extends State<PodcastSelecionadoScreen> {
     if (id == null || id == 0) {
       setState(() {
         _isLoading = false;
-        _error = 'Podcast invalido.';
+        _error = 'Podcast inválido.';
       });
       return;
     }
@@ -87,7 +89,7 @@ class _PodcastSelecionadoScreenState extends State<PodcastSelecionadoScreen> {
                   : _error != null
                   ? ErrorState(message: _error!, onRetry: _load)
                   : content == null
-                  ? const EmptyState(message: 'Podcast nao encontrado.')
+                  ? const EmptyState(message: 'Podcast não encontrado.')
                   : SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,6 +137,7 @@ class _PodcastSelecionadoScreenState extends State<PodcastSelecionadoScreen> {
                                   progresso: _progresso,
                                   onChanged: (v) =>
                                       setState(() => _progresso = v),
+                                  onChangeEnd: _guardarProgresso,
                                 ),
                                 const SizedBox(height: 6),
                                 Row(
@@ -150,7 +153,7 @@ class _PodcastSelecionadoScreenState extends State<PodcastSelecionadoScreen> {
                                     ),
                                     Text(
                                       content.displayAudio == null
-                                          ? 'audio indisponivel'
+                                          ? 'áudio indisponível'
                                           : readTime(content.content),
                                       style: const TextStyle(
                                         fontSize: 12,
@@ -210,6 +213,24 @@ class _PodcastSelecionadoScreenState extends State<PodcastSelecionadoScreen> {
         ),
       ),
     );
+  }
+
+  void _guardarProgresso(double value) {
+    final content = _content;
+    if (content == null || content.isLocked) return;
+
+    unawaited(_persistirProgresso(content.id, (value * 100).round()));
+  }
+
+  Future<void> _persistirProgresso(int contentId, int progressPercent) async {
+    try {
+      await _podcastService.updateProgress(
+        contentId: contentId,
+        progressPercent: progressPercent,
+      );
+    } catch (_) {
+      // Mantém o player fluido mesmo se a ligação falhar temporariamente.
+    }
   }
 }
 
@@ -273,8 +294,13 @@ class _CapaPlayer extends StatelessWidget {
 class _BarraProgresso extends StatelessWidget {
   final double progresso;
   final ValueChanged<double> onChanged;
+  final ValueChanged<double> onChangeEnd;
 
-  const _BarraProgresso({required this.progresso, required this.onChanged});
+  const _BarraProgresso({
+    required this.progresso,
+    required this.onChanged,
+    required this.onChangeEnd,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -287,7 +313,11 @@ class _BarraProgresso extends StatelessWidget {
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
         trackHeight: 3,
       ),
-      child: Slider(value: progresso, onChanged: onChanged),
+      child: Slider(
+        value: progresso,
+        onChanged: onChanged,
+        onChangeEnd: onChangeEnd,
+      ),
     );
   }
 }

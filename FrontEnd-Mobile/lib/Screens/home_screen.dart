@@ -6,11 +6,13 @@ import '../core/utils/formatters.dart';
 import '../core/widgets/api_state_widgets.dart';
 import '../models/content.dart';
 import '../models/forum.dart';
-import '../service/perfil_service.dart';
+import '../services/perfil_service.dart';
 import '../services/content_service.dart';
 import '../services/forum_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_bar_principal.dart';
+import '../widgets/content_card.dart';
+import '../widgets/filter_chip_bar.dart';
 import 'conteudo_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -29,7 +31,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   String? _error;
   List<Content> _contents = [];
+  List<ContentProgress> _progressos = [];
   List<Forum> _forums = [];
+  Content? _featuredJindungo;
   String? _filtroSelecionado;
 
   @override
@@ -44,14 +48,18 @@ class _HomeScreenState extends State<HomeScreen> {
       _error = null;
     });
     try {
-      final results = await Future.wait([
-        _contentService.getContents(),
-        _forumService.getForums(),
+      final conteudos = await _contentService.getContents();
+      final results = await Future.wait<Object?>([
+        _loadProgressos(),
+        _loadForums(),
+        _loadFeaturedJindungo(),
       ]);
       if (!mounted) return;
       setState(() {
-        _contents = (results[0] as dynamic).data as List<Content>;
+        _contents = conteudos.data;
+        _progressos = results[0] as List<ContentProgress>;
         _forums = results[1] as List<Forum>;
+        _featuredJindungo = results[2] as Content?;
       });
     } on AppException catch (e) {
       if (mounted) setState(() => _error = e.message);
@@ -85,17 +93,29 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     if (_error != null) {
       return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         children: [ErrorState(message: _error!, onRetry: _load)],
       );
     }
 
     final conteudosVisiveis = _conteudosFiltrados;
-    final destaque = conteudosVisiveis.isNotEmpty
-        ? conteudosVisiveis.first
+    final destaqueJindungo = _filtroSelecionado == 'Jindungo'
+        ? _featuredJindungo
         : null;
-    final recentes = conteudosVisiveis.take(4).toList();
+    final destaque =
+        destaqueJindungo ??
+        (conteudosVisiveis.isNotEmpty ? conteudosVisiveis.first : null);
+    final progressoConteudos = _progressos
+        .map((progress) => progress.content)
+        .whereType<Content>()
+        .where(_passaNoFiltroAtual)
+        .toList();
+    final recentes = progressoConteudos.isNotEmpty
+        ? progressoConteudos
+        : conteudosVisiveis.take(4).toList();
 
     return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -129,10 +149,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              _FiltrosRow(
-                filtros: const ['Texto', 'Vídeo', 'Podcast', 'Jindungo'],
-                selecionado: _filtroSelecionado,
-                onSelect: _selecionarFiltro,
+              AppFilterChipBar(
+                options: const [
+                  FilterChipOption(id: 'all', label: 'Todos'),
+                  FilterChipOption(id: 'Texto', label: 'Texto'),
+                  FilterChipOption(id: 'Vídeo', label: 'Vídeo'),
+                  FilterChipOption(id: 'Podcast', label: 'Podcast'),
+                  FilterChipOption(id: 'Jindungo', label: 'Jindungo'),
+                ],
+                selectedId: _filtroSelecionado ?? 'all',
+                onSelected: _selecionarFiltro,
+                padding: EdgeInsets.zero,
+                allowDeselect: true,
               ),
               const SizedBox(height: 28),
               const Text(
@@ -147,11 +175,14 @@ class _HomeScreenState extends State<HomeScreen> {
               if (destaque == null)
                 const EmptyState(message: 'Ainda não há destaques disponíveis.')
               else
-                _DestaqueCard(content: destaque),
+                AppContentCard(
+                  content: destaque,
+                  onTap: () => _abrirConteudo(destaque),
+                ),
               const SizedBox(height: 28),
               _SectionHeader(
                 title: 'Comunidade',
-                actionLabel: 'Ver foruns',
+                actionLabel: 'Ver fóruns',
                 onAction: () {
                   widget.onIrParaForum?.call();
                 },
@@ -169,23 +200,64 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<Content?> _loadFeaturedJindungo() async {
+    try {
+      return await _contentService.getFeaturedJindungo();
+    } on NotFoundException {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<List<ContentProgress>> _loadProgressos() async {
+    try {
+      return await _contentService.getContentProgress(limit: 4);
+    } on NotFoundException {
+      return <ContentProgress>[];
+    }
+  }
+
+  Future<List<Forum>> _loadForums() async {
+    try {
+      return await _forumService.getForums();
+    } on NotFoundException {
+      return <Forum>[];
+    }
+  }
+
   List<Content> get _conteudosFiltrados {
     final filtro = _filtroSelecionado;
     if (filtro == null) return _contents;
-    final filtroNormalizado = _normalizarFiltro(filtro);
     return _contents.where((content) {
-      final slug = content.typeSlug.toLowerCase();
-      final nome = (content.contentType?.name ?? '').toLowerCase();
-      if (filtroNormalizado == 'podcast') return content.isPodcast;
-      if (filtroNormalizado == 'jindungo') return content.isJindungo;
-      return slug == filtroNormalizado || nome == filtroNormalizado;
+      return _passaNoFiltroAtual(content);
     }).toList();
+  }
+
+  bool _passaNoFiltroAtual(Content content) {
+    final filtro = _filtroSelecionado;
+    if (filtro == null) return true;
+    final filtroNormalizado = _normalizarFiltro(filtro);
+    final slug = content.typeSlug.toLowerCase();
+    final nome = (content.contentType?.name ?? '').toLowerCase();
+    if (filtroNormalizado == 'podcast') return content.isPodcast;
+    if (filtroNormalizado == 'jindungo') return content.isJindungo;
+    return slug == filtroNormalizado || nome == filtroNormalizado;
   }
 
   void _selecionarFiltro(String filtro) {
     setState(() {
-      _filtroSelecionado = _filtroSelecionado == filtro ? null : filtro;
+      _filtroSelecionado = filtro == 'all' || _filtroSelecionado == filtro
+          ? null
+          : filtro;
     });
+  }
+
+  void _abrirConteudo(Content content) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ConteudoScreen(contentId: content.id)),
+    );
   }
 
   String _normalizarFiltro(String filtro) {
@@ -215,11 +287,9 @@ class _GreetingSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          perfil.isAuthenticated
-              ? 'A tua jornada intelectual continua hoje.'
-              : 'Podes explorar conteúdos publicos sem conta.',
-          style: const TextStyle(fontSize: 13.5, color: AppColors.textMedium),
+        const Text(
+          'A tua jornada intelectual continua hoje.',
+          style: TextStyle(fontSize: 13.5, color: AppColors.textMedium),
         ),
       ],
     );
@@ -234,7 +304,6 @@ class _SessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final perfil = context.watch<PerfilService>();
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -249,9 +318,7 @@ class _SessionCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              perfil.isAuthenticated
-                  ? '$totalConteudos conteúdos e $totalForuns foruns disponiveis para ${perfil.role}.'
-                  : '$totalConteudos conteúdos publicos disponiveis.',
+              '$totalConteudos conteúdos e $totalForuns fóruns disponíveis hoje.',
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -329,219 +396,21 @@ class _ContentsRow extends StatelessWidget {
         clipBehavior: Clip.none,
         itemCount: contents.length,
         separatorBuilder: (_, _) => const SizedBox(width: 14),
-        itemBuilder: (context, index) => _ContentCard(content: contents[index]),
-      ),
-    );
-  }
-}
-
-class _ContentCard extends StatelessWidget {
-  final Content content;
-
-  const _ContentCard({required this.content});
-
-  @override
-  Widget build(BuildContext context) {
-    final cardWidth = (MediaQuery.of(context).size.width - 54) / 2;
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ConteudoScreen(contentId: content.id),
-        ),
-      ),
-      child: SizedBox(
-        width: cardWidth,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: AppNetworkImage(
-                url: content.displayImage,
-                width: double.infinity,
-                height: 105,
-                fit: BoxFit.cover,
+        itemBuilder: (context, index) {
+          final content = contents[index];
+          final cardWidth = (MediaQuery.of(context).size.width - 54) / 2;
+          return AppContentCard(
+            content: content,
+            variant: ContentCardVariant.compact,
+            width: cardWidth,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ConteudoScreen(contentId: content.id),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              content.contentType?.name.toUpperCase() ?? 'CONTEUDO',
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              content.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
-                height: 1.35,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _FiltrosRow extends StatelessWidget {
-  final List<String> filtros;
-  final String? selecionado;
-  final ValueChanged<String> onSelect;
-
-  const _FiltrosRow({
-    required this.filtros,
-    required this.selecionado,
-    required this.onSelect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: filtros
-            .map(
-              (filtro) => GestureDetector(
-                onTap: () => onSelect(filtro),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  margin: const EdgeInsets.only(right: 10),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: selecionado == filtro
-                        ? AppColors.primary
-                        : AppColors.surface,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: selecionado == filtro
-                          ? AppColors.primary
-                          : AppColors.borderSoft,
-                      width: 1.2,
-                    ),
-                  ),
-                  child: Text(
-                    filtro,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: selecionado == filtro
-                          ? Colors.white
-                          : AppColors.textMedium,
-                    ),
-                  ),
-                ),
-              ),
-            )
-            .toList(),
-      ),
-    );
-  }
-}
-
-class _DestaqueCard extends StatelessWidget {
-  final Content content;
-
-  const _DestaqueCard({required this.content});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFFB5933A),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                (content.contentType?.name ?? 'Recomendado').toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              content.title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-                height: 1.35,
-              ),
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                const Icon(
-                  Icons.access_time_rounded,
-                  size: 14,
-                  color: Colors.white70,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  readTime(content.content),
-                  style: const TextStyle(fontSize: 12, color: Colors.white70),
-                ),
-                const SizedBox(width: 16),
-                const Icon(
-                  Icons.remove_red_eye_outlined,
-                  size: 14,
-                  color: Colors.white70,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${content.viewsCount} vistas',
-                  style: const TextStyle(fontSize: 12, color: Colors.white70),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ConteudoScreen(contentId: content.id),
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.white54, width: 1.2),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                child: const Text('Abrir Conteúdo'),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -616,7 +485,7 @@ class _ForumTile extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                '${forum.topicsCount} topicos',
+                '${forum.topicsCount} tópicos',
                 style: const TextStyle(
                   fontSize: 12,
                   color: AppColors.textLight,

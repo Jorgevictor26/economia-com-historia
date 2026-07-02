@@ -60,7 +60,7 @@ class _ReporPalavraPasseScreenState extends State<ReporPalavraPasseScreen> {
       return;
     }
     if (novaSenha != confirmar) {
-      _showSnackBar('As palavras-passe nao coincidem.');
+      _showSnackBar('As palavras-passe não coincidem.');
       return;
     }
 

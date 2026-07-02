@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             ContentTypeSeeder::class,
             UserSeeder::class,
+            MobileDemoDataSeeder::class,
         ]);
     }
 }

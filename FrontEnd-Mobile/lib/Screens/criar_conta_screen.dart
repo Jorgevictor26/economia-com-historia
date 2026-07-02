@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/exceptions/app_exceptions.dart';
-import '../service/perfil_service.dart';
+import '../services/perfil_service.dart';
 import '../shared/main_navigation_screen.dart';
 import '../theme/app_colors.dart';
 import '../widgets/auth_widgets.dart';
@@ -98,7 +98,7 @@ class _CriarContaScreenState extends State<CriarContaScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 16),
-              const AuthHeader(title: 'Bem-Vindo a\nEconomia com Historia'),
+              const AuthHeader(title: 'Bem-Vindo a\nEconomia com História'),
               const SizedBox(height: 32),
               Container(
                 width: double.infinity,

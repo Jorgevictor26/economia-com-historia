@@ -19,10 +19,28 @@ class ForumService {
     return Forum.fromJson(jsonMap(response));
   }
 
-  Future<Forum> createForum({required String name, String? description}) async {
+  Future<Forum> createForum({
+    required String name,
+    String? description,
+    String? rules,
+    String? category,
+    String visibility = 'public',
+    String contentPermission = 'public',
+    bool allowAttachments = false,
+    List<int> contentIds = const [],
+  }) async {
     final response = await _api.post(
       '/forums',
-      body: {'name': name, 'description': ?description},
+      body: {
+        'name': name,
+        'description': ?description,
+        'rules': ?rules,
+        'category': ?category,
+        'visibility': visibility,
+        'content_permission': contentPermission,
+        'allow_attachments': allowAttachments,
+        if (contentIds.isNotEmpty) 'content_ids': contentIds,
+      },
     );
     return Forum.fromJson(jsonMap(ApiClient.unwrapData(response)));
   }

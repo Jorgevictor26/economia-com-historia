@@ -5,7 +5,7 @@ import '../core/exceptions/app_exceptions.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/api_state_widgets.dart';
 import '../models/forum.dart';
-import '../service/perfil_service.dart';
+import '../services/perfil_service.dart';
 import '../services/forum_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_bar_principal.dart';
@@ -43,7 +43,7 @@ class _ForumScreenState extends State<ForumScreen> {
     } on AppException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
-      if (mounted) setState(() => _error = 'Erro ao carregar foruns.');
+      if (mounted) setState(() => _error = 'Erro ao carregar fóruns.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -79,12 +79,13 @@ class _ForumScreenState extends State<ForumScreen> {
           if (mounted) _load();
         },
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add_rounded, color: Colors.white),
+        child: const Icon(Icons.add_comment_outlined, color: Colors.white),
       ),
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: _load,
         child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -94,11 +95,11 @@ class _ForumScreenState extends State<ForumScreen> {
                   const _SectionHeader(),
                   const SizedBox(height: 14),
                   if (_isLoading)
-                    const LoadingState(message: 'A carregar foruns...')
+                    const LoadingState(message: 'A carregar fóruns...')
                   else if (_error != null)
                     ErrorState(message: _error!, onRetry: _load)
                   else if (_forums.isEmpty)
-                    const EmptyState(message: 'Nenhum fórum disponivel.')
+                    const EmptyState(message: 'Nenhum fórum disponível.')
                   else ...[
                     _DebateDestaque(forum: _forums.first),
                     const SizedBox(height: 28),
@@ -279,7 +280,7 @@ class _SalaCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${forum.topicsCount} topicos',
+                        '${forum.topicsCount} tópicos',
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textMedium,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../core/exceptions/app_exceptions.dart';
@@ -25,7 +27,6 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
   List<Question> _questions = [];
   int _currentIndex = 0;
   String? _selectedOption;
-  bool _showFeedback = false;
   final Map<int, String> _answers = {};
 
   @override
@@ -49,7 +50,7 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
     } on AppException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
-      if (mounted) setState(() => _error = 'Erro ao carregar questoes.');
+      if (mounted) setState(() => _error = 'Erro ao carregar questões.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -58,12 +59,11 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
   Question get _question => _questions[_currentIndex];
 
   void _selecionarResposta(String option) {
-    if (_showFeedback) return;
     setState(() {
       _selectedOption = option;
       _answers[_question.id] = option;
-      _showFeedback = true;
     });
+    _guardarProgresso();
   }
 
   Future<void> _continuar() async {
@@ -71,7 +71,6 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
       setState(() {
         _currentIndex++;
         _selectedOption = _answers[_question.id];
-        _showFeedback = false;
       });
       return;
     }
@@ -86,6 +85,7 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
         startedAt: _startedAt,
         answers: _answers,
       );
+      _guardarProgresso(completed: true);
       if (!mounted) return;
       await showDialog<void>(
         context: context,
@@ -122,6 +122,30 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
     );
   }
 
+  void _guardarProgresso({bool completed = false}) {
+    if (_questions.isEmpty) return;
+    final progress = completed
+        ? 100
+        : ((_answers.length / _questions.length) * 100)
+              .round()
+              .clamp(1, 99)
+              .toInt();
+    unawaited(_persistirProgresso(progress));
+  }
+
+  Future<void> _persistirProgresso(int progressPercent) async {
+    try {
+      await _service.updateProgress(
+        quizId: widget.quiz.id,
+        progressPercent: progressPercent,
+        currentQuestionIndex: _currentIndex,
+        answeredQuestions: _answers,
+      );
+    } catch (_) {
+      // O quiz continua mesmo que o progresso não consiga sincronizar agora.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -132,7 +156,7 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
             : _error != null
             ? ErrorState(message: _error!, onRetry: _load)
             : _questions.isEmpty
-            ? const EmptyState(message: 'Este quiz ainda nao tem questoes.')
+            ? const EmptyState(message: 'Este quiz ainda não tem questões.')
             : Column(
                 children: [
                   _BarraTopo(
@@ -165,14 +189,6 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
                               onTap: () => _selecionarResposta(option.key),
                             ),
                           ),
-                          if (_showFeedback) ...[
-                            const SizedBox(height: 16),
-                            _FeedbackCard(
-                              correct:
-                                  _selectedOption == _question.correctOption,
-                              explanation: _question.explanation,
-                            ),
-                          ],
                           const SizedBox(height: 24),
                         ],
                       ),
@@ -193,14 +209,9 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
   }
 
   _EstadoOpcao _estado(String option) {
-    if (!_showFeedback) {
-      return option == _selectedOption
-          ? _EstadoOpcao.selecionada
-          : _EstadoOpcao.neutra;
-    }
-    if (option == _question.correctOption) return _EstadoOpcao.correta;
-    if (option == _selectedOption) return _EstadoOpcao.errada;
-    return _EstadoOpcao.neutra;
+    return option == _selectedOption
+        ? _EstadoOpcao.selecionada
+        : _EstadoOpcao.neutra;
   }
 }
 
@@ -264,7 +275,7 @@ class _BarraTopo extends StatelessWidget {
   }
 }
 
-enum _EstadoOpcao { neutra, selecionada, correta, errada }
+enum _EstadoOpcao { neutra, selecionada }
 
 class _OpcaoCard extends StatelessWidget {
   final String letra;
@@ -279,10 +290,6 @@ class _OpcaoCard extends StatelessWidget {
     required this.onTap,
   });
 
-  static const _verde = Color(0xFF2E7D32);
-  static const _verdeClaro = Color(0xFFF1FAF1);
-  static const _verdeBorda = Color(0xFF4CAF50);
-
   @override
   Widget build(BuildContext context) {
     final Color bordaColor;
@@ -291,18 +298,6 @@ class _OpcaoCard extends StatelessWidget {
     final Color textoColor;
 
     switch (estado) {
-      case _EstadoOpcao.correta:
-        bordaColor = _verdeBorda;
-        fundoColor = _verdeClaro;
-        letraFundoColor = _verde;
-        textoColor = _verde;
-        break;
-      case _EstadoOpcao.errada:
-        bordaColor = Colors.redAccent;
-        fundoColor = const Color(0xFFFFF0F0);
-        letraFundoColor = Colors.redAccent;
-        textoColor = Colors.redAccent;
-        break;
       case _EstadoOpcao.selecionada:
         bordaColor = AppColors.primary;
         fundoColor = const Color(0xFFF7EEF0);
@@ -364,60 +359,6 @@ class _OpcaoCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _FeedbackCard extends StatelessWidget {
-  final bool correct;
-  final String? explanation;
-
-  const _FeedbackCard({required this.correct, this.explanation});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = correct ? const Color(0xFF2E7D32) : Colors.redAccent;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: correct ? const Color(0xFFF1FAF1) : const Color(0xFFFFF0F0),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.4), width: 1.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                correct ? Icons.check_circle_outline : Icons.info_outline,
-                color: color,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                correct ? 'Resposta correta' : 'Resposta incorreta',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-          if ((explanation ?? '').isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text(
-              explanation!,
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFF3D3D3D),
-                height: 1.6,
-              ),
-            ),
-          ],
-        ],
       ),
     );
   }

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../core/exceptions/app_exceptions.dart';
-import '../core/utils/formatters.dart';
 import '../core/widgets/api_state_widgets.dart';
 import '../models/content.dart';
+import '../models/taxonomy.dart';
 import '../services/content_service.dart';
+import '../services/taxonomy_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_bar_principal.dart';
+import '../widgets/content_card.dart';
+import '../widgets/filter_chip_bar.dart';
 import 'podcast_selecionado_screen.dart';
 
 class PodcastScreen extends StatefulWidget {
@@ -18,10 +21,12 @@ class PodcastScreen extends StatefulWidget {
 
 class _PodcastScreenState extends State<PodcastScreen> {
   final _podcastService = PodcastService();
-  String? _categoriaSelecionada;
+  final _taxonomyService = TaxonomyService();
+  int? _categoriaSelecionadaId;
   bool _isLoading = true;
   String? _error;
   List<Content> _podcasts = [];
+  List<Category> _categorias = [];
 
   @override
   void initState() {
@@ -35,9 +40,15 @@ class _PodcastScreenState extends State<PodcastScreen> {
       _error = null;
     });
     try {
-      final response = await _podcastService.getPodcasts();
+      final results = await Future.wait<Object>([
+        _podcastService.getPodcasts(categoryId: _categoriaSelecionadaId),
+        _taxonomyService.getCategories(),
+      ]);
       if (!mounted) return;
-      setState(() => _podcasts = response.data);
+      setState(() {
+        _podcasts = (results[0] as dynamic).data as List<Content>;
+        _categorias = results[1] as List<Category>;
+      });
     } on AppException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
@@ -47,24 +58,20 @@ class _PodcastScreenState extends State<PodcastScreen> {
     }
   }
 
-  List<String> get _categorias {
-    final names =
-        _podcasts
-            .map((podcast) => podcast.category?.name)
-            .whereType<String>()
-            .where((name) => name.trim().isNotEmpty)
-            .toSet()
-            .toList()
-          ..sort();
-    return ['Todos', ...names];
+  List<FilterChipOption> get _categoriaOptions {
+    return [
+      const FilterChipOption(id: 'all', label: 'Todos'),
+      ..._categorias.map(
+        (categoria) =>
+            FilterChipOption(id: '${categoria.id}', label: categoria.name),
+      ),
+    ];
   }
 
-  List<Content> get _podcastsFiltrados {
-    final categoria = _categoriaSelecionada;
-    if (categoria == null || categoria == 'Todos') return _podcasts;
-    return _podcasts
-        .where((podcast) => podcast.category?.name == categoria)
-        .toList();
+  Future<void> _selecionarCategoria(String id) async {
+    final selectedId = id == 'all' ? null : int.tryParse(id);
+    setState(() => _categoriaSelecionadaId = selectedId);
+    await _load();
   }
 
   @override
@@ -82,67 +89,15 @@ class _PodcastScreenState extends State<PodcastScreen> {
         color: AppColors.primary,
         onRefresh: _load,
         child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
             SliverToBoxAdapter(
-              child: SizedBox(
-                height: 44,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: _categorias.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 8),
-                  itemBuilder: (_, index) {
-                    final categoria = _categorias[index];
-                    final selecionado =
-                        (categoria == 'Todos' &&
-                            _categoriaSelecionada == null) ||
-                        _categoriaSelecionada == categoria;
-
-                    return InkWell(
-                      borderRadius: BorderRadius.circular(10),
-                      onTap: () {
-                        setState(() {
-                          _categoriaSelecionada =
-                              categoria == 'Todos' || selecionado
-                              ? null
-                              : categoria;
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: selecionado
-                              ? AppColors.primary
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: selecionado
-                                ? AppColors.primary
-                                : const Color(0xFFD8C1C4),
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            categoria,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: selecionado
-                                  ? Colors.white
-                                  : AppColors.textMedium,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+              child: AppFilterChipBar(
+                options: _categoriaOptions,
+                selectedId: _categoriaSelecionadaId?.toString() ?? 'all',
+                onSelected: _selecionarCategoria,
+                allowDeselect: true,
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
@@ -154,7 +109,7 @@ class _PodcastScreenState extends State<PodcastScreen> {
               SliverFillRemaining(
                 child: ErrorState(message: _error!, onRetry: _load),
               )
-            else if (_podcastsFiltrados.isEmpty)
+            else if (_podcasts.isEmpty)
               const SliverFillRemaining(
                 child: EmptyState(
                   message: 'Ainda não há podcasts disponíveis.',
@@ -163,18 +118,15 @@ class _PodcastScreenState extends State<PodcastScreen> {
               )
             else
               SliverPadding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: PodcastLayout.pagePadding,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate((context, index) {
-                    final item = _podcastsFiltrados[index];
+                    final item = _podcasts[index];
                     return Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: PodcastLayout.cardSpacing,
-                      ),
-                      child: _PodcastCard(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: AppContentCard(
                         content: item,
+                        variant: ContentCardVariant.media,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -186,132 +138,11 @@ class _PodcastScreenState extends State<PodcastScreen> {
                         ),
                       ),
                     );
-                  }, childCount: _podcastsFiltrados.length),
+                  }, childCount: _podcasts.length),
                 ),
               ),
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class PodcastLayout {
-  static const double pagePadding = 16;
-  static const double cardRadius = 12;
-  static const double cardHeight = 220;
-  static const double cardSpacing = 16;
-}
-
-class _PodcastCard extends StatelessWidget {
-  final Content content;
-  final VoidCallback onTap;
-
-  const _PodcastCard({required this.content, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(PodcastLayout.cardRadius),
-        onTap: onTap,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(PodcastLayout.cardRadius),
-          child: SizedBox(
-            height: PodcastLayout.cardHeight,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                AppNetworkImage(
-                  url: content.displayImage,
-                  fit: BoxFit.cover,
-                  fallbackIcon: Icons.podcasts_rounded,
-                ),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: .65),
-                      ],
-                      stops: const [0.45, 1],
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 16,
-                  right: 70,
-                  bottom: 16,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        content.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              content.author?.name ?? 'Podcast EH',
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          const Icon(
-                            Icons.access_time_rounded,
-                            size: 14,
-                            color: Colors.white70,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            readTime(content.content ?? content.summary),
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  right: 16,
-                  bottom: 16,
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: .95),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.play_arrow_rounded,
-                      color: AppColors.primary,
-                      size: 24,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );

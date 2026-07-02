@@ -5,10 +5,12 @@ import '../core/exceptions/app_exceptions.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/api_state_widgets.dart';
 import '../models/content.dart';
-import '../service/perfil_service.dart';
+import '../services/perfil_service.dart';
 import '../services/content_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_bar_principal.dart';
+import '../widgets/content_card.dart';
+import '../widgets/filter_chip_bar.dart';
 import 'conteudo_screen.dart';
 import 'login_screen.dart';
 import 'podcast_selecionado_screen.dart';
@@ -38,11 +40,7 @@ class _FavoritosScreenState extends State<FavoritosScreen> {
   Future<void> _load() async {
     final perfil = context.read<PerfilService>();
     if (!perfil.isAuthenticated) {
-      setState(() {
-        _isLoading = false;
-        _error = null;
-        _itens = [];
-      });
+      _redirectToLogin();
       return;
     }
 
@@ -70,7 +68,7 @@ class _FavoritosScreenState extends State<FavoritosScreen> {
       if (!mounted) return;
       setState(() => _itens.removeWhere((saved) => saved.id == item.id));
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Conteudo removido dos favoritos.')),
+        const SnackBar(content: Text('Conteúdo removido dos favoritos.')),
       );
     } on AppException catch (e) {
       if (mounted) _showError(e.message);
@@ -83,6 +81,17 @@ class _FavoritosScreenState extends State<FavoritosScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: AppColors.primary),
     );
+  }
+
+  void _redirectToLogin() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    });
   }
 
   List<SavedContent> get _filtrados {
@@ -115,6 +124,15 @@ class _FavoritosScreenState extends State<FavoritosScreen> {
   @override
   Widget build(BuildContext context) {
     final isAuthenticated = context.watch<PerfilService>().isAuthenticated;
+    if (!isAuthenticated) {
+      _redirectToLogin();
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -129,6 +147,7 @@ class _FavoritosScreenState extends State<FavoritosScreen> {
         color: AppColors.primary,
         onRefresh: _load,
         child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
             const Text(
@@ -141,59 +160,24 @@ class _FavoritosScreenState extends State<FavoritosScreen> {
             ),
             const SizedBox(height: 4),
             const Text(
-              'Conteudos guardados na tua conta.',
+              'Conteúdos guardados na tua conta.',
               style: TextStyle(fontSize: 13, color: AppColors.textMedium),
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              height: 40,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _filtros.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (_, i) {
-                  final ativo = i == _filtroSelecionado;
-                  return GestureDetector(
-                    onTap: () => setState(() => _filtroSelecionado = i),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: ativo ? AppColors.primary : Colors.transparent,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: ativo
-                              ? AppColors.primary
-                              : const Color(0xFFD8C1C4),
-                        ),
-                      ),
-                      child: Text(
-                        _filtros[i],
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: ativo ? Colors.white : AppColors.textMedium,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
+            AppFilterChipBar(
+              options: _filtros
+                  .map((filtro) => FilterChipOption(id: filtro, label: filtro))
+                  .toList(),
+              selectedId: _filtros[_filtroSelecionado],
+              onSelected: (id) {
+                final index = _filtros.indexOf(id);
+                if (index == -1) return;
+                setState(() => _filtroSelecionado = index);
+              },
+              padding: EdgeInsets.zero,
             ),
             const SizedBox(height: 18),
-            if (!isAuthenticated)
-              _LoginPrompt(
-                onLogin: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  );
-                },
-              )
-            else if (_isLoading)
+            if (_isLoading)
               const SizedBox(
                 height: 340,
                 child: LoadingState(message: 'A carregar favoritos...'),
@@ -215,189 +199,20 @@ class _FavoritosScreenState extends State<FavoritosScreen> {
               ..._filtrados.map(
                 (item) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: _FavoritoCard(
-                    item: item,
-                    onTap: item.content == null
-                        ? null
-                        : () => _abrirConteudo(item.content!),
-                    onRemove: () => _remover(item),
-                  ),
+                  child: item.content == null
+                      ? const SizedBox.shrink()
+                      : AppContentCard(
+                          content: item.content!,
+                          variant: ContentCardVariant.horizontal,
+                          footerLabel: timeAgo(item.createdAt).isEmpty
+                              ? 'guardado'
+                              : timeAgo(item.createdAt),
+                          onTap: () => _abrirConteudo(item.content!),
+                          onRemove: () => _remover(item),
+                        ),
                 ),
               ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LoginPrompt extends StatelessWidget {
-  final VoidCallback onLogin;
-
-  const _LoginPrompt({required this.onLogin});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEEE8E9)),
-      ),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.lock_outline_rounded,
-            color: AppColors.primary,
-            size: 38,
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Inicia sessao para ver os teus favoritos.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textMedium, height: 1.4),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: onLogin,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Iniciar sessao'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FavoritoCard extends StatelessWidget {
-  final SavedContent item;
-  final VoidCallback? onTap;
-  final VoidCallback onRemove;
-
-  const _FavoritoCard({
-    required this.item,
-    required this.onTap,
-    required this.onRemove,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final content = item.content;
-    final isPremium = content?.isJindungo ?? false;
-    final isPodcast = content?.isPodcast ?? false;
-    final type =
-        content?.contentType?.name ?? (isPodcast ? 'Podcast' : 'Conteudo');
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isPremium
-                  ? AppColors.primary.withValues(alpha: 0.4)
-                  : const Color(0xFFEEE8E9),
-              width: isPremium ? 1.5 : 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: isPremium
-                      ? AppColors.primary.withValues(alpha: 0.1)
-                      : const Color(0xFFF0EAEA),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  isPodcast
-                      ? Icons.podcasts_rounded
-                      : isPremium
-                      ? Icons.workspace_premium_outlined
-                      : Icons.article_outlined,
-                  color: isPremium ? AppColors.primary : AppColors.textLight,
-                  size: 21,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      type.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: isPremium
-                            ? AppColors.primary
-                            : AppColors.textLight,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      content?.title ?? 'Conteudo #${item.contentId}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
-                        height: 1.3,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.bookmark_rounded,
-                          size: 13,
-                          color: AppColors.textLight,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          timeAgo(item.createdAt).isEmpty
-                              ? 'guardado'
-                              : timeAgo(item.createdAt),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textLight,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                tooltip: 'Remover',
-                onPressed: onRemove,
-                icon: const Icon(
-                  Icons.bookmark_remove_rounded,
-                  color: AppColors.primary,
-                  size: 22,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

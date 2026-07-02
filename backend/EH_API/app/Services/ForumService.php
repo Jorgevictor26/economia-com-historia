@@ -25,7 +25,7 @@ class ForumService
             'visibility' => $dto->visibility,
             'content_permission' => $dto->contentPermission,
             'allow_attachments' => $dto->allowAttachments,
-            'status' => 'pending',
+            'status' => 'approved',
         ], $dto->contentIds);
     }
 

@@ -31,7 +31,35 @@ class PerfilService extends ChangeNotifier {
   String get email => _usuario?.email ?? '';
   String get bio => _usuario?.bio ?? '';
   String get role => _usuario?.primaryRole ?? 'guest';
-  bool get canCreateContent => _usuario?.canCreateContent ?? false;
+
+  Future<bool> restoreSession() async {
+    _setLoading(true);
+    try {
+      final token = await _storage.getToken();
+      if (token == null || token.isEmpty) {
+        await _storage.clearAuth();
+        clearLocalSession();
+        return false;
+      }
+
+      await carregarPerfil();
+      if (_usuario?.isSuspended ?? false) {
+        await logout();
+        throw const ForbiddenException(
+          'A sua conta está suspensa. Contacte o suporte.',
+        );
+      }
+
+      _initialized = true;
+      return _usuario != null;
+    } on UnauthorizedException {
+      await _storage.clearAuth();
+      clearLocalSession();
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -57,7 +85,7 @@ class PerfilService extends ChangeNotifier {
       await _storage.clearAuth();
       _usuario = null;
     } catch (_) {
-      // Conteudo publico continua disponivel se o refresh do perfil falhar.
+      _usuario = null;
     } finally {
       _initialized = true;
       _setLoading(false);
@@ -75,7 +103,7 @@ class PerfilService extends ChangeNotifier {
       if (_usuario?.isSuspended ?? false) {
         await logout();
         throw const ForbiddenException(
-          'A sua conta esta suspensa. Contacte o suporte.',
+          'A sua conta está suspensa. Contacte o suporte.',
         );
       }
       notifyListeners();
@@ -110,10 +138,32 @@ class PerfilService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> atualizarPerfil(String nome, String bio) async {
+  Future<void> atualizarPerfil(String nome, String bio, {String? photo}) async {
     _setLoading(true);
     try {
-      final user = await _userService.updateProfile(name: nome, bio: bio);
+      final user = await _userService.updateProfile(
+        name: nome,
+        bio: bio,
+        photo: photo,
+      );
+      _usuario = user;
+      await _storage.saveUser(user);
+      notifyListeners();
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> atualizarPalavraPasse(
+    String password,
+    String passwordConfirmation,
+  ) async {
+    _setLoading(true);
+    try {
+      final user = await _userService.updatePassword(
+        password: password,
+        passwordConfirmation: passwordConfirmation,
+      );
       _usuario = user;
       await _storage.saveUser(user);
       notifyListeners();
@@ -124,7 +174,12 @@ class PerfilService extends ChangeNotifier {
 
   Future<void> logout() async {
     await _authService.logout();
+    clearLocalSession();
+  }
+
+  void clearLocalSession() {
     _usuario = null;
+    _initialized = true;
     notifyListeners();
   }
 

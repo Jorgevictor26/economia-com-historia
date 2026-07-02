@@ -1,14 +1,12 @@
-// Tela de splash — exibida enquanto o app inicializa (2s)
-// Verifica SharedPreferences para decidir o próximo destino
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
-import 'package:economica_com_historia/screens/onboarding_screen.dart';
+import 'package:economica_com_historia/Screens/onboarding_screen.dart';
 import 'package:economica_com_historia/shared/main_navigation_screen.dart';
-import 'package:economica_com_historia/service/perfil_service.dart';
+import 'package:economica_com_historia/services/perfil_service.dart';
 import '../theme/app_colors.dart';
+import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -27,7 +25,6 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Configurar barra de status transparente
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -35,7 +32,6 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
-    // Animação de entrada do logo
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -53,7 +49,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Aguarda 2s e navega para a tela correta
     _navigateAfterDelay();
   }
 
@@ -67,18 +62,28 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
 
-    await context.read<PerfilService>().initialize();
+    var isAuthenticated = false;
+    try {
+      isAuthenticated = await context.read<PerfilService>().restoreSession();
+    } catch (_) {
+      if (mounted) context.read<PerfilService>().clearLocalSession();
+    }
 
     if (!mounted) return;
 
-    if (onboardingConcluido) {
+    if (isAuthenticated) {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
         (route) => false,
       );
+    } else if (onboardingConcluido) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
     } else {
-      // Primeira vez ou após registo — mostra o onboarding
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const OnboardingScreen()),

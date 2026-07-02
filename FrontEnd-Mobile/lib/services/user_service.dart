@@ -19,10 +19,20 @@ class UserService {
   }) async {
     final response = await _api.put(
       '/profile',
+      body: {'name': name, 'bio': ?bio, 'photo': ?photo},
+    );
+    return User.fromJson(jsonMap(ApiClient.unwrapData(response)));
+  }
+
+  Future<User> updatePassword({
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    final response = await _api.put(
+      '/profile',
       body: {
-        'name': name,
-        'bio': ?bio,
-        'photo': ?photo,
+        'password': password,
+        'password_confirmation': passwordConfirmation,
       },
     );
     return User.fromJson(jsonMap(ApiClient.unwrapData(response)));

@@ -46,7 +46,7 @@ class ForumController extends Controller
         ));
 
         return response()->json([
-            'message' => 'Forum created successfully and is pending approval',
+            'message' => 'Forum created successfully',
             'data' => $forum,
         ], 201);
     }

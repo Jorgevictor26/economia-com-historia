@@ -7,10 +7,10 @@ import '../core/utils/formatters.dart';
 import '../models/content.dart';
 import '../models/forum.dart';
 import '../models/quiz.dart';
-import '../screens/conteudo_screen.dart';
-import '../screens/podcast_selecionado_screen.dart';
-import '../screens/praticar_quiz_screen.dart';
-import '../screens/sala_de_debate_screen.dart';
+import '../Screens/conteudo_screen.dart';
+import '../Screens/podcast_selecionado_screen.dart';
+import '../Screens/praticar_quiz_screen.dart';
+import '../Screens/sala_de_debate_screen.dart';
 import '../services/content_service.dart';
 import '../services/forum_service.dart';
 import '../services/quiz_service.dart';
@@ -118,7 +118,7 @@ class _SearchModalContentState extends State<_SearchModalContent> {
   }
 
   _ResultadoItem _contentResult(Content content) {
-    final type = content.contentType?.name ?? 'Conteudo';
+    final type = content.contentType?.name ?? 'Conteúdo';
     final subtitleParts = [
       if (content.category?.name != null) content.category!.name,
       readTime(content.content ?? content.summary),
@@ -143,10 +143,10 @@ class _SearchModalContentState extends State<_SearchModalContent> {
 
   _ResultadoItem _forumResult(Forum forum) {
     return _ResultadoItem(
-      tipo: 'Forum',
+      tipo: 'Fórum',
       titulo: forum.name,
       subtitulo:
-          '${forum.topicsCount} topico${forum.topicsCount == 1 ? '' : 's'}',
+          '${forum.topicsCount} tópico${forum.topicsCount == 1 ? '' : 's'}',
       icone: Icons.forum_outlined,
       onTap: () => _open(SalaDeDebateScreen(forum: forum)),
     );
@@ -229,7 +229,7 @@ class _SearchModalContentState extends State<_SearchModalContent> {
                             ),
                             decoration: const InputDecoration(
                               hintText:
-                                  'Pesquisar conteudos, forums, quizzes...',
+                                  'Pesquisar conteúdos, fóruns, quizzes...',
                               hintStyle: TextStyle(
                                 fontSize: 14,
                                 color: AppColors.textLight,

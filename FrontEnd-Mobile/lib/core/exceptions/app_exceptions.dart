@@ -11,12 +11,12 @@ class AppException implements Exception {
 
 class NetworkException extends AppException {
   const NetworkException()
-    : super('Sem conexao a internet. Verifique a rede e tente novamente.');
+    : super('Sem conexão à internet. Verifique a rede e tente novamente.');
 }
 
 class TimeoutAppException extends AppException {
   const TimeoutAppException()
-    : super('A operacao demorou muito tempo. Tente novamente.');
+    : super('A operação demorou muito tempo. Tente novamente.');
 }
 
 class BadResponseException extends AppException {
@@ -24,8 +24,10 @@ class BadResponseException extends AppException {
 }
 
 class UnauthorizedException extends AppException {
-  const UnauthorizedException([super.message = 'Sessao expirada.'])
-    : super(statusCode: 401);
+  const UnauthorizedException([
+    super.message = 'Sessão expirada.',
+    int statusCode = 401,
+  ]) : super(statusCode: statusCode);
 }
 
 class ForbiddenException extends AppException {
@@ -34,7 +36,7 @@ class ForbiddenException extends AppException {
 }
 
 class NotFoundException extends AppException {
-  const NotFoundException([super.message = 'Recurso nao encontrado.'])
+  const NotFoundException([super.message = 'Recurso não encontrado.'])
     : super(statusCode: 404);
 }
 

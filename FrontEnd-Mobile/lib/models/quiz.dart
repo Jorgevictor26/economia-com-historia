@@ -169,3 +169,44 @@ class UserQuizResult {
     );
   }
 }
+
+class QuizProgress {
+  final int id;
+  final int userId;
+  final int quizId;
+  final int progressPercent;
+  final int? currentQuestionIndex;
+  final Map<String, dynamic> answeredQuestions;
+  final DateTime? completedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final Quiz? quiz;
+
+  const QuizProgress({
+    required this.id,
+    required this.userId,
+    required this.quizId,
+    required this.progressPercent,
+    this.currentQuestionIndex,
+    this.answeredQuestions = const {},
+    this.completedAt,
+    this.createdAt,
+    this.updatedAt,
+    this.quiz,
+  });
+
+  factory QuizProgress.fromJson(Map<String, dynamic> json) {
+    return QuizProgress(
+      id: jsonInt(json['id']) ?? 0,
+      userId: jsonInt(json['user_id']) ?? 0,
+      quizId: jsonInt(json['quiz_id']) ?? 0,
+      progressPercent: jsonInt(json['progress_percent']) ?? 0,
+      currentQuestionIndex: jsonInt(json['current_question_index']),
+      answeredQuestions: jsonMap(json['answered_questions']),
+      completedAt: jsonDate(json['completed_at']),
+      createdAt: jsonDate(json['created_at']),
+      updatedAt: jsonDate(json['updated_at']),
+      quiz: json['quiz'] != null ? Quiz.fromJson(jsonMap(json['quiz'])) : null,
+    );
+  }
+}

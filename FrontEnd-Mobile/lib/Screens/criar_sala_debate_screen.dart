@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/exceptions/app_exceptions.dart';
 import '../services/forum_service.dart';
+import '../services/taxonomy_service.dart';
 import '../theme/app_colors.dart';
 
 class CriarSalaDebateScreen extends StatefulWidget {
@@ -15,25 +16,45 @@ class _CriarSalaDebateScreenState extends State<CriarSalaDebateScreen> {
   final _nomeController = TextEditingController();
   final _descricaoController = TextEditingController();
   final _service = ForumService();
+  final _taxonomyService = TaxonomyService();
   String? _categoriaSelecionada;
   bool _isPublico = true;
   bool _aceitouDiretrizes = false;
   bool _isLoading = false;
+  bool _isLoadingCategorias = true;
+  List<String> _categorias = [];
 
-  static const _categorias = [
-    'Economia Angolana',
-    'História Colonial',
-    'Mercados Emergentes',
-    'Política Monetária',
-    'Comércio Internacional',
-    'História Geral de Angola',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadCategorias();
+  }
 
   @override
   void dispose() {
     _nomeController.dispose();
     _descricaoController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadCategorias() async {
+    try {
+      final categorias = await _taxonomyService.getCategories();
+      if (!mounted) return;
+      setState(() {
+        _categorias = categorias
+            .map((categoria) => categoria.name)
+            .where((name) => name.trim().isNotEmpty)
+            .toList();
+        _isLoadingCategorias = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _categorias = [];
+        _isLoadingCategorias = false;
+      });
+    }
   }
 
   Future<void> _criar() async {
@@ -48,11 +69,18 @@ class _CriarSalaDebateScreenState extends State<CriarSalaDebateScreen> {
       await _service.createForum(
         name: nome,
         description: descricao.isEmpty ? null : descricao,
+        category: _categoriaSelecionada,
+        visibility: _isPublico ? 'public' : 'private',
+        rules: _aceitouDiretrizes
+            ? 'Concordo com as diretrizes académicas da comunidade.'
+            : null,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Fórum criado e pendente de aprovação.'),
+          content: Text(
+            'Fórum enviado com sucesso. Avisaremos quando estiver disponível.',
+          ),
           backgroundColor: AppColors.primary,
         ),
       );
@@ -124,6 +152,7 @@ class _CriarSalaDebateScreenState extends State<CriarSalaDebateScreen> {
                     _DropdownCategoria(
                       valor: _categoriaSelecionada,
                       opcoes: _categorias,
+                      isLoading: _isLoadingCategorias,
                       onChanged: (value) =>
                           setState(() => _categoriaSelecionada = value),
                     ),
@@ -175,7 +204,7 @@ class _CriarSalaDebateScreenState extends State<CriarSalaDebateScreen> {
                       icon: Icon(
                         _isLoading
                             ? Icons.hourglass_empty_rounded
-                            : Icons.forum_outlined,
+                            : Icons.add_comment_outlined,
                         size: 18,
                       ),
                       label: Text(_isLoading ? 'A criar...' : 'Criar Sala'),
@@ -239,7 +268,7 @@ class _AppBar extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           const Text(
-          'Fórum',
+            'Fórum',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -336,11 +365,13 @@ class _CampoTexto extends StatelessWidget {
 class _DropdownCategoria extends StatelessWidget {
   final String? valor;
   final List<String> opcoes;
+  final bool isLoading;
   final ValueChanged<String?> onChanged;
 
   const _DropdownCategoria({
     required this.valor,
     required this.opcoes,
+    required this.isLoading,
     required this.onChanged,
   });
 
@@ -353,9 +384,13 @@ class _DropdownCategoria extends StatelessWidget {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: valor,
-          hint: const Text(
-            'Selecione uma categoria',
-            style: TextStyle(fontSize: 14, color: AppColors.textLight),
+          hint: Text(
+            isLoading
+                ? 'A carregar categorias...'
+                : opcoes.isEmpty
+                ? 'Ainda não há categorias disponíveis'
+                : 'Selecione uma categoria',
+            style: const TextStyle(fontSize: 14, color: AppColors.textLight),
           ),
           isExpanded: true,
           icon: const Icon(
@@ -376,7 +411,7 @@ class _DropdownCategoria extends StatelessWidget {
                 ),
               )
               .toList(),
-          onChanged: onChanged,
+          onChanged: isLoading || opcoes.isEmpty ? null : onChanged,
         ),
       ),
     );
@@ -387,10 +422,7 @@ class _SeletorPrivacidade extends StatelessWidget {
   final bool isPublico;
   final ValueChanged<bool> onChanged;
 
-  const _SeletorPrivacidade({
-    required this.isPublico,
-    required this.onChanged,
-  });
+  const _SeletorPrivacidade({required this.isPublico, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -513,7 +545,7 @@ class _CheckDiretrizes extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Concordo com as diretrizes academicas da comunidade.',
+              'Concordo com as diretrizes académicas da comunidade.',
               style: TextStyle(
                 fontSize: 13,
                 color: valor ? AppColors.primary : AppColors.textMedium,

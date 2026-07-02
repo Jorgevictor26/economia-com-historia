@@ -1,12 +1,15 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'dart:convert';
 import 'dart:io';
+
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+
 import '../core/exceptions/app_exceptions.dart';
-import '../screens/repor_palavra_passe.dart';
-import '../service/perfil_service.dart';
+import '../services/perfil_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_bar_principal.dart';
+import '../widgets/profile_photo_image.dart';
 
 class EditarPerfilScreen extends StatefulWidget {
   final String? nomeInicial;
@@ -22,6 +25,8 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _bioController = TextEditingController();
+  File? _fotoSelecionada;
+  String? _fotoPayload;
   bool _hydrated = false;
   bool _isSaving = false;
 
@@ -49,6 +54,7 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
       await context.read<PerfilService>().atualizarPerfil(
         _nomeController.text.trim(),
         _bioController.text.trim(),
+        photo: _fotoPayload,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -70,8 +76,158 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
     );
   }
 
+  Future<void> _abrirAlterarPalavraPasse() async {
+    final perfil = context.read<PerfilService>();
+    final formKey = GlobalKey<FormState>();
+    final passwordController = TextEditingController();
+    final confirmationController = TextEditingController();
+    var isSavingPassword = false;
+    var obscurePassword = true;
+    var obscureConfirmation = true;
+
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return StatefulBuilder(
+            builder: (context, setDialogState) {
+              Future<void> submit() async {
+                if (!formKey.currentState!.validate() || isSavingPassword) {
+                  return;
+                }
+
+                setDialogState(() => isSavingPassword = true);
+                try {
+                  await perfil.atualizarPalavraPasse(
+                    passwordController.text.trim(),
+                    confirmationController.text.trim(),
+                  );
+                  if (!dialogContext.mounted) return;
+                  Navigator.pop(dialogContext);
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Palavra-passe atualizada com sucesso.'),
+                    ),
+                  );
+                } on AppException catch (e) {
+                  if (dialogContext.mounted) {
+                    setDialogState(() => isSavingPassword = false);
+                  }
+                  if (mounted) _showError(e.message);
+                } catch (_) {
+                  if (dialogContext.mounted) {
+                    setDialogState(() => isSavingPassword = false);
+                  }
+                  if (mounted) _showError('Erro ao atualizar palavra-passe.');
+                }
+              }
+
+              return AlertDialog(
+                title: const Text('Alterar Palavra-passe'),
+                content: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: passwordController,
+                        obscureText: obscurePassword,
+                        decoration: InputDecoration(
+                          labelText: 'Nova palavra-passe',
+                          suffixIcon: IconButton(
+                            onPressed: () => setDialogState(
+                              () => obscurePassword = !obscurePassword,
+                            ),
+                            icon: Icon(
+                              obscurePassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                            ),
+                          ),
+                        ),
+                        validator: (value) {
+                          final password = value?.trim() ?? '';
+                          if (password.isEmpty) {
+                            return 'Informe a nova palavra-passe.';
+                          }
+                          if (password.length < 8) {
+                            return 'Use pelo menos 8 caracteres.';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: confirmationController,
+                        obscureText: obscureConfirmation,
+                        decoration: InputDecoration(
+                          labelText: 'Confirmar palavra-passe',
+                          suffixIcon: IconButton(
+                            onPressed: () => setDialogState(
+                              () => obscureConfirmation = !obscureConfirmation,
+                            ),
+                            icon: Icon(
+                              obscureConfirmation
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                            ),
+                          ),
+                        ),
+                        validator: (value) {
+                          final confirmation = value?.trim() ?? '';
+                          if (confirmation.isEmpty) {
+                            return 'Confirme a palavra-passe.';
+                          }
+                          if (confirmation != passwordController.text.trim()) {
+                            return 'As palavras-passe não coincidem.';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: isSavingPassword
+                        ? null
+                        : () => Navigator.pop(dialogContext),
+                    child: const Text('Cancelar'),
+                  ),
+                  ElevatedButton(
+                    onPressed: isSavingPassword ? null : submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: isSavingPassword
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text('Guardar'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      passwordController.dispose();
+      confirmationController.dispose();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final usuario = context.watch<PerfilService>().usuario;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppBarPrincipal(
@@ -85,7 +241,21 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
           children: [
-            const Center(child: _FotoPerfil()),
+            Center(
+              child: _FotoPerfil(
+                fotoAtual: usuario?.photo,
+                nome: _nomeController.text.trim().isEmpty
+                    ? usuario?.name
+                    : _nomeController.text.trim(),
+                fotoSelecionada: _fotoSelecionada,
+                onFotoSelecionada: (file, payload) {
+                  setState(() {
+                    _fotoSelecionada = file;
+                    _fotoPayload = payload;
+                  });
+                },
+              ),
+            ),
             const SizedBox(height: 24),
             const Text(
               'Nome Completo',
@@ -122,41 +292,11 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
               maxLines: 4,
               maxCaracteres: 150,
             ),
-            const SizedBox(height: 28),
-            const Row(
-              children: [
-                Icon(Icons.shield_outlined, color: AppColors.primary, size: 20),
-                SizedBox(width: 8),
-                Text(
-                  'Privacidade',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const _PrivacidadeCard(),
             const SizedBox(height: 16),
             _ItemAcao(
               icone: Icons.more_horiz_rounded,
               label: 'Alterar Palavra-passe',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ReporPalavraPasseScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-            _ItemAcao(
-              icone: Icons.notifications_none_rounded,
-              label: 'Preferências de Notificação',
-              onTap: () {},
+              onTap: _abrirAlterarPalavraPasse,
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -195,16 +335,20 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
   }
 }
 
-class _FotoPerfil extends StatefulWidget {
-  const _FotoPerfil();
+class _FotoPerfil extends StatelessWidget {
+  final String? fotoAtual;
+  final String? nome;
+  final File? fotoSelecionada;
+  final void Function(File file, String payload) onFotoSelecionada;
 
-  @override
-  State<_FotoPerfil> createState() => _FotoPerfilState();
-}
+  const _FotoPerfil({
+    required this.fotoAtual,
+    required this.nome,
+    required this.fotoSelecionada,
+    required this.onFotoSelecionada,
+  });
 
-class _FotoPerfilState extends State<_FotoPerfil> {
-  File? _imagemSelecionada;
-  Future<void> _selecionarImagem() async {
+  Future<void> _selecionarImagem(BuildContext context) async {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -230,16 +374,7 @@ class _FotoPerfilState extends State<_FotoPerfil> {
                 color: AppColors.primary,
               ),
               title: const Text('Tirar Foto'),
-              onTap: () async {
-                Navigator.pop(context);
-                final picked = await ImagePicker().pickImage(
-                  source: ImageSource.camera,
-                  imageQuality: 80,
-                );
-                if (picked != null && mounted) {
-                  setState(() => _imagemSelecionada = File(picked.path));
-                }
-              },
+              onTap: () => _pickImage(context, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(
@@ -247,16 +382,7 @@ class _FotoPerfilState extends State<_FotoPerfil> {
                 color: AppColors.primary,
               ),
               title: const Text('Escolher da Galeria'),
-              onTap: () async {
-                Navigator.pop(context);
-                final picked = await ImagePicker().pickImage(
-                  source: ImageSource.gallery,
-                  imageQuality: 80,
-                );
-                if (picked != null && mounted) {
-                  setState(() => _imagemSelecionada = File(picked.path));
-                }
-              },
+              onTap: () => _pickImage(context, ImageSource.gallery),
             ),
             const SizedBox(height: 8),
           ],
@@ -265,12 +391,35 @@ class _FotoPerfilState extends State<_FotoPerfil> {
     );
   }
 
+  Future<void> _pickImage(BuildContext context, ImageSource source) async {
+    Navigator.pop(context);
+    final picked = await ImagePicker().pickImage(
+      source: source,
+      imageQuality: 80,
+    );
+    if (picked == null || !context.mounted) return;
+
+    final file = File(picked.path);
+    final bytes = await file.readAsBytes();
+    if (!context.mounted) return;
+    final payload =
+        'data:${_mimeType(picked.path)};base64,${base64Encode(bytes)}';
+    onFotoSelecionada(file, payload);
+  }
+
+  String _mimeType(String path) {
+    final lower = path.toLowerCase();
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    return 'image/jpeg';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         GestureDetector(
-          onTap: _selecionarImagem,
+          onTap: () => _selecionarImagem(context),
           child: Stack(
             children: [
               Container(
@@ -282,19 +431,13 @@ class _FotoPerfilState extends State<_FotoPerfil> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: _imagemSelecionada != null
-                      ? Image.file(_imagemSelecionada!, fit: BoxFit.cover)
-                      : Image.asset(
-                          'assets/images/Imagem_perfil.png',
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: const Color(0xFFEEE8E9),
-                            child: const Icon(
-                              Icons.person_rounded,
-                              size: 40,
-                              color: AppColors.textLight,
-                            ),
-                          ),
+                  child: fotoSelecionada != null
+                      ? Image.file(fotoSelecionada!, fit: BoxFit.cover)
+                      : ProfilePhotoImage(
+                          photo: fotoAtual,
+                          name: nome,
+                          initialsFontSize: 24,
+                          iconSize: 40,
                         ),
                 ),
               ),
@@ -328,124 +471,6 @@ class _FotoPerfilState extends State<_FotoPerfil> {
             letterSpacing: 0.8,
           ),
         ),
-      ],
-    );
-  }
-}
-
-class _PrivacidadeCard extends StatefulWidget {
-  const _PrivacidadeCard();
-
-  @override
-  State<_PrivacidadeCard> createState() => _PrivacidadeCardState();
-}
-
-class _PrivacidadeCardState extends State<_PrivacidadeCard> {
-  bool _perfilPublico = true;
-  bool _mostrarLocalizacao = false;
-  bool _mensagensDiretas = true;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFEEE8E9)),
-      ),
-      child: Column(
-        children: [
-          _ToggleItem(
-            titulo: 'Perfil Público',
-            descricao: 'Permitir que outros estudantes vejam o seu progresso.',
-            valor: _perfilPublico,
-            onChanged: (v) => setState(() => _perfilPublico = v),
-            mostrarDivisor: true,
-          ),
-          _ToggleItem(
-            titulo: 'Mostrar Localização',
-            descricao: 'Exibir Luanda, Angola no seu cartão de perfil.',
-            valor: _mostrarLocalizacao,
-            onChanged: (v) => setState(() => _mostrarLocalizacao = v),
-            mostrarDivisor: true,
-          ),
-          _ToggleItem(
-            titulo: 'Mensagens Diretas',
-            descricao:
-                'Apenas utilizadores de Nível 4 ou superior podem contactar.',
-            valor: _mensagensDiretas,
-            onChanged: (v) => setState(() => _mensagensDiretas = v),
-            mostrarDivisor: false,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ToggleItem extends StatelessWidget {
-  final String titulo;
-  final String descricao;
-  final bool valor;
-  final ValueChanged<bool> onChanged;
-  final bool mostrarDivisor;
-
-  const _ToggleItem({
-    required this.titulo,
-    required this.descricao,
-    required this.valor,
-    required this.onChanged,
-    required this.mostrarDivisor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      titulo,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      descricao,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textMedium,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Switch(
-                value: valor,
-                onChanged: onChanged,
-                activeColor: AppColors.primary,
-                activeTrackColor: AppColors.primary.withValues(alpha: 0.3),
-              ),
-            ],
-          ),
-        ),
-        if (mostrarDivisor)
-          const Divider(
-            color: Color(0xFFEEE8E9),
-            height: 1,
-            indent: 16,
-            endIndent: 16,
-          ),
       ],
     );
   }

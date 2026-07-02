@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../core/exceptions/app_exceptions.dart';
@@ -23,13 +25,24 @@ class _ConteudoScreenState extends State<ConteudoScreen> {
   Content? _content;
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isUpdatingProgress = false;
   String? _error;
+  int _lastProgressSent = 0;
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _content = widget.initialContent;
+    _scrollController.addListener(_handleScrollProgress);
     _load();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_handleScrollProgress);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -37,7 +50,7 @@ class _ConteudoScreenState extends State<ConteudoScreen> {
     if (id == null || id == 0) {
       setState(() {
         _isLoading = false;
-        _error = 'Conteúdo invalido.';
+        _error = 'Conteúdo inválido.';
       });
       return;
     }
@@ -49,7 +62,11 @@ class _ConteudoScreenState extends State<ConteudoScreen> {
     try {
       final content = await _service.getContent(id);
       if (!mounted) return;
-      setState(() => _content = content);
+      setState(() {
+        _content = content;
+        _lastProgressSent = 0;
+      });
+      if (!content.isLocked) _sendProgress(10);
     } on AppException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
@@ -65,7 +82,7 @@ class _ConteudoScreenState extends State<ConteudoScreen> {
     try {
       final result = await _service.toggleReaction(contentId: content.id);
       if (!mounted) return;
-      _showSnackBar(result.reacted ? 'Reacao adicionada.' : 'Reacao removida.');
+      _showSnackBar(result.reacted ? 'Reação adicionada.' : 'Reação removida.');
       await _load();
     } on AppException catch (e) {
       if (mounted) _showSnackBar(e.message);
@@ -83,6 +100,54 @@ class _ConteudoScreenState extends State<ConteudoScreen> {
       if (mounted) _showSnackBar(e.message);
     } finally {
       if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  void _handleScrollProgress() {
+    final content = _content;
+    if (content == null || content.isLocked || !_scrollController.hasClients) {
+      return;
+    }
+    final position = _scrollController.position;
+    if (position.maxScrollExtent <= 0) return;
+
+    final progress = ((position.pixels / position.maxScrollExtent) * 100)
+        .round()
+        .clamp(0, 100)
+        .toInt();
+    if (progress >= 100 || progress >= _lastProgressSent + 15) {
+      _sendProgress(progress);
+    }
+  }
+
+  void _sendProgress(int progressPercent) {
+    final content = _content;
+    if (content == null ||
+        _isUpdatingProgress ||
+        progressPercent <= _lastProgressSent) {
+      return;
+    }
+
+    final previousProgress = _lastProgressSent;
+    _lastProgressSent = progressPercent;
+    _isUpdatingProgress = true;
+    unawaited(_persistProgress(content.id, progressPercent, previousProgress));
+  }
+
+  Future<void> _persistProgress(
+    int contentId,
+    int progressPercent,
+    int previousProgress,
+  ) async {
+    try {
+      await _service.updateProgress(
+        contentId: contentId,
+        progressPercent: progressPercent,
+      );
+    } catch (_) {
+      _lastProgressSent = previousProgress;
+    } finally {
+      _isUpdatingProgress = false;
     }
   }
 
@@ -110,17 +175,34 @@ class _ConteudoScreenState extends State<ConteudoScreen> {
                 color: AppColors.primary,
                 onRefresh: _load,
                 child: _isLoading
-                    ? const LoadingState(message: 'A carregar conteúdo...')
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(
+                            height: 480,
+                            child: LoadingState(
+                              message: 'A carregar conteúdo...',
+                            ),
+                          ),
+                        ],
+                      )
                     : _error != null
                     ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         children: [
                           ErrorState(message: _error!, onRetry: _load),
                         ],
                       )
                     : content == null
-                    ? const EmptyState(message: 'Conteúdo nao encontrado.')
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          EmptyState(message: 'Conteúdo não encontrado.'),
+                        ],
+                      )
                     : _ContentBody(
                         content: content,
+                        scrollController: _scrollController,
                         onLike: _toggleLike,
                         onSave: _saveContent,
                         isSaving: _isSaving,
@@ -168,12 +250,14 @@ class _AppBar extends StatelessWidget {
 
 class _ContentBody extends StatelessWidget {
   final Content content;
+  final ScrollController scrollController;
   final VoidCallback onLike;
   final VoidCallback onSave;
   final bool isSaving;
 
   const _ContentBody({
     required this.content,
+    required this.scrollController,
     required this.onLike,
     required this.onSave,
     required this.isSaving,
@@ -182,6 +266,7 @@ class _ContentBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      controller: scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,7 +348,7 @@ class _ContentBody extends StatelessWidget {
                       ),
                     ),
                     icon: const Icon(Icons.chat_bubble_outline_rounded),
-                    label: Text('Ver comentarios (${content.commentsCount})'),
+                    label: Text('Ver comentários (${content.commentsCount})'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       side: const BorderSide(color: AppColors.primary),
@@ -442,7 +527,7 @@ class _AcoesArtigo extends StatelessWidget {
           child: Icon(
             isSaving
                 ? Icons.hourglass_empty_rounded
-                : Icons.bookmark_border_rounded,
+                : Icons.bookmark_add_outlined,
             color: AppColors.textLight,
             size: 20,
           ),

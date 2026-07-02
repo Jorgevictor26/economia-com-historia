@@ -5,7 +5,7 @@ import '../core/exceptions/app_exceptions.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/api_state_widgets.dart';
 import '../models/app_notification.dart';
-import '../service/perfil_service.dart';
+import '../services/perfil_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_bar_principal.dart';
@@ -34,11 +34,7 @@ class _NotificacoesScreenState extends State<NotificacoesScreen> {
   Future<void> _load() async {
     final perfil = context.read<PerfilService>();
     if (!perfil.isAuthenticated) {
-      setState(() {
-        _isLoading = false;
-        _error = null;
-        _notifications = [];
-      });
+      _redirectToLogin();
       return;
     }
 
@@ -54,7 +50,7 @@ class _NotificacoesScreenState extends State<NotificacoesScreen> {
     } on AppException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
-      if (mounted) setState(() => _error = 'Erro ao carregar notificacoes.');
+      if (mounted) setState(() => _error = 'Erro ao carregar notificações.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -74,7 +70,7 @@ class _NotificacoesScreenState extends State<NotificacoesScreen> {
     } on AppException catch (e) {
       if (mounted) _showError(e.message);
     } catch (_) {
-      if (mounted) _showError('Erro ao marcar notificacao como lida.');
+      if (mounted) _showError('Erro ao marcar notificação como lida.');
     }
   }
 
@@ -82,6 +78,17 @@ class _NotificacoesScreenState extends State<NotificacoesScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: AppColors.primary),
     );
+  }
+
+  void _redirectToLogin() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    });
   }
 
   List<AppNotification> get _filtradas {
@@ -92,11 +99,20 @@ class _NotificacoesScreenState extends State<NotificacoesScreen> {
   @override
   Widget build(BuildContext context) {
     final isAuthenticated = context.watch<PerfilService>().isAuthenticated;
+    if (!isAuthenticated) {
+      _redirectToLogin();
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppBarPrincipal(
-        titulo: 'Notificacoes',
+        titulo: 'Notificações',
         mostrarVoltar: true,
         mostrarNotificacoes: false,
         mostrarPesquisa: false,
@@ -105,6 +121,7 @@ class _NotificacoesScreenState extends State<NotificacoesScreen> {
         color: AppColors.primary,
         onRefresh: _load,
         child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
             Row(
@@ -116,26 +133,17 @@ class _NotificacoesScreenState extends State<NotificacoesScreen> {
                 ),
                 const SizedBox(width: 8),
                 _FilterChip(
-                  label: 'Nao lidas',
+                  label: 'Não lidas',
                   active: _onlyUnread,
                   onTap: () => setState(() => _onlyUnread = true),
                 ),
               ],
             ),
             const SizedBox(height: 18),
-            if (!isAuthenticated)
-              _LoginPrompt(
-                onLogin: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  );
-                },
-              )
-            else if (_isLoading)
+            if (_isLoading)
               const SizedBox(
                 height: 340,
-                child: LoadingState(message: 'A carregar notificacoes...'),
+                child: LoadingState(message: 'A carregar notificações...'),
               )
             else if (_error != null)
               SizedBox(
@@ -200,48 +208,6 @@ class _FilterChip extends StatelessWidget {
             color: active ? Colors.white : AppColors.textMedium,
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _LoginPrompt extends StatelessWidget {
-  final VoidCallback onLogin;
-
-  const _LoginPrompt({required this.onLogin});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEEE8E9)),
-      ),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.lock_outline_rounded,
-            color: AppColors.primary,
-            size: 38,
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Inicia sessao para ver notificacoes.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textMedium, height: 1.4),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: onLogin,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Iniciar sessao'),
-          ),
-        ],
       ),
     );
   }

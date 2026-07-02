@@ -29,7 +29,7 @@ class _DiscussaoScreenState extends State<DiscussaoScreen> {
   List<Comment> _comentarios = [];
 
   int get _contentId => widget.contentId ?? widget.content?.id ?? 0;
-  String get _title => widget.title ?? widget.content?.title ?? 'Discussao';
+  String get _title => widget.title ?? widget.content?.title ?? 'Discussão';
 
   @override
   void initState() {
@@ -47,7 +47,7 @@ class _DiscussaoScreenState extends State<DiscussaoScreen> {
     if (_contentId == 0) {
       setState(() {
         _isLoading = false;
-        _error = 'Conteudo invalido.';
+        _error = 'Conteúdo inválido.';
       });
       return;
     }
@@ -63,7 +63,7 @@ class _DiscussaoScreenState extends State<DiscussaoScreen> {
     } on AppException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
-      if (mounted) setState(() => _error = 'Erro ao carregar comentarios.');
+      if (mounted) setState(() => _error = 'Erro ao carregar comentários.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -80,7 +80,7 @@ class _DiscussaoScreenState extends State<DiscussaoScreen> {
     } on AppException catch (e) {
       if (mounted) _showSnackBar(e.message);
     } catch (_) {
-      if (mounted) _showSnackBar('Erro ao enviar comentario.');
+      if (mounted) _showSnackBar('Erro ao enviar comentário.');
     } finally {
       if (mounted) setState(() => _isSending = false);
     }
@@ -110,16 +110,33 @@ class _DiscussaoScreenState extends State<DiscussaoScreen> {
                 color: AppColors.primary,
                 onRefresh: _load,
                 child: _isLoading
-                    ? const LoadingState(message: 'A carregar comentarios...')
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(
+                            height: 420,
+                            child: LoadingState(
+                              message: 'A carregar comentários...',
+                            ),
+                          ),
+                        ],
+                      )
                     : _error != null
                     ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         children: [
                           ErrorState(message: _error!, onRetry: _load),
                         ],
                       )
                     : _comentarios.isEmpty
-                    ? const EmptyState(message: 'Ainda nao ha comentarios.')
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          EmptyState(message: 'Ainda não há comentários.'),
+                        ],
+                      )
                     : ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
                           vertical: 12,
@@ -162,7 +179,7 @@ class _AppBar extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           const Text(
-            'Discussao',
+            'Discussão',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -204,7 +221,7 @@ class _CabecalhoArtigo extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '$count comentarios',
+            '$count comentários',
             style: const TextStyle(fontSize: 13, color: AppColors.textMedium),
           ),
         ],
@@ -326,7 +343,7 @@ class _BarraComentario extends StatelessWidget {
               controller: controller,
               style: const TextStyle(fontSize: 14, color: AppColors.textDark),
               decoration: InputDecoration(
-                hintText: 'Adicionar comentario...',
+                hintText: 'Adicionar comentário...',
                 hintStyle: const TextStyle(
                   fontSize: 14,
                   color: AppColors.textLight,

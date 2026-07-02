@@ -6,10 +6,11 @@ import '../core/utils/formatters.dart';
 import '../core/widgets/api_state_widgets.dart';
 import '../models/quiz.dart';
 import '../models/user.dart';
-import '../service/perfil_service.dart';
+import '../services/perfil_service.dart';
 import '../services/quiz_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_bar_principal.dart';
+import '../widgets/profile_photo_image.dart';
 import 'editar_perfil_screen.dart';
 import 'login_screen.dart';
 
@@ -35,11 +36,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   Future<void> _load() async {
     final perfil = context.read<PerfilService>();
     if (!perfil.isAuthenticated) {
-      setState(() {
-        _isLoadingResults = false;
-        _error = null;
-        _results = [];
-      });
+      _redirectToLogin();
       return;
     }
 
@@ -62,10 +59,30 @@ class _PerfilScreenState extends State<PerfilScreen> {
     }
   }
 
+  void _redirectToLogin() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final perfil = context.watch<PerfilService>();
     final user = perfil.usuario;
+    if (!perfil.isAuthenticated) {
+      _redirectToLogin();
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -80,24 +97,14 @@ class _PerfilScreenState extends State<PerfilScreen> {
         color: AppColors.primary,
         onRefresh: _load,
         child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   const SizedBox(height: 8),
-                  if (!perfil.isAuthenticated)
-                    _LoginPrompt(
-                      onLogin: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const LoginScreen(),
-                          ),
-                        );
-                      },
-                    )
-                  else ...[
+                  ...[
                     _CabecalhoPerfil(user: user),
                     const SizedBox(height: 16),
                     Center(
@@ -135,7 +142,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     const _EstatisticasCard(),
                     const SizedBox(height: 24),
                     const Text(
-                      'Progresso dos Cursos',
+                      'Resultados de Quiz',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -144,7 +151,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Acompanha os teus módulos ativos.',
+                      'Acompanha os resultados registados na tua conta.',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textMedium,
@@ -154,7 +161,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     if (_isLoadingResults)
                       const SizedBox(
                         height: 180,
-                        child: LoadingState(message: 'A carregar progresso...'),
+                        child: LoadingState(
+                          message: 'A carregar resultados...',
+                        ),
                       )
                     else if (_error != null)
                       SizedBox(
@@ -165,7 +174,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                       const SizedBox(
                         height: 180,
                         child: EmptyState(
-                          message: 'Ainda não há progresso registado.',
+                          message: 'Ainda não há resultados de quiz.',
                           icon: Icons.quiz_outlined,
                         ),
                       )
@@ -178,44 +187,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _LoginPrompt extends StatelessWidget {
-  final VoidCallback onLogin;
-
-  const _LoginPrompt({required this.onLogin});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEEE8E9)),
-      ),
-      child: Column(
-        children: [
-          const Icon(Icons.person_outline, color: AppColors.primary, size: 42),
-          const SizedBox(height: 12),
-          const Text(
-            'Inicia sessao para ver e editar o teu perfil.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textMedium, height: 1.4),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: onLogin,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Iniciar sessao'),
-          ),
-        ],
       ),
     );
   }
@@ -242,32 +213,12 @@ class _CabecalhoPerfil extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(14),
-            child: user?.photo == null || user!.photo!.isEmpty
-                ? Container(
-                    color: const Color(0xFFEEE8E9),
-                    child: Center(
-                      child: Text(
-                        initials(name),
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  )
-                : Image.network(
-                    user!.photo!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
-                      color: const Color(0xFFEEE8E9),
-                      child: const Icon(
-                        Icons.person_rounded,
-                        size: 40,
-                        color: AppColors.textLight,
-                      ),
-                    ),
-                  ),
+            child: ProfilePhotoImage(
+              photo: user?.photo,
+              name: name,
+              initialsFontSize: 24,
+              iconSize: 40,
+            ),
           ),
         ),
         const SizedBox(height: 12),
@@ -316,18 +267,14 @@ class _EstatisticasCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFEEE8E9)),
       ),
-      child: IntrinsicHeight(
+      child: const IntrinsicHeight(
         child: Row(
           children: [
-            const _StatItem(label: 'RANKING', valor: '--', sublabel: 'Geral'),
-            const VerticalDivider(color: Color(0xFFEEE8E9), width: 1),
-            const _StatItem(
-              label: 'NÍVEL',
-              valor: 'Nível 1',
-              sublabel: 'Académico',
-            ),
-            const VerticalDivider(color: Color(0xFFEEE8E9), width: 1),
-            const _StatItem(label: 'PONTOS', valor: '0', sublabel: 'XP'),
+            _StatItem(label: 'RANKING', valor: '--', sublabel: 'Geral'),
+            VerticalDivider(color: Color(0xFFEEE8E9), width: 1),
+            _StatItem(label: 'NÍVEL', valor: 'Nível 1', sublabel: 'Académico'),
+            VerticalDivider(color: Color(0xFFEEE8E9), width: 1),
+            _StatItem(label: 'PONTOS', valor: '0', sublabel: 'XP'),
           ],
         ),
       ),

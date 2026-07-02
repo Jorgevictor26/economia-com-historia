@@ -23,10 +23,15 @@ class _SalaDeDebateScreenState extends State<SalaDeDebateScreen> {
   bool _isLoading = true;
   bool _isSending = false;
   String? _error;
+  Forum? _forumDetail;
+  ForumTopic? _topicDetail;
   List<ForumTopic> _topics = [];
   List<ForumReply> _replies = [];
 
   bool get _isTopicMode => widget.topic != null;
+  Forum? get _currentForum =>
+      _isTopicMode ? _currentTopic?.forum : (_forumDetail ?? widget.forum);
+  ForumTopic? get _currentTopic => _topicDetail ?? widget.topic;
 
   @override
   void initState() {
@@ -47,9 +52,15 @@ class _SalaDeDebateScreenState extends State<SalaDeDebateScreen> {
     });
     try {
       if (_isTopicMode) {
+        _topicDetail = await _service.getTopic(widget.topic!.id);
         _replies = await _service.getReplies(widget.topic!.id);
       } else {
-        _topics = await _service.getTopics(widget.forum!.id);
+        final forum = widget.forum;
+        if (forum == null) {
+          throw const AppException('Sala inválida.');
+        }
+        _forumDetail = await _service.getForum(forum.id);
+        _topics = await _service.getTopics(forum.id);
       }
       if (mounted) setState(() {});
     } on AppException catch (e) {
@@ -95,8 +106,8 @@ class _SalaDeDebateScreenState extends State<SalaDeDebateScreen> {
   @override
   Widget build(BuildContext context) {
     final title = _isTopicMode
-        ? widget.topic!.title
-        : widget.forum?.name ?? 'Sala';
+        ? _currentTopic?.title ?? widget.topic!.title
+        : _currentForum?.name ?? widget.forum?.name ?? 'Sala';
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -108,16 +119,31 @@ class _SalaDeDebateScreenState extends State<SalaDeDebateScreen> {
                 color: AppColors.primary,
                 onRefresh: _load,
                 child: _isLoading
-                    ? const LoadingState(message: 'A carregar debate...')
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(
+                            height: 420,
+                            child: LoadingState(
+                              message: 'A carregar debate...',
+                            ),
+                          ),
+                        ],
+                      )
                     : _error != null
                     ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         children: [
                           ErrorState(message: _error!, onRetry: _load),
                         ],
                       )
                     : _isTopicMode
-                    ? _RepliesList(replies: _replies)
-                    : _TopicsList(topics: _topics),
+                    ? _RepliesList(
+                        replies: _replies,
+                        topic: _currentTopic,
+                        forum: _currentForum,
+                      )
+                    : _TopicsList(topics: _topics, forum: _currentForum),
               ),
             ),
             _BarraInput(
@@ -125,7 +151,7 @@ class _SalaDeDebateScreenState extends State<SalaDeDebateScreen> {
               isSending: _isSending,
               hint: _isTopicMode
                   ? 'Escreva uma resposta...'
-                  : 'Criar topico...',
+                  : 'Criar tópico...',
               onSend: _send,
             ),
           ],
@@ -175,18 +201,25 @@ class _AppBar extends StatelessWidget {
 
 class _TopicsList extends StatelessWidget {
   final List<ForumTopic> topics;
+  final Forum? forum;
 
-  const _TopicsList({required this.topics});
+  const _TopicsList({required this.topics, required this.forum});
 
   @override
   Widget build(BuildContext context) {
-    if (topics.isEmpty) {
-      return const EmptyState(message: 'Ainda nao ha topicos neste forum.');
-    }
-    return ListView.builder(
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      itemCount: topics.length,
-      itemBuilder: (_, i) => _TopicTile(topic: topics[i]),
+      children: [
+        if (forum != null) ...[
+          _ForumMetadataPanel(forum: forum!),
+          const SizedBox(height: 12),
+        ],
+        if (topics.isEmpty)
+          const EmptyState(message: 'Ainda não há tópicos neste fórum.')
+        else
+          ...topics.map((topic) => _TopicTile(topic: topic)),
+      ],
     );
   }
 }
@@ -245,20 +278,213 @@ class _TopicTile extends StatelessWidget {
   }
 }
 
-class _RepliesList extends StatelessWidget {
-  final List<ForumReply> replies;
+class _TopicHeader extends StatelessWidget {
+  final ForumTopic topic;
+  final Forum? forum;
 
-  const _RepliesList({required this.replies});
+  const _TopicHeader({required this.topic, required this.forum});
 
   @override
   Widget build(BuildContext context) {
-    if (replies.isEmpty) {
-      return const EmptyState(message: 'Ainda nao ha respostas neste topico.');
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFEEE8E9)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            topic.content,
+            style: const TextStyle(
+              fontSize: 13.5,
+              color: AppColors.textMedium,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '${topic.user?.name ?? 'Utilizador'} - ${timeAgo(topic.createdAt)}',
+            style: const TextStyle(fontSize: 12, color: AppColors.textLight),
+          ),
+          if (forum != null) ...[
+            const SizedBox(height: 12),
+            _ForumMetadataBadges(forum: forum!),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ForumMetadataPanel extends StatelessWidget {
+  final Forum forum;
+
+  const _ForumMetadataPanel({required this.forum});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFEEE8E9)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if ((forum.description ?? '').trim().isNotEmpty) ...[
+            Text(
+              forum.description!.trim(),
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textMedium,
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          _ForumMetadataBadges(forum: forum),
+        ],
+      ),
+    );
+  }
+}
+
+class _ForumMetadataBadges extends StatelessWidget {
+  final Forum forum;
+
+  const _ForumMetadataBadges({required this.forum});
+
+  @override
+  Widget build(BuildContext context) {
+    final badges = <Widget>[];
+    final category = forum.category?.trim();
+    final visibility = forum.visibility?.trim();
+    final contentPermission = forum.contentPermission?.trim();
+
+    if (category != null && category.isNotEmpty) {
+      badges.add(_ForumBadge(icon: Icons.category_outlined, label: category));
     }
-    return ListView.builder(
+
+    if (visibility != null && visibility.isNotEmpty) {
+      badges.add(
+        _ForumBadge(
+          icon: visibility.toLowerCase() == 'private'
+              ? Icons.lock_outline_rounded
+              : Icons.public_rounded,
+          label: _visibilityLabel(visibility),
+        ),
+      );
+    }
+
+    if (contentPermission != null && contentPermission.isNotEmpty) {
+      badges.add(
+        _ForumBadge(
+          icon: Icons.verified_user_outlined,
+          label: _contentPermissionLabel(contentPermission),
+        ),
+      );
+    }
+
+    badges.add(
+      _ForumBadge(
+        icon: forum.allowAttachments
+            ? Icons.attach_file_rounded
+            : Icons.attach_file_outlined,
+        label: forum.allowAttachments ? 'Anexos permitidos' : 'Sem anexos',
+      ),
+    );
+
+    return Wrap(spacing: 8, runSpacing: 8, children: badges);
+  }
+}
+
+class _ForumBadge extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _ForumBadge({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.16)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: AppColors.primary),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _visibilityLabel(String value) {
+  switch (value.toLowerCase()) {
+    case 'private':
+      return 'Privado';
+    case 'public':
+      return 'Público';
+    default:
+      return value;
+  }
+}
+
+String _contentPermissionLabel(String value) {
+  switch (value.toLowerCase()) {
+    case 'subscribers':
+      return 'Subscritores';
+    case 'public':
+      return 'Conteúdo público';
+    default:
+      return value;
+  }
+}
+
+class _RepliesList extends StatelessWidget {
+  final List<ForumReply> replies;
+  final ForumTopic? topic;
+  final Forum? forum;
+
+  const _RepliesList({
+    required this.replies,
+    required this.topic,
+    required this.forum,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      itemCount: replies.length,
-      itemBuilder: (_, i) => _ReplyBubble(reply: replies[i]),
+      children: [
+        if (topic != null) ...[
+          _TopicHeader(topic: topic!, forum: forum),
+          const SizedBox(height: 12),
+        ],
+        if (replies.isEmpty)
+          const EmptyState(message: 'Ainda não há respostas neste tópico.')
+        else
+          ...replies.map((reply) => _ReplyBubble(reply: reply)),
+      ],
     );
   }
 }

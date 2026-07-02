@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:economica_com_historia/theme/app_colors.dart';
-import 'package:economica_com_historia/screens/home_screen.dart';
-import 'package:economica_com_historia/screens/explorar_conteudo_screen.dart';
-import 'package:economica_com_historia/screens/selecao_quiz_screen.dart';
-import 'package:economica_com_historia/screens/forum_screen.dart';
-import 'package:economica_com_historia/screens/podcast_screen.dart';
+import 'package:economica_com_historia/Screens/home_screen.dart';
+import 'package:economica_com_historia/Screens/explorar_conteudo_screen.dart';
+import 'package:economica_com_historia/Screens/selecao_quiz_screen.dart';
+import 'package:economica_com_historia/Screens/forum_screen.dart';
+import 'package:economica_com_historia/Screens/podcast_screen.dart';
+import 'package:economica_com_historia/Screens/login_screen.dart';
+import 'package:economica_com_historia/services/perfil_service.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -40,8 +43,8 @@ class MainNavigationScreenState extends State<MainNavigationScreen>
       label: 'Conteúdo',
     ),
     _NavItem(
-      icone: Icons.lightbulb_rounded,
-      iconeOff: Icons.lightbulb_outline_rounded,
+      icone: Icons.quiz_rounded,
+      iconeOff: Icons.quiz_outlined,
       label: 'Quiz',
     ),
     _NavItem(
@@ -50,7 +53,6 @@ class MainNavigationScreenState extends State<MainNavigationScreen>
       label: 'Fórum',
     ),
     _NavItem(
-      // ← NOVO
       icone: Icons.podcasts_rounded,
       iconeOff: Icons.podcasts_outlined,
       label: 'Podcast',
@@ -97,6 +99,23 @@ class MainNavigationScreenState extends State<MainNavigationScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isAuthenticated = context.watch<PerfilService>().isAuthenticated;
+    if (!isAuthenticated) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
+        );
+      });
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+
     return Scaffold(
       body: IndexedStack(index: _indiceAtual, children: _telas()),
       bottomNavigationBar: _NavBar(
@@ -150,7 +169,7 @@ class _NavBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 60, // ← reduzido de 64 para caber 6 itens
+          height: 60,
           child: Row(
             children: List.generate(itens.length, (i) {
               final ativo = i == indiceAtual;
@@ -166,8 +185,8 @@ class _NavBar extends StatelessWidget {
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 250),
                           curve: Curves.easeInOut,
-                          width: ativo ? 40 : 30, // ← reduzido
-                          height: ativo ? 28 : 24, // ← reduzido
+                          width: ativo ? 40 : 30,
+                          height: ativo ? 28 : 24,
                           decoration: BoxDecoration(
                             color: ativo
                                 ? AppColors.primary.withValues(alpha: 0.12)
@@ -182,7 +201,7 @@ class _NavBar extends StatelessWidget {
                               child: Icon(
                                 ativo ? itens[i].icone : itens[i].iconeOff,
                                 key: ValueKey('$i-$ativo'),
-                                size: ativo ? 20 : 18, // ← reduzido
+                                size: ativo ? 20 : 18,
                                 color: ativo
                                     ? AppColors.primary
                                     : const Color(0xFFB0959A),
@@ -194,7 +213,7 @@ class _NavBar extends StatelessWidget {
                         AnimatedDefaultTextStyle(
                           duration: const Duration(milliseconds: 200),
                           style: TextStyle(
-                            fontSize: 9.5, // ← reduzido de 10.5
+                            fontSize: 9.5,
                             fontWeight: ativo
                                 ? FontWeight.w700
                                 : FontWeight.w400,

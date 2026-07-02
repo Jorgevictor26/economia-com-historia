@@ -13,6 +13,7 @@ readonly class UpdateQuizProgressDTO
         public int $correctCount = 0,
         public int $elapsedSeconds = 0,
         public ?array $questionOrder = null,
+        public ?string $startedAt = null,
     ) {
     }
 }

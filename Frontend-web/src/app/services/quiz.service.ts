@@ -15,14 +15,28 @@ interface BackendContent {
   category?: { id: number | string; name: string } | null;
 }
 
+interface BackendQuizAlternative {
+  id: number | string;
+  question_id?: number | string;
+  text: string;
+  is_correct?: boolean | number;
+  correta?: boolean | number;
+}
+
 export interface BackendQuestion {
   id: number | string;
   question: string;
-  option_a: string;
-  option_b: string;
-  option_c: string;
-  option_d: string;
-  correct_option: 'a' | 'b' | 'c' | 'd';
+  option_a?: string;
+  option_b?: string;
+  option_c?: string;
+  option_d?: string;
+  correct_option?: 'a' | 'b' | 'c' | 'd';
+  alternatives?: BackendQuizAlternative[];
+  difficulty?: 'facil' | 'medio' | 'dificil' | null;
+  time_seconds?: number | string | null;
+  score?: number | string | null;
+  xp?: number | string | null;
+  order?: number | string | null;
   explanation?: string | null;
 }
 
@@ -34,6 +48,7 @@ export interface BackendQuiz {
   difficulty?: 'facil' | 'medio' | 'dificil' | null;
   xp_per_question?: number | null;
   time_limit?: number | null;
+  category?: { id: number | string; name: string } | null;
   questions_count?: number;
   user?: BackendUser | null;
   content?: BackendContent | null;
@@ -48,6 +63,8 @@ interface BackendQuizStats {
   score: number;
   completed_quizzes: number;
   completed_quiz_ids: Array<number | string>;
+  total_xp?: number;
+  level?: string;
 }
 
 interface BackendQuizResultsResponse extends PaginatedResponse<BackendQuizResult> {
@@ -60,26 +77,38 @@ interface BackendQuizResult {
   total_questions: number;
   percentage: string | number;
   earned_xp?: number | null;
+  ranking_position?: number | string | null;
   quiz?: BackendQuiz | null;
+}
+
+interface BackendQuizRanking {
+  id: number | string;
+  quiz_id: number | string;
+  user_id: number | string;
+  score: number | string;
+  earned_xp?: number | string | null;
+  duration_seconds?: number | string | null;
+  completed_at?: string | null;
+  user?: BackendUser | null;
 }
 
 export interface CreateQuizPayload {
   content_id: number | string;
+  category_id: number | string;
   title: string;
   description?: string | null;
   cover_url?: string | null;
   difficulty: 'facil' | 'medio' | 'dificil';
-  xp_per_question: 10 | 15 | 20;
-  time_limit?: number | null;
+  status?: 'active' | 'inactive';
 }
 
 export interface CreateQuestionPayload {
   question: string;
-  option_a: string;
-  option_b: string;
-  option_c: string;
-  option_d: string;
-  correct_option: 'a' | 'b' | 'c' | 'd';
+  order?: number;
+  alternatives: Array<{
+    text: string;
+    is_correct: boolean;
+  }>;
   explanation?: string | null;
 }
 
@@ -88,7 +117,8 @@ export interface SubmitQuizPayload {
   elapsed_seconds?: number;
   answers: Array<{
     question_id: number | string;
-    selected_option: 'a' | 'b' | 'c' | 'd';
+    alternative_id: number | string;
+    elapsed_seconds?: number;
   }>;
 }
 
@@ -102,12 +132,29 @@ export interface QuizSubmitResult {
   duration_seconds: number;
   best_score: number;
   is_best: boolean;
+  ranking_position?: number | null;
+  user_level?: string | null;
+  user_total_xp?: number | null;
 }
 
 export interface QuizUserStats {
   score: number;
   completedQuizzes: number;
   completedQuizIds: string[];
+  rankingPosition?: number | null;
+  totalXp?: number;
+  level?: string;
+}
+
+export interface QuizRankingEntry {
+  position: number;
+  userId: string;
+  name: string;
+  score: number;
+  earnedXp: number;
+  durationSeconds: number;
+  completedAt?: string | null;
+  icon: string;
 }
 
 export interface BackendQuizProgress {
@@ -120,7 +167,8 @@ export interface BackendQuizProgress {
   elapsed_seconds?: number | string | null;
   answered_questions?: Array<{
     question_id: number | string;
-    selected_option: 'a' | 'b' | 'c' | 'd';
+    alternative_id?: number | string;
+    selected_option?: 'a' | 'b' | 'c' | 'd';
   }> | null;
   question_order?: Array<number | string> | null;
   completed_at?: string | null;
@@ -134,7 +182,8 @@ export interface UpdateQuizProgressPayload {
   elapsed_seconds?: number;
   answered_questions?: Array<{
     question_id: number | string;
-    selected_option: 'a' | 'b' | 'c' | 'd';
+    alternative_id?: number | string;
+    selected_option?: 'a' | 'b' | 'c' | 'd';
   }>;
   question_order?: Array<number | string>;
 }
@@ -188,6 +237,12 @@ export class QuizService {
     return response.data;
   }
 
+  async getRanking(quizId: string | number, limit = 5): Promise<QuizRankingEntry[]> {
+    const response = await firstValueFrom(this.http.get<PaginatedResponse<BackendQuizRanking>>(`/quizzes/${quizId}/ranking`));
+
+    return response.data.slice(0, limit).map((entry, index) => this.toRankingEntry(entry, index + 1));
+  }
+
   async getProgress(limit = 6): Promise<BackendQuizProgress[]> {
     const params = new HttpParams().set('limit', String(limit));
     const response = await firstValueFrom(this.http.get<BackendQuizProgress[]>('/quiz-progress', { params }));
@@ -208,10 +263,17 @@ export class QuizService {
       ? response.stats.completed_quiz_ids.map((quizId) => String(quizId))
       : [...new Set(results.map((result) => String(result.quiz_id)))];
     const score = response.stats?.score ?? results.reduce((total, result) => total + (result.earned_xp ?? 0), 0);
+    const rankingPosition = results
+      .map((result) => Number(result.ranking_position))
+      .filter((position) => Number.isFinite(position) && position > 0)
+      .sort((a, b) => a - b)[0] ?? null;
     const stats = {
       score,
       completedQuizzes: response.stats?.completed_quizzes ?? completedQuizIds.length,
       completedQuizIds,
+      rankingPosition,
+      totalXp: response.stats?.total_xp ?? score,
+      level: response.stats?.level ?? 'Iniciante',
     };
 
     this.userStats.set(stats);
@@ -226,39 +288,59 @@ export class QuizService {
   private toQuiz(quiz: BackendQuiz): Quiz {
     const questions = quiz.questions ?? [];
     const content = quiz.content;
+    const difficulty = this.toDifficulty(quiz.difficulty, quiz.time_limit);
+    const rules = this.rulesForDifficulty(difficulty);
     const totalQuestions = questions.length || quiz.questions_count || 0;
 
     return {
       id: String(quiz.id),
       title: quiz.title,
-      topic: content?.category?.name ?? 'Quiz',
+      topic: quiz.category?.name ?? content?.category?.name ?? 'Quiz',
       summary: quiz.description || content?.summary || 'Teste os seus conhecimentos sobre este conteudo.',
       coverUrl: quiz.cover_url ?? null,
-      difficulty: this.toDifficulty(quiz.difficulty, quiz.time_limit),
-      xp: Math.max(totalQuestions, 1) * 10 + (totalQuestions === 10 ? 10 : 0),
+      difficulty,
+      xp: Math.max(totalQuestions, 1) * rules.xp,
       streakReward: 0,
-      estimatedMinutes: quiz.time_limit ?? Math.max(totalQuestions * 2, 1),
+      estimatedMinutes: Math.max(Math.ceil((totalQuestions * rules.timeSeconds) / 60), 1),
       relatedContent: {
         id: String(content?.id ?? ''),
         title: content?.title ?? 'Conteudo relacionado',
         category: content?.category?.name ?? 'Conteudo',
         route: content?.id ? `/app/contents/${content.id}` : '/app/contents',
       },
-      questions: questions.map((question) => this.toQuestion(question, content)),
+      questions: questions.map((question) => this.toQuestion(question, content, rules)),
     };
   }
 
-  private toQuestion(question: BackendQuestion, content?: BackendContent | null): Quiz['questions'][number] {
+  private toQuestion(
+    question: BackendQuestion,
+    content: BackendContent | null | undefined,
+    fallbackRules: { timeSeconds: number; score: number; xp: number },
+  ): Quiz['questions'][number] {
     const optionKeys = ['a', 'b', 'c', 'd'] as const;
-    const answerIndex = optionKeys.indexOf(question.correct_option);
+    const alternatives = question.alternatives ?? [];
+    const options = alternatives.length
+      ? alternatives.map((alternative) => alternative.text)
+      : [question.option_a, question.option_b, question.option_c, question.option_d].filter((option): option is string => Boolean(option));
+    const optionIds = alternatives.length
+      ? alternatives.map((alternative) => String(alternative.id))
+      : options.map((_, index) => optionKeys[index] ?? String(index));
+    const correctAlternativeIndex = alternatives.findIndex((alternative) => Boolean(alternative.is_correct ?? alternative.correta));
+    const answerIndex = correctAlternativeIndex >= 0
+      ? correctAlternativeIndex
+      : optionKeys.indexOf(question.correct_option ?? 'a');
 
     return {
       id: String(question.id),
       prompt: question.question,
-      options: [question.option_a, question.option_b, question.option_c, question.option_d],
+      options,
+      optionIds,
       answerIndex: Math.max(answerIndex, 0),
       explanation: question.explanation ?? '',
       contentLocation: content?.title ?? 'Conteudo relacionado',
+      timeSeconds: question.time_seconds ? Number(question.time_seconds) : fallbackRules.timeSeconds,
+      score: question.score ? Number(question.score) : fallbackRules.score,
+      xp: question.xp ? Number(question.xp) : fallbackRules.xp,
     };
   }
 
@@ -276,6 +358,33 @@ export class QuizService {
     }
 
     return 'dificil';
+  }
+
+  private rulesForDifficulty(difficulty: Quiz['difficulty']): { timeSeconds: number; score: number; xp: number } {
+    if (difficulty === 'dificil') {
+      return { timeSeconds: 15, score: 30, xp: 30 };
+    }
+
+    if (difficulty === 'medio') {
+      return { timeSeconds: 20, score: 20, xp: 20 };
+    }
+
+    return { timeSeconds: 30, score: 10, xp: 10 };
+  }
+
+  private toRankingEntry(entry: BackendQuizRanking, position: number): QuizRankingEntry {
+    const icons = ['emoji_events', 'workspace_premium', 'military_tech', 'stars', 'auto_awesome'];
+
+    return {
+      position,
+      userId: String(entry.user_id),
+      name: entry.user?.name ?? 'Utilizador',
+      score: Number(entry.score ?? 0),
+      earnedXp: Number(entry.earned_xp ?? entry.score ?? 0),
+      durationSeconds: Number(entry.duration_seconds ?? 0),
+      completedAt: entry.completed_at ?? null,
+      icon: icons[position - 1] ?? 'leaderboard',
+    };
   }
 
 }

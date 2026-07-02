@@ -5,7 +5,7 @@ namespace App\Http\Requests\Quiz;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
-class StoreQuestionRequest extends FormRequest
+class UpdateQuestionRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -15,11 +15,11 @@ class StoreQuestionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'question' => ['required', 'string'],
-            'order' => ['nullable', 'integer', 'min:1'],
-            'alternatives' => ['required', 'array', 'min:2'],
-            'alternatives.*.text' => ['required', 'string', 'max:255'],
-            'alternatives.*.is_correct' => ['required', 'boolean'],
+            'question' => ['sometimes', 'required', 'string'],
+            'order' => ['sometimes', 'required', 'integer', 'min:1'],
+            'alternatives' => ['sometimes', 'required', 'array', 'min:2'],
+            'alternatives.*.text' => ['required_with:alternatives', 'string', 'max:255'],
+            'alternatives.*.is_correct' => ['required_with:alternatives', 'boolean'],
             'difficulty' => ['prohibited'],
             'time' => ['prohibited'],
             'time_seconds' => ['prohibited'],
@@ -57,6 +57,10 @@ class StoreQuestionRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
+                if (! $this->has('alternatives')) {
+                    return;
+                }
+
                 $correctCount = collect($this->input('alternatives', []))
                     ->filter(fn (array $alternative): bool => filter_var($alternative['is_correct'] ?? false, FILTER_VALIDATE_BOOL))
                     ->count();

@@ -9,13 +9,13 @@ class QuizAnswerRepository
 {
     public function create(array $data): QuizAnswer
     {
-        return QuizAnswer::create($data)->load(['question', 'user']);
+        return QuizAnswer::create($data)->load(['question', 'alternative', 'user']);
     }
 
     public function latestByQuizAndUser(int $quizId, int $userId, int $limit): Collection
     {
         return QuizAnswer::query()
-            ->with('question')
+            ->with(['question', 'alternative'])
             ->where('user_id', $userId)
             ->whereHas('question', fn ($query) => $query->where('quiz_id', $quizId))
             ->latest()
@@ -28,7 +28,7 @@ class QuizAnswerRepository
     public function byResult(int $resultId): Collection
     {
         return QuizAnswer::query()
-            ->with('question')
+            ->with(['question', 'alternative'])
             ->where('quiz_result_id', $resultId)
             ->oldest()
             ->get();

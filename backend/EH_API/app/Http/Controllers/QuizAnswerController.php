@@ -27,6 +27,14 @@ class QuizAnswerController extends Controller
         ], 201);
     }
 
+    public function start(Request $request, int $id): JsonResponse
+    {
+        return response()->json([
+            'message' => 'Quiz started successfully',
+            'data' => $this->submissions->start($id, $request->user()->id),
+        ]);
+    }
+
     public function result(Request $request, int $id): JsonResponse
     {
         $result = $this->submissions->latestResult($id, $request->user()->id);
@@ -45,10 +53,20 @@ class QuizAnswerController extends Controller
     public function myResults(Request $request): JsonResponse
     {
         $userId = $request->user()->id;
+        $results = $this->submissions->myResults($userId);
+        $results->getCollection()->transform(fn ($result) => [
+            ...$result->toArray(),
+            'ranking_position' => $this->submissions->rankingPosition((int) $result->quiz_id, $userId),
+        ]);
 
         return response()->json([
-            ...$this->submissions->myResults($userId)->toArray(),
+            ...$results->toArray(),
             'stats' => $this->submissions->myStats($userId),
         ]);
+    }
+
+    public function ranking(int $id): JsonResponse
+    {
+        return response()->json($this->submissions->ranking($id));
     }
 }

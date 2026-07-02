@@ -18,7 +18,12 @@ class SubmitQuizRequest extends FormRequest
             'elapsed_seconds' => ['nullable', 'integer', 'min:0', 'max:86400'],
             'answers' => ['required', 'array', 'min:1'],
             'answers.*.question_id' => ['required', 'integer', 'distinct', 'exists:questions,id'],
-            'answers.*.selected_option' => ['required', 'string', 'in:a,b,c,d'],
+            'answers.*.alternative_id' => ['required', 'integer', 'exists:quiz_alternatives,id'],
+            'answers.*.elapsed_seconds' => ['nullable', 'integer', 'min:0', 'max:86400'],
+            'answers.*.selected_option' => ['prohibited'],
+            'score' => ['prohibited'],
+            'earned_xp' => ['prohibited'],
+            'xp' => ['prohibited'],
         ];
     }
 }

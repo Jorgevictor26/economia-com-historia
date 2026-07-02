@@ -52,9 +52,9 @@
           </article>
 
         <section class="border-t border-[#E0E0E0] p-5">
-          <h2 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">Top 5</h2>
+          <h2 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">{{ rankingTitle() }}</h2>
           <div class="mt-4 grid gap-3">
-            @for (student of topFive; track student.position) {
+            @for (student of topFive(); track student.position) {
             <div class="flex items-center justify-between gap-3">
               <div class="flex min-w-0 items-center gap-2">
                 <span
@@ -64,11 +64,14 @@
                 <span class="w-4 shrink-0 text-[10px] font-extrabold text-[#5c1e2f]">{{ student.position }}</span>
                 <span class="truncate text-[12px] font-bold text-[#212121]">{{ student.name }}</span>
               </div>
-              <strong class="text-[12px] text-[#D4AF37]">{{ student.score }} XP</strong>
+              <strong class="text-[12px] text-[#D4AF37]">{{ student.score }} pts</strong>
             </div>
+            } @empty {
+            <p class="rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] p-4 text-[12px] leading-5 text-[#616161]">
+              {{ rankingLoading() ? 'A carregar ranking...' : 'Ainda não há resultados para este quiz.' }}
+            </p>
             }
           </div>
-          <button type="button" class="eh-card-action mt-5 w-full min-h-11 justify-center">Ver ranking completo</button>
         </section>
       </aside>
 
@@ -184,4 +187,3 @@
 
   <app-back-to-top />
 </section>
-

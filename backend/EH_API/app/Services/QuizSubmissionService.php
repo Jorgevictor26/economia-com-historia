@@ -8,6 +8,7 @@ use App\DTOs\Quiz\SubmitQuizDTO;
 use App\DTOs\ContentProgress\UpdateContentProgressDTO;
 use App\DTOs\QuizProgress\UpdateQuizProgressDTO;
 use App\Models\QuizResult;
+use App\Models\User;
 use App\Models\UserAchievement;
 use App\Repositories\QuizAnswerRepository;
 use App\Repositories\QuizRepository;
@@ -34,8 +35,16 @@ class QuizSubmissionService
         $questions = $quiz->questions;
         $totalQuestions = $questions->count();
 
-        if ($totalQuestions !== 10) {
-            throw new UnprocessableEntityHttpException('Quiz must have exactly 10 questions');
+        if ($quiz->status !== 'active') {
+            throw new UnprocessableEntityHttpException('Quiz is inactive');
+        }
+
+        if ($totalQuestions < 1) {
+            throw new UnprocessableEntityHttpException('Quiz must have at least one question');
+        }
+
+        if ($this->results->existsForQuizAndUser($dto->quizId, $dto->userId)) {
+            throw new UnprocessableEntityHttpException('You have already answered this quiz');
         }
 
         $this->validateTimeLimit($quiz->time_limit, $dto->startedAt);
@@ -58,25 +67,32 @@ class QuizSubmissionService
         return DB::transaction(function () use ($dto, $questionsById, $totalQuestions, $quiz): array {
             $savedAnswers = collect();
             $correctAnswers = 0;
+            $score = 0;
+            $earnedXp = 0;
+            $rules = $this->rulesForDifficulty($quiz->difficulty);
 
             foreach ($dto->answers as $answer) {
                 $question = $questionsById->get((int) $answer['question_id']);
-                $selectedOption = strtolower($answer['selected_option']);
-                $isCorrect = $question->correct_option === $selectedOption;
+                $alternative = $question->alternatives->firstWhere('id', (int) $answer['alternative_id']);
+
+                if (! $alternative) {
+                    throw new UnprocessableEntityHttpException('All alternatives must belong to their submitted questions');
+                }
+
+                $elapsedSeconds = (int) ($answer['elapsed_seconds'] ?? 0);
+                $expired = $elapsedSeconds > 0 && $elapsedSeconds > $rules['time_seconds'];
+                $isCorrect = $alternative->is_correct && ! $expired;
 
                 if ($isCorrect) {
                     $correctAnswers++;
+                    $score += $rules['score'];
+                    $earnedXp += $rules['xp'];
                 }
             }
 
             $wrongAnswers = $totalQuestions - $correctAnswers;
             $percentage = round(($correctAnswers / $totalQuestions) * 100, 2);
-            $score = ($correctAnswers * 10) + ($correctAnswers === $totalQuestions ? 10 : 0);
             $durationSeconds = $this->durationSeconds($dto);
-            $previousBest = $this->results->bestByQuizAndUser($dto->quizId, $dto->userId);
-            $isBest = ! $previousBest
-                || $score > $previousBest->score
-                || ($score === $previousBest->score && $durationSeconds > 0 && $durationSeconds < $previousBest->duration_seconds);
             $result = $this->results->create(
                 (new QuizResultDTO(
                     quizId: $dto->quizId,
@@ -86,31 +102,35 @@ class QuizSubmissionService
                     correctAnswers: $correctAnswers,
                     wrongAnswers: $wrongAnswers,
                     percentage: $percentage,
-                    earnedXp: $score,
+                    earnedXp: $earnedXp,
                     durationSeconds: $durationSeconds,
-                    isBest: $isBest,
+                    isBest: true,
                 ))->toArray()
             );
 
             foreach ($dto->answers as $answer) {
                 $question = $questionsById->get((int) $answer['question_id']);
-                $selectedOption = strtolower($answer['selected_option']);
+                $alternative = $question->alternatives->firstWhere('id', (int) $answer['alternative_id']);
+                $elapsedSeconds = (int) ($answer['elapsed_seconds'] ?? 0);
+                $expired = $elapsedSeconds > 0 && $elapsedSeconds > $rules['time_seconds'];
+                $legacyOption = $this->legacyOptionForAlternative($question, (int) $alternative->id);
 
                 $savedAnswers->push($this->answers->create([
                     ...((new QuizAnswerDTO(
                         questionId: $question->id,
+                        alternativeId: $alternative->id,
                         userId: $dto->userId,
-                        selectedOption: $selectedOption,
-                        isCorrect: $question->correct_option === $selectedOption,
+                        selectedOption: $legacyOption,
+                        isCorrect: $alternative->is_correct && ! $expired,
+                        elapsedSeconds: $elapsedSeconds,
                     ))->toArray()),
                     'quiz_result_id' => $result->id,
                 ]));
             }
 
-            if ($isBest) {
-                $this->results->markBestForQuizAndUser($result);
-                $result->refresh();
-            }
+            $this->results->markBestForQuizAndUser($result);
+            $ranking = $this->results->upsertRanking($result);
+            $result->refresh();
 
             if ($quiz->content_id !== null) {
                 $this->contentProgress->update(new UpdateContentProgressDTO(
@@ -128,7 +148,7 @@ class QuizSubmissionService
                 answeredQuestions: collect($dto->answers)
                     ->map(fn (array $answer) => [
                         'question_id' => $answer['question_id'],
-                        'selected_option' => $answer['selected_option'],
+                        'alternative_id' => $answer['alternative_id'],
                     ])
                     ->values()
                     ->all(),
@@ -137,10 +157,76 @@ class QuizSubmissionService
                 questionOrder: collect($dto->answers)->pluck('question_id')->values()->all(),
             ));
 
+            User::query()->whereKey($dto->userId)->increment('total_xp', $earnedXp);
             $this->grantAchievements($dto->userId, $quiz->id);
 
-            return $this->formatResult($result, $savedAnswers);
+            return [
+                ...$this->formatResult($result, $savedAnswers),
+                'ranking_position' => $this->results->rankingPosition($quiz->id, $dto->userId),
+                'ranking' => $ranking,
+                'user_level' => User::query()->find($dto->userId)?->xpLevel(),
+                'user_total_xp' => User::query()->find($dto->userId)?->total_xp,
+            ];
         });
+    }
+
+    public function start(int $quizId, int $userId): array
+    {
+        $quiz = $this->quizzes->findById($quizId) ?? abort(404, 'Quiz not found');
+
+        if ($quiz->status !== 'active') {
+            throw new UnprocessableEntityHttpException('Quiz is inactive');
+        }
+
+        if ($this->results->existsForQuizAndUser($quizId, $userId)) {
+            throw new UnprocessableEntityHttpException('You have already answered this quiz');
+        }
+
+        $startedAt = now();
+        $rules = $this->rulesForDifficulty($quiz->difficulty);
+
+        $this->quizProgress->update(new UpdateQuizProgressDTO(
+            userId: $userId,
+            quizId: $quizId,
+            progressPercent: 1,
+            currentQuestionIndex: 0,
+            answeredQuestions: [],
+            correctCount: 0,
+            elapsedSeconds: 0,
+            questionOrder: $quiz->questions->pluck('id')->values()->all(),
+            startedAt: $startedAt->toDateTimeString(),
+        ));
+
+        return [
+            'quiz' => $quiz->only(['id', 'title', 'description', 'status', 'created_at', 'updated_at']),
+            'category' => $quiz->category ?? $quiz->content?->category,
+            'started_at' => $startedAt->toIso8601String(),
+            'difficulty' => $quiz->difficulty,
+            'time_seconds' => $rules['time_seconds'],
+            'score_per_question' => $rules['score'],
+            'xp_per_question' => $rules['xp'],
+            'questions' => $quiz->questions
+                ->sortBy('order')
+                ->values()
+                ->map(fn ($question): array => [
+                    'id' => $question->id,
+                    'quiz_id' => $question->quiz_id,
+                    'question' => $question->question,
+                    'difficulty' => $quiz->difficulty,
+                    'time_seconds' => $rules['time_seconds'],
+                    'score' => $rules['score'],
+                    'xp' => $rules['xp'],
+                    'order' => $question->order,
+                    'alternatives' => $question->alternatives
+                        ->map(fn ($alternative): array => [
+                            'id' => $alternative->id,
+                            'question_id' => $alternative->question_id,
+                            'text' => $alternative->text,
+                        ])
+                        ->values(),
+                ])
+                ->values(),
+        ];
     }
 
     public function latestResult(int $quizId, int $userId): ?array
@@ -163,7 +249,14 @@ class QuizSubmissionService
 
     public function myStats(int $userId): array
     {
-        return $this->results->statsByUser($userId);
+        $stats = $this->results->statsByUser($userId);
+        $user = User::query()->find($userId);
+
+        return [
+            ...$stats,
+            'total_xp' => (int) ($user?->total_xp ?? 0),
+            'level' => $user?->xpLevel() ?? 'Iniciante',
+        ];
     }
 
     private function validateTimeLimit(?int $timeLimit, string $startedAt): void
@@ -196,6 +289,7 @@ class QuizSubmissionService
             'duration_seconds' => $result->duration_seconds,
             'best_score' => $this->results->bestByQuizAndUser((int) $result->quiz_id, (int) $result->user_id)?->score ?? $result->score,
             'is_best' => $result->is_best,
+            'ranking_position' => $this->results->rankingPosition((int) $result->quiz_id, (int) $result->user_id),
             'answers' => $answers->values(),
         ];
     }
@@ -247,5 +341,33 @@ class QuizSubmissionService
             ['user_id' => $userId, 'code' => $code],
             ['name' => $name, 'level' => $level, 'earned_at' => now()]
         );
+    }
+
+    private function rulesForDifficulty(?string $difficulty): array
+    {
+        return match ($difficulty) {
+            'medio', 'media' => ['time_seconds' => 20, 'score' => 20, 'xp' => 20],
+            'dificil' => ['time_seconds' => 15, 'score' => 30, 'xp' => 30],
+            default => ['time_seconds' => 30, 'score' => 10, 'xp' => 10],
+        };
+    }
+
+    public function ranking(int $quizId): LengthAwarePaginator
+    {
+        return $this->results->rankingByQuiz($quizId);
+    }
+
+    public function rankingPosition(int $quizId, int $userId): ?int
+    {
+        return $this->results->rankingPosition($quizId, $userId);
+    }
+
+    private function legacyOptionForAlternative($question, int $alternativeId): string
+    {
+        $index = $question->alternatives
+            ->values()
+            ->search(fn ($alternative): bool => (int) $alternative->id === $alternativeId);
+
+        return ['a', 'b', 'c', 'd'][(int) $index] ?? 'a';
     }
 }

@@ -6,11 +6,8 @@ import { AdminConsoleShellComponent } from '../../admin/components/admin-console
 
 type Difficulty = 'facil' | 'medio' | 'dificil';
 type CorrectOption = 'A' | 'B' | 'C' | 'D';
-type XpPerQuestion = 10 | 15 | 20;
 
 interface ManualQuestion {
-  difficulty: Difficulty;
-  xp: number;
   title: string;
   explanation: string;
   options: Array<{ letter: CorrectOption; text: string; correct: boolean }>;
@@ -76,9 +73,9 @@ export class QuizCreatePage {
   readonly generationTags = ['Multipla escolha', 'Com feedback', 'Nivel medio'];
 
   readonly difficultyOptions = [
-    { value: 'facil' as const, label: 'Fácil', xp: 10 as XpPerQuestion, timeLimit: 5 },
-    { value: 'medio' as const, label: 'Médio', xp: 15 as XpPerQuestion, timeLimit: 10 },
-    { value: 'dificil' as const, label: 'Difícil', xp: 20 as XpPerQuestion, timeLimit: 15 },
+    { value: 'facil' as const, label: 'Fácil', xp: 10, timeSeconds: 30 },
+    { value: 'medio' as const, label: 'Médio', xp: 20, timeSeconds: 20 },
+    { value: 'dificil' as const, label: 'Difícil', xp: 30, timeSeconds: 15 },
   ];
 
   readonly defaultCoverLabel = computed(() => this.category().trim() || 'Quiz');
@@ -98,8 +95,8 @@ export class QuizCreatePage {
   readonly metrics = computed(() => [
     { icon: 'format_list_numbered', value: `${this.allQuestions().length}`, label: 'Perguntas', badge: this.creationMode() === 'ai' ? 'IA' : 'Manual', description: 'Perguntas prontas para publicar.' },
     { icon: 'speed', value: this.selectedDifficultyConfig().label, label: 'Dificuldade', badge: 'Base', description: 'Define XP e tempo limite automaticamente.' },
-    { icon: 'workspace_premium', value: `${this.allQuestions().reduce((total, question) => total + question.xp, 0)}`, label: 'XP total', badge: 'Auto', description: 'Calculado pela dificuldade.' },
-    { icon: 'schedule', value: `${this.selectedDifficultyConfig().timeLimit} min`, label: 'Tempo limite', badge: 'Auto', description: 'Enviado ao backend como time_limit.' },
+    { icon: 'workspace_premium', value: `${this.allQuestions().length * this.selectedDifficultyConfig().xp}`, label: 'XP total', badge: 'Auto', description: 'Calculado pelo backend.' },
+    { icon: 'schedule', value: `${this.selectedDifficultyConfig().timeSeconds}s`, label: 'Tempo por pergunta', badge: 'Auto', description: 'Definido pelo backend.' },
   ]);
 
   constructor() {
@@ -119,9 +116,9 @@ export class QuizCreatePage {
   get quickStats() {
     return [
       { value: `${this.allQuestions().length}`, label: 'Perguntas prontas' },
-      { value: `${this.allQuestions().reduce((total, question) => total + question.xp, 0)}`, label: 'XP criado' },
+      { value: `${this.allQuestions().length * this.selectedDifficultyConfig().xp}`, label: 'XP previsto' },
       { value: this.selectedDifficultyConfig().label, label: 'Dificuldade' },
-      { value: `${this.selectedDifficultyConfig().timeLimit} min`, label: 'Tempo limite' },
+      { value: `${this.selectedDifficultyConfig().timeSeconds}s`, label: 'Tempo/pergunta' },
     ];
   }
 
@@ -178,13 +175,9 @@ export class QuizCreatePage {
 
   generateAiDraft(): void {
     const base = this.aiPrompt().trim() || 'economia historica de Angola';
-    const xp = this.selectedDifficultyConfig().xp;
-
     this.previewQuestions.update((questions) => [
       ...questions,
       {
-        difficulty: this.selectedDifficulty(),
-        xp,
         title: `Pergunta gerada sobre ${base.slice(0, 72)}`,
         explanation: 'Resposta baseada no contexto do conteudo associado ao quiz.',
         options: [
@@ -202,7 +195,6 @@ export class QuizCreatePage {
     const question = this.previewQuestions()[index];
 
     this.manualQuestion.set(question.title);
-    this.selectedDifficulty.set(question.difficulty);
     this.manualCorrectOption.set(question.options.find((option) => option.correct)?.letter ?? 'A');
     this.manualOptions.set(Object.fromEntries(question.options.map((option) => [option.letter, option.text])) as Record<CorrectOption, string>);
     this.manualExplanation.set(question.explanation);
@@ -276,16 +268,16 @@ export class QuizCreatePage {
     try {
       const quiz = await this.quizService.create({
         content_id: this.requireText(this.selectedContentId(), 'conteudo base'),
+        category_id: this.requireContentCategoryId(),
         title: this.requireText(this.title(), 'titulo'),
         description: this.description().trim() || null,
         cover_url: this.coverPreview(),
         difficulty: this.selectedDifficultyConfig().value,
-        xp_per_question: this.selectedDifficultyConfig().xp,
-        time_limit: this.selectedDifficultyConfig().timeLimit,
+        status: asDraft ? 'inactive' : 'active',
       });
 
-      for (const question of this.requiredQuestions()) {
-        await this.quizService.createQuestion(quiz.id, this.toQuestionPayload(question));
+      for (const [index, question] of this.requiredQuestions().entries()) {
+        await this.quizService.createQuestion(quiz.id, this.toQuestionPayload(question, index + 1));
       }
 
       this.status.set(asDraft ? 'Rascunho guardado' : 'Publicado');
@@ -302,15 +294,12 @@ export class QuizCreatePage {
   private buildManualQuestion(): ManualQuestion {
     const question = this.requireText(this.manualQuestion(), 'pergunta');
     const options = this.manualOptions();
-    const xp = this.selectedDifficultyConfig().xp;
 
     (['A', 'B', 'C', 'D'] as CorrectOption[]).forEach((letter) => {
       this.requireText(options[letter], `alternativa ${letter}`);
     });
 
     return {
-      difficulty: this.selectedDifficulty(),
-      xp,
       title: question,
       explanation: this.manualExplanation().trim(),
       options: (['A', 'B', 'C', 'D'] as CorrectOption[]).map((letter) => ({
@@ -371,19 +360,26 @@ export class QuizCreatePage {
     );
   }
 
-  private toQuestionPayload(question: ManualQuestion): CreateQuestionPayload {
-    const option = (letter: CorrectOption) => question.options.find((item) => item.letter === letter)?.text ?? '';
-    const correct = question.options.find((item) => item.correct)?.letter.toLowerCase() as CreateQuestionPayload['correct_option'];
-
+  private toQuestionPayload(question: ManualQuestion, order: number): CreateQuestionPayload {
     return {
       question: question.title,
-      option_a: option('A'),
-      option_b: option('B'),
-      option_c: option('C'),
-      option_d: option('D'),
-      correct_option: correct,
+      order,
+      alternatives: question.options.map((option) => ({
+        text: option.text,
+        is_correct: option.correct,
+      })),
       explanation: question.explanation || null,
     };
+  }
+
+  private requireContentCategoryId(): number | string {
+    const content = this.contents().find((item) => String(item.id) === this.selectedContentId());
+
+    if (!content?.category?.id) {
+      throw new Error('O conteudo base precisa ter categoria para criar o quiz.');
+    }
+
+    return content.category.id;
   }
 
   private eventValue(event: Event): string {

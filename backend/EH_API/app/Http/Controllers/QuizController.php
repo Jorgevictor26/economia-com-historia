@@ -20,7 +20,7 @@ class QuizController extends Controller
     public function index(Request $request): JsonResponse
     {
         return response()->json(
-            $this->quizzes->getAll($request->only('search'))
+            $this->quizzes->getAll($request->only(['search', 'category_id', 'status', 'per_page']))
         );
     }
 
@@ -40,7 +40,7 @@ class QuizController extends Controller
         ], 201);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         $quiz = $this->quizzes->findById($id);
 
@@ -48,6 +48,10 @@ class QuizController extends Controller
             return response()->json([
                 'message' => 'Quiz not found',
             ], 404);
+        }
+
+        if (! $request->user('sanctum') || ! $this->canManageQuiz($request, (int) $quiz->user_id)) {
+            $quiz->questions->each(fn ($question) => $question->alternatives->makeHidden('is_correct'));
         }
 
         return response()->json($quiz);

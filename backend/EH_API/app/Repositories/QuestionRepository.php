@@ -10,25 +10,47 @@ class QuestionRepository
     public function getByQuiz(int $quizId): Collection
     {
         return Question::where('quiz_id', $quizId)
-            ->latest()
+            ->with('alternatives')
+            ->orderBy('order')
+            ->oldest()
             ->get();
     }
 
-    public function create(array $data): Question
+    public function create(array $data, array $alternatives = []): Question
     {
-        return Question::create($data)->load('quiz');
+        $question = Question::create($data);
+
+        foreach ($alternatives as $alternative) {
+            $question->alternatives()->create([
+                'text' => $alternative['text'],
+                'is_correct' => (bool) $alternative['is_correct'],
+            ]);
+        }
+
+        return $question->load(['quiz', 'alternatives']);
     }
 
     public function findById(int $id): ?Question
     {
-        return Question::with('quiz')->find($id);
+        return Question::with(['quiz', 'alternatives'])->find($id);
     }
 
-    public function update(Question $question, array $data): Question
+    public function update(Question $question, array $data, ?array $alternatives = null): Question
     {
         $question->update($data);
 
-        return $question->fresh('quiz');
+        if ($alternatives !== null) {
+            $question->alternatives()->delete();
+
+            foreach ($alternatives as $alternative) {
+                $question->alternatives()->create([
+                    'text' => $alternative['text'],
+                    'is_correct' => (bool) $alternative['is_correct'],
+                ]);
+            }
+        }
+
+        return $question->fresh(['quiz', 'alternatives']);
     }
 
     public function delete(Question $question): bool

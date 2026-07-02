@@ -2,7 +2,7 @@
 import { ActivatedRoute, RouterLink, Routes } from '@angular/router';
 import { OnDestroy } from '@angular/core';
 import { AuthStateService } from '../../services/auth-state.service';
-import { QuizRankingEntry, QuizService, QuizSubmitResult } from '../../services/quiz.service';
+import { QuizGlobalRankingEntry, QuizRankingEntry, QuizService, QuizSubmitResult } from '../../services/quiz.service';
 import { ToastService } from '../../services/toast.service';
 import { Quiz, QuizQuestion } from '../../models/quiz.model';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
@@ -202,6 +202,64 @@ export class QuizDashboardPage {
 
     return Math.max(Math.round(quiz.xp / xpPerQuestion), 0);
   }
+}
+
+@Component({
+  selector: 'app-quiz-global-ranking-page',
+  imports: [RouterLink, PublicNavbarComponent, BackToTopComponent],
+  templateUrl: './quiz-global-ranking.page.html'
+})
+export class QuizGlobalRankingPage {
+  readonly quizService = inject(QuizService);
+  private readonly toastService = inject(ToastService);
+
+  readonly ranking = signal<QuizGlobalRankingEntry[]>([]);
+  readonly isLoading = signal(false);
+  readonly podium = computed(() => this.ranking().slice(0, 3));
+  readonly remainingRanking = computed(() => this.ranking().slice(3));
+  readonly totalParticipants = computed(() => this.ranking().length);
+  readonly totalCompletedQuizzes = computed(() =>
+    this.ranking().reduce((total, entry) => total + entry.completedQuizzes, 0),
+  );
+  readonly topScore = computed(() => this.ranking()[0]?.totalScore ?? 0);
+
+  constructor() {
+    void this.loadRanking();
+  }
+
+  async loadRanking(): Promise<void> {
+    this.isLoading.set(true);
+
+    try {
+      this.ranking.set(await this.quizService.getGlobalRanking(30));
+    } catch {
+      this.ranking.set([]);
+      this.toastService.error('Nao foi possivel carregar o ranking global.');
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  formatDuration(seconds: number): string {
+    const safeSeconds = Math.max(0, Math.floor(seconds));
+    const minutes = Math.floor(safeSeconds / 60);
+    const remainingSeconds = safeSeconds % 60;
+
+    return `${minutes}m ${remainingSeconds.toString().padStart(2, '0')}s`;
+  }
+
+  formatDate(value?: string | null): string {
+    if (!value) {
+      return 'Sem data';
+    }
+
+    return new Intl.DateTimeFormat('pt-AO', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(new Date(value));
+  }
+
 }
 
 @Component({
@@ -654,5 +712,6 @@ export class QuizPlayPage implements OnDestroy {
 
 export const QUIZ_DASHBOARD_ROUTES: Routes = [
   { path: '', component: QuizDashboardPage },
+  { path: 'ranking', component: QuizGlobalRankingPage },
   { path: ':id/play', component: QuizPlayPage },
 ];

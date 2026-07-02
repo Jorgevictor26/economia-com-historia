@@ -159,6 +159,19 @@ export interface QuizRankingEntry {
   icon: string;
 }
 
+export interface QuizGlobalRankingEntry {
+  position: number;
+  userId: string;
+  name: string;
+  totalScore: number;
+  totalEarnedXp: number;
+  totalDurationSeconds: number;
+  completedQuizzes: number;
+  bestQuizPosition: number;
+  lastCompletedAt?: string | null;
+  icon: string;
+}
+
 export interface BackendQuizProgress {
   id: number | string;
   user_id: number | string;
@@ -243,6 +256,55 @@ export class QuizService {
     const response = await firstValueFrom(this.http.get<PaginatedResponse<BackendQuizRanking>>(`/quizzes/${quizId}/ranking`));
 
     return response.data.slice(0, limit).map((entry, index) => this.toRankingEntry(entry, index + 1));
+  }
+
+  async getGlobalRanking(limit = 20): Promise<QuizGlobalRankingEntry[]> {
+    const quizzes = this.quizzes().length ? this.quizzes() : await this.loadAll();
+    const rankingResults = await Promise.allSettled(
+      quizzes.map(async (quiz) => ({
+        quiz,
+        ranking: await this.getRanking(quiz.id, 20),
+      })),
+    );
+    const byUser = new Map<string, Omit<QuizGlobalRankingEntry, 'position' | 'icon'>>();
+
+    for (const result of rankingResults) {
+      if (result.status !== 'fulfilled') {
+        continue;
+      }
+
+      for (const entry of result.value.ranking) {
+        const current = byUser.get(entry.userId);
+        const completedAt = this.latestDate(current?.lastCompletedAt, entry.completedAt);
+
+        byUser.set(entry.userId, {
+          userId: entry.userId,
+          name: entry.name,
+          totalScore: (current?.totalScore ?? 0) + entry.score,
+          totalEarnedXp: (current?.totalEarnedXp ?? 0) + entry.earnedXp,
+          totalDurationSeconds: (current?.totalDurationSeconds ?? 0) + entry.durationSeconds,
+          completedQuizzes: (current?.completedQuizzes ?? 0) + 1,
+          bestQuizPosition: Math.min(current?.bestQuizPosition ?? entry.position, entry.position),
+          lastCompletedAt: completedAt,
+        });
+      }
+    }
+
+    const icons = ['emoji_events', 'workspace_premium', 'military_tech', 'stars', 'auto_awesome'];
+
+    return [...byUser.values()]
+      .sort((a, b) =>
+        b.totalScore - a.totalScore ||
+        b.totalEarnedXp - a.totalEarnedXp ||
+        a.totalDurationSeconds - b.totalDurationSeconds ||
+        a.name.localeCompare(b.name),
+      )
+      .slice(0, limit)
+      .map((entry, index) => ({
+        ...entry,
+        position: index + 1,
+        icon: icons[index] ?? 'leaderboard',
+      }));
   }
 
   async getProgress(limit = 6): Promise<BackendQuizProgress[]> {
@@ -387,6 +449,18 @@ export class QuizService {
       completedAt: entry.completed_at ?? null,
       icon: icons[position - 1] ?? 'leaderboard',
     };
+  }
+
+  private latestDate(current?: string | null, next?: string | null): string | null {
+    if (!current) {
+      return next ?? null;
+    }
+
+    if (!next) {
+      return current;
+    }
+
+    return new Date(next).getTime() > new Date(current).getTime() ? next : current;
   }
 
 }

@@ -96,6 +96,36 @@ class Content {
     );
   }
 
+  Content copyWith({int? reactionsCount, int? commentsCount, bool? likedByMe}) {
+    return Content(
+      id: id,
+      userId: userId,
+      categoryId: categoryId,
+      contentTypeId: contentTypeId,
+      title: title,
+      summary: summary,
+      content: content,
+      image: image,
+      video: video,
+      imageUrl: imageUrl,
+      videoUrl: videoUrl,
+      audioUrl: audioUrl,
+      documentUrl: documentUrl,
+      visibility: visibility,
+      authorPhotoUrl: authorPhotoUrl,
+      canAccess: canAccess,
+      viewsCount: viewsCount,
+      reactionsCount: reactionsCount ?? this.reactionsCount,
+      commentsCount: commentsCount ?? this.commentsCount,
+      likedByMe: likedByMe ?? this.likedByMe,
+      author: author,
+      category: category,
+      contentType: contentType,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
+
   String? get displayImage => ApiConstants.mediaUrl(imageUrl ?? image);
 
   String? get displayVideo => ApiConstants.mediaUrl(videoUrl ?? video);

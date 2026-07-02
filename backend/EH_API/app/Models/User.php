@@ -18,6 +18,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'google_id',
+        'firebase_uid',
         'password',
         'photo',
         'bio',
@@ -27,6 +29,8 @@ class User extends Authenticatable
 
     protected $hidden = [
         'password',
+        'google_id',
+        'firebase_uid',
         'remember_token',
     ];
 

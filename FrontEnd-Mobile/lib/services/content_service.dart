@@ -70,8 +70,7 @@ class ContentService {
       '/contents/$contentId/progress',
       body: {
         'progress_percent': progressPercent.clamp(0, 100).toInt(),
-        if (lastPositionSeconds != null)
-          'last_position_seconds': lastPositionSeconds,
+        'last_position_seconds': ?lastPositionSeconds,
       },
     );
     return ContentProgress.fromJson(jsonMap(ApiClient.unwrapData(response)));

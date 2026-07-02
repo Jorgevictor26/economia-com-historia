@@ -22,6 +22,16 @@
       </div>
     </app-admin-page-header>
 
+    @if (loadError()) {
+      <div class="rounded-[8px] border border-[#E8D5DB] bg-[#F2E6E9] px-4 py-3 text-[12px] font-bold text-[#8A3F50]">
+        {{ loadError() }}
+      </div>
+    } @else if (isLoading()) {
+      <div class="rounded-[8px] border border-[#E0E0E0] bg-white px-4 py-3 text-[12px] font-bold text-[#616161]">
+        A carregar estatisticas...
+      </div>
+    }
+
     <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       @for (card of summaryCards(); track card.label) {
         <article class="rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] p-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">

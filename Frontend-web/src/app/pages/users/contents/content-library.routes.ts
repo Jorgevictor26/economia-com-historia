@@ -9,6 +9,7 @@ import { BackendComment, CommentService } from '../../../services/comment.servic
 import { BackendContent, ContentPagination, ContentService } from '../../../services/content.service';
 import { ContentTypeService } from '../../../services/content-type.service';
 import { CommentReportReason, CommentReportService } from '../../../services/comment-report.service';
+import { ConfirmService } from '../../../services/confirm.service';
 import { QuizService } from '../../../services/quiz.service';
 import { ReactionService } from '../../../services/reaction.service';
 import { SavedContentService } from '../../../services/saved-content.service';
@@ -136,6 +137,7 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
   private readonly reactionService = inject(ReactionService);
   private readonly savedContentService = inject(SavedContentService);
   private readonly toastService = inject(ToastService);
+  readonly confirmService = inject(ConfirmService);
   private loadRequestId = 0;
   readonly categories = signal<Category[]>([]);
   readonly contentTypes = signal<ContentTypeOption[]>([]);
@@ -634,6 +636,7 @@ export class ContentDetailPage implements OnDestroy {
   private readonly savedContentService = inject(SavedContentService);
   private readonly toastService = inject(ToastService);
   readonly auth = inject(AuthStateService);
+  readonly confirmService = inject(ConfirmService);
   readonly detail = signal<ContentDetail | null>(null);
   readonly comments = signal<CommentView[]>([]);
   readonly reactionCount = signal(0);
@@ -837,7 +840,8 @@ export class ContentDetailPage implements OnDestroy {
       return;
     }
 
-    if (!window.confirm(`Apagar "${detail.title}"?`)) {
+    const confirmed = await this.confirmService.confirm(`Apagar "${detail.title}"?`);
+    if (!confirmed) {
       return;
     }
 
@@ -1255,6 +1259,7 @@ export class VideoContentDetailPage implements OnDestroy {
   private readonly reactionService = inject(ReactionService);
   private readonly savedContentService = inject(SavedContentService);
   private readonly toastService = inject(ToastService);
+  readonly confirmService = inject(ConfirmService);
   readonly auth = inject(AuthStateService);
   readonly saveStatus = signal('');
   readonly toast = signal<PageToast | null>(null);
@@ -1511,7 +1516,8 @@ export class VideoContentDetailPage implements OnDestroy {
       return;
     }
 
-    if (!window.confirm(`Apagar "${video.title}"?`)) {
+    const confirmed = await this.confirmService.confirm(`Apagar "${video.title}"?`);
+    if (!confirmed) {
       return;
     }
 

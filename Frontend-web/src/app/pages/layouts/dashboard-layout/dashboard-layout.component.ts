@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { AuthStateService } from '../../../services/auth-state.service';
+import { ConfirmService } from '../../../services/confirm.service';
 
 @Component({
   selector: 'app-dashboard-layout',
@@ -9,5 +10,6 @@ import { AuthStateService } from '../../../services/auth-state.service';
 })
 export class DashboardLayoutComponent {
   readonly auth = inject(AuthStateService);
+  readonly confirmService = inject(ConfirmService);
 }
 

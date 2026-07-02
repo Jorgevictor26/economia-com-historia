@@ -10,6 +10,7 @@ interface BackendUser {
 
 export interface BackendCommentReply {
   id: number | string;
+  user_id?: number | string;
   reply: string;
   created_at?: string | null;
   user?: BackendUser | null;
@@ -17,6 +18,7 @@ export interface BackendCommentReply {
 
 export interface BackendComment {
   id: number | string;
+  user_id?: number | string;
   comment: string;
   created_at?: string | null;
   user?: BackendUser | null;
@@ -55,5 +57,15 @@ export class CommentService {
     return firstValueFrom(this.http.post<MutationResponse<BackendCommentReply>>(`/comments/${commentId}/reply`, {
       reply,
     }));
+  }
+
+  update(commentId: string, comment: string): Promise<MutationResponse<BackendComment>> {
+    return firstValueFrom(this.http.put<MutationResponse<BackendComment>>(`/comments/${commentId}`, {
+      comment,
+    }));
+  }
+
+  delete(commentId: string): Promise<MutationResponse<unknown>> {
+    return firstValueFrom(this.http.delete<MutationResponse<unknown>>(`/comments/${commentId}`));
   }
 }

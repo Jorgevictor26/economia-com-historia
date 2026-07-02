@@ -1,6 +1,7 @@
 ﻿import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink, Routes } from '@angular/router';
 import { AuthStateService } from '../../services/auth-state.service';
+import { ConfirmService } from '../../services/confirm.service';
 import { authGuard } from '../../services/auth.guard';
 import { ContentService } from '../../services/content.service';
 import { BackendForum, BackendForumReply, BackendForumTopic, ForumService } from '../../services/forum.service';
@@ -67,6 +68,7 @@ export class UserForumsPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly auth = inject(AuthStateService);
+  readonly confirmService = inject(ConfirmService);
   readonly contentService = inject(ContentService);
   readonly forumService = inject(ForumService);
   private readonly toastService = inject(ToastService);
@@ -323,6 +325,7 @@ export class UserForumDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly auth = inject(AuthStateService);
+  readonly confirmService = inject(ConfirmService);
   readonly forumService = inject(ForumService);
   readonly likedByMe = signal(false);
   readonly commentComposerOpen = signal(false);
@@ -873,7 +876,8 @@ export class UserForumDetailPage {
   }
 
   async deleteTopic(topicId: string): Promise<void> {
-    if (!window.confirm('Apagar este tópico e as respetivas respostas?')) {
+    const confirmed = await this.confirmService.confirm('Apagar este tópico e as respetivas respostas?');
+    if (!confirmed) {
       return;
     }
 
@@ -936,7 +940,8 @@ export class UserForumDetailPage {
   }
 
   async deleteReply(topicId: string, replyId: string): Promise<void> {
-    if (!window.confirm('Apagar esta resposta?')) {
+    const confirmed = await this.confirmService.confirm('Apagar esta resposta?');
+    if (!confirmed) {
       return;
     }
 
@@ -1136,7 +1141,8 @@ export class UserForumDetailPage {
       return;
     }
 
-    if (!window.confirm(`Apagar "${room.name}"?`)) {
+    const confirmed = await this.confirmService.confirm(`Apagar "${room.name}"?`);
+    if (!confirmed) {
       return;
     }
 

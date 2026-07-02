@@ -39,12 +39,12 @@ class QuizSubmissionService
             throw new UnprocessableEntityHttpException('Quiz is inactive');
         }
 
-        if ($totalQuestions < 1) {
-            throw new UnprocessableEntityHttpException('Quiz must have at least one question');
+        if ($totalQuestions < 5) {
+            throw new UnprocessableEntityHttpException('Quiz must have at least 5 questions');
         }
 
-        if ($this->results->existsForQuizAndUser($dto->quizId, $dto->userId)) {
-            throw new UnprocessableEntityHttpException('You have already answered this quiz');
+        if ($totalQuestions > 15) {
+            throw new UnprocessableEntityHttpException('Quiz cannot have more than 15 questions');
         }
 
         $this->validateTimeLimit($quiz->time_limit, $dto->startedAt);
@@ -73,15 +73,15 @@ class QuizSubmissionService
 
             foreach ($dto->answers as $answer) {
                 $question = $questionsById->get((int) $answer['question_id']);
-                $alternative = $question->alternatives->firstWhere('id', (int) $answer['alternative_id']);
+                $alternative = $this->submittedAlternative($question, $answer);
 
-                if (! $alternative) {
+                if (isset($answer['alternative_id']) && ! $alternative) {
                     throw new UnprocessableEntityHttpException('All alternatives must belong to their submitted questions');
                 }
 
                 $elapsedSeconds = (int) ($answer['elapsed_seconds'] ?? 0);
                 $expired = $elapsedSeconds > 0 && $elapsedSeconds > $rules['time_seconds'];
-                $isCorrect = $alternative->is_correct && ! $expired;
+                $isCorrect = $this->answerIsCorrect($question, $alternative, $answer, $expired);
 
                 if ($isCorrect) {
                     $correctAnswers++;
@@ -110,18 +110,18 @@ class QuizSubmissionService
 
             foreach ($dto->answers as $answer) {
                 $question = $questionsById->get((int) $answer['question_id']);
-                $alternative = $question->alternatives->firstWhere('id', (int) $answer['alternative_id']);
+                $alternative = $this->submittedAlternative($question, $answer);
                 $elapsedSeconds = (int) ($answer['elapsed_seconds'] ?? 0);
                 $expired = $elapsedSeconds > 0 && $elapsedSeconds > $rules['time_seconds'];
-                $legacyOption = $this->legacyOptionForAlternative($question, (int) $alternative->id);
+                $legacyOption = $this->legacyOptionForAnswer($question, $alternative, $answer);
 
                 $savedAnswers->push($this->answers->create([
                     ...((new QuizAnswerDTO(
                         questionId: $question->id,
-                        alternativeId: $alternative->id,
+                        alternativeId: $alternative?->id,
                         userId: $dto->userId,
                         selectedOption: $legacyOption,
-                        isCorrect: $alternative->is_correct && ! $expired,
+                        isCorrect: $this->answerIsCorrect($question, $alternative, $answer, $expired),
                         elapsedSeconds: $elapsedSeconds,
                     ))->toArray()),
                     'quiz_result_id' => $result->id,
@@ -146,10 +146,11 @@ class QuizSubmissionService
                 progressPercent: 100,
                 currentQuestionIndex: max($totalQuestions - 1, 0),
                 answeredQuestions: collect($dto->answers)
-                    ->map(fn (array $answer) => [
+                    ->map(fn (array $answer) => array_filter([
                         'question_id' => $answer['question_id'],
-                        'alternative_id' => $answer['alternative_id'],
-                    ])
+                        'alternative_id' => $answer['alternative_id'] ?? null,
+                        'selected_option' => $answer['selected_option'] ?? null,
+                    ], fn ($value) => $value !== null))
                     ->values()
                     ->all(),
                 correctCount: $correctAnswers,
@@ -369,5 +370,39 @@ class QuizSubmissionService
             ->search(fn ($alternative): bool => (int) $alternative->id === $alternativeId);
 
         return ['a', 'b', 'c', 'd'][(int) $index] ?? 'a';
+    }
+
+    private function submittedAlternative($question, array $answer)
+    {
+        if (isset($answer['alternative_id'])) {
+            return $question->alternatives->firstWhere('id', (int) $answer['alternative_id']);
+        }
+
+        $selectedOption = $answer['selected_option'] ?? null;
+        $index = array_search($selectedOption, ['a', 'b', 'c', 'd'], true);
+
+        return $index === false ? null : $question->alternatives->values()->get($index);
+    }
+
+    private function legacyOptionForAnswer($question, $alternative, array $answer): string
+    {
+        if ($alternative) {
+            return $this->legacyOptionForAlternative($question, (int) $alternative->id);
+        }
+
+        return $answer['selected_option'] ?? 'a';
+    }
+
+    private function answerIsCorrect($question, $alternative, array $answer, bool $expired): bool
+    {
+        if ($expired) {
+            return false;
+        }
+
+        if ($alternative) {
+            return (bool) $alternative->is_correct;
+        }
+
+        return ($answer['selected_option'] ?? null) === $question->correct_option;
     }
 }

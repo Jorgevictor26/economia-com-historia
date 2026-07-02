@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Quiz;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class SubmitQuizRequest extends FormRequest
 {
@@ -18,12 +20,25 @@ class SubmitQuizRequest extends FormRequest
             'elapsed_seconds' => ['nullable', 'integer', 'min:0', 'max:86400'],
             'answers' => ['required', 'array', 'min:1'],
             'answers.*.question_id' => ['required', 'integer', 'distinct', 'exists:questions,id'],
-            'answers.*.alternative_id' => ['required', 'integer', 'exists:quiz_alternatives,id'],
+            'answers.*.alternative_id' => ['nullable', 'integer', 'exists:quiz_alternatives,id'],
             'answers.*.elapsed_seconds' => ['nullable', 'integer', 'min:0', 'max:86400'],
-            'answers.*.selected_option' => ['prohibited'],
+            'answers.*.selected_option' => ['nullable', Rule::in(['a', 'b', 'c', 'd'])],
             'score' => ['prohibited'],
             'earned_xp' => ['prohibited'],
             'xp' => ['prohibited'],
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                foreach ($this->input('answers', []) as $index => $answer) {
+                    if (empty($answer['alternative_id']) && empty($answer['selected_option'])) {
+                        $validator->errors()->add("answers.$index", 'Cada resposta deve ter alternativa ou opção selecionada.');
+                    }
+                }
+            },
         ];
     }
 }

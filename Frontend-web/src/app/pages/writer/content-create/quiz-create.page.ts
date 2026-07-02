@@ -62,6 +62,8 @@ export class QuizCreatePage {
   readonly formError = signal('');
   readonly successMessage = signal('');
   readonly optionLetters: CorrectOption[] = ['A', 'B', 'C', 'D'];
+  readonly minQuestions = 5;
+  readonly maxQuestions = 15;
   readonly steps = [
     { value: 1, title: 'Modo' },
     { value: 2, title: 'Dados' },
@@ -90,7 +92,7 @@ export class QuizCreatePage {
     this.difficultyOptions.find((option) => option.value === this.selectedDifficulty()) ?? this.difficultyOptions[1],
   );
 
-  readonly progress = computed(() => Math.min(100, Math.round((this.allQuestions().length / 8) * 100)));
+  readonly progress = computed(() => Math.min(100, Math.round((this.allQuestions().length / this.maxQuestions) * 100)));
 
   readonly metrics = computed(() => [
     { icon: 'format_list_numbered', value: `${this.allQuestions().length}`, label: 'Perguntas', badge: this.creationMode() === 'ai' ? 'IA' : 'Manual', description: 'Perguntas prontas para publicar.' },
@@ -107,7 +109,7 @@ export class QuizCreatePage {
     return [
       { label: 'Conteudo relacionado definido', done: Boolean(this.selectedContentId()) },
       { label: 'Titulo preenchido', done: this.title().trim().length > 0 },
-      { label: 'Perguntas com alternativas', done: this.allQuestions().length > 0 },
+      { label: `Entre ${this.minQuestions} e ${this.maxQuestions} perguntas`, done: this.allQuestions().length >= this.minQuestions && this.allQuestions().length <= this.maxQuestions },
       { label: 'Respostas corretas marcadas', done: this.allQuestions().every((question) => question.options.some((option) => option.correct)) },
       { label: 'Revisao editorial pendente', done: this.status() === 'Publicado' },
     ];
@@ -160,6 +162,10 @@ export class QuizCreatePage {
     this.successMessage.set('');
 
     try {
+      if (this.previewQuestions().length >= this.maxQuestions) {
+        throw new Error(`O quiz pode ter no maximo ${this.maxQuestions} perguntas.`);
+      }
+
       this.previewQuestions.update((questions) => [...questions, this.buildManualQuestion()]);
       this.status.set('Pergunta guardada');
       this.resetManualForm();
@@ -174,6 +180,11 @@ export class QuizCreatePage {
   }
 
   generateAiDraft(): void {
+    if (this.previewQuestions().length >= this.maxQuestions) {
+      this.showError(`O quiz pode ter no maximo ${this.maxQuestions} perguntas.`);
+      return;
+    }
+
     const base = this.aiPrompt().trim() || 'economia historica de Angola';
     this.previewQuestions.update((questions) => [
       ...questions,
@@ -313,8 +324,12 @@ export class QuizCreatePage {
   private requiredQuestions(): ManualQuestion[] {
     const questions = this.allQuestions();
 
-    if (!questions.length) {
-      throw new Error('Adicione pelo menos uma pergunta.');
+    if (questions.length < this.minQuestions) {
+      throw new Error(`Adicione pelo menos ${this.minQuestions} perguntas.`);
+    }
+
+    if (questions.length > this.maxQuestions) {
+      throw new Error(`O quiz pode ter no maximo ${this.maxQuestions} perguntas.`);
     }
 
     return questions;
@@ -326,6 +341,10 @@ export class QuizCreatePage {
     }
 
     try {
+      if (this.previewQuestions().length >= this.maxQuestions) {
+        throw new Error(`O quiz pode ter no maximo ${this.maxQuestions} perguntas.`);
+      }
+
       this.previewQuestions.update((questions) => [...questions, this.buildManualQuestion()]);
       this.resetManualForm();
       return true;

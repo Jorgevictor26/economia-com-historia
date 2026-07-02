@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Quiz } from '../models/quiz.model';
+import { normalizeMediaUrl } from './media-url.util';
 
 interface BackendUser {
   id: number | string;
@@ -117,7 +118,8 @@ export interface SubmitQuizPayload {
   elapsed_seconds?: number;
   answers: Array<{
     question_id: number | string;
-    alternative_id: number | string;
+    alternative_id?: number | string;
+    selected_option?: 'a' | 'b' | 'c' | 'd';
     elapsed_seconds?: number;
   }>;
 }
@@ -297,7 +299,7 @@ export class QuizService {
       title: quiz.title,
       topic: quiz.category?.name ?? content?.category?.name ?? 'Quiz',
       summary: quiz.description || content?.summary || 'Teste os seus conhecimentos sobre este conteudo.',
-      coverUrl: quiz.cover_url ?? null,
+      coverUrl: normalizeMediaUrl(quiz.cover_url) ?? null,
       difficulty,
       xp: Math.max(totalQuestions, 1) * rules.xp,
       streakReward: 0,

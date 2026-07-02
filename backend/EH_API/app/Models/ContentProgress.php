@@ -10,6 +10,8 @@ class ContentProgress extends Model
 {
     use HasFactory;
 
+    protected $table = 'content_progresses';
+
     protected $fillable = [
         'user_id',
         'content_id',

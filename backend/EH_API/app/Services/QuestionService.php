@@ -29,8 +29,8 @@ class QuestionService
     {
         $quiz = $this->quizzes->findById($dto->quizId) ?? abort(404, 'Quiz not found');
 
-        if ($quiz->questions()->count() >= 10) {
-            throw new UnprocessableEntityHttpException('Quiz already has 10 questions');
+        if ($quiz->questions()->count() >= 15) {
+            throw new UnprocessableEntityHttpException('Quiz already has 15 questions');
         }
 
         return $this->questions->create($dto->toArray(), $dto->alternatives);

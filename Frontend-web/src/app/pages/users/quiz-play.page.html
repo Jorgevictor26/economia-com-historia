@@ -140,10 +140,6 @@
               <dd class="mt-1 font-display text-[22px] font-extrabold text-[#5c1e2f]">{{ formatDuration(submitResult()?.duration_seconds ?? elapsedSeconds()) }}</dd>
             </div>
             <div class="rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] p-4">
-              <dt class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#616161]">Melhor pontuação</dt>
-              <dd class="mt-1 font-display text-[22px] font-extrabold text-[#5c1e2f]">{{ bestScore() }} pts</dd>
-            </div>
-            <div class="rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] p-4">
               <dt class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#616161]">Pontuação obtida</dt>
               <dd class="mt-1 font-display text-[22px] font-extrabold text-[#5c1e2f]">{{ earnedXp() }} pts</dd>
             </div>
@@ -153,7 +149,8 @@
             <p class="mt-4 rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] px-4 py-3 text-[12px] font-bold text-[#8A3F50]">{{ submitError() }}</p>
           }
           <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <a routerLink="/app/quizzes" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white">Ver outros quizzes</a>
+            <button type="button" class="inline-flex h-11 items-center justify-center rounded-[8px] bg-[#5c1e2f] px-5 text-[13px] font-bold text-white" (click)="restartQuiz()">Refazer quiz</button>
+            <a routerLink="/app/quizzes" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#E6D5B8] px-5 text-[13px] font-bold text-[#5c1e2f]">Ver outros quizzes</a>
             <a [routerLink]="quiz()!.relatedContent.route" class="inline-flex h-11 items-center justify-center rounded-[8px] border border-[#E6D5B8] px-5 text-[13px] font-bold text-[#5c1e2f]">Voltar aos conteúdos</a>
           </div>
         </section>

@@ -10,6 +10,8 @@ class QuizProgress extends Model
 {
     use HasFactory;
 
+    protected $table = 'quiz_progresses';
+
     protected $fillable = [
         'user_id',
         'quiz_id',

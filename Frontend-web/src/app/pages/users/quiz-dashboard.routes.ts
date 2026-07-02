@@ -230,6 +230,7 @@ export class QuizPlayPage implements OnDestroy {
   readonly baseElapsedSeconds = signal(0);
   readonly attemptStartedAt = signal(Date.now());
   readonly questionStartedAt = signal(Date.now());
+  readonly questionStoppedAt = signal<number | null>(null);
   readonly startedAt = signal(new Date().toISOString());
   readonly nowTick = signal(Date.now());
   private readonly elapsedTimerId = window.setInterval(() => {
@@ -242,10 +243,16 @@ export class QuizPlayPage implements OnDestroy {
   readonly progressPercent = computed(() => (this.totalQuestions() ? (this.selectedAnswers().length / this.totalQuestions()) * 100 : 0));
   readonly correctAnswer = computed(() => this.currentQuestion().options[this.currentQuestion().answerIndex]);
   readonly questionTimeLimit = computed(() => this.currentQuestion().timeSeconds ?? this.rulesForDifficulty(this.quiz()?.difficulty ?? 'facil').timeSeconds);
-  readonly questionElapsedSeconds = computed(() => Math.max(0, Math.floor((this.nowTick() - this.questionStartedAt()) / 1000)));
+  readonly questionElapsedSeconds = computed(() => Math.max(0, Math.floor(((this.questionStoppedAt() ?? this.nowTick()) - this.questionStartedAt()) / 1000)));
   readonly remainingSeconds = computed(() => Math.max(this.questionTimeLimit() - this.questionElapsedSeconds(), 0));
   readonly timePercent = computed(() => Math.max(0, Math.min(100, (this.remainingSeconds() / Math.max(this.questionTimeLimit(), 1)) * 100)));
-  readonly elapsedSeconds = computed(() => this.baseElapsedSeconds() + Math.floor((this.nowTick() - this.attemptStartedAt()) / 1000));
+  readonly finalElapsedSeconds = signal<number | null>(null);
+  readonly elapsedSeconds = computed(() => {
+    const final = this.finalElapsedSeconds();
+    if (final !== null) return final;
+
+    return this.baseElapsedSeconds() + Math.floor((this.nowTick() - this.attemptStartedAt()) / 1000);
+  });
   readonly earnedXp = computed(() => this.submitResult()?.score ?? this.scoreFromCorrect(this.correctCount(), this.totalQuestions()));
   readonly wrongCount = computed(() => this.submitResult()?.wrong_answers ?? Math.max(this.totalQuestions() - this.correctCount(), 0));
   readonly aproveitamento = computed(() => this.submitResult()?.percentage ?? Math.round((this.correctCount() / Math.max(this.totalQuestions(), 1)) * 100));
@@ -276,6 +283,7 @@ export class QuizPlayPage implements OnDestroy {
     }
 
     const correct = selected === this.currentQuestion().answerIndex;
+    this.questionStoppedAt.set(Date.now());
     this.isCorrect.set(correct);
     this.answered.set(true);
     if (correct) {
@@ -307,6 +315,7 @@ export class QuizPlayPage implements OnDestroy {
       return;
     }
 
+    this.questionStoppedAt.set(Date.now());
     this.selectedIndex.set(fallbackIndex);
     this.isCorrect.set(false);
     this.timedOut.set(true);
@@ -326,6 +335,7 @@ export class QuizPlayPage implements OnDestroy {
 
   async nextQuestion(): Promise<void> {
     if (this.currentIndex() + 1 >= this.totalQuestions()) {
+      this.finalElapsedSeconds.set(this.currentElapsedSeconds());
       this.finished.set(true);
       await this.submitQuiz();
       return;
@@ -337,6 +347,7 @@ export class QuizPlayPage implements OnDestroy {
     this.timedOut.set(false);
     this.isCorrect.set(false);
     this.questionStartedAt.set(Date.now());
+    this.questionStoppedAt.set(null);
   }
 
   private async loadQuiz(id: string): Promise<void> {
@@ -368,15 +379,17 @@ export class QuizPlayPage implements OnDestroy {
         elapsed_seconds: this.currentElapsedSeconds(),
         answers: this.selectedAnswers().map((answer) => ({
           question_id: answer.question_id,
-          alternative_id: answer.alternative_id,
+          ...(this.isNumericId(answer.alternative_id)
+            ? { alternative_id: answer.alternative_id }
+            : { selected_option: answer.selected_option }),
           elapsed_seconds: answer.elapsed_seconds,
         })),
       });
       this.submitResult.set(result);
       await this.saveCompletedProgress();
       await this.quizService.loadMyStats();
-    } catch {
-      this.submitError.set('Nao foi possivel enviar o resultado do quiz.');
+    } catch (error) {
+      this.submitError.set(this.errorMessage(error));
     }
   }
 
@@ -465,6 +478,7 @@ export class QuizPlayPage implements OnDestroy {
     this.timedOut.set(false);
     this.isCorrect.set(false);
     this.questionStartedAt.set(Date.now());
+    this.questionStoppedAt.set(null);
     this.resumePromptOpen.set(false);
   }
 
@@ -482,12 +496,14 @@ export class QuizPlayPage implements OnDestroy {
     this.timedOut.set(false);
     this.correctCount.set(0);
     this.finished.set(false);
+    this.finalElapsedSeconds.set(null);
     this.isCorrect.set(false);
     this.submitResult.set(null);
     this.selectedAnswers.set([]);
     this.baseElapsedSeconds.set(0);
     this.attemptStartedAt.set(Date.now());
     this.questionStartedAt.set(Date.now());
+    this.questionStoppedAt.set(null);
     this.startedAt.set(new Date().toISOString());
     this.resumePromptOpen.set(false);
 
@@ -555,7 +571,7 @@ export class QuizPlayPage implements OnDestroy {
   private withQuestionOrder(quiz: Quiz): Quiz {
     return {
       ...quiz,
-      questions: [...quiz.questions].sort(() => Math.random() - 0.5).slice(0, 10),
+      questions: [...quiz.questions].sort(() => Math.random() - 0.5),
     };
   }
 
@@ -581,7 +597,29 @@ export class QuizPlayPage implements OnDestroy {
   }
 
   private currentElapsedSeconds(): number {
+    const final = this.finalElapsedSeconds();
+    if (final !== null) return final;
+
     return this.baseElapsedSeconds() + Math.floor((Date.now() - this.attemptStartedAt()) / 1000);
+  }
+
+  private isNumericId(value: string | number | undefined): boolean {
+    return value !== undefined && /^\d+$/.test(String(value));
+  }
+
+  private errorMessage(error: unknown): string {
+    const response = error as { error?: { message?: string; errors?: Record<string, string[]> }; status?: number };
+    const validationErrors = response.error?.errors;
+
+    if (validationErrors) {
+      return Object.values(validationErrors).flat().join(' ');
+    }
+
+    if (response.error?.message) {
+      return response.error.message;
+    }
+
+    return 'Nao foi possivel enviar o resultado do quiz.';
   }
 
   private scoreFromCorrect(correct: number, total: number): number {

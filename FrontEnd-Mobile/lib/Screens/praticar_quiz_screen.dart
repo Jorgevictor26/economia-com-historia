@@ -32,7 +32,7 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
   @override
   void initState() {
     super.initState();
-    _startedAt = DateTime.now();
+    _startedAt = DateTime.now().toUtc();
     _load();
   }
 
@@ -83,6 +83,7 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
       final result = await _service.submitQuiz(
         quizId: widget.quiz.id,
         startedAt: _startedAt,
+        elapsedSeconds: _elapsedSeconds,
         answers: _answers,
       );
       _guardarProgresso(completed: true);
@@ -110,6 +111,15 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  int get _elapsedSeconds {
+    return DateTime.now()
+        .toUtc()
+        .difference(_startedAt)
+        .inSeconds
+        .clamp(0, 86400)
+        .toInt();
   }
 
   void _showSnackBar(String message) {

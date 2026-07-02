@@ -1,3 +1,6 @@
+import 'package:flutter/foundation.dart';
+
+import '../core/exceptions/app_exceptions.dart';
 import '../core/utils/api_client.dart';
 import '../core/utils/json_helpers.dart';
 import '../core/utils/session_storage.dart';
@@ -55,6 +58,33 @@ class AuthService {
       user: session.user,
     );
     return session;
+  }
+
+  Future<AuthSession> loginWithGoogle({required String idToken}) async {
+    try {
+      final response = await _api.post(
+        '/auth/google',
+        body: {'id_token': idToken},
+      );
+      final session = AuthSession.fromJson(
+        jsonMap(ApiClient.unwrapData(response)),
+      );
+      await _sessionStorage.saveAuth(
+        token: session.token,
+        tokenType: session.tokenType,
+        user: session.user,
+      );
+      return session;
+    } on AppException catch (error) {
+      debugPrint(
+        'POST /auth/google failed: status=${error.statusCode}, '
+        'message=${error.message}, details=${error.details}',
+      );
+      rethrow;
+    } catch (error, stackTrace) {
+      debugPrint('POST /auth/google parsing failed: $error\n$stackTrace');
+      throw const BadResponseException();
+    }
   }
 
   Future<void> forgotPassword(String email) async {

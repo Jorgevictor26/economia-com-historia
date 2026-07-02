@@ -97,8 +97,8 @@ class AppBarPrincipal extends StatelessWidget implements PreferredSizeWidget {
       barrierLabel: 'Menu',
       barrierColor: Colors.black54,
       transitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (_, __, ___) => const SizedBox.shrink(),
-      transitionBuilder: (dialogContext, animation, _, __) {
+      pageBuilder: (_, _, _) => const SizedBox.shrink(),
+      transitionBuilder: (dialogContext, animation, _, _) {
         final slide =
             Tween<Offset>(begin: const Offset(-1, 0), end: Offset.zero).animate(
               CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),

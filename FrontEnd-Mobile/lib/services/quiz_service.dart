@@ -34,12 +34,14 @@ class QuizService {
   Future<QuizResult> submitQuiz({
     required int quizId,
     required DateTime startedAt,
+    required int elapsedSeconds,
     required Map<int, String> answers,
   }) async {
     final response = await _api.post(
       '/quizzes/$quizId/submit',
       body: {
-        'started_at': startedAt.toIso8601String(),
+        'started_at': startedAt.toUtc().toIso8601String(),
+        'elapsed_seconds': elapsedSeconds.clamp(0, 86400).toInt(),
         'answers': answers.entries
             .map(
               (entry) => {
@@ -66,8 +68,9 @@ class QuizService {
   Future<List<QuizProgress>> getQuizProgress({int limit = 6}) async {
     final response = await _api.get('/quiz-progress', query: {'limit': limit});
     final data = ApiClient.unwrapData(response);
-    if (data is List)
+    if (data is List) {
       return data.map(jsonMap).map(QuizProgress.fromJson).toList();
+    }
     return <QuizProgress>[];
   }
 
@@ -81,8 +84,7 @@ class QuizService {
       '/quizzes/$quizId/progress',
       body: {
         'progress_percent': progressPercent.clamp(0, 100).toInt(),
-        if (currentQuestionIndex != null)
-          'current_question_index': currentQuestionIndex,
+        'current_question_index': ?currentQuestionIndex,
         if (answeredQuestions.isNotEmpty)
           'answered_questions': answeredQuestions.map(
             (key, value) => MapEntry(key.toString(), value),

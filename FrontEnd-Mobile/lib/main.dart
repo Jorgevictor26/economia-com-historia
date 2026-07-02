@@ -9,14 +9,12 @@ import 'package:economica_com_historia/theme/app_theme.dart';
 
 final appNavigatorKey = GlobalKey<NavigatorState>();
 final appScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+final perfilService = PerfilService();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   ApiClient.onUnauthorized = () {
-    final context = appNavigatorKey.currentContext;
-    if (context != null) {
-      context.read<PerfilService>().clearLocalSession();
-    }
+    perfilService.clearLocalSession();
     appScaffoldMessengerKey.currentState
       ?..clearSnackBars()
       ..showSnackBar(
@@ -36,7 +34,7 @@ class EconomiaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => PerfilService())],
+      providers: [ChangeNotifierProvider.value(value: perfilService)],
       child: MaterialApp(
         navigatorKey: appNavigatorKey,
         scaffoldMessengerKey: appScaffoldMessengerKey,

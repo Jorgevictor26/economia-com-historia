@@ -47,9 +47,15 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
     try {
       await perfil.carregarPerfil();
-      final response = await _quizService.getMyResults();
+      var results = <UserQuizResult>[];
+      try {
+        final response = await _quizService.getMyResults();
+        results = response.data;
+      } on NotFoundException {
+        results = [];
+      }
       if (!mounted) return;
-      setState(() => _results = response.data);
+      setState(() => _results = results);
     } on AppException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
@@ -159,20 +165,17 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     ),
                     const SizedBox(height: 14),
                     if (_isLoadingResults)
-                      const SizedBox(
-                        height: 180,
+                      const _ResultadosStateBox(
                         child: LoadingState(
                           message: 'A carregar resultados...',
                         ),
                       )
                     else if (_error != null)
-                      SizedBox(
-                        height: 180,
+                      _ResultadosStateBox(
                         child: ErrorState(message: _error!, onRetry: _load),
                       )
                     else if (_results.isEmpty)
-                      const SizedBox(
-                        height: 180,
+                      const _ResultadosStateBox(
                         child: EmptyState(
                           message: 'Ainda não há resultados de quiz.',
                           icon: Icons.quiz_outlined,
@@ -181,13 +184,27 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     else
                       ..._results.map((result) => _ResultadoQuizCard(result)),
                   ],
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32 + MediaQuery.paddingOf(context).bottom),
                 ]),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ResultadosStateBox extends StatelessWidget {
+  final Widget child;
+
+  const _ResultadosStateBox({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 180),
+      child: child,
     );
   }
 }

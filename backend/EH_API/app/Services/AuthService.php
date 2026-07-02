@@ -26,7 +26,7 @@ class AuthService
     {
         $user = $this->userService->create($dto->toCreateUserDTO());
 
-        return $this->authPayload($user);
+        return $this->issueToken($user);
     }
 
     public function login(LoginDTO $dto): array
@@ -45,7 +45,7 @@ class AuthService
             ]);
         }
 
-        return $this->authPayload($user);
+        return $this->issueToken($user);
     }
 
     public function sendResetLink(ForgotPasswordDTO $dto): void
@@ -82,7 +82,7 @@ class AuthService
         }
     }
 
-    private function authPayload(User $user): array
+    public function issueToken(User $user): array
     {
         $user->loadMissing('roles');
 

@@ -9,7 +9,7 @@ import {
 } from '../../../../services/comment-report.service';
 import { ToastService } from '../../../../services/toast.service';
 
-type ReportStatus = 'Pendente' | 'Resolvida' | 'Arquivada';
+type ReportStatus = 'Pendente' | 'Aprovada' | 'Reprovada';
 type ReportPriority = 'Alta prioridade' | 'Média prioridade' | 'Baixa prioridade';
 type ReportTone = 'red' | 'orange' | 'green';
 
@@ -63,7 +63,6 @@ export class AdminReportsPage {
   private readonly toastService = inject(ToastService);
 
   searchTerm = '';
-  selectedStatus = 'Todos os status';
   activeTab = 'Todas';
   highPriorityOnly = false;
   selectedReport: ReportItem | null = null;
@@ -80,14 +79,13 @@ export class AdminReportsPage {
 
   get metrics(): ReportMetric[] {
     const pending = this.countByStatus('Pendente');
-    const resolved = this.countByStatus('Resolvida');
-    const archived = this.countByStatus('Arquivada');
+    const approved = this.countByStatus('Aprovada');
+    const rejected = this.countByStatus('Reprovada');
 
     return [
       { label: 'Pendentes', value: String(pending), change: 'Aguardam moderação', icon: 'warning', tone: 'orange' },
-      { label: 'Resolvidas', value: String(resolved), change: 'Comentário ocultado', icon: 'check', tone: 'green' },
-      { label: 'Arquivadas', value: String(archived), change: 'Sem ação no conteúdo', icon: 'archive', tone: 'purple' },
-      { label: 'Itens moderados', value: String(resolved), change: 'Ocultados por denúncia', icon: 'block', tone: 'red' },
+      { label: 'Aprovadas', value: String(approved), change: 'Comentário removido da visualização', icon: 'check', tone: 'green' },
+      { label: 'Reprovadas', value: String(rejected), change: 'Comentário mantido', icon: 'cancel', tone: 'purple' },
       { label: 'Total de denúncias', value: String(this.reports.length), change: 'Carregado da API', icon: 'description', tone: 'blue' },
     ];
   }
@@ -96,8 +94,8 @@ export class AdminReportsPage {
     return [
       { label: 'Todas', count: this.reports.length },
       { label: 'Pendentes', count: this.countByStatus('Pendente'), status: 'Pendente' },
-      { label: 'Resolvidas', count: this.countByStatus('Resolvida'), status: 'Resolvida' },
-      { label: 'Arquivadas', count: this.countByStatus('Arquivada'), status: 'Arquivada' },
+      { label: 'Aprovadas', count: this.countByStatus('Aprovada'), status: 'Aprovada' },
+      { label: 'Reprovadas', count: this.countByStatus('Reprovada'), status: 'Reprovada' },
     ];
   }
 
@@ -165,7 +163,6 @@ export class AdminReportsPage {
     return this.reports.filter((report) => {
       const matchesTab = this.activeTab === 'Todas' || this.tabs.find((tab) => tab.label === this.activeTab)?.status === report.status;
       const matchesPriority = !this.highPriorityOnly || report.priority === 'Alta prioridade';
-      const matchesStatus = this.selectedStatus === 'Todos os status' || report.status === this.selectedStatus;
       const matchesSearch =
         !query ||
         [
@@ -178,7 +175,7 @@ export class AdminReportsPage {
           report.description,
         ].some((value) => value.toLowerCase().includes(query));
 
-      return matchesTab && matchesPriority && matchesStatus && matchesSearch;
+      return matchesTab && matchesPriority && matchesSearch;
     });
   }
 
@@ -225,11 +222,6 @@ export class AdminReportsPage {
     this.resetPagination();
   }
 
-  updateStatus(event: Event): void {
-    this.selectedStatus = (event.target as HTMLSelectElement).value;
-    this.resetPagination();
-  }
-
   setActiveTab(tab: ReportTab): void {
     this.activeTab = tab.label;
     this.resetPagination();
@@ -250,7 +242,7 @@ export class AdminReportsPage {
     try {
       const updated = await this.commentReports.approve(this.selectedReport.id);
       this.replaceReport(updated);
-      this.toastService.success('Denúncia aprovada e comentário ocultado.');
+      this.toastService.success('Denúncia aprovada. O comentário foi removido da visualização.');
     } catch (error) {
       this.toastService.error(error instanceof Error ? error.message : 'Não foi possível aprovar a denúncia.');
     } finally {
@@ -268,9 +260,9 @@ export class AdminReportsPage {
     try {
       const updated = await this.commentReports.reject(this.selectedReport.id);
       this.replaceReport(updated);
-      this.toastService.success('Denúncia arquivada.');
+      this.toastService.success('Denúncia reprovada. O comentário foi mantido.');
     } catch (error) {
-      this.toastService.error(error instanceof Error ? error.message : 'Não foi possível arquivar a denúncia.');
+      this.toastService.error(error instanceof Error ? error.message : 'Não foi possível reprovar a denúncia.');
     } finally {
       this.isModerating = false;
     }
@@ -334,18 +326,18 @@ export class AdminReportsPage {
 
   private toReportStatus(status: BackendCommentReport['status']): ReportStatus {
     if (status === 'approved') {
-      return 'Resolvida';
+      return 'Aprovada';
     }
 
     if (status === 'rejected') {
-      return 'Arquivada';
+      return 'Reprovada';
     }
 
     return 'Pendente';
   }
 
   private toPriority(reason: string, hiddenAt: string | null | undefined, status: ReportStatus): ReportPriority {
-    if (hiddenAt || status === 'Resolvida') {
+    if (hiddenAt || status === 'Aprovada') {
       return 'Alta prioridade';
     }
 
@@ -361,8 +353,12 @@ export class AdminReportsPage {
   }
 
   private toTone(status: ReportStatus, priority: ReportPriority): ReportTone {
-    if (status === 'Resolvida') {
+    if (status === 'Aprovada') {
       return 'green';
+    }
+
+    if (status === 'Reprovada') {
+      return 'orange';
     }
 
     if (priority === 'Alta prioridade') {

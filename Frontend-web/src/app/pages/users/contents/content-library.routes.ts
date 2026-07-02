@@ -547,6 +547,7 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
     try {
       const response = await this.contentService.getAll({
         page,
+        perPage: 9,
         search: this.searchTerm().trim(),
         categoryId: this.selectedCategoryId(),
         contentTypeId: this.selectedContentTypeId(),

@@ -79,6 +79,7 @@ export interface ContentPage {
 
 export interface ContentQuery {
   page?: number;
+  perPage?: number;
   search?: string;
   categoryId?: number | string;
   contentTypeId?: number | string;
@@ -112,6 +113,10 @@ export class ContentService {
 
     if (query.page) {
       params = params.set('page', query.page);
+    }
+
+    if (query.perPage) {
+      params = params.set('per_page', query.perPage);
     }
 
     if (query.search) {

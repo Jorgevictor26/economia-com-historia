@@ -23,7 +23,7 @@ readonly class UpdateQuizDTO
             description: $data['description'] ?? null,
             coverUrl: $data['cover_url'] ?? null,
             difficulty: $data['difficulty'] ?? null,
-            xpPerQuestion: isset($data['xp_per_question']) ? (int) $data['xp_per_question'] : null,
+            xpPerQuestion: array_key_exists('xp_per_question', $data) ? 10 : null,
             timeLimit: array_key_exists('time_limit', $data) && $data['time_limit'] !== null
                 ? (int) $data['time_limit']
                 : null,

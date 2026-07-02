@@ -69,6 +69,11 @@ class User extends Authenticatable
         return $this->hasMany(QuizResult::class);
     }
 
+    public function achievements(): HasMany
+    {
+        return $this->hasMany(UserAchievement::class);
+    }
+
     public function commentReports(): HasMany
     {
         return $this->hasMany(CommentReport::class);

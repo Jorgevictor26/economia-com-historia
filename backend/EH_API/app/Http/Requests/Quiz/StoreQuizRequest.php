@@ -18,7 +18,7 @@ class StoreQuizRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'difficulty' => ['required', 'string', 'in:facil,medio,dificil'],
-            'xp_per_question' => ['required', 'integer', 'in:10,15,20'],
+            'xp_per_question' => ['nullable', 'integer', 'in:10'],
             'time_limit' => ['nullable', 'integer', 'min:1'],
         ];
     }

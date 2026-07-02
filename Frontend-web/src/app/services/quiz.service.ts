@@ -85,6 +85,7 @@ export interface CreateQuestionPayload {
 
 export interface SubmitQuizPayload {
   started_at: string;
+  elapsed_seconds?: number;
   answers: Array<{
     question_id: number | string;
     selected_option: 'a' | 'b' | 'c' | 'd';
@@ -96,6 +97,11 @@ export interface QuizSubmitResult {
   total_questions: number;
   percentage: number;
   earned_xp: number;
+  correct_answers: number;
+  wrong_answers: number;
+  duration_seconds: number;
+  best_score: number;
+  is_best: boolean;
 }
 
 export interface QuizUserStats {
@@ -110,10 +116,13 @@ export interface BackendQuizProgress {
   quiz_id: number | string;
   progress_percent: number | string;
   current_question_index?: number | string | null;
+  correct_count?: number | string | null;
+  elapsed_seconds?: number | string | null;
   answered_questions?: Array<{
     question_id: number | string;
     selected_option: 'a' | 'b' | 'c' | 'd';
   }> | null;
+  question_order?: Array<number | string> | null;
   completed_at?: string | null;
   quiz?: BackendQuiz | null;
 }
@@ -121,10 +130,13 @@ export interface BackendQuizProgress {
 export interface UpdateQuizProgressPayload {
   progress_percent: number;
   current_question_index?: number;
+  correct_count?: number;
+  elapsed_seconds?: number;
   answered_questions?: Array<{
     question_id: number | string;
     selected_option: 'a' | 'b' | 'c' | 'd';
   }>;
+  question_order?: Array<number | string>;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -223,7 +235,7 @@ export class QuizService {
       summary: quiz.description || content?.summary || 'Teste os seus conhecimentos sobre este conteudo.',
       coverUrl: quiz.cover_url ?? null,
       difficulty: this.toDifficulty(quiz.difficulty, quiz.time_limit),
-      xp: (quiz.xp_per_question ?? this.xpPerQuestionFromTimeLimit(quiz.time_limit)) * Math.max(totalQuestions, 1),
+      xp: Math.max(totalQuestions, 1) * 10 + (totalQuestions === 10 ? 10 : 0),
       streakReward: 0,
       estimatedMinutes: quiz.time_limit ?? Math.max(totalQuestions * 2, 1),
       relatedContent: {
@@ -266,7 +278,4 @@ export class QuizService {
     return 'dificil';
   }
 
-  private xpPerQuestionFromTimeLimit(timeLimit: number | null | undefined): number {
-    return !timeLimit || timeLimit <= 5 ? 10 : timeLimit <= 10 ? 15 : 20;
-  }
 }

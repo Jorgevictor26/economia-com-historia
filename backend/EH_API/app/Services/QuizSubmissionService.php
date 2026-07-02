@@ -8,6 +8,7 @@ use App\DTOs\Quiz\SubmitQuizDTO;
 use App\DTOs\ContentProgress\UpdateContentProgressDTO;
 use App\DTOs\QuizProgress\UpdateQuizProgressDTO;
 use App\Models\QuizResult;
+use App\Models\UserAchievement;
 use App\Repositories\QuizAnswerRepository;
 use App\Repositories\QuizRepository;
 use App\Repositories\QuizResultRepository;
@@ -33,8 +34,8 @@ class QuizSubmissionService
         $questions = $quiz->questions;
         $totalQuestions = $questions->count();
 
-        if ($totalQuestions === 0) {
-            throw new UnprocessableEntityHttpException('Quiz has no questions');
+        if ($totalQuestions !== 10) {
+            throw new UnprocessableEntityHttpException('Quiz must have exactly 10 questions');
         }
 
         $this->validateTimeLimit($quiz->time_limit, $dto->startedAt);
@@ -56,7 +57,7 @@ class QuizSubmissionService
 
         return DB::transaction(function () use ($dto, $questionsById, $totalQuestions, $quiz): array {
             $savedAnswers = collect();
-            $score = 0;
+            $correctAnswers = 0;
 
             foreach ($dto->answers as $answer) {
                 $question = $questionsById->get((int) $answer['question_id']);
@@ -64,31 +65,52 @@ class QuizSubmissionService
                 $isCorrect = $question->correct_option === $selectedOption;
 
                 if ($isCorrect) {
-                    $score++;
+                    $correctAnswers++;
                 }
-
-                $savedAnswers->push($this->answers->create(
-                    (new QuizAnswerDTO(
-                        questionId: $question->id,
-                        userId: $dto->userId,
-                        selectedOption: $selectedOption,
-                        isCorrect: $isCorrect,
-                    ))->toArray()
-                ));
             }
 
-            $percentage = round(($score / $totalQuestions) * 100, 2);
-            $earnedXp = $score * (int) $quiz->xp_per_question;
+            $wrongAnswers = $totalQuestions - $correctAnswers;
+            $percentage = round(($correctAnswers / $totalQuestions) * 100, 2);
+            $score = ($correctAnswers * 10) + ($correctAnswers === $totalQuestions ? 10 : 0);
+            $durationSeconds = $this->durationSeconds($dto);
+            $previousBest = $this->results->bestByQuizAndUser($dto->quizId, $dto->userId);
+            $isBest = ! $previousBest
+                || $score > $previousBest->score
+                || ($score === $previousBest->score && $durationSeconds > 0 && $durationSeconds < $previousBest->duration_seconds);
             $result = $this->results->create(
                 (new QuizResultDTO(
                     quizId: $dto->quizId,
                     userId: $dto->userId,
                     score: $score,
                     totalQuestions: $totalQuestions,
+                    correctAnswers: $correctAnswers,
+                    wrongAnswers: $wrongAnswers,
                     percentage: $percentage,
-                    earnedXp: $earnedXp,
+                    earnedXp: $score,
+                    durationSeconds: $durationSeconds,
+                    isBest: $isBest,
                 ))->toArray()
             );
+
+            foreach ($dto->answers as $answer) {
+                $question = $questionsById->get((int) $answer['question_id']);
+                $selectedOption = strtolower($answer['selected_option']);
+
+                $savedAnswers->push($this->answers->create([
+                    ...((new QuizAnswerDTO(
+                        questionId: $question->id,
+                        userId: $dto->userId,
+                        selectedOption: $selectedOption,
+                        isCorrect: $question->correct_option === $selectedOption,
+                    ))->toArray()),
+                    'quiz_result_id' => $result->id,
+                ]));
+            }
+
+            if ($isBest) {
+                $this->results->markBestForQuizAndUser($result);
+                $result->refresh();
+            }
 
             if ($quiz->content_id !== null) {
                 $this->contentProgress->update(new UpdateContentProgressDTO(
@@ -110,7 +132,12 @@ class QuizSubmissionService
                     ])
                     ->values()
                     ->all(),
+                correctCount: $correctAnswers,
+                elapsedSeconds: $durationSeconds,
+                questionOrder: collect($dto->answers)->pluck('question_id')->values()->all(),
             ));
+
+            $this->grantAchievements($dto->userId, $quiz->id);
 
             return $this->formatResult($result, $savedAnswers);
         });
@@ -124,7 +151,7 @@ class QuizSubmissionService
             return null;
         }
 
-        $answers = $this->answers->latestByQuizAndUser($quizId, $userId, $result->total_questions);
+        $answers = $this->answers->byResult($result->id);
 
         return $this->formatResult($result, $answers);
     }
@@ -164,9 +191,61 @@ class QuizSubmissionService
             'total_questions' => $result->total_questions,
             'percentage' => (float) $result->percentage,
             'earned_xp' => $result->earned_xp,
-            'correct_answers' => $correctAnswers,
-            'wrong_answers' => $wrongAnswers,
+            'correct_answers' => $result->correct_answers ?: $correctAnswers,
+            'wrong_answers' => $result->wrong_answers ?: $wrongAnswers,
+            'duration_seconds' => $result->duration_seconds,
+            'best_score' => $this->results->bestByQuizAndUser((int) $result->quiz_id, (int) $result->user_id)?->score ?? $result->score,
+            'is_best' => $result->is_best,
             'answers' => $answers->values(),
         ];
+    }
+
+    private function durationSeconds(SubmitQuizDTO $dto): int
+    {
+        if ($dto->elapsedSeconds > 0) {
+            return $dto->elapsedSeconds;
+        }
+
+        return max(0, Carbon::parse($dto->startedAt)->diffInSeconds(now()));
+    }
+
+    private function grantAchievements(int $userId, int $quizId): void
+    {
+        $bestResults = $this->results->bestResultsByUser($userId);
+        $completedCount = $bestResults->count();
+        $currentBest = $bestResults->firstWhere('quiz_id', $quizId);
+
+        $this->grantAchievement($userId, 'primeiro_quiz', 'Primeiro Quiz', 'bronze', $completedCount >= 1);
+        $this->grantAchievement($userId, 'estudioso', 'Estudioso', 'silver', $completedCount >= 10);
+        $this->grantAchievement($userId, 'mestre', 'Mestre', 'gold', (float) ($currentBest?->percentage ?? 0) >= 100);
+
+        $theme = $currentBest?->quiz?->content?->category?->name;
+        if ($theme) {
+            $themeQuizzes = $this->quizzes->allByTheme($theme);
+            $perfectThemeQuizIds = $bestResults
+                ->filter(fn (QuizResult $result) => $result->quiz?->content?->category?->name === $theme && (float) $result->percentage >= 100)
+                ->pluck('quiz_id')
+                ->unique();
+
+            $this->grantAchievement(
+                $userId,
+                'especialista_'.strtolower(preg_replace('/[^a-z0-9]+/i', '_', $theme)),
+                'Especialista',
+                'trophy',
+                $themeQuizzes->isNotEmpty() && $perfectThemeQuizIds->count() === $themeQuizzes->count()
+            );
+        }
+    }
+
+    private function grantAchievement(int $userId, string $code, string $name, string $level, bool $condition): void
+    {
+        if (! $condition) {
+            return;
+        }
+
+        UserAchievement::firstOrCreate(
+            ['user_id' => $userId, 'code' => $code],
+            ['name' => $name, 'level' => $level, 'earned_at' => now()]
+        );
     }
 }

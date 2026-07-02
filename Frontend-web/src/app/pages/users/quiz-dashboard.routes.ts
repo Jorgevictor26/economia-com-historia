@@ -1,11 +1,20 @@
 ﻿import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink, Routes } from '@angular/router';
+import { OnDestroy } from '@angular/core';
 import { AuthStateService } from '../../services/auth-state.service';
 import { QuizService, QuizSubmitResult } from '../../services/quiz.service';
 import { ToastService } from '../../services/toast.service';
-import { Quiz } from '../../models/quiz.model';
+import { Quiz, QuizQuestion } from '../../models/quiz.model';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
+
+interface QuizProgressSnapshot {
+  currentQuestionIndex: number;
+  correctCount: number;
+  elapsedSeconds: number;
+  answers: Array<{ question_id: string; selected_option: 'a' | 'b' | 'c' | 'd' }>;
+  questionOrder: string[];
+}
 
 @Component({
   selector: 'app-quiz-dashboard-page',
@@ -181,7 +190,7 @@ export class QuizDashboardPage {
   imports: [RouterLink],
   templateUrl: './quiz-play.page.html'
 })
-export class QuizPlayPage {
+export class QuizPlayPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   readonly quizService = inject(QuizService);
   readonly auth = inject(AuthStateService);
@@ -197,13 +206,23 @@ export class QuizPlayPage {
   readonly submitError = signal('');
   readonly submitResult = signal<QuizSubmitResult | null>(null);
   readonly selectedAnswers = signal<Array<{ question_id: string; selected_option: 'a' | 'b' | 'c' | 'd' }>>([]);
-  readonly startedAt = new Date().toISOString();
+  readonly resumePromptOpen = signal(false);
+  readonly savedProgress = signal<QuizProgressSnapshot | null>(null);
+  readonly baseElapsedSeconds = signal(0);
+  readonly attemptStartedAt = signal(Date.now());
+  readonly startedAt = signal(new Date().toISOString());
+  readonly nowTick = signal(Date.now());
+  private readonly elapsedTimerId = window.setInterval(() => this.nowTick.set(Date.now()), 1000);
 
   readonly totalQuestions = computed(() => this.quiz()?.questions.length ?? 0);
   readonly currentQuestion = computed(() => this.quiz()!.questions[this.currentIndex()]);
   readonly progressPercent = computed(() => (this.totalQuestions() ? (this.selectedAnswers().length / this.totalQuestions()) * 100 : 0));
   readonly correctAnswer = computed(() => this.currentQuestion().options[this.currentQuestion().answerIndex]);
-  readonly earnedXp = computed(() => this.submitResult()?.earned_xp ?? Math.round(((this.correctCount() / Math.max(this.totalQuestions(), 1)) * (this.quiz()?.xp ?? 0))));
+  readonly elapsedSeconds = computed(() => this.baseElapsedSeconds() + Math.floor((this.nowTick() - this.attemptStartedAt()) / 1000));
+  readonly earnedXp = computed(() => this.submitResult()?.score ?? this.scoreFromCorrect(this.correctCount(), this.totalQuestions()));
+  readonly wrongCount = computed(() => this.submitResult()?.wrong_answers ?? Math.max(this.totalQuestions() - this.correctCount(), 0));
+  readonly aproveitamento = computed(() => this.submitResult()?.percentage ?? Math.round((this.correctCount() / Math.max(this.totalQuestions(), 1)) * 100));
+  readonly bestScore = computed(() => this.submitResult()?.best_score ?? 0);
 
   constructor() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -211,6 +230,10 @@ export class QuizPlayPage {
     if (id) {
       void this.loadQuiz(id);
     }
+  }
+
+  ngOnDestroy(): void {
+    window.clearInterval(this.elapsedTimerId);
   }
 
   selectOption(index: number): void {
@@ -260,7 +283,9 @@ export class QuizPlayPage {
     this.isLoading.set(true);
 
     try {
-      this.quiz.set(await this.quizService.getById(id));
+      const quiz = this.withQuestionOrder(await this.quizService.getById(id));
+      this.quiz.set(quiz);
+      await this.loadSavedProgress(id);
     } catch {
       this.quiz.set(undefined);
     } finally {
@@ -279,7 +304,8 @@ export class QuizPlayPage {
 
     try {
       const result = await this.quizService.submit(quiz.id, {
-        started_at: this.startedAt,
+        started_at: this.startedAt(),
+        elapsed_seconds: this.currentElapsedSeconds(),
         answers: this.selectedAnswers(),
       });
       this.submitResult.set(result);
@@ -302,6 +328,9 @@ export class QuizPlayPage {
         progress_percent: Math.min(99, Math.round((this.selectedAnswers().length / this.totalQuestions()) * 100)),
         current_question_index: this.currentIndex(),
         answered_questions: this.selectedAnswers(),
+        correct_count: this.correctCount(),
+        elapsed_seconds: this.currentElapsedSeconds(),
+        question_order: this.questionOrder(),
       });
     } catch {
       // Progress is useful for resume, but quiz answering must remain uninterrupted.
@@ -320,6 +349,9 @@ export class QuizPlayPage {
         progress_percent: 100,
         current_question_index: Math.max(this.totalQuestions() - 1, 0),
         answered_questions: this.selectedAnswers(),
+        correct_count: this.correctCount(),
+        elapsed_seconds: this.currentElapsedSeconds(),
+        question_order: this.questionOrder(),
       });
     } catch {
       // The backend submission also marks quiz progress after saving the result.
@@ -347,6 +379,144 @@ export class QuizPlayPage {
     gain.connect(context.destination);
     oscillator.start();
     oscillator.stop(context.currentTime + 0.24);
+  }
+
+  continueSavedQuiz(): void {
+    const progress = this.savedProgress();
+
+    if (!progress || !this.quiz()) {
+      this.resumePromptOpen.set(false);
+      return;
+    }
+
+    this.applyQuestionOrder(progress.questionOrder);
+    this.selectedAnswers.set(progress.answers);
+    this.correctCount.set(progress.correctCount);
+    this.baseElapsedSeconds.set(progress.elapsedSeconds);
+    this.attemptStartedAt.set(Date.now());
+    this.startedAt.set(new Date(Date.now() - progress.elapsedSeconds * 1000).toISOString());
+    this.currentIndex.set(this.nextQuestionIndex(progress));
+    this.selectedIndex.set(null);
+    this.answered.set(false);
+    this.isCorrect.set(false);
+    this.resumePromptOpen.set(false);
+  }
+
+  async restartQuiz(): Promise<void> {
+    const quiz = this.quiz();
+
+    if (!quiz) {
+      return;
+    }
+
+    this.quiz.set(this.withQuestionOrder(quiz));
+    this.currentIndex.set(0);
+    this.selectedIndex.set(null);
+    this.answered.set(false);
+    this.correctCount.set(0);
+    this.finished.set(false);
+    this.isCorrect.set(false);
+    this.submitResult.set(null);
+    this.selectedAnswers.set([]);
+    this.baseElapsedSeconds.set(0);
+    this.attemptStartedAt.set(Date.now());
+    this.startedAt.set(new Date().toISOString());
+    this.resumePromptOpen.set(false);
+
+    await this.quizService.updateProgress(quiz.id, {
+      progress_percent: 0,
+      current_question_index: 0,
+      answered_questions: [],
+      correct_count: 0,
+      elapsed_seconds: 0,
+      question_order: this.questionOrder(),
+    }).catch(() => undefined);
+  }
+
+  formatDuration(seconds: number | null | undefined): string {
+    const safeSeconds = Math.max(0, Math.floor(Number(seconds ?? 0)));
+    const minutes = Math.floor(safeSeconds / 60);
+    const remainingSeconds = safeSeconds % 60;
+
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  }
+
+  private async loadSavedProgress(quizId: string): Promise<void> {
+    try {
+      const progresses = await this.quizService.getProgress(12);
+      const progress = progresses.find((item) => String(item.quiz_id) === String(quizId));
+
+      if (!progress || Number(progress.progress_percent) <= 0 || Number(progress.progress_percent) >= 100) {
+        return;
+      }
+
+      this.savedProgress.set(this.progressSnapshot(progress));
+      this.resumePromptOpen.set(true);
+    } catch {
+      this.savedProgress.set(null);
+    }
+  }
+
+  private progressSnapshot(progress: {
+    current_question_index?: number | string | null;
+    correct_count?: number | string | null;
+    elapsed_seconds?: number | string | null;
+    answered_questions?: Array<{ question_id: number | string; selected_option: 'a' | 'b' | 'c' | 'd' }> | null;
+    question_order?: Array<number | string> | null;
+  }): QuizProgressSnapshot {
+    return {
+      currentQuestionIndex: Number(progress.current_question_index ?? 0),
+      correctCount: Number(progress.correct_count ?? 0),
+      elapsedSeconds: Number(progress.elapsed_seconds ?? 0),
+      answers: (progress.answered_questions ?? []).map((answer) => ({
+        question_id: String(answer.question_id),
+        selected_option: answer.selected_option,
+      })),
+      questionOrder: (progress.question_order ?? []).map((questionId) => String(questionId)),
+    };
+  }
+
+  private nextQuestionIndex(progress: QuizProgressSnapshot): number {
+    const answeredIds = new Set(progress.answers.map((answer) => String(answer.question_id)));
+    const nextIndex = this.quiz()?.questions.findIndex((question) => !answeredIds.has(question.id)) ?? 0;
+
+    return Math.max(nextIndex, 0);
+  }
+
+  private withQuestionOrder(quiz: Quiz): Quiz {
+    return {
+      ...quiz,
+      questions: [...quiz.questions].sort(() => Math.random() - 0.5).slice(0, 10),
+    };
+  }
+
+  private applyQuestionOrder(questionOrder: string[]): void {
+    const quiz = this.quiz();
+
+    if (!quiz || !questionOrder.length) {
+      return;
+    }
+
+    const byId = new Map(quiz.questions.map((question) => [question.id, question] as const));
+    const ordered = questionOrder
+      .map((questionId) => byId.get(questionId))
+      .filter((question): question is QuizQuestion => Boolean(question));
+
+    if (ordered.length === quiz.questions.length) {
+      this.quiz.set({ ...quiz, questions: ordered });
+    }
+  }
+
+  private questionOrder(): string[] {
+    return this.quiz()?.questions.map((question) => question.id) ?? [];
+  }
+
+  private currentElapsedSeconds(): number {
+    return this.baseElapsedSeconds() + Math.floor((Date.now() - this.attemptStartedAt()) / 1000);
+  }
+
+  private scoreFromCorrect(correct: number, total: number): number {
+    return (correct * 10) + (total === 10 && correct === total ? 10 : 0);
   }
 }
 

@@ -129,7 +129,7 @@ export class ForumCreatePage {
   }
 
   saveDraft(): void {
-    this.showError('O backend ainda nao tem rascunho para forum. Use Publicar forum para enviar para aprovacao.');
+    this.showError('O backend ainda nao tem rascunho para forum. Use Publicar forum para publicar agora.');
   }
 
   async publish(): Promise<void> {
@@ -139,7 +139,7 @@ export class ForumCreatePage {
 
     this.formError.set('');
     this.isSaving.set(true);
-    this.status.set('A enviar para aprovacao...');
+    this.status.set('A publicar forum...');
 
     try {
       await this.forumService.create({
@@ -156,9 +156,9 @@ export class ForumCreatePage {
         content_ids: this.selectedContentIds(),
       });
 
-      this.status.set('Enviado para aprovacao');
+      this.status.set('Publicado');
       this.previewOpen.set(false);
-      this.toastService.success('Forum enviado para aprovacao.');
+      this.toastService.success('Forum publicado com sucesso.');
     } catch (error) {
       this.status.set('Rascunho');
       this.showError(this.errorMessage(error));

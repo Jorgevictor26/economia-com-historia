@@ -16,7 +16,11 @@ class UpdateQuizProgressRequest extends FormRequest
         return [
             'progress_percent' => ['required', 'integer', 'min:0', 'max:100'],
             'current_question_index' => ['nullable', 'integer', 'min:0'],
+            'correct_count' => ['nullable', 'integer', 'min:0', 'max:10'],
+            'elapsed_seconds' => ['nullable', 'integer', 'min:0', 'max:86400'],
             'answered_questions' => ['nullable', 'array'],
+            'question_order' => ['nullable', 'array'],
+            'question_order.*' => ['integer', 'distinct'],
         ];
     }
 }

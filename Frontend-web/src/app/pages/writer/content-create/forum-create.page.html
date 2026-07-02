@@ -139,8 +139,8 @@
             @if (formError()) {
               <p class="mt-3 text-[13px] font-bold text-[#B42318]">{{ formError() }}</p>
             }
-            @if (status() === 'Enviado para aprovacao') {
-              <p class="mt-3 text-[13px] font-bold text-[#5C1E2F]">Forum enviado. Ele fica visivel depois de aprovado.</p>
+            @if (status() === 'Publicado') {
+              <p class="mt-3 text-[13px] font-bold text-[#5C1E2F]">Forum publicado e disponivel para os utilizadores.</p>
             }
           </section>
         }

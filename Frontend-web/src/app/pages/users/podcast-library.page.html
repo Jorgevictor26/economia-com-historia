@@ -302,7 +302,7 @@
 
                     @if (areRepliesOpen(comment.id)) {
                       @for (reply of comment.replies; track reply.id) {
-                        <div class="mt-6 flex gap-4 border-l border-[#E0E0E0] pl-7">
+                          <div class="mt-6 flex gap-4 border-l border-[#E0E0E0] pl-7">
                           <span
                             class="grid size-7 shrink-0 place-items-center overflow-hidden rounded-[7px] bg-[#E0E0E0] text-[9px] font-bold text-[#9E9E9E]">
                             @if (reply.authorPhotoUrl) {
@@ -312,13 +312,50 @@
                             }
                           </span>
                           <div class="min-w-0 flex-1">
-                            <div class="flex flex-wrap items-center gap-3">
-                              <p class="text-[12px] font-medium text-[#5c1e2f]">{{ reply.author }}</p>
-                              <span class="text-[10px] text-[#9E9E9E]">{{ formatDate(reply.createdAt) }}</span>
-                            </div>
-                            <p class="mt-1 text-[12px] leading-5 text-[#212121]">
-                              {{ reply.text }}
-                            </p>
+                              <div class="flex items-start justify-between gap-3">
+                                <div class="flex flex-wrap items-center gap-3">
+                                  <p class="text-[12px] font-medium text-[#5c1e2f]">{{ reply.author }}</p>
+                                  <span class="text-[10px] text-[#9E9E9E]">{{ formatDate(reply.createdAt) }}</span>
+                                </div>
+                                <details class="relative shrink-0">
+                                  <summary class="grid size-7 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" aria-label="Mais ações da resposta">
+                                    <span class="material-symbols-outlined text-[20px] leading-none">more_horiz</span>
+                                  </summary>
+                                  <div class="absolute right-0 z-20 mt-2 grid min-w-36 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
+                                    @if (canManageReply(reply)) {
+                                      <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" (click)="openEditReply(comment, reply)">
+                                        <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
+                                        <span>Editar</span>
+                                      </button>
+                                      <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]" (click)="deleteReply(comment, reply)">
+                                        <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
+                                        <span>Apagar</span>
+                                      </button>
+                                    } @else {
+                                      <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" (click)="openReportReply($event, reply)">
+                                        <span class="material-symbols-outlined text-[17px] leading-none">flag</span>
+                                        <span>Denunciar</span>
+                                      </button>
+                                    }
+                                  </div>
+                                </details>
+                              </div>
+
+                              @if (editingReplyId() === reply.id) {
+                                <div class="mt-3">
+                                  <textarea #editReplyInput class="h-[70px] w-full resize-none border border-[#E0E0E0] bg-[#F5F5F5] p-3 text-[12px] outline-none placeholder:text-[#BDBDBD] focus:border-[#8A3F50]">{{ reply.text }}</textarea>
+                                  <div class="-mt-px flex justify-end gap-2">
+                                    <button type="button" class="h-9 px-4 text-[11px] font-bold text-[#616161]" (click)="cancelEditReply()">Cancelar</button>
+                                    <button type="button" class="h-9 bg-[#5C1E2F] px-5 text-[11px] font-bold text-white disabled:opacity-60" [disabled]="isSavingEditedComment()" (click)="saveEditedReply(comment.id, reply.id, editReplyInput.value)">
+                                      {{ isSavingEditedComment() ? 'A guardar...' : 'Guardar' }}
+                                    </button>
+                                  </div>
+                                </div>
+                              } @else {
+                                <p class="mt-1 text-[12px] leading-5 text-[#212121]">
+                                  {{ reply.text }}
+                                </p>
+                              }
                           </div>
                         </div>
                       }

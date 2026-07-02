@@ -46,6 +46,7 @@ interface ContentDetail {
 
 interface CommentView {
   id: string;
+  ownerId?: string;
   author: string;
   authorInitials: string;
   authorPhotoUrl?: string;
@@ -56,6 +57,7 @@ interface CommentView {
 
 interface CommentReplyView {
   id: string;
+  ownerId?: string;
   author: string;
   authorInitials: string;
   authorPhotoUrl?: string;
@@ -87,12 +89,31 @@ interface VideoDetail {
   quote: string;
 }
 
-interface VideoComment {
+interface VideoCommentView {
+  id: string;
+  ownerId?: string;
   author: string;
-  initials: string;
-  time: string;
+  authorInitials: string;
+  authorPhotoUrl?: string;
   text: string;
-  likes: number;
+  createdAt?: string | null;
+  replies: VideoCommentReplyView[];
+}
+
+interface VideoCommentReplyView {
+  id: string;
+  ownerId?: string;
+  author: string;
+  authorInitials: string;
+  authorPhotoUrl?: string;
+  text: string;
+  createdAt?: string | null;
+}
+
+interface CommentReportTarget {
+  id: string;
+  author: string;
+  text: string;
 }
 
 interface PageToast {
@@ -648,6 +669,8 @@ export class ContentDetailPage implements OnDestroy {
   readonly isSavingContent = signal(false);
   readonly isCommentComposerOpen = signal(false);
   readonly replyingToCommentId = signal<string | null>(null);
+  readonly editingCommentId = signal<string | null>(null);
+  readonly editingReplyId = signal<string | null>(null);
   readonly shareMenuOpen = signal(false);
   readonly commentError = signal('');
   readonly commentSuccess = signal('');
@@ -733,6 +756,163 @@ export class ContentDetailPage implements OnDestroy {
     this.commentError.set('');
     this.commentSuccess.set('');
     this.replyingToCommentId.set(this.replyingToCommentId() === commentId ? null : commentId);
+  }
+
+  canManageComment(comment: CommentView): boolean {
+    const userId = this.auth.user()?.id;
+
+    return Boolean(comment.ownerId && userId && String(comment.ownerId) === String(userId));
+  }
+
+  openEditComment(comment: CommentView): void {
+    if (!this.canManageComment(comment)) {
+      this.showToast('Apenas o dono pode editar este comentário.', 'error');
+      return;
+    }
+
+    this.commentError.set('');
+    this.commentSuccess.set('');
+    this.replyingToCommentId.set(null);
+    this.editingCommentId.set(comment.id);
+  }
+
+  cancelEditComment(): void {
+    this.editingCommentId.set(null);
+  }
+
+  async saveEditedComment(commentId: string, value: string): Promise<void> {
+    const contentId = this.detail()?.id;
+    const comment = value.trim();
+
+    this.commentError.set('');
+    this.commentSuccess.set('');
+
+    if (!contentId || !comment || this.isSavingComment()) {
+      this.commentError.set('Escreva um comentário antes de guardar.');
+      return;
+    }
+
+    this.isSavingComment.set(true);
+
+    try {
+      await this.commentService.update(commentId, comment);
+      await this.loadComments(contentId);
+      this.commentSuccess.set('Comentário atualizado com sucesso.');
+      this.editingCommentId.set(null);
+    } catch {
+      this.commentError.set('Não foi possível atualizar o comentário.');
+    } finally {
+      this.isSavingComment.set(false);
+    }
+  }
+
+  async deleteComment(comment: CommentView): Promise<void> {
+    const contentId = this.detail()?.id;
+
+    if (!contentId || !this.canManageComment(comment)) {
+      this.showToast('Apenas o dono pode apagar este comentário.', 'error');
+      return;
+    }
+
+    const confirmed = await this.confirmService.confirm('Apagar este comentário?');
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await this.commentService.delete(comment.id);
+      await this.loadComments(contentId);
+      this.commentSuccess.set('Comentário apagado com sucesso.');
+    } catch {
+      this.commentError.set('Não foi possível apagar o comentário.');
+    }
+  }
+
+  canManageReply(reply: CommentReplyView): boolean {
+    const userId = this.auth.user()?.id;
+
+    return Boolean(reply.ownerId && userId && String(reply.ownerId) === String(userId));
+  }
+
+  openEditReply(comment: CommentView, reply: CommentReplyView): void {
+    if (!this.canManageReply(reply)) {
+      this.showToast('Apenas o dono pode editar esta resposta.', 'error');
+      return;
+    }
+
+    this.replyingToCommentId.set(null);
+    this.editingReplyId.set(reply.id);
+  }
+
+  cancelEditReply(): void {
+    this.editingReplyId.set(null);
+  }
+
+  async saveEditedReply(commentId: string, replyId: string, value: string): Promise<void> {
+    const contentId = this.detail()?.id;
+    const reply = value.trim();
+
+    this.commentError.set('');
+    this.commentSuccess.set('');
+
+    if (!contentId || !reply || this.isSavingComment()) {
+      this.commentError.set('Escreva uma resposta antes de guardar.');
+      return;
+    }
+
+    this.isSavingComment.set(true);
+
+    try {
+      await this.commentService.updateReply(replyId, reply);
+      await this.loadComments(contentId);
+      this.commentSuccess.set('Resposta atualizada com sucesso.');
+      this.editingReplyId.set(null);
+    } catch {
+      this.commentError.set('Não foi possível atualizar a resposta.');
+    } finally {
+      this.isSavingComment.set(false);
+    }
+  }
+
+  async deleteReply(comment: CommentView, reply: CommentReplyView): Promise<void> {
+    const contentId = this.detail()?.id;
+
+    if (!contentId || !this.canManageReply(reply)) {
+      this.showToast('Apenas o dono pode apagar esta resposta.', 'error');
+      return;
+    }
+
+    const confirmed = await this.confirmService.confirm('Apagar esta resposta?');
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await this.commentService.deleteReply(reply.id);
+      await this.loadComments(contentId);
+      this.commentSuccess.set('Resposta apagada com sucesso.');
+    } catch {
+      this.commentError.set('Não foi possível apagar a resposta.');
+    }
+  }
+
+  openReportReply(event: Event, reply: CommentReplyView): void {
+    if (!this.auth.isAuthenticated()) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.requireLogin(event, 'denunciar comentário');
+      return;
+    }
+
+    if (!this.canManageReply(reply)) {
+      this.reportTarget.set({ id: reply.id, author: reply.author, text: reply.text });
+      this.reportReason.set('offensive_comment');
+      this.reportDescription.set('');
+      this.reportError.set('');
+      return;
+    }
+
+    this.showToast('Não podes denunciar a tua própria resposta.', 'error');
   }
 
   async react(event: Event): Promise<void> {
@@ -966,6 +1146,11 @@ export class ContentDetailPage implements OnDestroy {
 
     event.preventDefault();
     event.stopPropagation();
+    if (this.canManageComment(comment)) {
+      this.showToast('Não podes denunciar o teu próprio comentário.', 'error');
+      return;
+    }
+
     this.reportTarget.set({
       id: comment.id,
       author: comment.author,
@@ -1095,6 +1280,7 @@ export class ContentDetailPage implements OnDestroy {
 
     return {
       id: String(comment.id),
+      ownerId: this.commentOwnerId(comment),
       author: authorName,
       authorInitials: this.getInitials(authorName),
       authorPhotoUrl: normalizeMediaUrl(comment.user?.photo),
@@ -1105,6 +1291,7 @@ export class ContentDetailPage implements OnDestroy {
 
         return {
           id: String(reply.id),
+          ownerId: reply.user?.id ? String(reply.user.id) : undefined,
           author: replyAuthor,
           authorInitials: this.getInitials(replyAuthor),
           authorPhotoUrl: normalizeMediaUrl(reply.user?.photo),
@@ -1113,6 +1300,12 @@ export class ContentDetailPage implements OnDestroy {
         };
       }),
     };
+  }
+
+  private commentOwnerId(comment: BackendComment): string | undefined {
+    const ownerId = comment.user_id ?? comment.user?.id;
+
+    return ownerId === undefined || ownerId === null ? undefined : String(ownerId);
   }
 
   formatDate(value: string | null | undefined): string {
@@ -1255,6 +1448,7 @@ export class VideoContentDetailPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly commentService = inject(CommentService);
+  private readonly commentReportService = inject(CommentReportService);
   private readonly contentService = inject(ContentService);
   private readonly reactionService = inject(ReactionService);
   private readonly savedContentService = inject(SavedContentService);
@@ -1267,6 +1461,19 @@ export class VideoContentDetailPage implements OnDestroy {
   readonly isSavingVideoReaction = signal(false);
   readonly isVideoCommentComposerOpen = signal(false);
   readonly isSavingVideoComment = signal(false);
+  readonly isSavingVideoReply = signal(false);
+  readonly editingVideoCommentId = signal<string | null>(null);
+  readonly isSavingEditedReply = signal(false);
+  readonly isLoadingComments = signal(false);
+  readonly replyingToCommentId = signal<string | null>(null);
+  readonly editingReplyId = signal<string | null>(null);
+  readonly commentError = signal('');
+  readonly commentSuccess = signal('');
+  readonly reportTarget = signal<CommentReportTarget | null>(null);
+  readonly reportReason = signal<CommentReportReason>('offensive_comment');
+  readonly reportDescription = signal('');
+  readonly reportError = signal('');
+  readonly isSubmittingReport = signal(false);
   readonly isLoading = signal(false);
   readonly loadError = signal('');
   readonly loadedVideo = signal<VideoDetail | null>(null);
@@ -1290,7 +1497,7 @@ export class VideoContentDetailPage implements OnDestroy {
   ngOnDestroy(): void {
     this.clearToastTimeout();
   }
-  readonly comments = signal<VideoComment[]>([]);
+  readonly comments = signal<VideoCommentView[]>([]);
 
   constructor() {
     void this.loadVideo();
@@ -1443,11 +1650,270 @@ export class VideoContentDetailPage implements OnDestroy {
       await this.commentService.create(contentId, comment);
       await this.loadVideoComments(contentId);
       this.isVideoCommentComposerOpen.set(false);
-      this.showToast('Comentário publicado com sucesso.', 'success');
+      this.commentSuccess.set('Comentário publicado com sucesso.');
     } catch {
-      this.showToast('Não foi possível publicar o comentário.', 'error');
+      this.commentError.set('Não foi possível publicar o comentário.');
     } finally {
       this.isSavingVideoComment.set(false);
+    }
+  }
+
+  toggleReplyComposer(event: Event, commentId: string): void {
+    if (!this.auth.isAuthenticated()) {
+      this.requireLogin(event, 'responder');
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.commentError.set('');
+    this.commentSuccess.set('');
+    this.replyingToCommentId.set(this.replyingToCommentId() === commentId ? null : commentId);
+  }
+
+  canManageVideoComment(comment: VideoCommentView): boolean {
+    const userId = this.auth.user()?.id;
+
+    return Boolean(comment.ownerId && userId && String(comment.ownerId) === String(userId));
+  }
+
+  openEditVideoComment(comment: VideoCommentView): void {
+    if (!this.canManageVideoComment(comment)) {
+      this.showToast('Apenas o dono pode editar este comentário.', 'error');
+      return;
+    }
+
+    this.commentError.set('');
+    this.commentSuccess.set('');
+    this.replyingToCommentId.set(null);
+    this.editingVideoCommentId.set(comment.id);
+  }
+
+  cancelEditVideoComment(): void {
+    this.editingVideoCommentId.set(null);
+  }
+
+  async saveEditedVideoComment(commentId: string, value: string): Promise<void> {
+    const contentId = this.video()?.id;
+    const comment = value.trim();
+
+    this.commentError.set('');
+    this.commentSuccess.set('');
+
+    if (!contentId || !comment || this.isSavingVideoComment()) {
+      this.commentError.set('Escreva um comentário antes de guardar.');
+      return;
+    }
+
+    this.isSavingVideoComment.set(true);
+
+    try {
+      await this.commentService.update(commentId, comment);
+      await this.loadVideoComments(contentId);
+      this.commentSuccess.set('Comentário atualizado com sucesso.');
+      this.editingVideoCommentId.set(null);
+    } catch {
+      this.commentError.set('Não foi possível atualizar o comentário.');
+    } finally {
+      this.isSavingVideoComment.set(false);
+    }
+  }
+
+  async deleteVideoComment(comment: VideoCommentView): Promise<void> {
+    const contentId = this.video()?.id;
+
+    if (!contentId || !this.canManageVideoComment(comment)) {
+      this.showToast('Apenas o dono pode apagar este comentário.', 'error');
+      return;
+    }
+
+    const confirmed = await this.confirmService.confirm('Apagar este comentário?');
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await this.commentService.delete(comment.id);
+      await this.loadVideoComments(contentId);
+      this.commentSuccess.set('Comentário apagado com sucesso.');
+    } catch {
+      this.commentError.set('Não foi possível apagar o comentário.');
+    }
+  }
+
+  canManageReply(reply: VideoCommentReplyView): boolean {
+    const userId = this.auth.user()?.id;
+
+    return Boolean(reply.ownerId && userId && String(reply.ownerId) === String(userId));
+  }
+
+  openEditReply(comment: VideoCommentView, reply: VideoCommentReplyView): void {
+    if (!this.canManageReply(reply)) {
+      this.showToast('Apenas o dono pode editar esta resposta.', 'error');
+      return;
+    }
+
+    this.replyingToCommentId.set(null);
+    this.editingReplyId.set(reply.id);
+  }
+
+  cancelEditReply(): void {
+    this.editingReplyId.set(null);
+  }
+
+  async saveEditedReply(commentId: string, replyId: string, value: string): Promise<void> {
+    const contentId = this.video()?.id;
+    const reply = value.trim();
+
+    this.commentError.set('');
+    this.commentSuccess.set('');
+
+    if (!contentId || !reply || this.isSavingEditedReply()) {
+      this.commentError.set('Escreva uma resposta antes de guardar.');
+      return;
+    }
+
+    this.isSavingEditedReply.set(true);
+
+    try {
+      await this.commentService.updateReply(replyId, reply);
+      await this.loadVideoComments(contentId);
+      this.commentSuccess.set('Resposta atualizada com sucesso.');
+      this.editingReplyId.set(null);
+    } catch {
+      this.commentError.set('Não foi possível atualizar a resposta.');
+    } finally {
+      this.isSavingEditedReply.set(false);
+    }
+  }
+
+  async deleteReply(comment: VideoCommentView, reply: VideoCommentReplyView): Promise<void> {
+    const contentId = this.video()?.id;
+
+    if (!contentId || !this.canManageReply(reply)) {
+      this.showToast('Apenas o dono pode apagar esta resposta.', 'error');
+      return;
+    }
+
+    const confirmed = await this.confirmService.confirm('Apagar esta resposta?');
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await this.commentService.deleteReply(reply.id);
+      await this.loadVideoComments(contentId);
+      this.commentSuccess.set('Resposta apagada com sucesso.');
+    } catch {
+      this.commentError.set('Não foi possível apagar a resposta.');
+    }
+  }
+
+  async submitReply(commentId: string, value: string): Promise<void> {
+    const contentId = this.video()?.id;
+    const reply = value.trim();
+
+    this.commentError.set('');
+    this.commentSuccess.set('');
+
+    if (!contentId || !reply || this.isSavingVideoReply()) {
+      this.commentError.set('Escreva uma resposta antes de publicar.');
+      return;
+    }
+
+    this.isSavingVideoReply.set(true);
+
+    try {
+      await this.commentService.reply(commentId, reply);
+      await this.loadVideoComments(contentId);
+      this.commentSuccess.set('Resposta publicada com sucesso.');
+      this.replyingToCommentId.set(null);
+    } catch {
+      this.commentError.set('Não foi possível publicar a resposta.');
+    } finally {
+      this.isSavingVideoReply.set(false);
+    }
+  }
+
+  openReportModal(event: Event, comment: VideoCommentView): void {
+    if (!this.auth.isAuthenticated()) {
+      this.requireLogin(event, 'denunciar comentário');
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.canManageVideoComment(comment)) {
+      this.showToast('Não podes denunciar o teu próprio comentário.', 'error');
+      return;
+    }
+
+    this.reportTarget.set({
+      id: comment.id,
+      author: comment.author,
+      text: comment.text,
+    });
+    this.reportReason.set('offensive_comment');
+    this.reportDescription.set('');
+    this.reportError.set('');
+    this.commentSuccess.set('');
+  }
+
+  openReportReply(event: Event, reply: VideoCommentReplyView): void {
+    if (!this.auth.isAuthenticated()) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.requireLogin(event, 'denunciar comentário');
+      return;
+    }
+
+    if (!this.canManageReply(reply)) {
+      this.reportTarget.set({
+        id: reply.id,
+        author: reply.author,
+        text: reply.text,
+      });
+      this.reportReason.set('offensive_comment');
+      this.reportDescription.set('');
+      this.reportError.set('');
+      this.commentSuccess.set('');
+      return;
+    }
+
+    this.showToast('Não podes denunciar a tua própria resposta.', 'error');
+  }
+
+  closeReportModal(): void {
+    this.reportTarget.set(null);
+    this.reportError.set('');
+  }
+
+  updateReportReason(event: Event): void {
+    this.reportReason.set((event.target as HTMLSelectElement).value as CommentReportReason);
+  }
+
+  updateReportDescription(event: Event): void {
+    this.reportDescription.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  async submitCommentReport(): Promise<void> {
+    const target = this.reportTarget();
+
+    if (!target || this.isSubmittingReport()) {
+      return;
+    }
+
+    this.isSubmittingReport.set(true);
+    this.reportError.set('');
+
+    try {
+      await this.commentReportService.create(target.id, this.reportReason(), this.reportDescription());
+      this.showToast('Comentário denunciado. A equipa vai rever.', 'success');
+      this.reportTarget.set(null);
+    } catch (error) {
+      this.reportError.set(error instanceof Error ? this.translateReportError(error.message) : 'Não foi possível enviar a denúncia.');
+    } finally {
+      this.isSubmittingReport.set(false);
     }
   }
 
@@ -1541,24 +2007,67 @@ export class VideoContentDetailPage implements OnDestroy {
   }
 
   private async loadVideoComments(contentId: string): Promise<void> {
+    this.isLoadingComments.set(true);
+
     try {
       const comments = await this.commentService.getByContent(contentId);
       this.comments.set(comments.map((comment) => this.toVideoComment(comment)));
-    } catch {
-      this.comments.set([]);
+    } finally {
+      this.isLoadingComments.set(false);
     }
   }
 
-  private toVideoComment(comment: BackendComment): VideoComment {
+  private toVideoComment(comment: BackendComment): VideoCommentView {
     const authorName = comment.user?.name ?? 'Utilizador';
 
     return {
+      id: String(comment.id),
+      ownerId: this.commentOwnerId(comment),
       author: authorName,
-      initials: this.initials(authorName),
-      time: this.formatCommentDate(comment.created_at),
+      authorInitials: this.initials(authorName),
+      authorPhotoUrl: normalizeMediaUrl(comment.user?.photo),
       text: comment.comment,
-      likes: 0,
+      createdAt: comment.created_at,
+      replies: (comment.replies ?? []).map((reply) => {
+        const replyAuthor = reply.user?.name ?? 'Utilizador';
+
+        return {
+          id: String(reply.id),
+          ownerId: reply.user?.id ? String(reply.user.id) : undefined,
+          author: replyAuthor,
+          authorInitials: this.initials(replyAuthor),
+          authorPhotoUrl: normalizeMediaUrl(reply.user?.photo),
+          text: reply.reply,
+          createdAt: reply.created_at,
+        };
+      }),
     };
+  }
+
+  private commentOwnerId(comment: BackendComment): string | undefined {
+    const ownerId = comment.user_id ?? comment.user?.id;
+
+    return ownerId === undefined || ownerId === null ? undefined : String(ownerId);
+  }
+
+  private translateReportError(message: string): string {
+    const translations: Record<string, string> = {
+      'You cannot report your own comment': 'Não podes denunciar o teu próprio comentário.',
+      'You have already reported this comment': 'Já denunciaste este comentário.',
+      'Comment not found': 'Comentário não encontrado.',
+    };
+
+    return translations[message] ?? message;
+  }
+
+  formatDate(value: string | null | undefined): string {
+    const date = value ? new Date(value) : null;
+
+    if (!date || Number.isNaN(date.getTime())) {
+      return 'Agora';
+    }
+
+    return new Intl.DateTimeFormat('pt-AO', { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
   }
 
   private toVideoDetail(content: BackendContent): VideoDetail {

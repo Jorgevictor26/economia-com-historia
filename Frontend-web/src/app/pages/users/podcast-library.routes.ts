@@ -43,6 +43,7 @@ interface PodcastCommentView {
 
 interface PodcastCommentReplyView {
   id: string;
+  ownerId?: string;
   author: string;
   authorInitials: string;
   authorPhotoUrl?: string;
@@ -92,6 +93,7 @@ export class PodcastLibraryPage {
   readonly isSavingComment = signal(false);
   readonly isSavingEditedComment = signal(false);
   readonly isSavingReply = signal(false);
+  readonly editingReplyId = signal<string | null>(null);
   readonly isSavingReaction = signal(false);
   readonly isSavingContent = signal(false);
   readonly podcastLiked = signal(false);
@@ -376,6 +378,104 @@ export class PodcastLibraryPage {
     this.reportError.set('');
   }
 
+  openEditReply(comment: PodcastCommentView, reply: PodcastCommentReplyView): void {
+    const userId = this.auth.user()?.id;
+
+    if (!reply || !reply.ownerId || !userId || String(reply.ownerId) !== String(userId)) {
+      this.toastService.error('Apenas o dono pode editar esta resposta.');
+      return;
+    }
+
+    this.replyingToCommentId.set(null);
+    this.editingReplyId.set(reply.id);
+  }
+
+  canManageReply(reply: PodcastCommentReplyView): boolean {
+    const userId = this.auth.user()?.id;
+
+    return Boolean(reply.ownerId && userId && String(reply.ownerId) === String(userId));
+  }
+
+  openReportReply(event: Event, reply: PodcastCommentReplyView): void {
+    if (!this.auth.isAuthenticated()) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.auth.requireLoginFor('denunciar comentário');
+      return;
+    }
+
+    if (!this.canManageReply(reply)) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.reportTarget.set({ id: reply.id, author: reply.author, text: reply.text });
+      this.reportReason.set('offensive_comment');
+      this.reportDescription.set('');
+      this.reportError.set('');
+      return;
+    }
+
+    this.toastService.error('Não podes denunciar a tua própria resposta.');
+  }
+
+  cancelEditReply(): void {
+    this.editingReplyId.set(null);
+  }
+
+  async saveEditedReply(commentId: string, replyId: string, value: string): Promise<void> {
+    const contentId = this.podcast()?.id;
+    const reply = value.trim();
+
+    this.commentError.set('');
+    this.commentSuccess.set('');
+
+    if (!contentId || !reply || this.isSavingEditedComment()) {
+      this.commentError.set('Escreva uma resposta antes de guardar.');
+      return;
+    }
+
+    this.isSavingEditedComment.set(true);
+
+    try {
+      await this.commentService.updateReply(replyId, reply);
+      await this.loadComments(contentId);
+      this.commentSuccess.set('Resposta atualizada com sucesso.');
+      this.editingReplyId.set(null);
+    } catch {
+      this.commentError.set('Não foi possível atualizar a resposta.');
+    } finally {
+      this.isSavingEditedComment.set(false);
+    }
+  }
+
+  async deleteReply(comment: PodcastCommentView, reply: PodcastCommentReplyView): Promise<void> {
+    const contentId = this.podcast()?.id;
+
+    if (!contentId || !reply || !reply.ownerId) {
+      this.toastService.error('Não foi possível apagar esta resposta.');
+      return;
+    }
+
+    const userId = this.auth.user()?.id;
+
+    if (!userId || String(reply.ownerId) !== String(userId)) {
+      this.toastService.error('Apenas o dono pode apagar esta resposta.');
+      return;
+    }
+
+    const confirmed = await this.confirmService.confirm('Apagar esta resposta?');
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await this.commentService.deleteReply(reply.id);
+      await this.loadComments(contentId);
+      this.commentSuccess.set('Resposta apagada com sucesso.');
+    } catch {
+      this.commentError.set('Não foi possível apagar a resposta.');
+    }
+  }
+
   closeReportModal(): void {
     this.reportTarget.set(null);
     this.reportError.set('');
@@ -512,7 +612,8 @@ export class PodcastLibraryPage {
       return;
     }
 
-    if (!window.confirm(`Apagar "${podcast.title}"?`)) {
+    const confirmed = await this.confirmService.confirm(`Apagar "${podcast.title}"?`);
+    if (!confirmed) {
       return;
     }
 
@@ -717,6 +818,7 @@ export class PodcastLibraryPage {
 
         return {
           id: String(reply.id),
+          ownerId: reply.user?.id ? String(reply.user.id) : undefined,
           author: replyAuthor,
           authorInitials: this.initials(replyAuthor),
           authorPhotoUrl: normalizeMediaUrl(reply.user?.photo),

@@ -59,6 +59,16 @@ export class CommentService {
     }));
   }
 
+  updateReply(replyId: string, reply: string): Promise<MutationResponse<BackendCommentReply>> {
+    return firstValueFrom(this.http.put<MutationResponse<BackendCommentReply>>(`/comments/replies/${replyId}`, {
+      reply,
+    }));
+  }
+
+  deleteReply(replyId: string): Promise<MutationResponse<unknown>> {
+    return firstValueFrom(this.http.delete<MutationResponse<unknown>>(`/comments/replies/${replyId}`));
+  }
+
   update(commentId: string, comment: string): Promise<MutationResponse<BackendComment>> {
     return firstValueFrom(this.http.put<MutationResponse<BackendComment>>(`/comments/${commentId}`, {
       comment,

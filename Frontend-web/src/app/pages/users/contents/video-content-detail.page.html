@@ -152,6 +152,14 @@
       </section>
       <section class="mt-10 border-t border-[#E0E0E0] pt-9">
         <h2 class="text-[14px] font-medium text-[#5c1e2f]">Comentários ({{ comments().length }})</h2>
+
+        @if (commentError()) {
+        <p class="mt-4 rounded-[8px] border border-[#F8D7DA] bg-[#FDECEA] px-4 py-3 text-[13px] font-medium text-[#B42318]">{{ commentError() }}</p>
+        }
+        @if (commentSuccess()) {
+        <p class="mt-4 rounded-[8px] border border-[#D1E7DD] bg-[#E9F7F1] px-4 py-3 text-[13px] font-medium text-[#0F5132]">{{ commentSuccess() }}</p>
+        }
+
         @if (isVideoCommentComposerOpen()) {
         <div class="mt-6 flex gap-4">
           <span class="size-9 rounded-[10px] bg-[#E0E0E0]"></span>
@@ -166,25 +174,190 @@
           </div>
         </div>
         }
+
         <div class="mt-9 grid gap-7">
-          @if (!comments().length) {
+          @if (isLoadingComments()) {
+          <p class="text-[13px] text-[#616161]">A carregar comentários...</p>
+          } @else if (!comments().length) {
           <p class="text-[13px] text-[#616161]">Ainda não há comentários neste vídeo.</p>
-          }
-          @for (comment of comments(); track comment.author + comment.time + comment.text) {
+          } @else {
+          @for (comment of comments(); track comment.id) {
           <div class="flex gap-4">
-            <span class="grid size-9 place-items-center rounded-[8px] bg-[#E0E0E0] text-[11px] font-bold text-[#9E9E9E]">
-              {{ comment.initials }}
+            <span class="grid size-9 place-items-center overflow-hidden rounded-[8px] bg-[#E0E0E0] text-[11px] font-bold text-[#9E9E9E]">
+              @if (comment.authorPhotoUrl) {
+              <img [src]="comment.authorPhotoUrl" [alt]="comment.author" class="h-full w-full object-cover" />
+              } @else {
+              {{ comment.authorInitials }}
+              }
             </span>
             <div class="min-w-0 flex-1">
               <div class="flex items-start justify-between gap-4">
-                <p class="text-[13px] font-extrabold text-[#5c1e2f]">{{ comment.author }}</p>
-                <span class="text-[10px] text-[#9E9E9E]">{{ comment.time }}</span>
+                <div class="flex flex-wrap items-center gap-3">
+                  <p class="text-[13px] font-extrabold text-[#5c1e2f]">{{ comment.author }}</p>
+                  <span class="text-[10px] text-[#9E9E9E]">{{ formatDate(comment.createdAt) }}</span>
+                </div>
+                <details class="relative shrink-0">
+                  <summary class="grid size-8 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" aria-label="Mais ações do comentário">
+                    <span class="material-symbols-outlined text-[22px] leading-none">more_horiz</span>
+                  </summary>
+                  <div class="absolute right-0 z-20 mt-2 grid min-w-36 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
+                    @if (canManageVideoComment(comment)) {
+                    <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" (click)="openEditVideoComment(comment)">
+                      <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
+                      <span>Editar</span>
+                    </button>
+                    <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]" (click)="deleteVideoComment(comment)">
+                      <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
+                      <span>Apagar</span>
+                    </button>
+                    } @else {
+                    <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" (click)="openReportModal($event, comment)">
+                      <span class="material-symbols-outlined text-[17px] leading-none">flag</span>
+                      <span>Denunciar</span>
+                    </button>
+                    }
+                  </div>
+                </details>
               </div>
+              @if (editingVideoCommentId() === comment.id) {
+              <div class="mt-3">
+                <textarea #editVideoCommentInput class="h-[86px] w-full resize-none border border-[#E0E0E0] bg-[#F5F5F5] p-3 text-[12px] outline-none placeholder:text-[#BDBDBD] focus:border-[#8A3F50]">{{ comment.text }}</textarea>
+                <div class="-mt-px flex justify-end gap-2">
+                  <button type="button" class="h-9 px-4 text-[11px] font-bold text-[#616161]" (click)="cancelEditVideoComment()">Cancelar</button>
+                  <button type="button" class="h-9 bg-[#5C1E2F] px-5 text-[11px] font-bold text-white disabled:opacity-60" [disabled]="isSavingVideoComment()" (click)="saveEditedVideoComment(comment.id, editVideoCommentInput.value)">
+                    {{ isSavingVideoComment() ? 'A guardar...' : 'Guardar' }}
+                  </button>
+                </div>
+              </div>
+              } @else {
               <p class="mt-1 text-[13px] leading-5 text-[#212121]">{{ comment.text }}</p>
+              }
+              <div class="mt-3 flex gap-6 text-[10px] text-[#616161]">
+                <button type="button" (click)="toggleReplyComposer($event, comment.id)">
+                  {{ replyingToCommentId() === comment.id ? 'Cancelar' : 'Responder' }}
+                </button>
+              </div>
+
+              @if (replyingToCommentId() === comment.id) {
+              <div class="mt-4 flex gap-3">
+                <span class="size-7 rounded-[7px] bg-[#E0E0E0]"></span>
+                <div class="min-w-0 flex-1">
+                  <textarea #replyInput class="h-[74px] w-full resize-none border border-[#E0E0E0] bg-white p-3 text-[12px] outline-none placeholder:text-[#BDBDBD] focus:border-[#8A3F50] rounded-[6px]" placeholder="Escreva uma resposta..."></textarea>
+                  <div class="mt-3 flex justify-end gap-3">
+                    <button type="button" class="h-9 px-3 text-[11px] font-bold text-[#616161]" (click)="replyingToCommentId.set(null); replyInput.value = ''">Cancelar</button>
+                    <button type="button" class="h-9 rounded-[8px] bg-[#5C1E2F] px-4 text-[11px] font-bold text-white disabled:opacity-60" [disabled]="isSavingVideoReply()" (click)="submitReply(comment.id, replyInput.value); replyInput.value = ''">
+                      {{ isSavingVideoReply() ? 'A responder...' : 'Responder' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              }
+
+              @for (reply of comment.replies; track reply.id) {
+              <div class="mt-6 flex gap-4 border-l border-[#E0E0E0] pl-7">
+                <span class="grid size-7 place-items-center overflow-hidden rounded-[7px] bg-[#E0E0E0] text-[9px] font-bold text-[#9E9E9E]">
+                  @if (reply.authorPhotoUrl) {
+                  <img [src]="reply.authorPhotoUrl" [alt]="reply.author" class="h-full w-full object-cover" />
+                  } @else {
+                  {{ reply.authorInitials }}
+                  }
+                </span>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-3">
+                      <p class="text-[12px] font-medium text-[#5c1e2f]">{{ reply.author }}</p>
+                      <span class="text-[10px] text-[#9E9E9E]">{{ formatDate(reply.createdAt) }}</span>
+                    </div>
+                    <details class="relative shrink-0">
+                      <summary class="grid size-7 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" aria-label="Mais ações da resposta">
+                        <span class="material-symbols-outlined text-[20px] leading-none">more_horiz</span>
+                      </summary>
+                      <div class="absolute right-0 z-20 mt-2 grid min-w-36 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
+                        @if (canManageReply(reply)) {
+                        <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" (click)="openEditReply(comment, reply)">
+                          <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
+                          <span>Editar</span>
+                        </button>
+                        <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]" (click)="deleteReply(comment, reply)">
+                          <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
+                          <span>Apagar</span>
+                        </button>
+                        } @else {
+                        <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" (click)="openReportReply($event, reply)">
+                          <span class="material-symbols-outlined text-[17px] leading-none">flag</span>
+                          <span>Denunciar</span>
+                        </button>
+                        }
+                      </div>
+                    </details>
+                  </div>
+
+                  @if (editingReplyId() === reply.id) {
+                  <div class="mt-3">
+                    <textarea #editReplyInput class="h-[70px] w-full resize-none border border-[#E0E0E0] bg-[#F5F5F5] p-3 text-[12px] outline-none placeholder:text-[#BDBDBD] focus:border-[#8A3F50]">{{ reply.text }}</textarea>
+                    <div class="-mt-px flex justify-end gap-2">
+                      <button type="button" class="h-9 px-4 text-[11px] font-bold text-[#616161]" (click)="cancelEditReply()">Cancelar</button>
+                      <button type="button" class="h-9 bg-[#5C1E2F] px-5 text-[11px] font-bold text-white disabled:opacity-60" [disabled]="isSavingEditedReply()" (click)="saveEditedReply(comment.id, reply.id, editReplyInput.value)">
+                        {{ isSavingEditedReply() ? 'A guardar...' : 'Guardar' }}
+                      </button>
+                    </div>
+                  </div>
+                  } @else {
+                  <p class="mt-1 text-[12px] leading-5 text-[#212121]">{{ reply.text }}</p>
+                  }
+                </div>
+              </div>
+              }
             </div>
           </div>
           }
+          }
         </div>
+
+        @if (reportTarget(); as target) {
+        <div class="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4" role="dialog" aria-modal="true" (click)="closeReportModal()">
+          <section class="w-full max-w-[460px] rounded-[8px] bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]" (click)="$event.stopPropagation()">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Denunciar comentário</h2>
+                <p class="mt-1 text-[12px] text-[#616161]">Comentário de {{ target.author }}</p>
+              </div>
+              <button type="button" class="grid size-9 place-items-center rounded-full text-[#616161] hover:bg-[#F5F5F5]" aria-label="Fechar" (click)="closeReportModal()">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <p class="mt-4 line-clamp-3 rounded-[8px] bg-[#F5F5F5] p-3 text-[12px] leading-5 text-[#616161]">{{ target.text }}</p>
+
+            <label class="mt-4 grid gap-2 text-[12px] font-bold text-[#616161]">
+              Motivo
+              <select class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] outline-none focus:border-[#8A3F50]" [value]="reportReason()" (change)="updateReportReason($event)">
+                <option value="spam">Spam</option>
+                <option value="offensive_comment">Comentário ofensivo</option>
+                <option value="fake_information">Informação falsa</option>
+                <option value="copyright">Direitos autorais</option>
+                <option value="other">Outro</option>
+              </select>
+            </label>
+
+            <label class="mt-4 grid gap-2 text-[12px] font-bold text-[#616161]">
+              Descrição
+              <textarea class="min-h-[110px] rounded-[8px] border border-[#E0E0E0] bg-white p-3 text-[12px] outline-none placeholder:text-[#BDBDBD] focus:border-[#8A3F50]" placeholder="Detalhe por que este comentário deve ser revisto." [value]="reportDescription()" (input)="updateReportDescription($event)"></textarea>
+            </label>
+
+            @if (reportError()) {
+            <p class="mt-3 text-[12px] font-medium text-[#B42318]">{{ reportError() }}</p>
+            }
+
+            <div class="mt-5 flex justify-end gap-3">
+              <button type="button" class="h-10 px-4 text-[12px] font-bold text-[#616161]" (click)="closeReportModal()">Cancelar</button>
+              <button type="button" class="h-10 rounded-[8px] bg-[#5C1E2F] px-5 text-[12px] font-bold text-white disabled:opacity-60" [disabled]="isSubmittingReport()" (click)="submitCommentReport()">
+                {{ isSubmittingReport() ? 'A enviar...' : 'Enviar denúncia' }}
+              </button>
+            </div>
+          </section>
+        </div>
+        }
       </section>
     </article>
 

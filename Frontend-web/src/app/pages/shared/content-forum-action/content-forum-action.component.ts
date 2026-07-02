@@ -7,13 +7,14 @@ import { RouterLink } from '@angular/router';
   template: `
     @if (contentId) {
       <a
-        class="content-forum-action-button eh-card-action"
+        class="content-forum-action-button"
         [routerLink]="['/app/forums']"
         [queryParams]="{ content: contentId, returnUrl: returnUrl }"
         [attr.aria-label]="ariaLabel"
         [title]="ariaLabel"
       >
-        <span class="content-forum-action-label">+ Criar Fórum</span>
+        <span class="material-symbols-outlined text-[24px] leading-none" aria-hidden="true">forum</span>
+        <span class="content-forum-action-label">Criar fórum</span>
       </a>
     }
   `,

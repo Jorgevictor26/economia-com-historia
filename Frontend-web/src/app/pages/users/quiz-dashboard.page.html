@@ -8,7 +8,7 @@
           Quiz
         </h1>
 
-        <div class="w-full lg:max-w-[620px]">
+        <div class="w-full lg:max-w-[420px]">
           <label
             class="flex min-h-12 w-full items-center gap-2 rounded-[10px] border border-[#E0E0E0] bg-white px-4 shadow-sm">
             <span class="material-symbols-outlined text-[#5C1E2F]">search</span>
@@ -99,12 +99,18 @@
             <figure class="relative h-40 overflow-hidden bg-[#F2E6E9]">
               <img class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                 [src]="quiz.coverImage" [alt]="quiz.coverAlt || quiz.title" loading="lazy" />
+
               <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(64,8,26,0.04)_0%,rgba(64,8,26,0.5)_100%)]">
               </div>
-              <figcaption
-                class="absolute left-4 top-4 rounded-full bg-white/92 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5c1e2f] shadow-sm backdrop-blur">
+              <span
+                class="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#D4AF37] shadow-sm backdrop-blur">
+                {{ quiz.area }}
+              </span>
+
+              <span
+                class="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#5C1E2F] shadow-sm backdrop-blur">
                 {{ quiz.level }}
-              </figcaption>
+              </span>
             </figure>
             } @else {
             <figure class="relative h-40 overflow-hidden bg-[#F2E6E9]">
@@ -114,21 +120,21 @@
                   <small>{{ quiz.level }}</small>
                 </span>
               </div>
+
+              <span
+                class="absolute left-4 top-4 rounded-full bg-white/92 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#D4AF37] shadow-sm backdrop-blur">
+                {{ quiz.area }}
+              </span>
+
+              <span
+                class="absolute right-4 top-4 rounded-full bg-white/92 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5C1E2F] shadow-sm backdrop-blur">
+                {{ quiz.level }}
+              </span>
             </figure>
             }
 
             <div class="flex flex-1 flex-col px-6 pb-5 pt-5" [class.border-[#2a9d8f]]="quiz.accent === 'green'"
               [class.border-[#8A3F50]]="quiz.accent === 'wine'">
-              <div class="flex items-start justify-between gap-4">
-                <span
-                  class="rounded-full bg-[#F2E6E9] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#D4AF37]">{{
-                  quiz.area }}</span>
-                @if (!quiz.coverImage) {
-                <span
-                  class="rounded-full bg-[#F2E6E9] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5c1e2f]">{{
-                  quiz.level }}</span>
-                }
-              </div>
 
               <h3 class="mt-5 min-h-[54px] font-display text-[21px] font-extrabold leading-tight text-[#5C1E2F]">{{
                 quiz.title }}</h3>

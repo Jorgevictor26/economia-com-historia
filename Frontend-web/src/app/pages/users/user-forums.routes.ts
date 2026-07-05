@@ -54,6 +54,7 @@ interface ForumCommentView {
   title: string;
   text: string;
   createdAt: string;
+  repliesCount: number;
   replies: ForumReplyView[];
   replyComposerOpen: boolean;
   isLoadingReplies: boolean;
@@ -66,6 +67,13 @@ interface ForumReportTarget {
   id: string;
   author: string;
   text: string;
+}
+
+interface PendingMember {
+  id: string;
+  name: string;
+  initials: string;
+  requestedAt: string;
 }
 
 @Component({
@@ -255,7 +263,6 @@ export class UserForumsPage {
       this.contentOptions.set([]);
     }
   }
-
   goToPreviousForumPage(): void {
     this.forumPage.update((page) => Math.max(1, page - 1));
   }
@@ -356,11 +363,13 @@ export class UserForumDetailPage {
   readonly reportError = signal('');
   readonly isSubmittingReport = signal(false);
   private readonly forumLikeStoragePrefix = 'economia-com-historia.forum-like.v1';
-
+  readonly pendingMembers = signal<PendingMember[]>([]);
+  readonly isLoadingPendingMembers = signal(false);
   readonly room = computed(() => {
     const roomId = this.route.snapshot.paramMap.get('id');
 
     return this.forumService.rooms().find((room) => room.id === roomId) ?? null;
+
   });
 
   readonly privateTeaserActive = computed(() => {
@@ -380,7 +389,10 @@ export class UserForumDetailPage {
   });
 
   readonly canManageForum = computed(() => {
-    return this.auth.canManagePlatform();
+    const room = this.room();
+    const userId = this.auth.user()?.id;
+
+    return this.auth.canManagePlatform() || Boolean(room?.ownerId && userId && room.ownerId === String(userId));
   });
 
   constructor() {
@@ -398,6 +410,65 @@ export class UserForumDetailPage {
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase())
       .join('') || 'EH';
+  }
+
+  async loadPendingMembers(): Promise<void> {
+    const room = this.room();
+
+    if (!room || !this.canManageForum()) {
+      this.pendingMembers.set([]);
+      return;
+    }
+
+    this.isLoadingPendingMembers.set(true);
+
+    try {
+      // Frontend-only for now. When the API is available, replace this with:
+      // const members = await this.forumService.getPendingMembers(room.id);
+      // this.pendingMembers.set(members.map((member) => this.toPendingMember(member)));
+      this.pendingMembers.set([]);
+    } catch {
+      this.pendingMembers.set([]);
+      this.forumFeedback.set('Não foi possível carregar os pedidos de adesão.');
+    } finally {
+      this.isLoadingPendingMembers.set(false);
+    }
+  }
+
+  async approveMember(id: string): Promise<void> {
+    const room = this.room();
+
+    if (!room || !this.canManageForum()) {
+      this.forumFeedback.set('Não tens permissão para aceitar membros neste fórum.');
+      return;
+    }
+
+    try {
+      // Frontend-only for now. When the API is available, replace this with:
+      // await this.forumService.approveMember(room.id, id);
+      this.pendingMembers.update((members) => members.filter((member) => member.id !== id));
+      this.forumFeedback.set('Membro aceite com sucesso.');
+    } catch {
+      this.forumFeedback.set('Não foi possível aceitar este membro.');
+    }
+  }
+
+  async rejectMember(id: string): Promise<void> {
+    const room = this.room();
+
+    if (!room || !this.canManageForum()) {
+      this.forumFeedback.set('Não tens permissão para recusar pedidos neste fórum.');
+      return;
+    }
+
+    try {
+      // Frontend-only for now. When the API is available, replace this with:
+      // await this.forumService.rejectMember(room.id, id);
+      this.pendingMembers.update((members) => members.filter((member) => member.id !== id));
+      this.forumFeedback.set('Pedido recusado.');
+    } catch {
+      this.forumFeedback.set('Não foi possível recusar este pedido.');
+    }
   }
 
   requireLogin(event: Event, operation: string): void {
@@ -796,6 +867,7 @@ export class UserForumDetailPage {
         title,
         text,
         createdAt: 'Agora',
+        repliesCount: 0,
         replies: [],
         replyComposerOpen: false,
         isLoadingReplies: false,
@@ -826,6 +898,7 @@ export class UserForumDetailPage {
     this.privateAccessStatus.set(this.resolvePrivateAccessStatus(room));
     this.likedByMe.set(this.readForumLike(room.id));
     this.invitationNoticeOpen.set(room.visibility === 'private' && this.privateAccessStatus() === 'invited');
+    await this.loadPendingMembers();
 
     if (this.isBackendForumId(roomId) && this.canEnterPrivateForum()) {
       await this.loadForumTopics(roomId);
@@ -869,13 +942,8 @@ export class UserForumDetailPage {
 
     try {
       const topics = await this.forumService.getTopics(roomId);
-      const comments = await Promise.all(topics.map(async (topic) => {
-        const replies = await this.loadRepliesForTopic(topic.id);
 
-        return this.toForumComment(topic, replies);
-      }));
-
-      this.forumComments.set(comments);
+      this.forumComments.set(topics.map((topic) => this.toForumComment(topic, topic.replies ?? [])));
       this.forumTopicPreviews.set(topics.map((topic) => this.toForumTopicPreview(topic)));
       this.forumService.rooms.update((rooms) =>
         rooms.map((room) => room.id === roomId ? { ...room, activeDebates: topics.length } : room),
@@ -885,14 +953,6 @@ export class UserForumDetailPage {
       this.forumTopicPreviews.set([]);
     } finally {
       this.isLoadingForumComments.set(false);
-    }
-  }
-
-  private async loadRepliesForTopic(topicId: number | string): Promise<BackendForumReply[]> {
-    try {
-      return await this.forumService.getReplies(topicId);
-    } catch {
-      return [];
     }
   }
 
@@ -907,6 +967,7 @@ export class UserForumDetailPage {
       title: topic.title,
       text: topic.content,
       createdAt: this.formatForumDate(topic.created_at),
+      repliesCount: Number(topic.replies_count ?? replies.length),
       replies: replies.map((reply) => this.toForumReply(reply)),
       replyComposerOpen: false,
       isLoadingReplies: false,
@@ -1004,11 +1065,12 @@ export class UserForumDetailPage {
         comments.map((comment) =>
           comment.id === topicId
             ? {
-                ...comment,
-                replies: [...comment.replies, mappedReply],
-                replyComposerOpen: false,
-                isSavingReply: false,
-              }
+              ...comment,
+              replies: [...comment.replies, mappedReply],
+              repliesCount: Math.max(comment.repliesCount + 1, comment.replies.length + 1),
+              replyComposerOpen: false,
+              isSavingReply: false,
+            }
             : comment,
         ),
       );
@@ -1112,10 +1174,10 @@ export class UserForumDetailPage {
         comments.map((comment) =>
           comment.id === topicId
             ? {
-                ...comment,
-                replies: comment.replies.map((reply) => reply.id === replyId ? mapped : reply),
-                editingReplyId: null,
-              }
+              ...comment,
+              replies: comment.replies.map((reply) => reply.id === replyId ? mapped : reply),
+              editingReplyId: null,
+            }
             : comment,
         ),
       );
@@ -1150,6 +1212,11 @@ export class UserForumDetailPage {
   private refreshTopicReplyCount(topicId: string, delta: number): void {
     this.forumTopicPreviews.update((topics) =>
       topics.map((topic) => topic.id === topicId ? { ...topic, replies: Math.max(0, topic.replies + delta) } : topic),
+    );
+    this.forumComments.update((comments) =>
+      comments.map((comment) =>
+        comment.id === topicId ? { ...comment, repliesCount: Math.max(0, comment.repliesCount + delta) } : comment,
+      ),
     );
   }
 
@@ -1287,7 +1354,7 @@ export class UserForumDetailPage {
         description,
         rules: description,
         category: categoryInput.value.trim() || room.category || 'Fórum',
-      visibility: visibilityInput.value === 'private' ? 'private' : 'public',
+        visibility: visibilityInput.value === 'private' ? 'private' : 'public',
         access_code: visibilityInput.value === 'private' ? (room.accessCode ?? `EH-${Date.now().toString(36).toUpperCase()}`) : null,
         join_approval_required: visibilityInput.value === 'private',
         content_permission: 'public',
@@ -1297,15 +1364,15 @@ export class UserForumDetailPage {
         rooms.map((item) =>
           item.id === room.id
             ? {
-                ...item,
-                name,
-                description,
-                objective: description,
-                category: categoryInput.value.trim() || item.category,
-                visibility: visibilityInput.value === 'private' ? 'private' : 'public',
-                accessCode: visibilityInput.value === 'private' ? (item.accessCode ?? `EH-${Date.now().toString(36).toUpperCase()}`) : null,
-                joinApprovalRequired: visibilityInput.value === 'private',
-              }
+              ...item,
+              name,
+              description,
+              objective: description,
+              category: categoryInput.value.trim() || item.category,
+              visibility: visibilityInput.value === 'private' ? 'private' : 'public',
+              accessCode: visibilityInput.value === 'private' ? (item.accessCode ?? `EH-${Date.now().toString(36).toUpperCase()}`) : null,
+              joinApprovalRequired: visibilityInput.value === 'private',
+            }
             : item,
         ),
       );

@@ -32,27 +32,7 @@
       </aside>
 
       <section class="profile-form-panel">
-        @if (isLearningSection) {
-        <header class="profile-form-header">
-          <h1>Meu aprendizado</h1>
-          <span>Continue os seus módulos e acompanhe o avanço por domínio.</span>
-        </header>
-
-        <section class="profile-section-grid">
-          <app-learning-progress [learning]="dashboard.learning" />
-          <app-progress-domains [domains]="dashboard.domains" />
-        </section>
-        } @else if (isAchievementsSection) {
-        <header class="profile-form-header">
-          <h1>Minhas conquistas</h1>
-          <span>Veja medalhas, certificados e marcos conquistados na plataforma.</span>
-        </header>
-
-        <section class="profile-section-grid">
-          <app-achievements [achievements]="dashboard.achievements"
-            [rankingAchievements]="dashboard.rankingAchievements" />
-        </section>
-        } @else if (isHistorySection) {
+        @if (isHistorySection) {
         <header class="profile-form-header">
           <h1>Histórico</h1>
           <span>Retome conteúdos, quizzes e materiais consultados recentemente.</span>
@@ -127,31 +107,6 @@
             }
           </section>
         </form>
-        } @else if (isNotificationPreferencesSection) {
-        <header class="profile-form-header">
-          <h1>Preferências de notificação</h1>
-          <span>Escolha como deseja receber novidades, resumos e alertas da plataforma.</span>
-        </header>
-
-        <section class="notification-preferences-panel" aria-labelledby="notification-preferences-title">
-          <div class="notification-preferences-card">
-            <label class="notification-preference-row">
-              <span>
-                <strong>Resumo Semanal de Economia</strong>
-                <small>Receba as análises históricas mais importantes da semana.</small>
-              </span>
-              <input type="checkbox" checked />
-            </label>
-
-            <label class="notification-preference-row">
-              <span>
-                <strong>Alertas de Novos Conteúdos</strong>
-                <small>Notificações imediatas sobre novos módulos e conteúdos.</small>
-              </span>
-              <input type="checkbox" />
-            </label>
-          </div>
-        </section>
         } @else if (isPhotoSection) {
         <header class="profile-form-header">
           <h1>Foto</h1>

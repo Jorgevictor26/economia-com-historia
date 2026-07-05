@@ -3,18 +3,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthStateService } from '../../../services/auth-state.service';
 import { ProfileService } from '../../../services/profile.service';
 import { PublicNavbarComponent } from '../../shared/public-navbar/public-navbar.component';
-import { AchievementsComponent } from './components/achievements/achievements.component';
-import { LearningProgressComponent } from './components/learning-progress/learning-progress.component';
-import { ProgressDomainsComponent } from './components/progress-domains/progress-domains.component';
 
 @Component({
   selector: 'app-profile-page',
   imports: [
     RouterLink,
     PublicNavbarComponent,
-    AchievementsComponent,
-    LearningProgressComponent,
-    ProgressDomainsComponent,
   ],
   templateUrl: './profile.page.html',
   styleUrl: './profile.page.scss',
@@ -25,13 +19,10 @@ export class ProfilePage implements OnInit {
   readonly auth = inject(AuthStateService);
   readonly dashboard = this.profileService.getDashboard();
   readonly section = this.route.snapshot.data['section'];
-  readonly isLearningSection = this.section === 'learning';
-  readonly isAchievementsSection = this.section === 'achievements';
   readonly isHistorySection = this.section === 'history';
   readonly isSupportSection = this.section === 'support';
   readonly isPhotoSection = this.section === 'photo';
   readonly isSecuritySection = this.section === 'security';
-  readonly isNotificationPreferencesSection = this.section === 'notification-preferences';
   readonly isSavingProfile = signal(false);
   readonly isSavingSecurity = signal(false);
   readonly isLoadingProfile = signal(false);
@@ -46,16 +37,8 @@ export class ProfilePage implements OnInit {
 
   readonly profileMenu = [
     { label: 'Perfil', icon: 'person', route: '/app/profile', active: !this.section },
-    { label: 'Meu aprendizado', icon: 'school', route: '/app/profile/learning', active: this.isLearningSection },
-    { label: 'Minhas conquistas', icon: 'military_tech', route: '/app/profile/achievements', active: this.isAchievementsSection },
     { label: 'Histórico', icon: 'history', route: '/app/profile/history', active: this.isHistorySection },
     { label: 'Segurança da conta', icon: 'lock', route: '/app/profile/security', active: this.isSecuritySection },
-    {
-      label: 'Preferência de notificação',
-      icon: 'notifications',
-      route: '/app/profile/notification-preferences',
-      active: this.isNotificationPreferencesSection,
-    },
     { label: 'Subscrições', icon: 'workspace_premium', route: '/app/subscriptions', active: false },
     ...(this.auth.canWriteContent()
       ? [{ label: this.auth.canManagePlatform() ? 'Administração' : 'Console editorial', icon: 'admin_panel_settings', route: '/admin', active: false }]

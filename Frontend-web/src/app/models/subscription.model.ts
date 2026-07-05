@@ -13,4 +13,16 @@ export interface SubscribedJindungoText {
   subscribedAt: string;
   readingMinutes: number;
   route: string;
+  imageUrl?: string;
+  author?: string;
+  status?: 'available' | 'pending' | 'subscribed' | 'rejected';
+}
+
+export interface JindungoSubscriptionRequest {
+  id: string;
+  userName: string;
+  email: string;
+  textTitle: string;
+  requestedAt: string;
+  status: 'pending' | 'approved' | 'rejected';
 }

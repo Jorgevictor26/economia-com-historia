@@ -475,9 +475,12 @@ export class UserForumDetailPage {
 
   readonly canManageForum = computed(() => {
     const room = this.room();
-    const userId = this.auth.user()?.id;
+    const user = this.auth.user();
+    const userId = user?.id;
+    const sameOwnerId = Boolean(room?.ownerId && userId && room.ownerId === String(userId));
+    const sameCreatorName = Boolean(room?.creatorName && user?.name && room.creatorName.trim().toLowerCase() === user.name.trim().toLowerCase());
 
-    return this.auth.canManagePlatform() || Boolean(room?.ownerId && userId && room.ownerId === String(userId));
+    return this.auth.canManagePlatform() || sameOwnerId || sameCreatorName;
   });
 
   constructor() {
@@ -1054,11 +1057,12 @@ export class UserForumDetailPage {
 
     try {
       const topics = await this.forumService.getTopics(roomId);
+      const uniqueTopics = this.uniqueById(topics);
 
-      this.forumComments.set(topics.map((topic) => this.toForumComment(topic, topic.replies ?? [])));
-      this.forumTopicPreviews.set(topics.map((topic) => this.toForumTopicPreview(topic)));
+      this.forumComments.set(uniqueTopics.map((topic) => this.toForumComment(topic, this.uniqueById(topic.replies ?? []))));
+      this.forumTopicPreviews.set(uniqueTopics.map((topic) => this.toForumTopicPreview(topic)));
       this.forumService.rooms.update((rooms) =>
-        rooms.map((room) => room.id === roomId ? { ...room, activeDebates: topics.length } : room),
+        rooms.map((room) => room.id === roomId ? { ...room, activeDebates: uniqueTopics.length } : room),
       );
     } catch {
       this.forumComments.set([]);
@@ -1066,6 +1070,21 @@ export class UserForumDetailPage {
     } finally {
       this.isLoadingForumComments.set(false);
     }
+  }
+
+  private uniqueById<T extends { id: number | string }>(items: T[]): T[] {
+    const seen = new Set<string>();
+
+    return items.filter((item) => {
+      const id = String(item.id);
+
+      if (seen.has(id)) {
+        return false;
+      }
+
+      seen.add(id);
+      return true;
+    });
   }
 
   private toForumComment(topic: BackendForumTopic, replies: BackendForumReply[] = []): ForumCommentView {
@@ -1330,6 +1349,10 @@ export class UserForumDetailPage {
         comment.id === topicId ? { ...comment, repliesCount: Math.max(0, comment.repliesCount + delta) } : comment,
       ),
     );
+  }
+
+  topicTitleVisible(comment: ForumCommentView): boolean {
+    return comment.title.trim().toLowerCase() !== comment.text.trim().toLowerCase();
   }
 
   private toForumRoom(forum: BackendForum): ForumRoom {

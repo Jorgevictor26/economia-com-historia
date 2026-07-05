@@ -93,6 +93,30 @@ export class SubscriptionService {
     },
   ]);
 
+  requestTextSubscription(text: SubscribedJindungoText, userName: string, email: string): void {
+    const exists = this.jindungoSubscriptionRequests().some((request) =>
+      request.email.toLowerCase() === email.toLowerCase()
+      && request.textTitle === text.title
+      && request.status === 'pending',
+    );
+
+    if (exists) {
+      return;
+    }
+
+    this.jindungoSubscriptionRequests.update((requests) => [
+      {
+        id: `req-${text.id}-${Date.now()}`,
+        userName,
+        email,
+        textTitle: text.title,
+        requestedAt: 'Agora',
+        status: 'pending',
+      },
+      ...requests,
+    ]);
+  }
+
   approveRequest(id: string): void {
     this.jindungoSubscriptionRequests.update((requests) =>
       requests.map((request) => request.id === id ? { ...request, status: 'approved' } : request),

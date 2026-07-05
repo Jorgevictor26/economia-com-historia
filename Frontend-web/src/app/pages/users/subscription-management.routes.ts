@@ -6,7 +6,6 @@ import { BackendContent, ContentService } from '../../services/content.service';
 import { normalizeMediaUrl } from '../../services/media-url.util';
 import { SubscriptionService } from '../../services/subscription.service';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
-import { AuthService } from '../../services/auth.service';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
 @Component({
@@ -23,7 +22,6 @@ export class SubscriptionManagementPage implements OnInit {
   readonly pendingSubscriptionIds = signal<string[]>([]);
   readonly isLoadingTexts = signal(false);
   readonly textLoadError = signal('');
-  private readonly authService = inject(AuthService);
 
   readonly profileMenu = [
     { label: 'Perfil', icon: 'person', route: '/app/profile', active: false },
@@ -92,13 +90,18 @@ export class SubscriptionManagementPage implements OnInit {
   }
 
   async subscribeToText(text: SubscribedJindungoText): Promise<void> {
-    if (this.isSubscribedText(text) || this.auth.hasPendingJindungoRequest()) {
+    if (this.isSubscribedText(text) || this.pendingSubscriptionIds().includes(text.id)) {
       return;
     }
 
     try {
-      await this.authService.requestJindungoSubscription();
-      this.pendingSubscriptionIds.set(this.jindungoTexts().map((item) => item.id));
+      const user = this.auth.user();
+      this.subscriptionService.requestTextSubscription(
+        text,
+        user?.name ?? 'Utilizador',
+        user?.email ?? 'utilizador@economiahistoria.ao',
+      );
+      this.pendingSubscriptionIds.update((ids) => ids.includes(text.id) ? ids : [...ids, text.id]);
     } catch {
       this.textLoadError.set('Não foi possível enviar o pedido de subscrição.');
     }

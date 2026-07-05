@@ -21,8 +21,10 @@ class UserController extends Controller
 
     public function me(Request $request)
     {
+        $user = $request->user('sanctum')->load('roles');
+
         return response()->json([
-            'data' => $request->user()->load('roles'),
+            'data' => $user,
         ]);
     }
 

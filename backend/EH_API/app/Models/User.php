@@ -36,6 +36,10 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $appends = [
+        'avatar_url',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -50,6 +54,13 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Role::class, 'user_role')
             ->withPivot('id', 'assigned_by', 'created_at');
+    }
+
+    protected function avatarUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn () => $this->photo ?? null,
+        );
     }
 
     public function userRoles(): HasMany

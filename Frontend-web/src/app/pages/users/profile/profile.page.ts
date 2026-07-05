@@ -229,9 +229,10 @@ export class ProfilePage implements OnInit {
 
     this.photoSaveMessage.set('');
     this.photoSaveError.set('');
+    this.isSavingProfile.set(true);
 
     try {
-      await this.profileService.updateProfile({ photo: previewUrl });
+      await this.profileService.updateProfile({ avatar_url: previewUrl });
       this.selectedPhotoPreviewUrl.set('');
       this.selectedPhotoName.set('');
       this.photoSaveMessage.set('Foto atualizada com sucesso!');
@@ -241,6 +242,8 @@ export class ProfilePage implements OnInit {
         avatarUrl: previewUrl,
       });
       this.photoSaveError.set('A foto foi atualizada localmente, mas não foi possível guardar no backend.');
+    } finally {
+      this.isSavingProfile.set(false);
     }
   }
 }

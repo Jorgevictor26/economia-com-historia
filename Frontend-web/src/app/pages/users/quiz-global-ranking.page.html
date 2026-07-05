@@ -13,11 +13,6 @@
           Classifica&ccedil;&atilde;o geral dos participantes com base nos melhores resultados registados nos quizzes.
         </p>
       </section>
-
-      <button type="button" class="eh-card-action min-h-11 px-5 disabled:opacity-60" [disabled]="isLoading()" (click)="loadRanking()">
-        <span class="material-symbols-outlined text-[18px]" aria-hidden="true">refresh</span>
-        {{ isLoading() ? 'A atualizar...' : 'Atualizar' }}
-      </button>
     </div>
 
     <section class="mt-6 grid gap-4 md:grid-cols-2">
@@ -81,41 +76,6 @@
             }
           </div>
         </section>
-
-        <section class="min-w-0 rounded-[8px] border border-[#E0E0E0] bg-white shadow-[0_16px_40px_rgba(64,8,26,0.07)]">
-          <div class="border-b border-[#E0E0E0] p-5">
-            <h2 class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Classifica&ccedil;&atilde;o completa</h2>
-          </div>
-
-          <div class="divide-y divide-[#E0E0E0]">
-            @for (entry of remainingRanking(); track entry.userId) {
-              <article class="grid gap-4 p-5 md:grid-cols-[80px_minmax(0,1fr)_auto] md:items-center">
-                <div class="flex items-center gap-3">
-                  <span class="grid size-10 place-items-center rounded-[8px] bg-[#F2E6E9] text-[12px] font-extrabold text-[#5C1E2F]">#{{ entry.position }}</span>
-                  <span class="material-symbols-outlined text-[22px] text-[#5C1E2F]" aria-hidden="true">{{ entry.icon }}</span>
-                </div>
-
-                <div class="min-w-0">
-                  <h3 class="truncate text-[14px] font-extrabold text-[#212121]">{{ entry.name }}</h3>
-                  <p class="mt-1 text-[11px] font-semibold text-[#616161]">
-                    &Uacute;ltima atividade em {{ formatDate(entry.lastCompletedAt) }}
-                  </p>
-                </div>
-
-                <div class="grid grid-cols-3 gap-3 text-right text-[11px] font-bold text-[#616161] md:min-w-[250px]">
-                  <span><b class="block text-[15px] text-[#5C1E2F]">{{ entry.totalScore }}</b>pts</span>
-                  <span><b class="block text-[15px] text-[#5C1E2F]">{{ entry.totalEarnedXp }}</b>XP</span>
-                  <span><b class="block text-[15px] text-[#5C1E2F]">{{ formatDuration(entry.totalDurationSeconds) }}</b>tempo</span>
-                </div>
-              </article>
-            } @empty {
-              <article class="p-8 text-center">
-                <h3 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">Ainda n&atilde;o h&aacute; mais participantes</h3>
-                <p class="mt-2 text-[13px] text-[#616161]">O p&oacute;dio j&aacute; mostra todos os resultados dispon&iacute;veis.</p>
-              </article>
-            }
-          </div>
-        </section>
       </section>
     } @else {
       <section class="mt-8 rounded-[8px] border border-[#E0E0E0] bg-white p-8 text-center">
@@ -128,6 +88,5 @@
       </section>
     }
   </main>
-
   <app-back-to-top />
 </section>

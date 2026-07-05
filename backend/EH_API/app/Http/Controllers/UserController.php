@@ -119,6 +119,16 @@ class UserController extends Controller
         ]);
     }
 
+    public function requestJindungoSubscription(Request $request): JsonResponse
+    {
+        $user = $this->users->requestJindungoSubscription($request->user());
+
+        return response()->json([
+            'message' => 'Pedido de subscrição Jindungo registado com sucesso',
+            'data' => $user,
+        ]);
+    }
+
     private function promote(callable $callback, string $message): JsonResponse
     {
         try {

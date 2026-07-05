@@ -2,6 +2,8 @@
 import { RouterLink, Routes } from '@angular/router';
 import { SubscriptionService } from '../../services/subscription.service';
 import { AuthStateService } from '../../services/auth-state.service';
+import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
@@ -14,6 +16,8 @@ import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.com
 export class SubscriptionManagementPage {
   readonly subscriptionService = inject(SubscriptionService);
   readonly auth = inject(AuthStateService);
+  private readonly authService = inject(AuthService);
+  private readonly toastService = inject(ToastService);
   readonly profileMenu = [
     { label: 'Perfil', icon: 'person', route: '/app/profile', active: false },
     { label: 'Meu aprendizado', icon: 'school', route: '/app/profile/learning', active: false },
@@ -26,7 +30,16 @@ export class SubscriptionManagementPage {
   ];
 
   subscribeToJindungo(): void {
-    this.auth.subscribeToJindungo();
+    if (this.auth.hasPremiumAccess() || this.auth.hasPendingJindungoRequest()) {
+      return;
+    }
+    void this.authService.requestJindungoSubscription()
+      .then(() => {
+        this.toastService.success('Pedido de subscrição enviado. Aguarde aprovação do SuperAdmin para ler os textos Jindungo.');
+      })
+      .catch(() => {
+        this.toastService.error('Não foi possível enviar o pedido de subscrição.');
+      });
   }
 
   onSidebarPhotoSelected(event: Event): void {

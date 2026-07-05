@@ -26,6 +26,7 @@ class User extends Authenticatable
         'status',
         'total_xp',
         'jindungo_subscription_expires_at',
+        'jindungo_subscription_requested_at',
     ];
 
     protected $hidden = [
@@ -41,6 +42,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'total_xp' => 'integer',
             'jindungo_subscription_expires_at' => 'datetime',
+            'jindungo_subscription_requested_at' => 'datetime',
         ];
     }
 

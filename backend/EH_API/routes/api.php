@@ -74,6 +74,7 @@ Route::prefix('v1')->group(function () {
             ->middleware('role:SuperAdmin');
         Route::patch('/users/{user}/jindungo-subscription', [UserController::class, 'updateJindungoSubscription'])
             ->middleware('role:SuperAdmin');
+        Route::post('/users/jindungo-subscription/request', [UserController::class, 'requestJindungoSubscription']);
         Route::get('/admin/dashboard', AdminDashboardController::class)
             ->middleware('role:Admin,SuperAdmin');
         Route::get('/admin/statistics', AdminStatisticsController::class)

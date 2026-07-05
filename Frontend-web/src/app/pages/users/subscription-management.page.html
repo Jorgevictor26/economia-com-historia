@@ -57,13 +57,16 @@
 
                 @if (plan.id === 'jindungo') {
                   <div class="mt-5 flex flex-wrap gap-3">
-                    <button type="button" class="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-[#8A3F50] bg-[#8A3F50] px-5 text-xs font-bold text-white shadow-[0_14px_28px_rgb(178_47_84_/_0.18)]" (click)="subscribeToJindungo()">
-                      Subscrever
+                    <button type="button" class="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-[#8A3F50] bg-[#8A3F50] px-5 text-xs font-bold text-white shadow-[0_14px_28px_rgb(178_47_84_/_0.18)]" (click)="subscribeToJindungo()" [disabled]="auth.hasPremiumAccess() || auth.hasPendingJindungoRequest()">
+                      {{ auth.hasPremiumAccess() ? 'Já subscrito' : auth.hasPendingJindungoRequest() ? 'Pedido enviado' : 'Subscrever' }}
                     </button>
                     <a routerLink="/app/contents" class="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-[#5C1E2F] px-5 text-xs font-bold text-[#5C1E2F]">
                       Ver mais textos
                     </a>
                   </div>
+                  @if (auth.hasPendingJindungoRequest() && !auth.hasPremiumAccess()) {
+                    <p class="mt-3 text-[11px] text-[#616161]">Pedido enviado para análise do SuperAdmin. A sua conta será desbloqueada assim que a aprovação for concedida.</p>
+                  }
                 }
               </article>
             }

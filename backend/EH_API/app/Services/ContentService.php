@@ -38,6 +38,10 @@ class ContentService
 
     public function getAll(array $filters = [])
     {
+        if ($this->shouldIncludeJindungoForFilters($filters)) {
+            $filters['include_jindungo'] = true;
+        }
+
         return $this->repository->all($filters);
     }
 
@@ -115,5 +119,18 @@ class ContentService
         }
 
         return $this->contentTypes->findById($contentTypeId)?->slug === 'jindungo';
+    }
+
+    private function shouldIncludeJindungoForFilters(array $filters): bool
+    {
+        if (! empty($filters['content_type_id']) && $this->isJindungoType((int) $filters['content_type_id'])) {
+            return true;
+        }
+
+        if (! empty($filters['type']) && strtolower((string) $filters['type']) === 'jindungo') {
+            return true;
+        }
+
+        return false;
     }
 }

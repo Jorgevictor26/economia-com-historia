@@ -21,6 +21,10 @@ export interface BackendForum {
   created_at?: string | null;
   updated_at?: string | null;
   topics_count?: number;
+  members_count?: number;
+  access_status?: 'none' | 'pending' | 'invited' | 'member' | 'rejected' | string;
+  can_view?: boolean;
+  invite_emails?: string[];
   topics?: BackendForumTopic[];
   user?: {
     id: number | string;
@@ -73,6 +77,7 @@ export interface CreateForumPayload {
   content_permission?: 'public' | 'subscribers';
   allow_attachments?: boolean;
   content_ids?: Array<number | string>;
+  invite_emails?: string[];
 }
 
 export type UpdateForumPayload = Partial<CreateForumPayload>;
@@ -99,6 +104,24 @@ export class ForumService {
 
   async create(payload: CreateForumPayload): Promise<BackendForum> {
     const response = await firstValueFrom(this.http.post<{ data: BackendForum }>('/forums', payload));
+
+    return response.data;
+  }
+
+  async requestJoin(id: number | string): Promise<BackendForum> {
+    const response = await firstValueFrom(this.http.post<{ data: BackendForum }>(`/forums/${id}/join-request`, {}));
+
+    return response.data;
+  }
+
+  async acceptInvitation(id: number | string): Promise<BackendForum> {
+    const response = await firstValueFrom(this.http.post<{ data: BackendForum }>(`/forums/${id}/accept-invitation`, {}));
+
+    return response.data;
+  }
+
+  async invite(id: number | string, emails: string[]): Promise<BackendForum> {
+    const response = await firstValueFrom(this.http.post<{ data: BackendForum }>(`/forums/${id}/invite`, { emails }));
 
     return response.data;
   }

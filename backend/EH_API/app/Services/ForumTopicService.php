@@ -9,18 +9,28 @@ use App\Models\User;
 use App\Repositories\ForumRepository;
 use App\Repositories\ForumTopicRepository;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Collection;
 
 class ForumTopicService
 {
     public function __construct(
         private ForumTopicRepository $repository,
-        private ForumRepository $forumRepository
+        private ForumRepository $forumRepository,
+        private ForumService $forumService
     ) {}
 
     public function create(CreateTopicDTO $dto): ?ForumTopic
     {
-        if (! $this->forumRepository->findById($dto->forumId)) {
+        $forum = $this->forumRepository->findById($dto->forumId);
+
+        if (! $forum) {
             return null;
+        }
+
+        $user = User::query()->find($dto->userId);
+
+        if (! $user || ! $this->forumService->canViewForum($forum, $user)) {
+            throw new AuthorizationException('You must be a forum member to create topics');
         }
 
         return $this->repository->create([
@@ -31,18 +41,30 @@ class ForumTopicService
         ]);
     }
 
-    public function getByForum(int $forumId, array $filters = [])
+    public function getByForum(int $forumId, array $filters = [], ?User $user = null): ?Collection
     {
-        if (! $this->forumRepository->findById($forumId)) {
+        $forum = $this->forumRepository->findById($forumId);
+
+        if (! $forum) {
             return null;
+        }
+
+        if (! $this->forumService->canViewForum($forum, $user)) {
+            throw new AuthorizationException('You must be a forum member to view topics');
         }
 
         return $this->repository->getByForum($forumId, $filters);
     }
 
-    public function findById(int $id): ?ForumTopic
+    public function findById(int $id, ?User $user = null): ?ForumTopic
     {
-        return $this->repository->findById($id);
+        $topic = $this->repository->findById($id);
+
+        if ($topic && ! $this->forumService->canViewForum($topic->forum, $user)) {
+            throw new AuthorizationException('You must be a forum member to view this topic');
+        }
+
+        return $topic;
     }
 
     public function update(int $id, UpdateTopicDTO $dto, User $user): ?ForumTopic

@@ -19,7 +19,7 @@ class ForumController extends Controller
     public function index(Request $request): JsonResponse
     {
         return response()->json(
-            $this->service->getAll($request->only('search'))
+            $this->service->getAll($request->only('search'), $request->user('sanctum'))
         );
     }
 
@@ -44,7 +44,8 @@ class ForumController extends Controller
             (bool) $request->boolean('join_approval_required'),
             $request->input('content_permission', 'public'),
             (bool) $request->boolean('allow_attachments'),
-            $request->input('content_ids', [])
+            $request->input('content_ids', []),
+            $request->input('invite_emails', [])
         ));
 
         return response()->json([
@@ -53,15 +54,44 @@ class ForumController extends Controller
         ], 201);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
-        $forum = $this->service->findById($id);
+        $forum = $this->service->findById($id, true, $request->user('sanctum'));
 
         if (! $forum) {
             return response()->json(['message' => 'Forum not found'], 404);
         }
 
         return response()->json($forum);
+    }
+
+    public function requestJoin(Request $request, int $id): JsonResponse
+    {
+        return response()->json([
+            'message' => 'Forum access requested',
+            'data' => $this->service->requestJoin($id, $request->user()),
+        ]);
+    }
+
+    public function acceptInvitation(Request $request, int $id): JsonResponse
+    {
+        return response()->json([
+            'message' => 'Forum invitation accepted',
+            'data' => $this->service->acceptInvitation($id, $request->user()),
+        ]);
+    }
+
+    public function invite(Request $request, int $id): JsonResponse
+    {
+        $data = $request->validate([
+            'emails' => ['required', 'array', 'min:1'],
+            'emails.*' => ['required', 'email', 'max:255'],
+        ]);
+
+        return response()->json([
+            'message' => 'Forum invitations sent',
+            'data' => $this->service->invite($id, $request->user(), $data['emails']),
+        ]);
     }
 
     public function update(UpdateForumRequest $request, int $id): JsonResponse

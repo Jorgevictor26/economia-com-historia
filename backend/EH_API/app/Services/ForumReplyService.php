@@ -14,13 +14,22 @@ class ForumReplyService
 {
     public function __construct(
         private ForumReplyRepository $repository,
-        private ForumTopicRepository $topicRepository
+        private ForumTopicRepository $topicRepository,
+        private ForumService $forumService
     ) {}
 
     public function create(ReplyTopicDTO $dto): ?ForumReply
     {
-        if (! $this->topicRepository->findById($dto->topicId)) {
+        $topic = $this->topicRepository->findById($dto->topicId);
+
+        if (! $topic) {
             return null;
+        }
+
+        $user = User::query()->find($dto->userId);
+
+        if (! $user || ! $this->forumService->canViewForum($topic->forum, $user)) {
+            throw new AuthorizationException('You must be a forum member to reply');
         }
 
         return $this->repository->create([
@@ -30,10 +39,16 @@ class ForumReplyService
         ]);
     }
 
-    public function getByTopic(int $topicId, array $filters = [])
+    public function getByTopic(int $topicId, array $filters = [], ?User $user = null)
     {
-        if (! $this->topicRepository->findById($topicId)) {
+        $topic = $this->topicRepository->findById($topicId);
+
+        if (! $topic) {
             return null;
+        }
+
+        if (! $this->forumService->canViewForum($topic->forum, $user)) {
+            throw new AuthorizationException('You must be a forum member to view replies');
         }
 
         return $this->repository->getByTopic($topicId, $filters);

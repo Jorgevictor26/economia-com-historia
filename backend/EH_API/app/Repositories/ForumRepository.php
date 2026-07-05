@@ -15,14 +15,14 @@ class ForumRepository
             $forum->contents()->sync($contentIds);
         }
 
-        return $forum->fresh(['user', 'reviewer', 'contents']);
+        return $forum->fresh(['user', 'reviewer', 'contents.category', 'contents.contentType', 'memberships']);
     }
 
     public function all(array $filters = []): Collection
     {
         return Forum::query()
             ->where('status', 'approved')
-            ->with(['user', 'reviewer', 'contents.category', 'contents.contentType'])
+            ->with(['user', 'reviewer', 'contents.category', 'contents.contentType', 'memberships'])
             ->withCount('topics')
             ->when($filters['search'] ?? null, function ($query, string $search) {
                 $query->where(function ($searchQuery) use ($search) {
@@ -55,7 +55,7 @@ class ForumRepository
 
     public function findById(int $id, bool $onlyApproved = true): ?Forum
     {
-        return Forum::with(['topics.user', 'user', 'reviewer', 'contents.category', 'contents.contentType'])
+        return Forum::with(['topics.user', 'user', 'reviewer', 'contents.category', 'contents.contentType', 'memberships'])
             ->when($onlyApproved, fn ($query) => $query->where('status', 'approved'))
             ->find($id);
     }

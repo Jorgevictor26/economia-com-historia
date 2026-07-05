@@ -6,6 +6,7 @@ import '../theme/app_colors.dart';
 import '../Screens/notificacoes_screen.dart';
 import '../Screens/favoritos_screen.dart';
 import '../Screens/perfil_screen.dart';
+import '../Screens/ranking_global_screen.dart';
 import '../services/perfil_service.dart';
 import 'search_modal.dart';
 
@@ -16,6 +17,7 @@ class AppBarPrincipal extends StatelessWidget implements PreferredSizeWidget {
   final bool mostrarVoltar;
   final bool mostrarFavoritos;
   final bool mostrarPerfil;
+  final bool mostrarRankingGlobal;
 
   const AppBarPrincipal({
     super.key,
@@ -25,6 +27,7 @@ class AppBarPrincipal extends StatelessWidget implements PreferredSizeWidget {
     this.mostrarVoltar = false,
     this.mostrarFavoritos = false,
     this.mostrarPerfil = false,
+    this.mostrarRankingGlobal = false,
   });
 
   @override
@@ -172,6 +175,22 @@ class AppBarPrincipal extends StatelessWidget implements PreferredSizeWidget {
                         ),
                         _Divider(),
                       ],
+                      if (mostrarRankingGlobal) ...[
+                        _MenuItem(
+                          icone: Icons.leaderboard_outlined,
+                          label: 'Ranking Global',
+                          onTap: () {
+                            Navigator.pop(dialogContext);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const RankingGlobalScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        _Divider(),
+                      ],
                       if (mostrarFavoritos) ...[
                         _MenuItem(
                           icone: Icons.bookmark_border_rounded,
@@ -255,7 +274,10 @@ class AppBarPrincipal extends StatelessWidget implements PreferredSizeWidget {
                 size: 28,
               ),
             )
-          : (mostrarFavoritos || mostrarNotificacoes || mostrarPerfil)
+          : (mostrarFavoritos ||
+                mostrarNotificacoes ||
+                mostrarPerfil ||
+                mostrarRankingGlobal)
           ? IconButton(
               onPressed: () => _abrirMenu(context),
               icon: const Icon(

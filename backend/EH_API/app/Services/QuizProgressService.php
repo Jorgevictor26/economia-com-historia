@@ -20,6 +20,17 @@ class QuizProgressService
         return $this->repository->latestByUser($userId, max(1, min($limit, 12)));
     }
 
+    public function findForUserAndQuiz(int $userId, int $quizId): ?QuizProgress
+    {
+        if (! Quiz::query()->whereKey($quizId)->exists()) {
+            throw ValidationException::withMessages([
+                'quiz_id' => ['Quiz not found.'],
+            ]);
+        }
+
+        return $this->repository->findByUserAndQuiz($userId, $quizId);
+    }
+
     public function update(UpdateQuizProgressDTO $dto): QuizProgress
     {
         if (! Quiz::query()->whereKey($dto->quizId)->exists()) {

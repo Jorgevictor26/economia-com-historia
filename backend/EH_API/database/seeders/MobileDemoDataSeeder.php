@@ -253,6 +253,7 @@ class MobileDemoDataSeeder extends Seeder
                     ['question' => 'A inflacao afeta diretamente que elemento?', 'a' => 'A cor das notas', 'b' => 'O poder de compra', 'c' => 'O nome dos mercados', 'd' => 'A geografia do pais', 'correct' => 'b'],
                     ['question' => 'A confianca na moeda depende de que fator?', 'a' => 'Somente do papel usado', 'b' => 'Estabilidade e aceitacao social', 'c' => 'Distancia entre cidades', 'd' => 'Numero de portos', 'correct' => 'b'],
                     ['question' => 'No comercio, os precos ajudam a comunicar:', 'a' => 'Sinais de escassez e procura', 'b' => 'Regras de transito', 'c' => 'Limites administrativos', 'd' => 'Idade dos produtos', 'correct' => 'a'],
+                    ['question' => 'Quando a moeda perde valor rapidamente, as familias tendem a:', 'a' => 'Adiar todas as compras essenciais', 'b' => 'Procurar proteger o rendimento e rever gastos', 'c' => 'Ignorar completamente os precos', 'd' => 'Deixar de usar mercados locais', 'correct' => 'b'],
                 ],
             ],
             'infraestruturas' => [
@@ -267,6 +268,7 @@ class MobileDemoDataSeeder extends Seeder
                     ['question' => 'Integracao de mercados significa:', 'a' => 'Maior ligacao entre produtores e consumidores', 'b' => 'Fechar mercados locais', 'c' => 'Eliminar cidades', 'd' => 'Trocar moeda por sal', 'correct' => 'a'],
                     ['question' => 'Uma infraestrutura economica pode ser:', 'a' => 'Estrada ou porto', 'b' => 'Apenas uma lei antiga', 'c' => 'Uma cor oficial', 'd' => 'Um sobrenome', 'correct' => 'a'],
                     ['question' => 'Menor custo logistico tende a:', 'a' => 'Facilitar circulacao de bens', 'b' => 'Parar a producao', 'c' => 'Reduzir conhecimento', 'd' => 'Apagar memoria historica', 'correct' => 'a'],
+                    ['question' => 'A ligacao entre zonas produtoras e cidades pode melhorar:', 'a' => 'O acesso a mercados e abastecimento', 'b' => 'O isolamento das familias', 'c' => 'A ausencia de comercio', 'd' => 'A perda de informacao sobre precos', 'correct' => 'a'],
                 ],
             ],
             'financas-publicas' => [
@@ -281,6 +283,7 @@ class MobileDemoDataSeeder extends Seeder
                     ['question' => 'Diversificacao produtiva significa:', 'a' => 'Depender de um unico produto', 'b' => 'Ampliar setores de producao', 'c' => 'Reduzir aprendizagem', 'd' => 'Parar investimento local', 'correct' => 'b'],
                     ['question' => 'Divida publica deve ser analisada junto com:', 'a' => 'Capacidade de pagamento e investimento', 'b' => 'Apenas tamanho do territorio', 'c' => 'Numero de capitais', 'd' => 'Cor dos documentos', 'correct' => 'a'],
                     ['question' => 'Receitas volateis exigem:', 'a' => 'Planeamento fiscal prudente', 'b' => 'Gastos sem limite', 'c' => 'Fim da poupanca', 'd' => 'Ignorar reservas', 'correct' => 'a'],
+                    ['question' => 'Uma politica fiscal prudente procura:', 'a' => 'Equilibrar receitas, despesas e prioridades sociais', 'b' => 'Eliminar investimento publico essencial', 'c' => 'Aumentar divida sem criterio', 'd' => 'Ignorar choques externos', 'correct' => 'a'],
                 ],
             ],
             'mercados-populares' => [
@@ -295,6 +298,7 @@ class MobileDemoDataSeeder extends Seeder
                     ['question' => 'A informalidade pode indicar:', 'a' => 'Adaptacao a oportunidades e restricoes', 'b' => 'Falta de qualquer regra social', 'c' => 'Inexistencia de consumidores', 'd' => 'Ausencia de transporte', 'correct' => 'a'],
                     ['question' => 'A memoria urbana ajuda a entender:', 'a' => 'Mudancas em trabalho, consumo e territorio', 'b' => 'Apenas datas comemorativas', 'c' => 'Somente clima', 'd' => 'Nada sobre economia', 'correct' => 'a'],
                     ['question' => 'Empreendedorismo popular esta ligado a:', 'a' => 'Iniciativa economica de pequena escala', 'b' => 'Fim do mercado', 'c' => 'Ausencia de clientes', 'd' => 'Fecho das cidades', 'correct' => 'a'],
+                    ['question' => 'O estudo de mercados urbanos permite observar:', 'a' => 'Redes de abastecimento, credito informal e consumo', 'b' => 'A inexistencia de trabalho', 'c' => 'A ausencia de historia economica', 'd' => 'Somente organizacao desportiva', 'correct' => 'a'],
                 ],
             ],
         ];
@@ -317,13 +321,14 @@ class MobileDemoDataSeeder extends Seeder
                 ]
             );
 
-            foreach ($item['questions'] as $question) {
+            foreach ($item['questions'] as $index => $question) {
                 $createdQuestion = Question::updateOrCreate(
                     [
                         'quiz_id' => $quiz->id,
                         'question' => $question['question'],
                     ],
                     [
+                        'order' => $index + 1,
                         'option_a' => $question['a'],
                         'option_b' => $question['b'],
                         'option_c' => $question['c'],
@@ -581,8 +586,12 @@ class MobileDemoDataSeeder extends Seeder
                     continue;
                 }
 
-                $answered = $questions
-                    ->take(min(2 + $quizIndex, $questions->count()))
+                $questionCount = max($questions->count(), 1);
+                $answeredCount = $quizIndex === 0
+                    ? $questions->count()
+                    : min(2 + $quizIndex, max($questions->count() - 1, 1));
+                $answeredQuestions = $questions->take($answeredCount);
+                $answered = $answeredQuestions
                     ->map(fn (Question $question): array => [
                         'question_id' => $question->id,
                         'selected_option' => $question->correct_option,
@@ -590,7 +599,12 @@ class MobileDemoDataSeeder extends Seeder
                     ->values()
                     ->all();
 
-                $progress = $quizIndex === 0 ? 100 : min(90, 25 + ($quizIndex * 20));
+                $progress = $quizIndex === 0
+                    ? 100
+                    : (int) round((count($answered) / $questionCount) * 100);
+                $currentQuestionIndex = $progress >= 100
+                    ? max($questions->count() - 1, 0)
+                    : min(count($answered), max($questions->count() - 1, 0));
                 DB::table('quiz_progresses')->updateOrInsert(
                     [
                         'user_id' => $user->id,
@@ -598,8 +612,9 @@ class MobileDemoDataSeeder extends Seeder
                     ],
                     [
                         'progress_percent' => $progress,
-                        'current_question_index' => min($quizIndex, max($questions->count() - 1, 0)),
+                        'current_question_index' => $currentQuestionIndex,
                         'answered_questions' => json_encode($answered),
+                        'question_order' => json_encode($questions->pluck('id')->values()->all()),
                         'completed_at' => $progress >= 100 ? now()->subDays($quizIndex + 1) : null,
                         'created_at' => now(),
                         'updated_at' => now(),

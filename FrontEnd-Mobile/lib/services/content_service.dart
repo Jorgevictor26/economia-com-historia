@@ -11,22 +11,41 @@ class ContentService {
 
   Future<PaginatedResponse<Content>> getContents({
     int page = 1,
+    int? perPage,
     String? type,
     int? categoryId,
     int? contentTypeId,
     String? search,
+    String? sort,
   }) async {
     final response = await _api.get(
       '/contents',
       query: {
         'page': page,
+        'per_page': perPage,
         'type': type,
         'category_id': categoryId,
         'content_type_id': contentTypeId,
         'search': search,
+        'sort': sort,
       },
     );
     return PaginatedResponse.fromJson(response, Content.fromJson);
+  }
+
+  Future<PaginatedResponse<Content>> getTrendingContents({
+    int page = 1,
+    int perPage = 12,
+    int? categoryId,
+    int? contentTypeId,
+  }) {
+    return getContents(
+      page: page,
+      perPage: perPage,
+      categoryId: categoryId,
+      contentTypeId: contentTypeId,
+      sort: 'trending',
+    );
   }
 
   Future<Content> getContent(int id) async {

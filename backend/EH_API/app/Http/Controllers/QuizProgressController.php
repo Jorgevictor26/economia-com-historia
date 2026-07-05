@@ -22,6 +22,22 @@ class QuizProgressController extends Controller
         return response()->json($this->service->latestForUser($request->user()->id, $limit));
     }
 
+    public function show(Request $request, int $quizId): JsonResponse
+    {
+        try {
+            $progress = $this->service->findForUserAndQuiz($request->user()->id, $quizId);
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'message' => 'Quiz not found',
+                'errors' => $exception->errors(),
+            ], 404);
+        }
+
+        return response()->json([
+            'data' => $progress,
+        ]);
+    }
+
     public function update(UpdateQuizProgressRequest $request, int $quizId): JsonResponse
     {
         try {

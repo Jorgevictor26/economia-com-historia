@@ -29,6 +29,7 @@ class _ExplorarConteudoScreenState extends State<ExplorarConteudoScreen> {
   String _filtroSelecionado = 'all';
   List<ContentType> _tipos = [];
   List<Content> _itens = [];
+  List<Content> _emAlta = [];
   List<Content> _sugestoes = [];
 
   @override
@@ -42,23 +43,43 @@ class _ExplorarConteudoScreenState extends State<ExplorarConteudoScreen> {
       _isLoading = true;
       _error = null;
     });
+
     try {
       final tipos = await _taxonomyService.getContentTypes();
-      final conteudos = await _contentService.getContents();
-      final sugestoes = await _contentService.getSuggestions(limit: 3);
+      final data = await _loadContentData(_filtroSelecionado);
       if (!mounted) return;
       setState(() {
         _tipos = tipos;
-        _itens = conteudos.data;
-        _sugestoes = sugestoes;
+        _itens = data.items;
+        _emAlta = data.trending;
+        _sugestoes = data.suggestions;
       });
     } on AppException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
-      if (mounted) setState(() => _error = 'Erro ao carregar conteúdos.');
+      if (mounted) setState(() => _error = 'Erro ao carregar conteudos.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<_ContentData> _loadContentData(String filterId) async {
+    final typeId = filterId == 'all' ? null : int.tryParse(filterId);
+    final conteudos = await _contentService.getContents(
+      contentTypeId: typeId,
+      perPage: 30,
+    );
+    final emAlta = await _contentService.getTrendingContents(
+      contentTypeId: typeId,
+      perPage: 12,
+    );
+    final sugestoes = await _contentService.getSuggestions(limit: 12);
+
+    return _ContentData(
+      items: conteudos.data,
+      trending: emAlta.data,
+      suggestions: sugestoes,
+    );
   }
 
   Future<void> _selecionarFiltro(String id) async {
@@ -67,15 +88,19 @@ class _ExplorarConteudoScreenState extends State<ExplorarConteudoScreen> {
       _isLoading = true;
       _error = null;
     });
+
     try {
-      final typeId = id == 'all' ? null : int.tryParse(id);
-      final response = await _contentService.getContents(contentTypeId: typeId);
+      final data = await _loadContentData(id);
       if (!mounted) return;
-      setState(() => _itens = response.data);
+      setState(() {
+        _itens = data.items;
+        _emAlta = data.trending;
+        _sugestoes = data.suggestions;
+      });
     } on AppException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
-      if (mounted) setState(() => _error = 'Erro ao filtrar conteúdos.');
+      if (mounted) setState(() => _error = 'Erro ao filtrar conteudos.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -95,6 +120,65 @@ class _ExplorarConteudoScreenState extends State<ExplorarConteudoScreen> {
     return 'Todos';
   }
 
+  List<_ContentSectionData> get _sections {
+    final trending = _dedupe(_emAlta.where(_matchesSelectedFilter));
+    final recommendationSource = _dedupe([
+      ..._sugestoes.where(_matchesSelectedFilter),
+      ..._itens.where(_matchesSelectedFilter),
+    ]);
+    final trendingIds = trending.map((content) => content.id).toSet();
+    var recommended = recommendationSource
+        .where((content) => !trendingIds.contains(content.id))
+        .take(10)
+        .toList();
+
+    if (recommended.isEmpty) {
+      recommended = recommendationSource.take(10).toList();
+    }
+
+    final sections = <_ContentSectionData>[
+      if (trending.isNotEmpty)
+        _ContentSectionData(
+          title: _filtroSelecionado == 'all'
+              ? 'Em Alta'
+              : '$_filtroLabel em alta',
+          items: trending,
+        ),
+      if (recommended.isNotEmpty)
+        _ContentSectionData(
+          title: _filtroSelecionado == 'all'
+              ? 'Recomendado para ti'
+              : '$_filtroLabel recomendado',
+          items: recommended,
+        ),
+    ];
+
+    final grouped = <String, List<Content>>{};
+    for (final content in _itens.where(_matchesSelectedFilter)) {
+      final title =
+          content.category?.name ??
+          content.contentType?.name ??
+          'Outros conteudos';
+      grouped.putIfAbsent(title, () => <Content>[]).add(content);
+    }
+
+    final entries = grouped.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    for (final entry in entries) {
+      sections.add(
+        _ContentSectionData(title: entry.key, items: _dedupe(entry.value)),
+      );
+    }
+
+    return sections;
+  }
+
+  bool _matchesSelectedFilter(Content content) {
+    if (_filtroSelecionado == 'all') return true;
+    final typeId = int.tryParse(_filtroSelecionado);
+    return typeId != null && content.contentTypeId == typeId;
+  }
+
   void _abrirConteudo(Content content) {
     final route = content.isPodcast
         ? MaterialPageRoute(
@@ -112,10 +196,12 @@ class _ExplorarConteudoScreenState extends State<ExplorarConteudoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final sections = _sections;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppBarPrincipal(
-        titulo: 'Explorar Conteúdo',
+        titulo: 'Explorar Conteudo',
         mostrarFavoritos: true,
         mostrarPerfil: true,
       ),
@@ -137,66 +223,79 @@ class _ExplorarConteudoScreenState extends State<ExplorarConteudoScreen> {
             ),
             if (_isLoading)
               const SliverFillRemaining(
-                child: LoadingState(message: 'A carregar conteúdos...'),
+                child: LoadingState(message: 'A carregar conteudos...'),
               )
             else if (_error != null)
               SliverFillRemaining(
                 child: ErrorState(message: _error!, onRetry: _loadInitial),
               )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    const SizedBox(height: 24),
-                    _SectionHeader(
-                      titulo: 'Em Alta',
-                      acaoLabel: '${_itens.length} itens',
-                      onAcao: () {},
-                    ),
-                    const SizedBox(height: 12),
-                    if (_itens.isEmpty)
-                      EmptyState(
-                        message:
-                            'Nenhum conteúdo encontrado para "$_filtroLabel".',
-                      )
-                    else
-                      ..._itens.map(
-                        (item) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: AppContentCard(
-                            content: item,
-                            variant: ContentCardVariant.horizontal,
-                            onTap: () => _abrirConteudo(item),
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 28),
-                    if (_sugestoes.isNotEmpty || _itens.length > 1) ...[
-                      const Text(
-                        'Recomendado para ti',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      AppContentCard(
-                        content: _sugestoes.isNotEmpty
-                            ? _sugestoes.first
-                            : _itens[1],
-                        onTap: () => _abrirConteudo(
-                          _sugestoes.isNotEmpty ? _sugestoes.first : _itens[1],
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 32),
-                  ]),
+            else if (sections.isEmpty)
+              SliverFillRemaining(
+                child: EmptyState(
+                  message: 'Nenhum conteudo encontrado para "$_filtroLabel".',
                 ),
+              )
+            else
+              SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final section = sections[index];
+                  return _HorizontalContentSection(
+                    section: section,
+                    onOpen: _abrirConteudo,
+                  );
+                }, childCount: sections.length),
               ),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _HorizontalContentSection extends StatelessWidget {
+  final _ContentSectionData section;
+  final ValueChanged<Content> onOpen;
+
+  const _HorizontalContentSection({
+    required this.section,
+    required this.onOpen,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _SectionHeader(
+              titulo: section.title,
+              acaoLabel: '${section.items.length} itens',
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 206,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: section.items.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final item = section.items[index];
+                return AppContentCard(
+                  content: item,
+                  variant: ContentCardVariant.compact,
+                  width: 168,
+                  onTap: () => onOpen(item),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -205,36 +304,63 @@ class _ExplorarConteudoScreenState extends State<ExplorarConteudoScreen> {
 class _SectionHeader extends StatelessWidget {
   final String titulo;
   final String acaoLabel;
-  final VoidCallback onAcao;
 
-  const _SectionHeader({
-    required this.titulo,
-    required this.acaoLabel,
-    required this.onAcao,
-  });
+  const _SectionHeader({required this.titulo, required this.acaoLabel});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          titulo,
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-            color: AppColors.primary,
+        Flexible(
+          child: Text(
+            titulo,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primary,
+            ),
           ),
         ),
+        const SizedBox(width: 12),
         Text(
           acaoLabel,
           style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: AppColors.primary,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textMedium,
           ),
         ),
       ],
     );
   }
+}
+
+class _ContentData {
+  final List<Content> items;
+  final List<Content> trending;
+  final List<Content> suggestions;
+
+  const _ContentData({
+    required this.items,
+    required this.trending,
+    required this.suggestions,
+  });
+}
+
+class _ContentSectionData {
+  final String title;
+  final List<Content> items;
+
+  const _ContentSectionData({required this.title, required this.items});
+}
+
+List<Content> _dedupe(Iterable<Content> contents) {
+  final byId = <int, Content>{};
+  for (final content in contents) {
+    byId.putIfAbsent(content.id, () => content);
+  }
+  return byId.values.toList();
 }

@@ -17,6 +17,14 @@ class QuizProgressRepository
             ->get();
     }
 
+    public function findByUserAndQuiz(int $userId, int $quizId): ?QuizProgress
+    {
+        return QuizProgress::with(['quiz.user', 'quiz.content.category'])
+            ->where('user_id', $userId)
+            ->where('quiz_id', $quizId)
+            ->first();
+    }
+
     public function updateOrCreate(array $keys, array $data): QuizProgress
     {
         return QuizProgress::updateOrCreate($keys, $data)

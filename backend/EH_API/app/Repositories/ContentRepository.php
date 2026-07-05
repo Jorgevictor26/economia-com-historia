@@ -19,7 +19,7 @@ class ContentRepository
     {
         $perPage = min(max((int) ($filters['per_page'] ?? 10), 1), 30);
 
-        return $this->contentQuery($filters)
+        $query = $this->contentQuery($filters)
             ->when($filters['category_id'] ?? null, fn ($query, $categoryId) => $query->where('category_id', $categoryId))
             ->when($filters['content_type_id'] ?? null, fn ($query, $contentTypeId) => $query->where('content_type_id', $contentTypeId))
             ->when($filters['type'] ?? null, fn ($query, $type) => $query->whereHas('contentType', fn ($typeQuery) => $typeQuery->where('slug', $type)))
@@ -33,8 +33,9 @@ class ContentRepository
                         ->orWhereHas('category', fn ($categoryQuery) => $categoryQuery->where('name', 'like', "%{$search}%"))
                         ->orWhereHas('contentType', fn ($typeQuery) => $typeQuery->where('name', 'like', "%{$search}%"));
                 });
-            })
-            ->latest()
+            });
+
+        return $this->applyOrdering($query, $filters['sort'] ?? null)
             ->paginate($perPage);
     }
 
@@ -172,6 +173,21 @@ class ContentRepository
             ->when(! ($filters['include_jindungo'] ?? false), function (Builder $query) {
                 $query->whereDoesntHave('contentType', fn ($typeQuery) => $typeQuery->where('slug', 'jindungo'));
             });
+    }
+
+    private function applyOrdering(Builder $query, ?string $sort): Builder
+    {
+        if ($sort === 'trending') {
+            return $query
+                ->orderByRaw('(
+                    COALESCE(contents.views_count, 0)
+                    + ((SELECT COUNT(*) FROM reactions WHERE reactions.content_id = contents.id) * 3)
+                    + ((SELECT COUNT(*) FROM comments WHERE comments.content_id = contents.id) * 2)
+                ) DESC')
+                ->latest();
+        }
+
+        return $query->latest();
     }
 
     private function historyContentIds(int $userId): Collection

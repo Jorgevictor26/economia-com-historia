@@ -82,6 +82,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/content-progress', [ContentProgressController::class, 'mine']);
         Route::put('/contents/{contentId}/progress', [ContentProgressController::class, 'update']);
         Route::get('/quiz-progress', [QuizProgressController::class, 'mine']);
+        Route::get('/quizzes/{quizId}/progress', [QuizProgressController::class, 'show']);
         Route::put('/quizzes/{quizId}/progress', [QuizProgressController::class, 'update']);
         Route::post('/saved-contents', [SavedContentController::class, 'store']);
         Route::delete('/saved-contents/{contentId}', [SavedContentController::class, 'destroy']);

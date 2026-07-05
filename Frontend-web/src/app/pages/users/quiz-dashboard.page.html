@@ -4,19 +4,18 @@
   <main class="fluid-container pb-14 pt-6">
     <section>
       <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-        <h1 class="font-display text-[32px] font-extrabold leading-tight text-[#5C1E2F]">Quiz</h1>
+        <h1 class="font-display text-[32px] font-extrabold leading-tight text-[#5C1E2F]">
+          Quiz
+        </h1>
 
-        <div class="flex w-full flex-col gap-3 sm:flex-row lg:max-w-[620px]">
-          <a routerLink="/app/quizzes/ranking" class="eh-card-action min-h-12 shrink-0 px-5">
-            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">leaderboard</span>
-            Ranking global
-          </a>
-
+        <div class="w-full lg:max-w-[420px]">
           <label
             class="flex min-h-12 w-full items-center gap-2 rounded-[10px] border border-[#E0E0E0] bg-white px-4 shadow-sm">
             <span class="material-symbols-outlined text-[#5C1E2F]">search</span>
+
             <input class="w-full bg-transparent text-[14px] text-[#212121] outline-none placeholder:text-[#9E9E9E]"
               type="text" placeholder="Pesquisar quizzes..." [value]="searchTerm()" (input)="updateSearch($event)" />
+
             @if (searchTerm()) {
             <button type="button" class="text-[#616161] hover:text-[#8A3F50]" (click)="clearSearch()">
               <span class="material-symbols-outlined">close</span>
@@ -26,17 +25,26 @@
         </div>
       </div>
 
-      <div class="mt-5 flex flex-wrap gap-3">
-        @for (level of levelFilters; track level) {
-        <button type="button"
-          class="inline-flex min-h-11 items-center justify-center rounded-[8px] border px-5 text-[13px] font-extrabold shadow-[0_8px_18px_rgba(33,33,33,0.04)] transition hover:border-[#8A3F50] hover:text-[#8A3F50]"
-          [class.border-[#5C1E2F]]="selectedLevel() === level" [class.bg-[#5C1E2F]]="selectedLevel() === level"
-          [class.text-white]="selectedLevel() === level" [class.border-[#E0E0E0]]="selectedLevel() !== level"
-          [class.bg-white]="selectedLevel() !== level" [class.text-[#616161]]="selectedLevel() !== level"
-          (click)="selectLevelFilter(level)">
-          {{ level === 'Todos' ? 'Todos' : level }}
-        </button>
-        }
+      <div class="mt-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex flex-wrap gap-3">
+          @for (level of levelFilters; track level) {
+          <button type="button"
+            class="inline-flex min-h-11 items-center justify-center rounded-[8px] border px-5 text-[13px] font-extrabold shadow-[0_8px_18px_rgba(33,33,33,0.04)] transition hover:border-[#8A3F50] hover:text-[#8A3F50]"
+            [class.border-[#5C1E2F]]="selectedLevel() === level" [class.bg-[#5C1E2F]]="selectedLevel() === level"
+            [class.text-white]="selectedLevel() === level" [class.border-[#E0E0E0]]="selectedLevel() !== level"
+            [class.bg-white]="selectedLevel() !== level" [class.text-[#616161]]="selectedLevel() !== level"
+            (click)="selectLevelFilter(level)">
+            {{ level === 'Todos' ? 'Todos' : level }}
+          </button>
+          }
+        </div>
+
+        <a routerLink="/app/quizzes/ranking" class="eh-card-action min-h-11 shrink-0 px-5">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">
+            leaderboard
+          </span>
+          Ranking global
+        </a>
       </div>
     </section>
 
@@ -56,7 +64,7 @@
             </section>
             }
           </div>
-          </article>
+        </article>
 
         <section class="border-t border-[#E0E0E0] p-5">
           <h2 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">{{ rankingTitle() }}</h2>
@@ -83,111 +91,115 @@
       </aside>
 
       <section class="min-w-0">
-      <div class="grid auto-rows-fr gap-8 md:grid-cols-2">
-        @for (quiz of paginatedQuizzes(); track quiz.title) {
-        <article
-          class="group flex h-full min-h-[318px] flex-col overflow-hidden rounded-[18px] border border-[#E0E0E0] bg-white shadow-[0_16px_40px_rgba(64,8,26,0.07)] transition duration-300 hover:-translate-y-1 hover:border-[#E6D5B8] hover:shadow-[0_22px_55px_rgba(64,8,26,0.14)]">
-          @if (quiz.coverImage) {
-          <figure class="relative h-40 overflow-hidden bg-[#F2E6E9]">
-            <img class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              [src]="quiz.coverImage" [alt]="quiz.coverAlt || quiz.title" loading="lazy" />
-            <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(64,8,26,0.04)_0%,rgba(64,8,26,0.5)_100%)]">
-            </div>
-            <figcaption
-              class="absolute left-4 top-4 rounded-full bg-white/92 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5c1e2f] shadow-sm backdrop-blur">
-              {{ quiz.level }}
-            </figcaption>
-          </figure>
-          } @else {
-          <figure class="relative h-40 overflow-hidden bg-[#F2E6E9]">
-            <div class="default-category-cover">
-              <span>
-                <strong>{{ quiz.area }}</strong>
-                <small>{{ quiz.level }}</small>
-              </span>
-            </div>
-          </figure>
-          }
+        <div class="grid auto-rows-fr gap-8 md:grid-cols-2">
+          @for (quiz of paginatedQuizzes(); track quiz.title) {
+          <article
+            class="group flex h-full min-h-[318px] flex-col overflow-hidden rounded-[18px] border border-[#E0E0E0] bg-white shadow-[0_16px_40px_rgba(64,8,26,0.07)] transition duration-300 hover:-translate-y-1 hover:border-[#E6D5B8] hover:shadow-[0_22px_55px_rgba(64,8,26,0.14)]">
+            @if (quiz.coverImage) {
+            <figure class="relative h-40 overflow-hidden bg-[#F2E6E9]">
+              <img class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                [src]="quiz.coverImage" [alt]="quiz.coverAlt || quiz.title" loading="lazy" />
 
-          <div class="flex flex-1 flex-col px-6 pb-5 pt-5" [class.border-[#2a9d8f]]="quiz.accent === 'green'"
-            [class.border-[#8A3F50]]="quiz.accent === 'wine'">
-            <div class="flex items-start justify-between gap-4">
+              <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(64,8,26,0.04)_0%,rgba(64,8,26,0.5)_100%)]">
+              </div>
               <span
-                class="rounded-full bg-[#F2E6E9] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#D4AF37]">{{
-                quiz.area }}</span>
-              @if (!quiz.coverImage) {
+                class="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#D4AF37] shadow-sm backdrop-blur">
+                {{ quiz.area }}
+              </span>
+
               <span
-                class="rounded-full bg-[#F2E6E9] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5c1e2f]">{{
-                quiz.level }}</span>
+                class="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#5C1E2F] shadow-sm backdrop-blur">
+                {{ quiz.level }}
+              </span>
+            </figure>
+            } @else {
+            <figure class="relative h-40 overflow-hidden bg-[#F2E6E9]">
+              <div class="default-category-cover">
+                <span>
+                  <strong>{{ quiz.area }}</strong>
+                  <small>{{ quiz.level }}</small>
+                </span>
+              </div>
+
+              <span
+                class="absolute left-4 top-4 rounded-full bg-white/92 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#D4AF37] shadow-sm backdrop-blur">
+                {{ quiz.area }}
+              </span>
+
+              <span
+                class="absolute right-4 top-4 rounded-full bg-white/92 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5C1E2F] shadow-sm backdrop-blur">
+                {{ quiz.level }}
+              </span>
+            </figure>
+            }
+
+            <div class="flex flex-1 flex-col px-6 pb-5 pt-5" [class.border-[#2a9d8f]]="quiz.accent === 'green'"
+              [class.border-[#8A3F50]]="quiz.accent === 'wine'">
+
+              <h3 class="mt-5 min-h-[54px] font-display text-[21px] font-extrabold leading-tight text-[#5C1E2F]">{{
+                quiz.title }}</h3>
+              <p class="mt-3 line-clamp-2 min-h-[48px] text-[13px] leading-6 text-[#616161]">{{ quiz.summary }}</p>
+
+              <div class="mt-auto pt-5">
+                <div class="h-2 overflow-hidden rounded-full bg-[#F2E6E9]">
+                  <span class="block h-full rounded-full transition-all duration-500"
+                    [class.bg-[#2A9D8F]]="quiz.progress === 100"
+                    [class.bg-[#D4AF37]]="quiz.progress >= 50 && quiz.progress < 100"
+                    [class.bg-[#8A3F50]]="quiz.progress < 50" [style.width.%]="quiz.progress"></span>
+                </div>
+                <div class="mt-2 flex justify-between text-[11px] text-[#9E9E9E]">
+                  <span>Progresso atual</span>
+                  <span>{{ quiz.progress }}%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-auto flex items-center justify-between gap-3 border-t border-[#E0E0E0] bg-[#fff] px-6 py-4">
+              <span class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#616161]">
+                <span class="material-symbols-outlined text-[16px] text-[#5C1E2F]">quiz</span>
+                {{ quiz.questions }} perguntas
+              </span>
+
+              @if (auth.isAuthenticated()) {
+              <a [routerLink]="[quiz.quizId, 'play']" class="eh-card-action">{{
+                quiz.action }}</a>
+              } @else {
+              <button type="button" class="eh-card-action" (click)="auth.requireLoginFor('fazer quiz')">{{ quiz.action
+                }}</button>
               }
             </div>
-
-            <h3 class="mt-5 min-h-[54px] font-display text-[21px] font-extrabold leading-tight text-[#5C1E2F]">{{
-              quiz.title }}</h3>
-            <p class="mt-3 line-clamp-2 min-h-[48px] text-[13px] leading-6 text-[#616161]">{{ quiz.summary }}</p>
-
-            <div class="mt-auto pt-5">
-              <div class="h-2 overflow-hidden rounded-full bg-[#F2E6E9]">
-                <span
-                  class="block h-full rounded-full transition-all duration-500"
-                  [class.bg-[#2A9D8F]]="quiz.progress === 100"
-                  [class.bg-[#D4AF37]]="quiz.progress >= 50 && quiz.progress < 100"
-                  [class.bg-[#8A3F50]]="quiz.progress < 50"
-                  [style.width.%]="quiz.progress"></span>
-              </div>
-              <div class="mt-2 flex justify-between text-[11px] text-[#9E9E9E]">
-                <span>Progresso atual</span>
-                <span>{{ quiz.progress }}%</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-auto flex items-center justify-between gap-3 border-t border-[#E0E0E0] bg-[#fff] px-6 py-4">
-            <span class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#616161]">
-              <span class="material-symbols-outlined text-[16px] text-[#5C1E2F]">quiz</span>
-              {{ quiz.questions }} perguntas
-            </span>
-
-            @if (auth.isAuthenticated()) {
-            <a [routerLink]="[quiz.quizId, 'play']" class="eh-card-action">{{
-              quiz.action }}</a>
-            } @else {
-            <button type="button" class="eh-card-action" (click)="auth.requireLoginFor('fazer quiz')">{{ quiz.action
-              }}</button>
-            }
-          </div>
-        </article>
-        } @empty {
-        <article
-          class="rounded-[8px] border border-[#E0E0E0] bg-white p-8 text-center md:col-span-2">
-          <h3 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">{{ isLoading() ? 'A carregar quizzes...' :
-            'Nenhum quiz encontrado' }}</h3>
-          <p class="mt-2 text-[13px] text-[#616161]">Experimente procurar por outro tema ou dificuldade.</p>
-        </article>
-        }
+          </article>
+          } @empty {
+          <article class="rounded-[8px] border border-[#E0E0E0] bg-white p-8 text-center md:col-span-2">
+            <h3 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">{{ isLoading() ? 'A carregar quizzes...'
+              :
+              'Nenhum quiz encontrado' }}</h3>
+            <p class="mt-2 text-[13px] text-[#616161]">Experimente procurar por outro tema ou dificuldade.</p>
+          </article>
+          }
 
 
-      </div>
-
-      <div class="mt-8 flex flex-col items-center gap-2">
-        <div class="eh-pagination">
-          <button type="button" class="eh-pagination-button" [disabled]="!hasPreviousQuizPage()"
-            (click)="goToPreviousQuizPage()">
-            <span class="text-[16px] leading-none" aria-hidden="true">&larr;</span>
-            Anterior
-          </button>
-
-          <div class="eh-pagination-current">
-            {{ currentQuizPage() }}
-          </div>
-
-          <button type="button" class="eh-pagination-button" [disabled]="!hasNextQuizPage()"
-            (click)="goToNextQuizPage()">
-            Próximo
-            <span class="text-[16px] leading-none" aria-hidden="true">&rarr;</span>
-          </button>
         </div>
-      </div>
+
+        <div class="mt-8 flex flex-col items-center gap-2">
+          <div class="eh-pagination">
+            <button type="button" class="eh-pagination-button" [disabled]="!hasPreviousQuizPage()"
+              (click)="goToPreviousQuizPage()">
+              <span class="text-[16px] leading-none" aria-hidden="true">&larr;</span>
+              Anterior
+            </button>
+
+            <div class="eh-pagination-current">
+              {{ currentQuizPage() }}
+            </div>
+
+            <button type="button" class="eh-pagination-button" [disabled]="!hasNextQuizPage()"
+              (click)="goToNextQuizPage()">
+              Próximo
+              <span class="text-[16px] leading-none" aria-hidden="true">&rarr;</span>
+            </button>
+          </div>
+        </div>
       </section>
     </section>
   </main>

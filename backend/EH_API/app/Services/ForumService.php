@@ -32,6 +32,7 @@ class ForumService
             'join_approval_required' => $dto->visibility === 'private' ? $dto->joinApprovalRequired : false,
             'content_permission' => $dto->contentPermission,
             'allow_attachments' => $dto->allowAttachments,
+            'artifacts' => $dto->artifacts,
             'status' => 'approved',
         ], $dto->contentIds);
 

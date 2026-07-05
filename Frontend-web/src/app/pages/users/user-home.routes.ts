@@ -1,6 +1,6 @@
 ﻿import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink, Routes } from '@angular/router';
-import { BackendContent, BackendContentProgress, ContentService } from '../../services/content.service';
+import { BackendContent, ContentService } from '../../services/content.service';
 import { AuthStateService } from '../../services/auth-state.service';
 import { normalizeMediaUrl } from '../../services/media-url.util';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
@@ -31,13 +31,10 @@ export class UserHomePage implements OnInit, OnDestroy {
   readonly showWelcome = signal(false);
   readonly activeHighlightIndex = signal(0);
   readonly recommendedContent = signal<DailyContent[]>([]);
-  readonly progressItems = signal<DailyContent[]>([]);
   readonly featuredJindungo = signal<DailyContent | null>(null);
   readonly isLoadingSuggestions = signal(false);
-  readonly isLoadingProgress = signal(false);
   readonly isLoadingJindungo = signal(false);
   readonly suggestionsError = signal('');
-  readonly progressError = signal('');
   readonly jindungoError = signal('');
   readonly quickQueue = computed(() => this.recommendedContent().slice(1, 5));
   private welcomeTimer?: ReturnType<typeof window.setTimeout>;
@@ -87,7 +84,6 @@ export class UserHomePage implements OnInit, OnDestroy {
     }
 
     void this.loadSuggestions();
-    void this.loadProgress();
     void this.loadFeaturedJindungo();
     this.carouselTimer = window.setInterval(() => this.nextHighlight(), 3600);
   }
@@ -134,31 +130,6 @@ export class UserHomePage implements OnInit, OnDestroy {
     }
   }
 
-  private async loadProgress(): Promise<void> {
-    if (!this.auth.isAuthenticated()) {
-      this.progressItems.set([]);
-      return;
-    }
-
-    this.isLoadingProgress.set(true);
-    this.progressError.set('');
-
-    try {
-      const progress = await this.contentService.getProgress(3);
-
-      this.progressItems.set(
-        progress
-          .filter((item) => item.content)
-          .map((item) => this.toProgressContent(item)),
-      );
-    } catch {
-      this.progressItems.set([]);
-      this.progressError.set('Não foi possível carregar o seu progresso.');
-    } finally {
-      this.isLoadingProgress.set(false);
-    }
-  }
-
   private async loadFeaturedJindungo(): Promise<void> {
     this.isLoadingJindungo.set(true);
     this.jindungoError.set('');
@@ -171,18 +142,6 @@ export class UserHomePage implements OnInit, OnDestroy {
     } finally {
       this.isLoadingJindungo.set(false);
     }
-  }
-
-  private toProgressContent(progress: BackendContentProgress): DailyContent {
-    const content = progress.content!;
-    const item = this.toDailyContent(content);
-    const progressPercent = Number(progress.progress_percent ?? 0);
-
-    return {
-      ...item,
-      meta: `${progressPercent}% concluído`,
-      progress: progressPercent,
-    };
   }
 
   private toDailyContent(content: BackendContent): DailyContent {

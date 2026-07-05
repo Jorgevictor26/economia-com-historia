@@ -1,4 +1,5 @@
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink, Routes } from '@angular/router';
 import { adminGuard } from '../../../services/admin.guard';
 import { Category } from '../../../models/category.model';
@@ -315,6 +316,18 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
       }
 
       await this.saveContent(payload.content);
+      return;
+    }
+
+    if (payload.operation === 'subscrever ao Jindungo') {
+      if (!this.auth.isAuthenticated()) {
+        this.auth.requireLoginFor('subscrever ao Jindungo');
+        return;
+      }
+
+      await this.router.navigate(['/app/subscriptions'], {
+        queryParams: { contentId: payload.content.id },
+      });
       return;
     }
 
@@ -702,6 +715,8 @@ export class ContentDetailPage implements OnDestroy {
   readonly shareCount = signal(0);
   readonly likedByMe = signal(false);
   readonly isLoading = signal(true);
+  readonly isJindungoBlocked = signal(false);
+  readonly jindungoBlockedMessage = signal('');
   readonly isLoadingComments = signal(false);
   readonly isSavingComment = signal(false);
   readonly isSavingReaction = signal(false);
@@ -732,8 +747,15 @@ export class ContentDetailPage implements OnDestroy {
 
     return this.quizService.quizzes().find((quiz) => quiz.relatedContent.id === contentId);
   });
-  readonly title = computed(() => this.detail()?.title ?? (this.route.snapshot.params['id'] === 'create' ? 'Criar conteúdo' : 'Conteúdo editorial'));
-  readonly isPremiumContent = computed(() => this.detail()?.premium ?? ['imposto-reservas', 'diamantes-luanda-sul', 'politica-monetaria-angola'].includes(this.route.snapshot.params['id']));
+  readonly title = computed(() => this.detail()?.title ?? (this.isPremiumContent() ? 'Texto com Jindungo' : this.route.snapshot.params['id'] === 'create' ? 'Criar conteúdo' : 'Conteúdo editorial'));
+  readonly isPremiumContent = computed(() => {
+    if (this.detail()?.premium) {
+      return true;
+    }
+
+    const routeId = String(this.route.snapshot.params['id'] ?? '').toLowerCase();
+    return routeId.includes('jindungo');
+  });
   readonly isEditMode = computed(() => this.route.snapshot.url.some((segment) => segment.path === 'edit'));
   readonly canManageDetail = computed(() => {
     const ownerId = this.detail()?.ownerId;
@@ -753,6 +775,14 @@ export class ContentDetailPage implements OnDestroy {
     try {
       const content = await this.contentService.getById(id);
       const detail = this.toContentDetail(content);
+
+      if (detail.premium && !this.auth.canReadJindungo()) {
+        await this.router.navigate(['/app/subscriptions'], {
+          queryParams: { contentId: detail.id },
+        });
+        return;
+      }
+
       this.detail.set(detail);
       this.reactionCount.set(detail.reactionsCount);
       this.shareCount.set(detail.sharesCount);
@@ -761,6 +791,18 @@ export class ContentDetailPage implements OnDestroy {
         this.loadComments(String(content.id)),
         this.loadRelatedContents(content),
       ]);
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 403) {
+        await this.router.navigate(['/app/subscriptions'], {
+          queryParams: { contentId: id },
+        });
+        return;
+
+        this.isJindungoBlocked.set(true);
+        this.jindungoBlockedMessage.set(
+          'Este texto com Jindungo exige uma subscrição ativa. Subscreva e aguarde aprovação do SuperAdmin para desbloquear o artigo.',
+        );
+      }
     } finally {
       this.isLoading.set(false);
     }

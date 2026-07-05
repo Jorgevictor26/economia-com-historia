@@ -16,6 +16,7 @@ export class AuthStateService {
   readonly token = this.tokenSignal.asReadonly();
   readonly loginPrompt = this.loginPromptSignal.asReadonly();
   readonly loginPromptClosing = this.loginPromptClosingSignal.asReadonly();
+  readonly hasPendingJindungoRequest = computed(() => this.userSignal()?.hasPendingJindungoRequest ?? false);
   readonly isAuthenticated = computed(() => Boolean(this.userSignal()));
   readonly isAdmin = computed(() => ['writer', 'moderator', 'admin', 'super-admin'].includes(this.userSignal()?.role ?? 'student'));
   readonly canWriteContent = computed(() => ['writer', 'admin', 'super-admin'].includes(this.userSignal()?.role ?? 'student'));
@@ -83,7 +84,7 @@ export class AuthStateService {
   }
 
   subscribeToJindungo(): void {
-    this.setUser(this.userSignal() ? { ...this.userSignal()!, hasPremiumAccess: true } : null);
+    // kept for compatibility, but request persistence is handled by AuthService
   }
 
   requireLoginFor(operation: string): void {

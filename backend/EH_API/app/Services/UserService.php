@@ -84,9 +84,27 @@ class UserService
 
         $target->update([
             'jindungo_subscription_expires_at' => $expiresAt,
+            'jindungo_subscription_requested_at' => null,
         ]);
 
         return $target->fresh(['roles']);
+    }
+
+    public function requestJindungoSubscription(User $actor): User
+    {
+        if ($actor->hasActiveJindungoSubscription()) {
+            return $actor;
+        }
+
+        if ($actor->jindungo_subscription_requested_at !== null) {
+            return $actor;
+        }
+
+        $actor->update([
+            'jindungo_subscription_requested_at' => now(),
+        ]);
+
+        return $actor->fresh(['roles']);
     }
 
     public function promoteToWriter(User $target, User $actor): User

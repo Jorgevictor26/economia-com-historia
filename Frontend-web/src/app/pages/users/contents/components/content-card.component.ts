@@ -13,6 +13,10 @@ export class ContentCardComponent {
   @Output() contentAction = new EventEmitter<{ event: Event; operation: string; content: ContentListItem }>();
 
   get contentRoute(): unknown[] {
+    if (this.content.premium && !this.canReadPremium) {
+      return ['/app/subscriptions'];
+    }
+
     if (this.isPodcastContent()) {
       return ['/app/podcasts', this.content.id];
     }

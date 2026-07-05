@@ -26,6 +26,7 @@ class User extends Authenticatable
         'status',
         'total_xp',
         'jindungo_subscription_expires_at',
+        'jindungo_subscription_requested_at',
     ];
 
     protected $hidden = [
@@ -35,12 +36,17 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $appends = [
+        'avatar_url',
+    ];
+
     protected function casts(): array
     {
         return [
             'password' => 'hashed',
             'total_xp' => 'integer',
             'jindungo_subscription_expires_at' => 'datetime',
+            'jindungo_subscription_requested_at' => 'datetime',
         ];
     }
 
@@ -48,6 +54,13 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Role::class, 'user_role')
             ->withPivot('id', 'assigned_by', 'created_at');
+    }
+
+    protected function avatarUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn () => $this->photo ?? null,
+        );
     }
 
     public function userRoles(): HasMany

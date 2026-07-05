@@ -2,6 +2,8 @@
 
 namespace App\DTOs\User;
 
+use Illuminate\Support\Facades\Hash;
+
 readonly class UpdateUserDTO
 {
     public function __construct(
@@ -28,13 +30,32 @@ readonly class UpdateUserDTO
 
     public function toArray(): array
     {
-        return array_filter([
-            'name' => $this->name,
-            'email' => $this->email,
-            'password' => $this->password,
-            'photo' => $this->photo,
-            'bio' => $this->bio,
-            'status' => $this->status,
-        ], fn (mixed $value): bool => $value !== null);
+        $result = [];
+
+        if ($this->name !== null) {
+            $result['name'] = $this->name;
+        }
+
+        if ($this->email !== null) {
+            $result['email'] = $this->email;
+        }
+
+        if ($this->password !== null) {
+            $result['password'] = Hash::make($this->password);
+        }
+
+        if ($this->photo !== null) {
+            $result['photo'] = $this->photo;
+        }
+
+        if ($this->bio !== null) {
+            $result['bio'] = $this->bio;
+        }
+
+        if ($this->status !== null) {
+            $result['status'] = $this->status;
+        }
+
+        return $result;
     }
 }

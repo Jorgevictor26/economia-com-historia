@@ -14,6 +14,7 @@ export interface BackendManagedUser {
   status?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  jindungo_subscription_requested_at?: string | null;
   jindungo_subscription_expires_at?: string | null;
   roles?: BackendRole[];
 }
@@ -102,6 +103,29 @@ export class AdminUserService {
   async createSuperAdmin(payload: CreateSuperAdminPayload): Promise<BackendManagedUser> {
     const response = await firstValueFrom(
       this.http.post<MutationResponse<BackendManagedUser>>('/users/super-admin', payload),
+    );
+
+    return response.data;
+  }
+
+  async approveJindungoSubscription(userId: string | number): Promise<BackendManagedUser> {
+    const expiresAt = new Date();
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+
+    const response = await firstValueFrom(
+      this.http.patch<MutationResponse<BackendManagedUser>>(`/users/${userId}/jindungo-subscription`, {
+        jindungo_subscription_expires_at: expiresAt.toISOString(),
+      }),
+    );
+
+    return response.data;
+  }
+
+  async rejectJindungoSubscription(userId: string | number): Promise<BackendManagedUser> {
+    const response = await firstValueFrom(
+      this.http.patch<MutationResponse<BackendManagedUser>>(`/users/${userId}/jindungo-subscription`, {
+        jindungo_subscription_expires_at: null,
+      }),
     );
 
     return response.data;

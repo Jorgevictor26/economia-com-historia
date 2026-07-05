@@ -12,6 +12,7 @@ interface BackendUser {
   name: string;
   email: string;
   photo?: string | null;
+  avatar_url?: string | null;
   bio?: string | null;
   roles?: Array<{ name: string }>;
 }
@@ -20,7 +21,7 @@ export interface UpdateProfilePayload {
   name?: string;
   email?: string;
   bio?: string | null;
-  photo?: string | null;
+  avatar_url?: string | null;
   password?: string | null;
   password_confirmation?: string | null;
 }
@@ -92,7 +93,7 @@ export class ProfileService {
       name: user.name,
       email: user.email,
       role: this.resolveRole(user.roles) ?? currentUser?.role ?? 'student',
-      avatarUrl: normalizeMediaUrl(user.photo),
+      avatarUrl: normalizeMediaUrl(user.avatar_url ?? user.photo),
       biography: user.bio || undefined,
       hasPremiumAccess: this.hasPremiumAccess(user.roles) || currentUser?.hasPremiumAccess || false,
       invitedForumIds: currentUser?.invitedForumIds ?? [],

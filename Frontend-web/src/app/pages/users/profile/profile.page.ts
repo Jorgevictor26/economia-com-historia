@@ -2,19 +2,14 @@
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthStateService } from '../../../services/auth-state.service';
 import { ProfileService } from '../../../services/profile.service';
+import { ActivityService, UserActivity, HistoryContent, HistoryQuiz, ForumActivity } from '../../../services/activity.service';
 import { PublicNavbarComponent } from '../../shared/public-navbar/public-navbar.component';
-import { AchievementsComponent } from './components/achievements/achievements.component';
-import { LearningProgressComponent } from './components/learning-progress/learning-progress.component';
-import { ProgressDomainsComponent } from './components/progress-domains/progress-domains.component';
 
 @Component({
   selector: 'app-profile-page',
   imports: [
     RouterLink,
     PublicNavbarComponent,
-    AchievementsComponent,
-    LearningProgressComponent,
-    ProgressDomainsComponent,
   ],
   templateUrl: './profile.page.html',
   styleUrl: './profile.page.scss',
@@ -22,16 +17,14 @@ import { ProgressDomainsComponent } from './components/progress-domains/progress
 export class ProfilePage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly profileService = inject(ProfileService);
+  private readonly activityService = inject(ActivityService);
   readonly auth = inject(AuthStateService);
   readonly dashboard = this.profileService.getDashboard();
   readonly section = this.route.snapshot.data['section'];
-  readonly isLearningSection = this.section === 'learning';
-  readonly isAchievementsSection = this.section === 'achievements';
   readonly isHistorySection = this.section === 'history';
   readonly isSupportSection = this.section === 'support';
   readonly isPhotoSection = this.section === 'photo';
   readonly isSecuritySection = this.section === 'security';
-  readonly isNotificationPreferencesSection = this.section === 'notification-preferences';
   readonly isSavingProfile = signal(false);
   readonly isSavingSecurity = signal(false);
   readonly isLoadingProfile = signal(false);
@@ -46,22 +39,22 @@ export class ProfilePage implements OnInit {
 
   readonly profileMenu = [
     { label: 'Perfil', icon: 'person', route: '/app/profile', active: !this.section },
-    { label: 'Meu aprendizado', icon: 'school', route: '/app/profile/learning', active: this.isLearningSection },
-    { label: 'Minhas conquistas', icon: 'military_tech', route: '/app/profile/achievements', active: this.isAchievementsSection },
     { label: 'Histórico', icon: 'history', route: '/app/profile/history', active: this.isHistorySection },
     { label: 'Segurança da conta', icon: 'lock', route: '/app/profile/security', active: this.isSecuritySection },
-    {
-      label: 'Preferência de notificação',
-      icon: 'notifications',
-      route: '/app/profile/notification-preferences',
-      active: this.isNotificationPreferencesSection,
-    },
-    { label: 'Subscrições', icon: 'workspace_premium', route: '/app/subscriptions', active: false },
+    ...(this.auth.isSuperAdmin()
+      ? []
+      : [{ label: 'Subscrições', icon: 'workspace_premium', route: '/app/subscriptions', active: false }]),
     ...(this.auth.canWriteContent()
       ? [{ label: this.auth.canManagePlatform() ? 'Administração' : 'Console editorial', icon: 'admin_panel_settings', route: '/admin', active: false }]
       : []),
     { label: 'Suporte', icon: 'help_outline', route: '/app/profile/support', active: this.isSupportSection },
   ];
+
+  readonly isLoadingHistory = signal(false);
+  readonly historyError = signal('');
+  readonly recentContents = signal<HistoryContent[]>([]);
+  readonly recentQuizzes = signal<HistoryQuiz[]>([]);
+  readonly forumActivity = signal<ForumActivity[]>([]);
 
   readonly historyItems = [
     { title: 'A Evolução do Kwanza', detail: 'Módulo retomado recentemente', route: '/app/contents' },
@@ -113,10 +106,30 @@ export class ProfilePage implements OnInit {
 
     try {
       await this.profileService.loadProfile();
+      
+      if (this.isHistorySection) {
+        await this.loadHistory();
+      }
     } catch {
       this.profileSaveError.set('Não foi possível carregar os dados atualizados do perfil.');
     } finally {
       this.isLoadingProfile.set(false);
+    }
+  }
+
+  private async loadHistory(): Promise<void> {
+    this.isLoadingHistory.set(true);
+    this.historyError.set('');
+
+    try {
+      const activity = await this.activityService.getHistory(10);
+      this.recentContents.set(activity.recent_contents || []);
+      this.recentQuizzes.set(activity.recent_quizzes || []);
+      this.forumActivity.set(activity.forum_activity || []);
+    } catch {
+      this.historyError.set('Não foi possível carregar o histórico de atividades.');
+    } finally {
+      this.isLoadingHistory.set(false);
     }
   }
 
@@ -229,9 +242,10 @@ export class ProfilePage implements OnInit {
 
     this.photoSaveMessage.set('');
     this.photoSaveError.set('');
+    this.isSavingProfile.set(true);
 
     try {
-      await this.profileService.updateProfile({ photo: previewUrl });
+      await this.profileService.updateProfile({ avatar_url: previewUrl });
       this.selectedPhotoPreviewUrl.set('');
       this.selectedPhotoName.set('');
       this.photoSaveMessage.set('Foto atualizada com sucesso!');
@@ -241,6 +255,8 @@ export class ProfilePage implements OnInit {
         avatarUrl: previewUrl,
       });
       this.photoSaveError.set('A foto foi atualizada localmente, mas não foi possível guardar no backend.');
+    } finally {
+      this.isSavingProfile.set(false);
     }
   }
 }

@@ -8,7 +8,7 @@ import { BackendForum, BackendForumReply, BackendForumTopic, ForumService } from
 import { SavedContentService } from '../../services/saved-content.service';
 import { ShareService } from '../../services/share.service';
 import { ToastService } from '../../services/toast.service';
-import { ForumRoom } from '../../models/forum.model';
+import { ForumArtifact, ForumRoom } from '../../models/forum.model';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
@@ -54,6 +54,7 @@ interface ForumCommentView {
   title: string;
   text: string;
   createdAt: string;
+  repliesCount: number;
   replies: ForumReplyView[];
   replyComposerOpen: boolean;
   isLoadingReplies: boolean;
@@ -66,6 +67,13 @@ interface ForumReportTarget {
   id: string;
   author: string;
   text: string;
+}
+
+interface PendingMember {
+  id: string;
+  name: string;
+  initials: string;
+  requestedAt: string;
 }
 
 @Component({
@@ -88,6 +96,7 @@ export class UserForumsPage {
   readonly privacy = signal<'public' | 'private'>('public');
   readonly inviteEmails = signal<string[]>([]);
   readonly selectedContentIds = signal<string[]>([]);
+  readonly selectedArtifacts = signal<ForumArtifact[]>([]);
   readonly contentOptions = signal<ForumContentOption[]>([]);
   readonly showAllResources = signal(false);
   readonly createModalOpen = signal(false);
@@ -178,6 +187,35 @@ export class UserForumsPage {
     this.inviteEmails.update((emails) => emails.filter((item) => item !== email));
   }
 
+  async onArtifactSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+
+    if (!files.length) {
+      return;
+    }
+
+    const acceptedFiles = files.filter((file) => this.isAcceptedArtifact(file));
+    const rejectedCount = files.length - acceptedFiles.length;
+
+    if (rejectedCount > 0) {
+      this.showToast('Alguns ficheiros foram ignorados. Use PDF, Word, Excel, PowerPoint ou TXT até 8 MB.', 'error');
+    }
+
+    const artifacts = await Promise.all(acceptedFiles.map((file) => this.toForumArtifact(file)));
+    const existingIds = new Set(this.selectedArtifacts().map((artifact) => artifact.id));
+
+    this.selectedArtifacts.update((current) => [
+      ...current,
+      ...artifacts.filter((artifact) => !existingIds.has(artifact.id)),
+    ]);
+    input.value = '';
+  }
+
+  removeArtifact(id: string): void {
+    this.selectedArtifacts.update((artifacts) => artifacts.filter((artifact) => artifact.id !== id));
+  }
+
   async createDebateRoom(titleInput: HTMLInputElement, objectiveInput: HTMLTextAreaElement): Promise<void> {
     if (!this.auth.isAuthenticated()) {
       this.auth.requireLoginFor('criar discuss\u00e3o');
@@ -205,9 +243,18 @@ export class UserForumsPage {
         access_code: null,
         join_approval_required: this.privacy() === 'private',
         content_permission: 'public',
-        allow_attachments: false,
-        content_ids: linkedContents.map((content) => content.id),
-        invite_emails: this.inviteEmails(),
+        allow_attachments: this.selectedArtifacts().length > 0,
+        artifacts: this.selectedArtifacts().map((artifact) => ({
+          id: artifact.id,
+          name: artifact.name,
+          type: artifact.type,
+          size: artifact.size,
+          data_url: artifact.dataUrl,
+        })),
+        content_ids: linkedContents
+          .map((content) => Number(content.id))
+          .filter((id) => !Number.isNaN(id)),
+        invite_emails: this.inviteEmails().filter(Boolean),
       });
 
       this.forumService.rooms.update((rooms) => [this.toForumRoom(forum), ...rooms.filter((room) => room.id !== String(forum.id))]);
@@ -215,13 +262,18 @@ export class UserForumsPage {
       objectiveInput.value = '';
       this.inviteEmails.set([]);
       this.selectedContentIds.set([]);
+      this.selectedArtifacts.set([]);
       this.privacy.set('public');
       this.showAllResources.set(false);
       this.createModalOpen.set(false);
       this.returnToSourceContentIfNeeded();
       this.showToast('Fórum criado com sucesso.', 'success');
-    } catch {
-      this.showToast('Não foi possível criar a sala de debate.', 'error');
+    } catch (error) {
+      const message = error instanceof Error
+        ? error.message
+        : (error as { error?: { message?: string } }).error?.message ?? 'Não foi possível criar a sala de debate.';
+
+      this.showToast(message, 'error');
     }
   }
 
@@ -249,7 +301,6 @@ export class UserForumsPage {
       this.contentOptions.set([]);
     }
   }
-
   goToPreviousForumPage(): void {
     this.forumPage.update((page) => Math.max(1, page - 1));
   }
@@ -296,6 +347,13 @@ export class UserForumsPage {
         type: content.content_type?.name ?? 'Conteúdo',
         meta: content.category?.name ?? '',
       })),
+      artifacts: (forum.artifacts ?? []).map((artifact) => ({
+        id: String(artifact.id),
+        name: artifact.name,
+        type: artifact.type,
+        size: Number(artifact.size ?? 0),
+        dataUrl: artifact.data_url,
+      })),
     };
   }
 
@@ -315,6 +373,46 @@ export class UserForumsPage {
       type: content.type,
       meta: content.meta,
     };
+  }
+
+  artifactSizeLabel(size: number): string {
+    if (size < 1024 * 1024) {
+      return `${Math.max(1, Math.round(size / 1024))} KB`;
+    }
+
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  private isAcceptedArtifact(file: File): boolean {
+    const acceptedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'text/plain',
+    ];
+    const acceptedExtensions = /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt)$/i;
+
+    return file.size <= 8 * 1024 * 1024 && (acceptedTypes.includes(file.type) || acceptedExtensions.test(file.name));
+  }
+
+  private toForumArtifact(file: File): Promise<ForumArtifact> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => resolve({
+        id: `${file.name}-${file.size}-${file.lastModified}`,
+        name: file.name,
+        type: file.type || 'application/octet-stream',
+        size: file.size,
+        dataUrl: String(reader.result ?? ''),
+      });
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
   }
 }
 
@@ -350,11 +448,13 @@ export class UserForumDetailPage {
   readonly reportError = signal('');
   readonly isSubmittingReport = signal(false);
   private readonly forumLikeStoragePrefix = 'economia-com-historia.forum-like.v1';
-
+  readonly pendingMembers = signal<PendingMember[]>([]);
+  readonly isLoadingPendingMembers = signal(false);
   readonly room = computed(() => {
     const roomId = this.route.snapshot.paramMap.get('id');
 
     return this.forumService.rooms().find((room) => room.id === roomId) ?? null;
+
   });
 
   readonly privateTeaserActive = computed(() => {
@@ -374,7 +474,13 @@ export class UserForumDetailPage {
   });
 
   readonly canManageForum = computed(() => {
-    return this.auth.canManagePlatform();
+    const room = this.room();
+    const user = this.auth.user();
+    const userId = user?.id;
+    const sameOwnerId = Boolean(room?.ownerId && userId && room.ownerId === String(userId));
+    const sameCreatorName = Boolean(room?.creatorName && user?.name && room.creatorName.trim().toLowerCase() === user.name.trim().toLowerCase());
+
+    return this.auth.canManagePlatform() || sameOwnerId || sameCreatorName;
   });
 
   constructor() {
@@ -392,6 +498,65 @@ export class UserForumDetailPage {
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase())
       .join('') || 'EH';
+  }
+
+  async loadPendingMembers(): Promise<void> {
+    const room = this.room();
+
+    if (!room || !this.canManageForum()) {
+      this.pendingMembers.set([]);
+      return;
+    }
+
+    this.isLoadingPendingMembers.set(true);
+
+    try {
+      // Frontend-only for now. When the API is available, replace this with:
+      // const members = await this.forumService.getPendingMembers(room.id);
+      // this.pendingMembers.set(members.map((member) => this.toPendingMember(member)));
+      this.pendingMembers.set([]);
+    } catch {
+      this.pendingMembers.set([]);
+      this.forumFeedback.set('Não foi possível carregar os pedidos de adesão.');
+    } finally {
+      this.isLoadingPendingMembers.set(false);
+    }
+  }
+
+  async approveMember(id: string): Promise<void> {
+    const room = this.room();
+
+    if (!room || !this.canManageForum()) {
+      this.forumFeedback.set('Não tens permissão para aceitar membros neste fórum.');
+      return;
+    }
+
+    try {
+      // Frontend-only for now. When the API is available, replace this with:
+      // await this.forumService.approveMember(room.id, id);
+      this.pendingMembers.update((members) => members.filter((member) => member.id !== id));
+      this.forumFeedback.set('Membro aceite com sucesso.');
+    } catch {
+      this.forumFeedback.set('Não foi possível aceitar este membro.');
+    }
+  }
+
+  async rejectMember(id: string): Promise<void> {
+    const room = this.room();
+
+    if (!room || !this.canManageForum()) {
+      this.forumFeedback.set('Não tens permissão para recusar pedidos neste fórum.');
+      return;
+    }
+
+    try {
+      // Frontend-only for now. When the API is available, replace this with:
+      // await this.forumService.rejectMember(room.id, id);
+      this.pendingMembers.update((members) => members.filter((member) => member.id !== id));
+      this.forumFeedback.set('Pedido recusado.');
+    } catch {
+      this.forumFeedback.set('Não foi possível recusar este pedido.');
+    }
   }
 
   requireLogin(event: Event, operation: string): void {
@@ -547,14 +712,21 @@ export class UserForumDetailPage {
     return Math.max(0, room.members - this.activeParticipantAvatars(room).length);
   }
 
-  sharedResources(room: ForumRoom): { title: string; icon: string; route?: string[] }[] {
+  sharedResources(room: ForumRoom): { title: string; icon: string; route?: string[]; href?: string; meta?: string }[] {
     const linked = room.linkedContents.slice(0, 3).map((content) => ({
       title: content.title,
       icon: this.resourceIcon(content.type),
       route: ['/app/contents', content.id],
     }));
 
-    return linked;
+    const artifacts = (room.artifacts ?? []).map((artifact) => ({
+      title: artifact.name,
+      icon: this.resourceIcon(artifact.type || artifact.name),
+      href: artifact.dataUrl,
+      meta: this.artifactSizeLabel(artifact.size),
+    }));
+
+    return [...artifacts, ...linked].slice(0, 6);
   }
 
   resourceIcon(type: string | undefined): string {
@@ -572,7 +744,27 @@ export class UserForumDetailPage {
       return 'quiz';
     }
 
+    if (normalized.includes('pdf')) {
+      return 'picture_as_pdf';
+    }
+
+    if (normalized.includes('word') || normalized.includes('document')) {
+      return 'article';
+    }
+
+    if (normalized.includes('excel') || normalized.includes('sheet')) {
+      return 'table_chart';
+    }
+
     return 'description';
+  }
+
+  artifactSizeLabel(size: number): string {
+    if (size < 1024 * 1024) {
+      return `${Math.max(1, Math.round(size / 1024))} KB`;
+    }
+
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
   }
 
   forumValueProposition(): string {
@@ -790,6 +982,7 @@ export class UserForumDetailPage {
         title,
         text,
         createdAt: 'Agora',
+        repliesCount: 0,
         replies: [],
         replyComposerOpen: false,
         isLoadingReplies: false,
@@ -820,6 +1013,7 @@ export class UserForumDetailPage {
     this.privateAccessStatus.set(this.resolvePrivateAccessStatus(room));
     this.likedByMe.set(this.readForumLike(room.id));
     this.invitationNoticeOpen.set(room.visibility === 'private' && this.privateAccessStatus() === 'invited');
+    await this.loadPendingMembers();
 
     if (this.isBackendForumId(roomId) && this.canEnterPrivateForum()) {
       await this.loadForumTopics(roomId);
@@ -863,16 +1057,12 @@ export class UserForumDetailPage {
 
     try {
       const topics = await this.forumService.getTopics(roomId);
-      const comments = await Promise.all(topics.map(async (topic) => {
-        const replies = await this.loadRepliesForTopic(topic.id);
+      const uniqueTopics = this.uniqueById(topics);
 
-        return this.toForumComment(topic, replies);
-      }));
-
-      this.forumComments.set(comments);
-      this.forumTopicPreviews.set(topics.map((topic) => this.toForumTopicPreview(topic)));
+      this.forumComments.set(uniqueTopics.map((topic) => this.toForumComment(topic, this.uniqueById(topic.replies ?? []))));
+      this.forumTopicPreviews.set(uniqueTopics.map((topic) => this.toForumTopicPreview(topic)));
       this.forumService.rooms.update((rooms) =>
-        rooms.map((room) => room.id === roomId ? { ...room, activeDebates: topics.length } : room),
+        rooms.map((room) => room.id === roomId ? { ...room, activeDebates: uniqueTopics.length } : room),
       );
     } catch {
       this.forumComments.set([]);
@@ -882,12 +1072,19 @@ export class UserForumDetailPage {
     }
   }
 
-  private async loadRepliesForTopic(topicId: number | string): Promise<BackendForumReply[]> {
-    try {
-      return await this.forumService.getReplies(topicId);
-    } catch {
-      return [];
-    }
+  private uniqueById<T extends { id: number | string }>(items: T[]): T[] {
+    const seen = new Set<string>();
+
+    return items.filter((item) => {
+      const id = String(item.id);
+
+      if (seen.has(id)) {
+        return false;
+      }
+
+      seen.add(id);
+      return true;
+    });
   }
 
   private toForumComment(topic: BackendForumTopic, replies: BackendForumReply[] = []): ForumCommentView {
@@ -901,6 +1098,7 @@ export class UserForumDetailPage {
       title: topic.title,
       text: topic.content,
       createdAt: this.formatForumDate(topic.created_at),
+      repliesCount: Number(topic.replies_count ?? replies.length),
       replies: replies.map((reply) => this.toForumReply(reply)),
       replyComposerOpen: false,
       isLoadingReplies: false,
@@ -998,11 +1196,12 @@ export class UserForumDetailPage {
         comments.map((comment) =>
           comment.id === topicId
             ? {
-                ...comment,
-                replies: [...comment.replies, mappedReply],
-                replyComposerOpen: false,
-                isSavingReply: false,
-              }
+              ...comment,
+              replies: [...comment.replies, mappedReply],
+              repliesCount: Math.max(comment.repliesCount + 1, comment.replies.length + 1),
+              replyComposerOpen: false,
+              isSavingReply: false,
+            }
             : comment,
         ),
       );
@@ -1106,10 +1305,10 @@ export class UserForumDetailPage {
         comments.map((comment) =>
           comment.id === topicId
             ? {
-                ...comment,
-                replies: comment.replies.map((reply) => reply.id === replyId ? mapped : reply),
-                editingReplyId: null,
-              }
+              ...comment,
+              replies: comment.replies.map((reply) => reply.id === replyId ? mapped : reply),
+              editingReplyId: null,
+            }
             : comment,
         ),
       );
@@ -1145,6 +1344,15 @@ export class UserForumDetailPage {
     this.forumTopicPreviews.update((topics) =>
       topics.map((topic) => topic.id === topicId ? { ...topic, replies: Math.max(0, topic.replies + delta) } : topic),
     );
+    this.forumComments.update((comments) =>
+      comments.map((comment) =>
+        comment.id === topicId ? { ...comment, repliesCount: Math.max(0, comment.repliesCount + delta) } : comment,
+      ),
+    );
+  }
+
+  topicTitleVisible(comment: ForumCommentView): boolean {
+    return comment.title.trim().toLowerCase() !== comment.text.trim().toLowerCase();
   }
 
   private toForumRoom(forum: BackendForum): ForumRoom {
@@ -1170,6 +1378,13 @@ export class UserForumDetailPage {
         title: content.title,
         type: content.content_type?.name ?? 'Conteúdo',
         meta: content.category?.name ?? '',
+      })),
+      artifacts: (forum.artifacts ?? []).map((artifact) => ({
+        id: String(artifact.id),
+        name: artifact.name,
+        type: artifact.type,
+        size: Number(artifact.size ?? 0),
+        dataUrl: artifact.data_url,
       })),
     };
   }
@@ -1281,7 +1496,7 @@ export class UserForumDetailPage {
         description,
         rules: description,
         category: categoryInput.value.trim() || room.category || 'Fórum',
-      visibility: visibilityInput.value === 'private' ? 'private' : 'public',
+        visibility: visibilityInput.value === 'private' ? 'private' : 'public',
         access_code: visibilityInput.value === 'private' ? (room.accessCode ?? `EH-${Date.now().toString(36).toUpperCase()}`) : null,
         join_approval_required: visibilityInput.value === 'private',
         content_permission: 'public',
@@ -1291,15 +1506,15 @@ export class UserForumDetailPage {
         rooms.map((item) =>
           item.id === room.id
             ? {
-                ...item,
-                name,
-                description,
-                objective: description,
-                category: categoryInput.value.trim() || item.category,
-                visibility: visibilityInput.value === 'private' ? 'private' : 'public',
-                accessCode: visibilityInput.value === 'private' ? (item.accessCode ?? `EH-${Date.now().toString(36).toUpperCase()}`) : null,
-                joinApprovalRequired: visibilityInput.value === 'private',
-              }
+              ...item,
+              name,
+              description,
+              objective: description,
+              category: categoryInput.value.trim() || item.category,
+              visibility: visibilityInput.value === 'private' ? 'private' : 'public',
+              accessCode: visibilityInput.value === 'private' ? (item.accessCode ?? `EH-${Date.now().toString(36).toUpperCase()}`) : null,
+              joinApprovalRequired: visibilityInput.value === 'private',
+            }
             : item,
         ),
       );

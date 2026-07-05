@@ -16,6 +16,7 @@ export interface ForumRoom {
   canView?: boolean;
   protectedByPassword?: boolean;
   linkedContents: ForumLinkedContent[];
+  artifacts?: ForumArtifact[];
 }
 
 export interface ForumLinkedContent {
@@ -23,6 +24,14 @@ export interface ForumLinkedContent {
   title: string;
   type: string;
   meta: string;
+}
+
+export interface ForumArtifact {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  dataUrl: string;
 }
 
 export interface ForumMessage {

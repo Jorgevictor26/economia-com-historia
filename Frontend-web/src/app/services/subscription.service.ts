@@ -1,5 +1,5 @@
 ﻿import { Injectable, signal } from '@angular/core';
-import { SubscribedJindungoText, SubscriptionPlan } from '../models/subscription.model';
+import { JindungoSubscriptionRequest, SubscribedJindungoText, SubscriptionPlan } from '../models/subscription.model';
 
 @Injectable({ providedIn: 'root' })
 export class SubscriptionService {
@@ -45,5 +45,88 @@ export class SubscriptionService {
       route: '/app/contents/politica-monetaria-angola',
     },
   ]);
+
+  readonly jindungoTextCatalog = signal<SubscribedJindungoText[]>([
+    ...this.subscribedJindungoTexts(),
+    {
+      id: 'petroleo-divida-publica',
+      title: 'Petróleo, Dívida Pública e o Orçamento Geral do Estado',
+      excerpt: 'Uma leitura sobre receitas petrolíferas, despesa pública e escolhas fiscais em Angola.',
+      subscribedAt: '',
+      readingMinutes: 13,
+      route: '/app/contents/petroleo-divida-publica',
+    },
+    {
+      id: 'inflacao-cesta-basica',
+      title: 'Inflação e Cesta Básica nas Famílias Angolanas',
+      excerpt: 'Como a variação de preços altera consumo, poupança e prioridades domésticas.',
+      subscribedAt: '',
+      readingMinutes: 11,
+      route: '/app/contents/inflacao-cesta-basica',
+    },
+  ]);
+
+  readonly jindungoSubscriptionRequests = signal<JindungoSubscriptionRequest[]>([
+    {
+      id: 'req-1',
+      userName: 'Estudante Angola',
+      email: 'estudante@economiahistoria.ao',
+      textTitle: 'O Impacto das Reservas Internacionais no Kwanza',
+      requestedAt: 'Hoje, 09:40',
+      status: 'pending',
+    },
+    {
+      id: 'req-2',
+      userName: 'Leitora Académica',
+      email: 'leitora@economiahistoria.ao',
+      textTitle: 'Análise da Política Monetaria de Angola',
+      requestedAt: 'Ontem, 16:15',
+      status: 'pending',
+    },
+    {
+      id: 'req-3',
+      userName: 'Investigador Luanda',
+      email: 'investigador@economiahistoria.ao',
+      textTitle: 'Análise do Mercado de Diamantes na Lunda Sul',
+      requestedAt: '26 Jun 2026',
+      status: 'approved',
+    },
+  ]);
+
+  requestTextSubscription(text: SubscribedJindungoText, userName: string, email: string): void {
+    const exists = this.jindungoSubscriptionRequests().some((request) =>
+      request.email.toLowerCase() === email.toLowerCase()
+      && request.textTitle === text.title
+      && request.status === 'pending',
+    );
+
+    if (exists) {
+      return;
+    }
+
+    this.jindungoSubscriptionRequests.update((requests) => [
+      {
+        id: `req-${text.id}-${Date.now()}`,
+        userName,
+        email,
+        textTitle: text.title,
+        requestedAt: 'Agora',
+        status: 'pending',
+      },
+      ...requests,
+    ]);
+  }
+
+  approveRequest(id: string): void {
+    this.jindungoSubscriptionRequests.update((requests) =>
+      requests.map((request) => request.id === id ? { ...request, status: 'approved' } : request),
+    );
+  }
+
+  rejectRequest(id: string): void {
+    this.jindungoSubscriptionRequests.update((requests) =>
+      requests.map((request) => request.id === id ? { ...request, status: 'rejected' } : request),
+    );
+  }
 }
 

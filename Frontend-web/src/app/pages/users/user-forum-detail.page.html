@@ -2,429 +2,651 @@
   <app-public-navbar />
 
   <main class="fluid-container pb-14 pt-8">
-    <a routerLink="/app/forums" class="mb-7 inline-flex items-center gap-2 text-[13px] font-extrabold text-[#5C1E2F] hover:text-[#8A3F50]">
+    <a routerLink="/app/forums"
+      class="mb-7 inline-flex items-center gap-2 text-[13px] font-extrabold text-[#5C1E2F] hover:text-[#8A3F50]">
       <span class="material-symbols-outlined text-[18px]">arrow_back</span>
       Voltar aos f&oacute;runs
     </a>
 
     @if (room(); as room) {
-      @if (privateTeaserActive()) {
-        <article class="grid gap-7 lg:grid-cols-[minmax(0,1.65fr)_minmax(260px,0.75fr)]">
-          <section class="min-w-0">
-            @if (invitationNoticeOpen()) {
-              <section class="mb-6 rounded-[8px] border border-[#E6D5B8] bg-white p-5 shadow-[0_14px_34px_rgba(64,8,26,0.08)]">
-                <p class="text-[12px] font-extrabold text-[#5C1E2F]">Você foi convidado para participar neste fórum</p>
-                <div class="mt-4 flex flex-wrap gap-3">
-                  <button type="button" class="eh-card-action min-h-10 px-5" (click)="acceptInvitation()">Aceitar</button>
-                  <button type="button" class="h-10 rounded-[8px] border border-[#E0E0E0] px-5 text-[12px] font-extrabold text-[#616161] hover:bg-[#F5F5F5]" (click)="rejectInvitation()">Recusar</button>
-                </div>
-              </section>
-            }
+    @if (privateTeaserActive()) {
+    <article class="grid gap-7 lg:grid-cols-[minmax(0,1.65fr)_minmax(260px,0.75fr)]">
+      <section class="min-w-0">
+        @if (invitationNoticeOpen()) {
+        <section
+          class="mb-6 rounded-[8px] border border-[#E6D5B8] bg-white p-5 shadow-[0_14px_34px_rgba(64,8,26,0.08)]">
+          <p class="text-[12px] font-extrabold text-[#5C1E2F]">Você foi convidado para participar neste fórum</p>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <button type="button" class="eh-card-action min-h-10 px-5" (click)="acceptInvitation()">Aceitar</button>
+            <button type="button"
+              class="h-10 rounded-[8px] border border-[#E0E0E0] px-5 text-[12px] font-extrabold text-[#616161] hover:bg-[#F5F5F5]"
+              (click)="rejectInvitation()">Recusar</button>
+          </div>
+        </section>
+        }
 
-            <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-6 shadow-[0_14px_34px_rgba(64,8,26,0.07)]">
-              <div class="flex flex-wrap items-center gap-3">
-                <span class="rounded-full bg-[#212121] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-white">Privado</span>
-                <span class="rounded-full bg-[#F2E6E9] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5C1E2F]">{{ room.category || 'Fórum' }}</span>
-              </div>
-
-              <h1 class="mt-5 font-display text-[34px] font-extrabold leading-[1.08] text-[#5C1E2F]">{{ room.name }}</h1>
-              <p class="mt-4 max-w-2xl text-[14px] leading-7 text-[#616161]">{{ room.description }}</p>
-
-              <div class="mt-6 grid gap-3 text-[12px] font-semibold text-[#616161] sm:grid-cols-3">
-                <p class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-[#5C1E2F]">person</span>Criado por {{ room.creatorName || 'Economia com História' }}</p>
-                <p class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-[#5C1E2F]">groups</span>{{ room.members }} membros</p>
-                <p class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-[#5C1E2F]">forum</span>{{ room.activeDebates }} debates</p>
-              </div>
-
-              <div class="mt-7 flex flex-wrap gap-3">
-                <button type="button" class="eh-card-action min-h-11 px-5 disabled:cursor-not-allowed disabled:opacity-60" [disabled]="primaryAccessButtonDisabled()" (click)="handlePrimaryPrivateAction()">
-                  {{ primaryAccessButtonLabel() }}
-                </button>
-                @if (privateAccessStatus() === 'invited') {
-                  <button type="button" class="h-11 rounded-[8px] border border-[#E0E0E0] px-5 text-[12px] font-extrabold text-[#616161] hover:bg-[#F5F5F5]" (click)="rejectInvitation()">Recusar convite</button>
-                }
-              </div>
-
-              @if (accessRequestStatus()) {
-                <p class="mt-4 rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] px-4 py-3 text-[12px] font-bold text-[#5C1E2F]">{{ accessRequestStatus() }}</p>
-              } @else if (accessNotice()) {
-                <p class="mt-4 text-[12px] leading-5 text-[#616161]">{{ accessNotice() }}</p>
-              }
-            </section>
-
-            <section class="mt-7 rounded-[8px] border border-[#E0E0E0] bg-white p-6">
-              <h2 class="font-display text-[22px] font-extrabold text-[#5C1E2F]">Pré-visualização de debates</h2>
-              <div class="mt-5 grid gap-3">
-                @for (topic of forumTopicPreviews(); track topic.id) {
-                  <article class="rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] p-4">
-                    <h3 class="text-[13px] font-extrabold text-[#212121]">{{ topic.title }}</h3>
-                    <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#616161]">
-                      <span>Autor: {{ topic.author }}</span>
-                      <span>{{ topic.replies }} respostas</span>
-                      <span>Última atividade: {{ topic.lastActivity }}</span>
-                    </div>
-                  </article>
-                } @empty {
-                  <article class="rounded-[8px] border border-dashed border-[#E0E0E0] bg-[#FAFAFA] p-4 text-[12px] font-semibold text-[#616161]">
-                    Os tópicos deste fórum serão visíveis depois de entrar.
-                  </article>
-                }
-              </div>
-            </section>
-
-            <section class="mt-7 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white p-6">
-              <h2 class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Conteúdo exclusivo para membros aprovados</h2>
-              <div class="mt-5 grid gap-3 blur-[1px]">
-                <div class="h-5 w-2/3 rounded-full bg-[#E0E0E0]"></div>
-                <div class="h-5 w-full rounded-full bg-[#F2E6E9]"></div>
-                <div class="h-5 w-5/6 rounded-full bg-[#E0E0E0]"></div>
-                <div class="mt-2 h-28 rounded-[8px] bg-[#F5F5F5]"></div>
-              </div>
-            </section>
-          </section>
-
-          <aside class="min-w-0">
-            <div class="sticky top-[82px] grid gap-6">
-              <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-5">
-                <h2 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">Por que entrar neste fórum?</h2>
-                <p class="mt-3 text-[13px] leading-6 text-[#616161]">{{ forumValueProposition() }}</p>
-              </section>
-
-              <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-5">
-                <h2 class="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#5C1E2F]">Membros</h2>
-                <div class="mt-4 flex items-center">
-                  @for (avatar of memberPreviewAvatars(room.name); track avatar; let index = $index) {
-                    <span class="-ml-2 grid size-10 place-items-center rounded-full border-2 border-white bg-[#F2E6E9] text-[11px] font-extrabold text-[#5C1E2F]" [class.ml-0]="index === 0">{{ avatar }}</span>
-                  }
-                  @if (remainingMemberCount(room.members) > 0) {
-                    <span class="ml-3 text-[12px] font-extrabold text-[#616161]">+{{ remainingMemberCount(room.members) }} membros</span>
-                  }
-                </div>
-              </section>
-            </div>
-          </aside>
-        </article>
-      } @else {
-      <article class="grid gap-7 lg:grid-cols-[minmax(0,2.15fr)_minmax(250px,0.85fr)]">
-        <section class="min-w-0">
-          <div class="mb-2 text-[10px] font-semibold text-[#9E9E9E]">
-            Iniciado {{ forumComments().length ? forumComments()[0].createdAt : 'recentemente' }}
+        <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-6 shadow-[0_14px_34px_rgba(64,8,26,0.07)]">
+          <div class="flex flex-wrap items-center gap-3">
+            <span
+              class="rounded-full bg-[#212121] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-white">Privado</span>
+            <span
+              class="rounded-full bg-[#F2E6E9] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5C1E2F]">{{
+              room.category || 'Fórum' }}</span>
           </div>
 
-          <h1 class="font-display max-w-[680px] text-[34px] font-extrabold leading-[1.08] text-[#5C1E2F]">
-            {{ room.name }}
-          </h1>
+          <h1 class="mt-5 font-display text-[34px] font-extrabold leading-[1.08] text-[#5C1E2F]">{{ room.name }}</h1>
+          <p class="mt-4 max-w-2xl text-[14px] leading-7 text-[#616161]">{{ room.description }}</p>
 
-          <p class="mt-5 max-w-[720px] border-l-4 border-[#D4AF37] pl-6 font-display text-[14px] italic leading-7 text-[#616161]">
-            {{ room.objective || room.description }}
-          </p>
+          <div class="mt-6 grid gap-3 text-[12px] font-semibold text-[#616161] sm:grid-cols-3">
+            <p class="flex items-center gap-2"><span
+                class="material-symbols-outlined text-[18px] text-[#5C1E2F]">person</span>Criado por {{ room.creatorName
+              || 'Economia com História' }}</p>
+            <p class="flex items-center gap-2"><span
+                class="material-symbols-outlined text-[18px] text-[#5C1E2F]">groups</span>{{ room.members }} membros</p>
+            <p class="flex items-center gap-2"><span
+                class="material-symbols-outlined text-[18px] text-[#5C1E2F]">forum</span>{{ room.activeDebates }}
+              debates</p>
+          </div>
 
-          <section class="mt-7 flex flex-wrap items-center justify-between gap-5 border-y border-[#E0E0E0] py-4 text-[12px] text-[#616161]">
-            <div class="flex flex-wrap items-center gap-8">
-              <button type="button" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]" (click)="likeForum($event)">
-                <span class="material-symbols-outlined text-[26px] leading-none" [class.text-[#8A3F50]]="likedByMe()">favorite</span>
-                <span>Gostar</span>
-              </button>
-              <button type="button" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]" (click)="openCommentComposer($event)">
-                <span class="material-symbols-outlined text-[26px] leading-none">chat_bubble</span>
-                <span>Comentar</span>
-              </button>
-              <button type="button" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]" (click)="shareForum($event)">
-                <span class="material-symbols-outlined text-[26px] leading-none">share</span>
-                <span>Partilhar</span>
-              </button>
-            </div>
-            <div class="flex items-center gap-5">
-              <button type="button" class="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#9E9E9E] transition hover:text-[#5C1E2F]" (click)="saveForum($event)">
-                <span class="material-symbols-outlined text-[24px] leading-none">bookmark_add</span>
-                <span>Guardar</span>
-              </button>
-              @if (canManageForum()) {
-                <details class="relative">
-                  <summary class="grid size-9 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" aria-label="Mais ações">
-                    <span class="material-symbols-outlined text-[22px] leading-none">more_vert</span>
-                  </summary>
-                  <div class="absolute right-0 z-20 mt-2 grid min-w-40 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
-                    <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" (click)="openEditForum($event)">
-                      <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
-                      <span>Editar fórum</span>
-                    </button>
-                    <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]" (click)="deleteForum($event)">
-                      <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
-                      <span>Apagar fórum</span>
-                    </button>
-                  </div>
-                </details>
-              }
-            </div>
-          </section>
+          <div class="mt-7 flex flex-wrap gap-3">
+            <button type="button" class="eh-card-action min-h-11 px-5 disabled:cursor-not-allowed disabled:opacity-60"
+              [disabled]="primaryAccessButtonDisabled()" (click)="handlePrimaryPrivateAction()">
+              {{ primaryAccessButtonLabel() }}
+            </button>
+            @if (privateAccessStatus() === 'invited') {
+            <button type="button"
+              class="h-11 rounded-[8px] border border-[#E0E0E0] px-5 text-[12px] font-extrabold text-[#616161] hover:bg-[#F5F5F5]"
+              (click)="rejectInvitation()">Recusar convite</button>
+            }
+          </div>
 
-          @if (forumFeedback()) {
-            <p class="mt-3 text-[12px] font-semibold text-[#5C1E2F]">{{ forumFeedback() }}</p>
+          @if (accessRequestStatus()) {
+          <p
+            class="mt-4 rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] px-4 py-3 text-[12px] font-bold text-[#5C1E2F]">
+            {{ accessRequestStatus() }}</p>
+          } @else if (accessNotice()) {
+          <p class="mt-4 text-[12px] leading-5 text-[#616161]">{{ accessNotice() }}</p>
           }
 
-          @if (editingForum()) {
-            <form class="mt-6 grid gap-4 rounded-[8px] border border-[#E0E0E0] bg-white p-5 shadow-[0_16px_40px_rgba(64,8,26,0.07)]" (submit)="$event.preventDefault(); saveEditedForum(editForumName, editForumDescription, editForumCategory, editForumVisibility)">
-              <div class="grid gap-4 md:grid-cols-2">
-                <label class="grid gap-2 text-[12px] font-extrabold text-[#5C1E2F]">
-                  Título do fórum
-                  <input #editForumName type="text" class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#212121] outline-none focus:border-[#8A3F50]" [value]="room.name" />
-                </label>
-                <label class="grid gap-2 text-[12px] font-extrabold text-[#5C1E2F]">
-                  Categoria
-                  <input #editForumCategory type="text" class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#212121] outline-none focus:border-[#8A3F50]" [value]="room.category || 'Fórum'" />
-                </label>
-              </div>
-              <label class="grid gap-2 text-[12px] font-extrabold text-[#5C1E2F]">
-                Descrição
-                <textarea #editForumDescription class="min-h-[110px] rounded-[8px] border border-[#E0E0E0] bg-white px-3 py-3 text-[13px] text-[#212121] outline-none focus:border-[#8A3F50]">{{ room.description }}</textarea>
-              </label>
-              <label class="grid max-w-[220px] gap-2 text-[12px] font-extrabold text-[#5C1E2F]">
-                Visibilidade
-                <select #editForumVisibility class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#212121] outline-none focus:border-[#8A3F50]" [value]="room.visibility">
-                  <option value="public">Público</option>
-                  <option value="private">Privado</option>
-                </select>
-              </label>
-              <div class="flex flex-wrap justify-end gap-3">
-                <button type="button" class="h-10 px-5 text-[12px] font-extrabold text-[#616161] hover:bg-[#F5F5F5]" (click)="closeEditForum()">Cancelar</button>
-                <button type="submit" class="inline-flex h-10 items-center justify-center rounded-[8px] bg-[#5C1E2F] px-5 text-[12px] font-extrabold text-white disabled:opacity-60" [disabled]="isSavingForum()">
-                  {{ isSavingForum() ? 'A guardar...' : 'Guardar alterações' }}
-                </button>
-              </div>
-            </form>
-          }
-
-          @if (accessNotice() && room.visibility === 'private') {
-            <section class="mt-7 rounded-[8px] border border-[#E6D5B8] bg-white p-5">
-              <h2 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">Acesso privado</h2>
-              <p class="mt-2 text-[13px] leading-6 text-[#616161]">{{ accessNotice() }}</p>
-              <form class="mt-4" (submit)="requestPrivateAccess($event)">
-                <button type="submit" class="eh-card-action min-h-11 px-5" [disabled]="primaryAccessButtonDisabled()">{{ primaryAccessButtonLabel() }}</button>
-              </form>
-              @if (accessRequestStatus()) {
-                <p class="mt-3 text-[12px] font-semibold text-[#5C1E2F]">{{ accessRequestStatus() }}</p>
-              }
-            </section>
-          } @else {
-            <section class="mt-8 space-y-6 text-[15px] leading-8 text-[#212121]">
-              <p>{{ room.description }}</p>
-              <p>Esta discuss&atilde;o foi criada para aprofundar conte&uacute;dos publicados na plataforma, com foco em fontes, contexto hist&oacute;rico e leitura cr&iacute;tica.</p>
-            </section>
-
-            @if (commentComposerOpen()) {
-            <section class="mt-9 border-t border-[#E0E0E0] pt-5">
-              <h2 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">Participa&ccedil;&atilde;o</h2>
-              <form class="mt-4 grid gap-3" (submit)="$event.preventDefault(); submitForumComment(forumCommentInput.value); forumCommentInput.value = ''">
-                <textarea #forumCommentInput class="min-h-[120px] resize-y rounded-[8px] border border-[#E0E0E0] bg-white px-4 py-3 text-[13px] leading-6 outline-none focus:border-[#8A3F50]" placeholder="Abra um tópico com a sua contribui&ccedil;&atilde;o acad&eacute;mica..."></textarea>
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                  <span class="text-[11px] text-[#9E9E9E]">A participa&ccedil;&atilde;o deve respeitar as regras da comunidade. Conte&uacute;dos vinculados s&atilde;o opcionais.</span>
-                  <button type="submit" class="eh-card-action disabled:opacity-60" [disabled]="isSavingForumComment()">
-                    {{ isSavingForumComment() ? 'A publicar...' : 'Criar tópico' }}
-                  </button>
-                </div>
-              </form>
-            </section>
-            }
-
-            @if (isLoadingForumComments()) {
-              <p class="mt-8 text-[12px] font-semibold text-[#9E9E9E]">A carregar respostas...</p>
-            } @else if (forumComments().length) {
-              <section class="mt-8 grid gap-7 border-t border-[#E0E0E0] pt-6">
-                @for (comment of forumComments(); track comment.id) {
-                  <article class="flex gap-4">
-                    <span class="grid size-10 shrink-0 place-items-center rounded-[8px] bg-[#E0E0E0] text-[11px] font-bold text-[#5C1E2F]">
-                      {{ comment.initials }}
-                    </span>
-                    <div class="min-w-0 flex-1">
-                      <div class="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <div class="flex flex-wrap items-center gap-3">
-                            <p class="text-[13px] font-extrabold text-[#5C1E2F]">{{ comment.author }}</p>
-                            <span class="text-[10px] text-[#9E9E9E]">{{ comment.createdAt }}</span>
-                          </div>
-                          <h3 class="mt-1 text-[13px] font-extrabold text-[#212121]">{{ comment.title }}</h3>
-                        </div>
-                        <details class="relative shrink-0">
-                          <summary class="grid size-8 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" aria-label="Mais ações do tópico">
-                            <span class="material-symbols-outlined text-[22px] leading-none">more_horiz</span>
-                          </summary>
-                          <div class="absolute right-0 z-20 mt-2 grid min-w-36 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
-                            @if (canEditTopic(comment)) {
-                              <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" (click)="openEditTopic(comment.id)">
-                                <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
-                                <span>Editar</span>
-                              </button>
-                            }
-                            @if (canDeleteTopic(comment)) {
-                              <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]" (click)="deleteTopic(comment.id)">
-                                <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
-                                <span>Apagar</span>
-                              </button>
-                            } @else {
-                              <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" (click)="openReportTopic($event, comment)">
-                                <span class="material-symbols-outlined text-[17px] leading-none">flag</span>
-                                <span>Denunciar</span>
-                              </button>
-                            }
-                          </div>
-                        </details>
-                      </div>
-                      @if (comment.editing) {
-                        <form class="mt-4 grid gap-3 rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] p-4" (submit)="$event.preventDefault(); saveEditedTopic(comment.id, editTopicTitle, editTopicContent)">
-                          <input #editTopicTitle type="text" class="h-10 rounded-[8px] border border-[#E0E0E0] px-3 text-[13px] outline-none focus:border-[#8A3F50]" [value]="comment.title" />
-                          <textarea #editTopicContent class="min-h-[90px] rounded-[8px] border border-[#E0E0E0] px-3 py-3 text-[13px] leading-6 outline-none focus:border-[#8A3F50]">{{ comment.text }}</textarea>
-                          <div class="flex justify-end gap-2">
-                            <button type="button" class="h-9 px-3 text-[11px] font-extrabold text-[#616161]" (click)="closeEditTopic(comment.id)">Cancelar</button>
-                            <button type="submit" class="h-9 rounded-[8px] bg-[#5C1E2F] px-4 text-[11px] font-extrabold text-white">Guardar</button>
-                          </div>
-                        </form>
-                      } @else {
-                        <p class="mt-3 rounded-[8px] border border-[#E0E0E0] bg-white p-4 text-[13px] leading-6 text-[#212121]">{{ comment.text }}</p>
-                      }
-
-                      <div class="mt-3 flex flex-wrap items-center gap-4">
-                        <button type="button" class="text-[11px] font-extrabold text-[#5C1E2F] hover:text-[#8A3F50]" (click)="openTopicReplyComposer(comment.id)">
-                          {{ comment.replyComposerOpen ? 'Fechar resposta' : 'Responder' }}
-                        </button>
-                        <span class="text-[11px] font-semibold text-[#9E9E9E]">{{ comment.replies.length }} respostas</span>
-                      </div>
-
-                      @if (comment.replyComposerOpen) {
-                        <form class="mt-4 grid gap-3" (submit)="$event.preventDefault(); submitTopicReply(comment.id, replyInput.value); replyInput.value = ''">
-                          <textarea #replyInput class="min-h-[86px] resize-y rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-3 py-3 text-[13px] leading-6 outline-none focus:border-[#8A3F50]" placeholder="Responder a este tópico..."></textarea>
-                          <div class="flex justify-end">
-                            <button type="submit" class="h-9 rounded-[8px] bg-[#5C1E2F] px-4 text-[11px] font-extrabold text-white disabled:opacity-60" [disabled]="comment.isSavingReply">
-                              {{ comment.isSavingReply ? 'A responder...' : 'Publicar resposta' }}
-                            </button>
-                          </div>
-                        </form>
-                      }
-
-                      @if (comment.replies.length) {
-                        <div class="mt-4 grid gap-4 border-l-2 border-[#F2E6E9] pl-4">
-                          @for (reply of comment.replies; track reply.id) {
-                            <article>
-                              <div class="flex flex-wrap items-start justify-between gap-3">
-                                <div class="flex min-w-0 gap-3">
-                                  <span class="grid size-8 shrink-0 place-items-center rounded-[8px] bg-[#F2E6E9] text-[10px] font-bold text-[#5C1E2F]">{{ reply.initials }}</span>
-                                  <div class="min-w-0">
-                                    <div class="flex flex-wrap items-center gap-2">
-                                      <p class="text-[12px] font-extrabold text-[#5C1E2F]">{{ reply.author }}</p>
-                                      <span class="text-[10px] text-[#9E9E9E]">{{ reply.createdAt }}</span>
-                                    </div>
-                                    @if (comment.editingReplyId === reply.id) {
-                                      <form class="mt-3 grid gap-2" (submit)="$event.preventDefault(); saveEditedReply(comment.id, reply.id, editReplyInput)">
-                                        <textarea #editReplyInput class="min-h-[76px] rounded-[8px] border border-[#E0E0E0] bg-white px-3 py-2 text-[12px] leading-5 outline-none focus:border-[#8A3F50]">{{ reply.text }}</textarea>
-                                        <div class="flex justify-end gap-2">
-                                          <button type="button" class="h-8 px-3 text-[11px] font-extrabold text-[#616161]" (click)="closeEditReply(comment.id)">Cancelar</button>
-                                          <button type="submit" class="h-8 rounded-[8px] bg-[#5C1E2F] px-3 text-[11px] font-extrabold text-white">Guardar</button>
-                                        </div>
-                                      </form>
-                                    } @else {
-                                      <p class="mt-2 rounded-[8px] bg-[#FAFAFA] p-3 text-[12px] leading-5 text-[#212121]">{{ reply.text }}</p>
-                                    }
-                                  </div>
-                                </div>
-                                <details class="relative shrink-0">
-                                  <summary class="grid size-7 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" aria-label="Mais ações da resposta">
-                                    <span class="material-symbols-outlined text-[20px] leading-none">more_horiz</span>
-                                  </summary>
-                                  <div class="absolute right-0 z-20 mt-2 grid min-w-36 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
-                                    @if (canEditReply(reply)) {
-                                      <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" (click)="openEditReply(comment.id, reply.id)">
-                                        <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
-                                        <span>Editar</span>
-                                      </button>
-                                    }
-                                    @if (canDeleteReply(reply)) {
-                                      <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]" (click)="deleteReply(comment.id, reply.id)">
-                                        <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
-                                        <span>Apagar</span>
-                                      </button>
-                                    } @else {
-                                      <button type="button" class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]" (click)="openReportReply($event, reply)">
-                                        <span class="material-symbols-outlined text-[17px] leading-none">flag</span>
-                                        <span>Denunciar</span>
-                                      </button>
-                                    }
-                                  </div>
-                                </details>
-                              </div>
-                            </article>
-                          }
-                        </div>
-                      }
-                    </div>
-                  </article>
-                }
-              </section>
-            }
+          @if (canManageForum()) {
+          <div class="mt-6 flex flex-wrap gap-3 border-t border-[#E0E0E0] pt-5">
+            <button type="button"
+              class="inline-flex h-10 items-center justify-center gap-2 rounded-[8px] border border-[#E0E0E0] bg-white px-4 text-[12px] font-extrabold text-[#5C1E2F] hover:bg-[#F5F5F5]"
+              (click)="openEditForum($event)">
+              <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
+              Editar fórum
+            </button>
+            <button type="button"
+              class="inline-flex h-10 items-center justify-center gap-2 rounded-[8px] border border-[#E0E0E0] bg-white px-4 text-[12px] font-extrabold text-[#8A3F50] hover:bg-[#F2E6E9]"
+              (click)="deleteForum($event)">
+              <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
+              Apagar fórum
+            </button>
+          </div>
           }
         </section>
 
-        <aside class="min-w-0">
-          <div class="sticky top-[82px] grid gap-7 bg-white p-6">
-            <section>
-              <h2 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">Sobre este Debate</h2>
-              <p class="mt-3 text-[12px] leading-6 text-[#616161]">
-                {{ room.description }}
-              </p>
-            </section>
-
-            <section>
-              <h2 class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8A3F50]">Moderador principal</h2>
-              <div class="mt-4 flex items-center gap-3">
-                <span class="grid size-10 shrink-0 place-items-center rounded-[8px] bg-[#5C1E2F] text-[11px] font-extrabold text-white">
-                  {{ roomInitials(room.creatorName || room.name) }}
-                </span>
-                <div class="min-w-0">
-                  <p class="truncate text-[12px] font-extrabold text-[#212121]">{{ room.creatorName || 'Economia com História' }}</p>
-                  <p class="mt-1 text-[10px] text-[#9E9E9E]">{{ room.category || 'Moderação da comunidade' }}</p>
-                </div>
+        <section class="mt-7 rounded-[8px] border border-[#E0E0E0] bg-white p-6">
+          <h2 class="font-display text-[22px] font-extrabold text-[#5C1E2F]">Pré-visualização de debates</h2>
+          <div class="mt-5 grid gap-3">
+            @for (topic of forumTopicPreviews(); track topic.id) {
+            <article class="rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] p-4">
+              <h3 class="text-[13px] font-extrabold text-[#212121]">{{ topic.title }}</h3>
+              <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#616161]">
+                <span>Autor: {{ topic.author }}</span>
+                <span>{{ topic.replies }} respostas</span>
+                <span>Última atividade: {{ topic.lastActivity }}</span>
               </div>
-            </section>
-
-            <section>
-              <h2 class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8A3F50]">Participantes ativos ({{ activeParticipantOverflow(room) + activeParticipantAvatars(room).length }})</h2>
-              <div class="mt-4 flex items-center gap-2">
-                @for (avatar of activeParticipantAvatars(room); track avatar) {
-                  <span class="grid size-10 place-items-center rounded-[8px] bg-[#F2E6E9] text-[11px] font-extrabold text-[#5C1E2F]">{{ avatar }}</span>
-                }
-                @if (activeParticipantOverflow(room) > 0) {
-                  <span class="grid size-10 place-items-center rounded-[8px] bg-[#F5F5F5] text-[11px] font-extrabold text-[#616161]">+{{ activeParticipantOverflow(room) }}</span>
-                }
-              </div>
-            </section>
-
-            <section>
-              <h2 class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8A3F50]">Recursos partilhados</h2>
-              <div class="mt-4 grid gap-3">
-                @for (resource of sharedResources(room); track resource.title) {
-                  @if (resource.route) {
-                    <a [routerLink]="resource.route" class="flex items-center gap-3 text-[12px] font-semibold text-[#616161] transition hover:text-[#5C1E2F]">
-                      <span class="material-symbols-outlined text-[18px]">{{ resource.icon }}</span>
-                      <span class="line-clamp-1">{{ resource.title }}</span>
-                    </a>
-                  } @else {
-                    <span class="flex items-center gap-3 text-[12px] font-semibold text-[#616161]">
-                      <span class="material-symbols-outlined text-[18px]">{{ resource.icon }}</span>
-                      <span class="line-clamp-1">{{ resource.title }}</span>
-                    </span>
-                  }
-                }
-              </div>
-            </section>
+            </article>
+            } @empty {
+            <article
+              class="rounded-[8px] border border-dashed border-[#E0E0E0] bg-[#FAFAFA] p-4 text-[12px] font-semibold text-[#616161]">
+              Os tópicos deste fórum serão visíveis depois de entrar.
+            </article>
+            }
           </div>
-        </aside>
-      </article>
-      }
-    } @else {
-      <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-8 text-center">
-        <h1 class="font-display text-[22px] font-extrabold text-[#5C1E2F]">Debate n&atilde;o encontrado</h1>
-        <p class="mt-2 text-[13px] text-[#616161]">Volte aos f&oacute;runs e escolha uma discuss&atilde;o dispon&iacute;vel.</p>
-        <a routerLink="/app/forums" class="eh-card-action mt-5 inline-flex">Ver f&oacute;runs</a>
+        </section>
+
+        <section class="mt-7 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white p-6">
+          <h2 class="font-display text-[20px] font-extrabold text-[#5C1E2F]">Conteúdo exclusivo para membros aprovados
+          </h2>
+          <div class="mt-5 grid gap-3 blur-[1px]">
+            <div class="h-5 w-2/3 rounded-full bg-[#E0E0E0]"></div>
+            <div class="h-5 w-full rounded-full bg-[#F2E6E9]"></div>
+            <div class="h-5 w-5/6 rounded-full bg-[#E0E0E0]"></div>
+            <div class="mt-2 h-28 rounded-[8px] bg-[#F5F5F5]"></div>
+          </div>
+        </section>
       </section>
+
+      <aside class="min-w-0">
+        <div class="sticky top-[82px] grid gap-6">
+          <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-5">
+            <h2 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">Por que entrar neste fórum?</h2>
+            <p class="mt-3 text-[13px] leading-6 text-[#616161]">{{ forumValueProposition() }}</p>
+          </section>
+
+          <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-5">
+            <h2 class="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#5C1E2F]">Membros</h2>
+            <div class="mt-4 flex items-center">
+              @for (avatar of memberPreviewAvatars(room.name); track avatar; let index = $index) {
+              <span
+                class="-ml-2 grid size-10 place-items-center rounded-full border-2 border-white bg-[#F2E6E9] text-[11px] font-extrabold text-[#5C1E2F]"
+                [class.ml-0]="index === 0">{{ avatar }}</span>
+              }
+              @if (remainingMemberCount(room.members) > 0) {
+              <span class="ml-3 text-[12px] font-extrabold text-[#616161]">+{{ remainingMemberCount(room.members) }}
+                membros</span>
+              }
+            </div>
+          </section>
+        </div>
+      </aside>
+    </article>
+    } @else {
+    <article class="grid gap-7 lg:grid-cols-[minmax(0,2.15fr)_minmax(250px,0.85fr)]">
+      <section class="min-w-0">
+        <div class="mb-2 text-[10px] font-semibold text-[#9E9E9E]">
+          Iniciado {{ forumComments().length ? forumComments()[0].createdAt : 'recentemente' }}
+        </div>
+
+        <h1 class="font-display max-w-[680px] text-[34px] font-extrabold leading-[1.08] text-[#5C1E2F]">
+          {{ room.name }}
+        </h1>
+
+        <p
+          class="mt-5 max-w-[720px] border-l-4 border-[#D4AF37] pl-6 font-display text-[14px] italic leading-7 text-[#616161]">
+          {{ room.objective || room.description }}
+        </p>
+
+        <section
+          class="mt-7 flex flex-wrap items-center justify-between gap-5 border-y border-[#E0E0E0] py-4 text-[12px] text-[#616161]">
+          <div class="flex flex-wrap items-center gap-8">
+            <button type="button" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]"
+              (click)="likeForum($event)">
+              <span class="material-symbols-outlined text-[26px] leading-none"
+                [class.text-[#8A3F50]]="likedByMe()">favorite</span>
+              <span>Gostar</span>
+            </button>
+            <button type="button" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]"
+              (click)="openCommentComposer($event)">
+              <span class="material-symbols-outlined text-[26px] leading-none">chat_bubble</span>
+              <span>Comentar</span>
+            </button>
+            <button type="button" class="inline-flex items-center gap-2 font-medium transition hover:text-[#5C1E2F]"
+              (click)="shareForum($event)">
+              <span class="material-symbols-outlined text-[26px] leading-none">share</span>
+              <span>Partilhar</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-5">
+            <button type="button"
+              class="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#9E9E9E] transition hover:text-[#5C1E2F]"
+              (click)="saveForum($event)">
+              <span class="material-symbols-outlined text-[24px] leading-none">bookmark_add</span>
+              <span>Guardar</span>
+            </button>
+            @if (canManageForum()) {
+            <button type="button"
+              class="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#5C1E2F] transition hover:text-[#8A3F50]"
+              (click)="openEditForum($event)">
+              <span class="material-symbols-outlined text-[22px] leading-none">edit</span>
+              <span>Editar fórum</span>
+            </button>
+            <button type="button"
+              class="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#8A3F50] transition hover:text-[#5C1E2F]"
+              (click)="deleteForum($event)">
+              <span class="material-symbols-outlined text-[22px] leading-none">delete</span>
+              <span>Apagar fórum</span>
+            </button>
+            <details class="relative">
+              <summary
+                class="grid size-9 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]"
+                aria-label="Mais ações">
+                <span class="material-symbols-outlined text-[22px] leading-none">more_vert</span>
+              </summary>
+              <div
+                class="absolute right-0 z-20 mt-2 grid min-w-40 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
+                <button type="button"
+                  class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]"
+                  (click)="openEditForum($event)">
+                  <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
+                  <span>Editar fórum</span>
+                </button>
+                <button type="button"
+                  class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]"
+                  (click)="deleteForum($event)">
+                  <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
+                  <span>Apagar fórum</span>
+                </button>
+              </div>
+            </details>
+            }
+          </div>
+        </section>
+
+        @if (forumFeedback()) {
+        <p class="mt-3 text-[12px] font-semibold text-[#5C1E2F]">{{ forumFeedback() }}</p>
+        }
+
+        @if (editingForum()) {
+        <form
+          class="mt-6 grid gap-4 rounded-[8px] border border-[#E0E0E0] bg-white p-5 shadow-[0_16px_40px_rgba(64,8,26,0.07)]"
+          (submit)="$event.preventDefault(); saveEditedForum(editForumName, editForumDescription, editForumCategory, editForumVisibility)">
+          <div class="grid gap-4 md:grid-cols-2">
+            <label class="grid gap-2 text-[12px] font-extrabold text-[#5C1E2F]">
+              Título do fórum
+              <input #editForumName type="text"
+                class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#212121] outline-none focus:border-[#8A3F50]"
+                [value]="room.name" />
+            </label>
+            <label class="grid gap-2 text-[12px] font-extrabold text-[#5C1E2F]">
+              Categoria
+              <input #editForumCategory type="text"
+                class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#212121] outline-none focus:border-[#8A3F50]"
+                [value]="room.category || 'Fórum'" />
+            </label>
+          </div>
+          <label class="grid gap-2 text-[12px] font-extrabold text-[#5C1E2F]">
+            Descrição
+            <textarea #editForumDescription
+              class="min-h-[110px] rounded-[8px] border border-[#E0E0E0] bg-white px-3 py-3 text-[13px] text-[#212121] outline-none focus:border-[#8A3F50]">{{ room.description }}</textarea>
+          </label>
+          <label class="grid max-w-[220px] gap-2 text-[12px] font-extrabold text-[#5C1E2F]">
+            Visibilidade
+            <select #editForumVisibility
+              class="h-11 rounded-[8px] border border-[#E0E0E0] bg-white px-3 text-[13px] text-[#212121] outline-none focus:border-[#8A3F50]"
+              [value]="room.visibility">
+              <option value="public">Público</option>
+              <option value="private">Privado</option>
+            </select>
+          </label>
+          <div class="flex flex-wrap justify-end gap-3">
+            <button type="button" class="h-10 px-5 text-[12px] font-extrabold text-[#616161] hover:bg-[#F5F5F5]"
+              (click)="closeEditForum()">Cancelar</button>
+            <button type="submit"
+              class="inline-flex h-10 items-center justify-center rounded-[8px] bg-[#5C1E2F] px-5 text-[12px] font-extrabold text-white disabled:opacity-60"
+              [disabled]="isSavingForum()">
+              {{ isSavingForum() ? 'A guardar...' : 'Guardar alterações' }}
+            </button>
+          </div>
+        </form>
+        }
+
+        @if (accessNotice() && room.visibility === 'private') {
+        <section class="mt-7 rounded-[8px] border border-[#E6D5B8] bg-white p-5">
+          <h2 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">Acesso privado</h2>
+          <p class="mt-2 text-[13px] leading-6 text-[#616161]">{{ accessNotice() }}</p>
+          <form class="mt-4" (submit)="requestPrivateAccess($event)">
+            <button type="submit" class="eh-card-action min-h-11 px-5" [disabled]="primaryAccessButtonDisabled()">{{
+              primaryAccessButtonLabel() }}</button>
+          </form>
+          @if (accessRequestStatus()) {
+          <p class="mt-3 text-[12px] font-semibold text-[#5C1E2F]">{{ accessRequestStatus() }}</p>
+          }
+        </section>
+        } @else {
+        <section class="mt-8 space-y-6 text-[15px] leading-8 text-[#212121]">
+          <p>{{ room.description }}</p>
+          <p>Esta discuss&atilde;o foi criada para aprofundar conte&uacute;dos publicados na plataforma, com foco em
+            fontes, contexto hist&oacute;rico e leitura cr&iacute;tica.</p>
+        </section>
+
+        @if (commentComposerOpen()) {
+        <section class="mt-9 border-t border-[#E0E0E0] pt-5">
+          <h2 class="font-display text-[18px] font-extrabold text-[#5C1E2F]">Participa&ccedil;&atilde;o</h2>
+          <form class="mt-4 grid gap-3"
+            (submit)="$event.preventDefault(); submitForumComment(forumCommentInput.value); forumCommentInput.value = ''">
+            <textarea #forumCommentInput
+              class="min-h-[120px] resize-y rounded-[8px] border border-[#E0E0E0] bg-white px-4 py-3 text-[13px] leading-6 outline-none focus:border-[#8A3F50]"
+              placeholder="Abra um tópico com a sua contribui&ccedil;&atilde;o acad&eacute;mica..."></textarea>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <span class="text-[11px] text-[#9E9E9E]">A participa&ccedil;&atilde;o deve respeitar as regras da
+                comunidade. Conte&uacute;dos vinculados s&atilde;o opcionais.</span>
+              <button type="submit" class="eh-card-action disabled:opacity-60" [disabled]="isSavingForumComment()">
+                {{ isSavingForumComment() ? 'A publicar...' : 'Criar tópico' }}
+              </button>
+            </div>
+          </form>
+        </section>
+        }
+
+        @if (isLoadingForumComments()) {
+        <p class="mt-8 text-[12px] font-semibold text-[#9E9E9E]">A carregar respostas...</p>
+        } @else if (forumComments().length) {
+        <section class="mt-8 grid gap-7 border-t border-[#E0E0E0] pt-6">
+          @for (comment of forumComments(); track comment.id) {
+          <article class="flex gap-4">
+            <span
+              class="grid size-10 shrink-0 place-items-center rounded-[8px] bg-[#E0E0E0] text-[11px] font-bold text-[#5C1E2F]">
+              {{ comment.initials }}
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div class="flex flex-wrap items-center gap-3">
+                    <p class="text-[13px] font-extrabold text-[#5C1E2F]">{{ comment.author }}</p>
+                    <span class="text-[10px] text-[#9E9E9E]">{{ comment.createdAt }}</span>
+                  </div>
+                  @if (topicTitleVisible(comment)) {
+                  <h3 class="mt-1 text-[13px] font-extrabold text-[#212121]">{{ comment.title }}</h3>
+                  }
+                </div>
+                <details class="relative shrink-0">
+                  <summary
+                    class="grid size-8 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]"
+                    aria-label="Mais ações do tópico">
+                    <span class="material-symbols-outlined text-[22px] leading-none">more_horiz</span>
+                  </summary>
+                  <div
+                    class="absolute right-0 z-20 mt-2 grid min-w-36 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
+                    @if (canEditTopic(comment)) {
+                    <button type="button"
+                      class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]"
+                      (click)="openEditTopic(comment.id)">
+                      <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
+                      <span>Editar</span>
+                    </button>
+                    }
+                    @if (canDeleteTopic(comment)) {
+                    <button type="button"
+                      class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]"
+                      (click)="deleteTopic(comment.id)">
+                      <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
+                      <span>Apagar</span>
+                    </button>
+                    } @else {
+                    <button type="button"
+                      class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]"
+                      (click)="openReportTopic($event, comment)">
+                      <span class="material-symbols-outlined text-[17px] leading-none">flag</span>
+                      <span>Denunciar</span>
+                    </button>
+                    }
+                  </div>
+                </details>
+              </div>
+              @if (comment.editing) {
+              <form class="mt-4 grid gap-3 rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] p-4"
+                (submit)="$event.preventDefault(); saveEditedTopic(comment.id, editTopicTitle, editTopicContent)">
+                <input #editTopicTitle type="text"
+                  class="h-10 rounded-[8px] border border-[#E0E0E0] px-3 text-[13px] outline-none focus:border-[#8A3F50]"
+                  [value]="comment.title" />
+                <textarea #editTopicContent
+                  class="min-h-[90px] rounded-[8px] border border-[#E0E0E0] px-3 py-3 text-[13px] leading-6 outline-none focus:border-[#8A3F50]">{{ comment.text }}</textarea>
+                <div class="flex justify-end gap-2">
+                  <button type="button" class="h-9 px-3 text-[11px] font-extrabold text-[#616161]"
+                    (click)="closeEditTopic(comment.id)">Cancelar</button>
+                  <button type="submit"
+                    class="h-9 rounded-[8px] bg-[#5C1E2F] px-4 text-[11px] font-extrabold text-white">Guardar</button>
+                </div>
+              </form>
+              } @else {
+              <p class="mt-3 rounded-[8px] border border-[#E0E0E0] bg-white p-4 text-[13px] leading-6 text-[#212121]">{{
+                comment.text }}</p>
+              }
+
+              <div class="mt-3 flex flex-wrap items-center gap-4">
+                <button type="button" class="text-[11px] font-extrabold text-[#5C1E2F] hover:text-[#8A3F50]"
+                  (click)="openTopicReplyComposer(comment.id)">
+                  {{ comment.replyComposerOpen ? 'Fechar resposta' : 'Responder' }}
+                </button>
+                <span class="text-[11px] font-semibold text-[#9E9E9E]">{{ comment.repliesCount }} respostas</span>
+              </div>
+
+              @if (comment.replyComposerOpen) {
+              <form class="mt-4 grid gap-3"
+                (submit)="$event.preventDefault(); submitTopicReply(comment.id, replyInput.value); replyInput.value = ''">
+                <textarea #replyInput
+                  class="min-h-[86px] resize-y rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] px-3 py-3 text-[13px] leading-6 outline-none focus:border-[#8A3F50]"
+                  placeholder="Responder a este tópico..."></textarea>
+                <div class="flex justify-end">
+                  <button type="submit"
+                    class="h-9 rounded-[8px] bg-[#5C1E2F] px-4 text-[11px] font-extrabold text-white disabled:opacity-60"
+                    [disabled]="comment.isSavingReply">
+                    {{ comment.isSavingReply ? 'A responder...' : 'Publicar resposta' }}
+                  </button>
+                </div>
+              </form>
+              }
+
+              @if (comment.replies.length) {
+              <div class="mt-4 grid gap-4 border-l-2 border-[#F2E6E9] pl-4">
+                @for (reply of comment.replies; track reply.id) {
+                <article>
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="flex min-w-0 gap-3">
+                      <span
+                        class="grid size-8 shrink-0 place-items-center rounded-[8px] bg-[#F2E6E9] text-[10px] font-bold text-[#5C1E2F]">{{
+                        reply.initials }}</span>
+                      <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2">
+                          <p class="text-[12px] font-extrabold text-[#5C1E2F]">{{ reply.author }}</p>
+                          <span class="text-[10px] text-[#9E9E9E]">{{ reply.createdAt }}</span>
+                        </div>
+                        @if (comment.editingReplyId === reply.id) {
+                        <form class="mt-3 grid gap-2"
+                          (submit)="$event.preventDefault(); saveEditedReply(comment.id, reply.id, editReplyInput)">
+                          <textarea #editReplyInput
+                            class="min-h-[76px] rounded-[8px] border border-[#E0E0E0] bg-white px-3 py-2 text-[12px] leading-5 outline-none focus:border-[#8A3F50]">{{ reply.text }}</textarea>
+                          <div class="flex justify-end gap-2">
+                            <button type="button" class="h-8 px-3 text-[11px] font-extrabold text-[#616161]"
+                              (click)="closeEditReply(comment.id)">Cancelar</button>
+                            <button type="submit"
+                              class="h-8 rounded-[8px] bg-[#5C1E2F] px-3 text-[11px] font-extrabold text-white">Guardar</button>
+                          </div>
+                        </form>
+                        } @else {
+                        <p class="mt-2 rounded-[8px] bg-[#FAFAFA] p-3 text-[12px] leading-5 text-[#212121]">{{
+                          reply.text }}</p>
+                        }
+                      </div>
+                    </div>
+                    <details class="relative shrink-0">
+                      <summary
+                        class="grid size-7 cursor-pointer list-none place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]"
+                        aria-label="Mais ações da resposta">
+                        <span class="material-symbols-outlined text-[20px] leading-none">more_horiz</span>
+                      </summary>
+                      <div
+                        class="absolute right-0 z-20 mt-2 grid min-w-36 overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white py-1 shadow-[0_18px_45px_rgba(27,22,30,0.14)]">
+                        @if (canEditReply(reply)) {
+                        <button type="button"
+                          class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]"
+                          (click)="openEditReply(comment.id, reply.id)">
+                          <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
+                          <span>Editar</span>
+                        </button>
+                        }
+                        @if (canDeleteReply(reply)) {
+                        <button type="button"
+                          class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]"
+                          (click)="deleteReply(comment.id, reply.id)">
+                          <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
+                          <span>Apagar</span>
+                        </button>
+                        } @else {
+                        <button type="button"
+                          class="flex items-center gap-2 px-3 py-2 text-left text-[12px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#5C1E2F]"
+                          (click)="openReportReply($event, reply)">
+                          <span class="material-symbols-outlined text-[17px] leading-none">flag</span>
+                          <span>Denunciar</span>
+                        </button>
+                        }
+                      </div>
+                    </details>
+                  </div>
+                </article>
+                }
+              </div>
+              }
+            </div>
+          </article>
+          }
+        </section>
+        }
+        }
+      </section>
+
+      <aside class="min-w-0">
+        <div class="sticky top-[82px] grid gap-7 bg-white p-6">
+          <section>
+            <h2 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">Sobre este Debate</h2>
+            <p class="mt-3 text-[12px] leading-6 text-[#616161]">
+              {{ room.description }}
+            </p>
+          </section>
+          @if (canManageForum()) {
+          <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-5">
+            <h2 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">Gestão do fórum</h2>
+            <p class="mt-2 text-[12px] leading-5 text-[#616161]">Como dono deste fórum, pode atualizar as informações ou apagar a sala.</p>
+            <div class="mt-4 grid gap-2">
+              <button type="button"
+                class="inline-flex h-10 items-center justify-center gap-2 rounded-[8px] border border-[#E0E0E0] bg-white px-4 text-[12px] font-extrabold text-[#5C1E2F] hover:bg-[#F5F5F5]"
+                (click)="openEditForum($event)">
+                <span class="material-symbols-outlined text-[17px] leading-none">edit</span>
+                Editar fórum
+              </button>
+              <button type="button"
+                class="inline-flex h-10 items-center justify-center gap-2 rounded-[8px] border border-[#E0E0E0] bg-white px-4 text-[12px] font-extrabold text-[#8A3F50] hover:bg-[#F2E6E9]"
+                (click)="deleteForum($event)">
+                <span class="material-symbols-outlined text-[17px] leading-none">delete</span>
+                Apagar fórum
+              </button>
+            </div>
+          </section>
+          }
+          @if (canManageForum()) {
+          <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-5">
+            <h2 class="font-display text-[16px] font-extrabold text-[#5C1E2F]">
+              Pedidos de adesão
+            </h2>
+
+            <p class="mt-2 text-[12px] text-[#616161]">
+              Membros que solicitaram entrada neste fórum.
+            </p>
+
+            <div class="mt-5 grid gap-4">
+              @for (member of pendingMembers(); track member.id) {
+              <article
+                class="flex items-center justify-between gap-4 rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] p-4">
+
+                <div class="flex items-center gap-3">
+                  <span
+                    class="grid size-10 place-items-center rounded-[8px] bg-[#F2E6E9] text-[11px] font-extrabold text-[#5C1E2F]">
+                    {{ member.initials }}
+                  </span>
+
+                  <div>
+                    <p class="text-[13px] font-extrabold text-[#212121]">
+                      {{ member.name }}
+                    </p>
+
+                    <p class="text-[11px] text-[#9E9E9E]">
+                      Solicitou acesso {{ member.requestedAt }}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex gap-2">
+                  <button type="button" class="eh-card-action h-9 px-4" (click)="approveMember(member.id)">
+                    Aceitar
+                  </button>
+
+                  <button type="button"
+                    class="h-9 rounded-[8px] border border-[#E0E0E0] px-4 text-[11px] font-extrabold text-[#8A3F50] hover:bg-[#F2E6E9]"
+                    (click)="rejectMember(member.id)">
+                    Recusar
+                  </button>
+                </div>
+
+              </article>
+              } @empty {
+              <div class="rounded-[8px] border border-dashed border-[#E0E0E0] bg-[#FAFAFA] p-4 text-center">
+                <p class="text-[12px] font-semibold text-[#616161]">
+                  Não existem pedidos pendentes.
+                </p>
+              </div>
+              }
+            </div>
+          </section>
+          }
+
+          <section>
+            <h2 class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8A3F50]">Moderador</h2>
+            <div class="mt-4 flex items-center gap-3">
+              <span
+                class="grid size-10 shrink-0 place-items-center rounded-[8px] bg-[#5C1E2F] text-[11px] font-extrabold text-white">
+                {{ roomInitials(room.creatorName || room.name) }}
+              </span>
+              <div class="min-w-0">
+                <p class="truncate text-[12px] font-extrabold text-[#212121]">{{ room.creatorName || 'Economia com
+                  História' }}</p>
+                <p class="mt-1 text-[10px] text-[#9E9E9E]">{{ room.category || 'Moderação da comunidade' }}</p>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h2 class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8A3F50]">Ativos ({{
+              activeParticipantOverflow(room) + activeParticipantAvatars(room).length }})</h2>
+            <div class="mt-4 flex items-center gap-2">
+              @for (avatar of activeParticipantAvatars(room); track avatar) {
+              <span
+                class="grid size-10 place-items-center rounded-[8px] bg-[#F2E6E9] text-[11px] font-extrabold text-[#5C1E2F]">{{
+                avatar }}</span>
+              }
+              @if (activeParticipantOverflow(room) > 0) {
+              <span
+                class="grid size-10 place-items-center rounded-[8px] bg-[#F5F5F5] text-[11px] font-extrabold text-[#616161]">+{{
+                activeParticipantOverflow(room) }}</span>
+              }
+            </div>
+          </section>
+
+          <section>
+            <h2 class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8A3F50]">Recursos partilhados</h2>
+            <div class="mt-4 grid gap-3">
+              @for (resource of sharedResources(room); track resource.title) {
+              @if (resource.route) {
+              <a [routerLink]="resource.route"
+                class="flex items-center gap-3 text-[12px] font-semibold text-[#616161] transition hover:text-[#5C1E2F]">
+                <span class="material-symbols-outlined text-[18px]">{{ resource.icon }}</span>
+                <span class="line-clamp-1">{{ resource.title }}</span>
+              </a>
+              } @else {
+              @if (resource.href) {
+              <a [href]="resource.href" target="_blank" rel="noopener"
+                class="flex items-center gap-3 text-[12px] font-semibold text-[#616161] transition hover:text-[#5C1E2F]">
+                <span class="material-symbols-outlined text-[18px]">{{ resource.icon }}</span>
+                <span class="min-w-0">
+                  <span class="line-clamp-1">{{ resource.title }}</span>
+                  @if (resource.meta) {
+                  <small class="block text-[10px] text-[#9E9E9E]">{{ resource.meta }}</small>
+                  }
+                </span>
+              </a>
+              } @else {
+              <span class="flex items-center gap-3 text-[12px] font-semibold text-[#616161]">
+                <span class="material-symbols-outlined text-[18px]">{{ resource.icon }}</span>
+                <span class="line-clamp-1">{{ resource.title }}</span>
+              </span>
+              }
+              }
+              }
+            </div>
+          </section>
+        </div>
+      </aside>
+    </article>
+    }
+    } @else {
+    <section class="rounded-[8px] border border-[#E0E0E0] bg-white p-8 text-center">
+      <h1 class="font-display text-[22px] font-extrabold text-[#5C1E2F]">Debate n&atilde;o encontrado</h1>
+      <p class="mt-2 text-[13px] text-[#616161]">Volte aos f&oacute;runs e escolha uma discuss&atilde;o
+        dispon&iacute;vel.</p>
+      <a routerLink="/app/forums" class="eh-card-action mt-5 inline-flex">Ver f&oacute;runs</a>
+    </section>
     }
   </main>
 

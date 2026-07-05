@@ -4,6 +4,14 @@ import { firstValueFrom } from 'rxjs';
 import { ForumRoom } from '../models/forum.model';
 import { BackendContent } from './content.service';
 
+export interface ForumArtifactPayload {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  data_url: string;
+}
+
 export interface BackendForum {
   id: number | string;
   user_id?: number | string;
@@ -25,6 +33,7 @@ export interface BackendForum {
   access_status?: 'none' | 'pending' | 'invited' | 'member' | 'rejected' | string;
   can_view?: boolean;
   invite_emails?: string[];
+  artifacts?: ForumArtifactPayload[];
   topics?: BackendForumTopic[];
   user?: {
     id: number | string;
@@ -76,6 +85,7 @@ export interface CreateForumPayload {
   join_approval_required?: boolean;
   content_permission?: 'public' | 'subscribers';
   allow_attachments?: boolean;
+  artifacts?: ForumArtifactPayload[];
   content_ids?: Array<number | string>;
   invite_emails?: string[];
 }
@@ -103,7 +113,14 @@ export class ForumService {
   }
 
   async create(payload: CreateForumPayload): Promise<BackendForum> {
-    const response = await firstValueFrom(this.http.post<{ data: BackendForum }>('/forums', payload));
+    const normalizedPayload = {
+      ...payload,
+      content_ids: (payload.content_ids ?? [])
+        .map((id) => (typeof id === 'string' ? Number(id) : id))
+        .filter((id) => id !== null && id !== undefined && !Number.isNaN(Number(id))),
+      invite_emails: (payload.invite_emails ?? []).filter(Boolean),
+    };
+    const response = await firstValueFrom(this.http.post<{ data: BackendForum }>('/forums', normalizedPayload));
 
     return response.data;
   }

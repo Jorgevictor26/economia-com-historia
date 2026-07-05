@@ -31,7 +31,6 @@ export class PublicNavbarComponent implements OnInit {
         { label: 'Home', route: this.homeRoute(), exact: true },
         { label: 'Conteúdo', route: '/app/contents', exact: false },
         { label: 'Guardados', route: '/app/favorites', exact: false },
-        { label: 'Mapa', route: '/app/map', exact: false },
         { label: 'Quiz', route: '/app/quizzes', exact: false },
         { label: 'Fórum', route: '/app/forums', exact: false },
       ];
@@ -40,7 +39,6 @@ export class PublicNavbarComponent implements OnInit {
     return [
       { label: 'Home', route: '/', exact: true },
       { label: 'Conteúdo', route: '/app/contents', exact: false },
-      { label: 'Mapa', route: '/app/map', exact: false },
       { label: 'Quiz', route: '/app/quizzes', exact: false },
       { label: 'Fórum', route: '/app/forums', exact: false },
     ];

@@ -15,6 +15,7 @@ interface BackendUser {
   bio?: string | null;
   roles?: Array<{ name: string }>;
   jindungo_subscription_expires_at?: string | null;
+  jindungo_subscription_requested_at?: string | null;
 }
 
 interface AuthPayload {
@@ -98,6 +99,7 @@ export class AuthService {
       avatarUrl: normalizeMediaUrl(user.photo),
       biography: user.bio || undefined,
       hasPremiumAccess: this.hasPremiumAccess(user),
+      hasPendingJindungoRequest: Boolean(user.jindungo_subscription_requested_at),
       invitedForumIds: [],
       streakDays: 0,
     };
@@ -127,5 +129,10 @@ export class AuthService {
 
   private hasPremiumAccess(user: BackendUser): boolean {
     return this.resolveRole(user.roles) !== 'student' || Boolean(user.jindungo_subscription_expires_at);
+  }
+
+  async requestJindungoSubscription(): Promise<void> {
+    const response = await firstValueFrom(this.http.post<ApiResponse<BackendUser>>('/users/jindungo-subscription/request', null));
+    this.authState.updateAuthenticatedUser(this.toUser(response.data));
   }
 }

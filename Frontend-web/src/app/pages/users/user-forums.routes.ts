@@ -5,6 +5,8 @@ import { ConfirmService } from '../../services/confirm.service';
 import { authGuard } from '../../services/auth.guard';
 import { ContentService } from '../../services/content.service';
 import { BackendForum, BackendForumReply, BackendForumTopic, ForumService } from '../../services/forum.service';
+import { SavedContentService } from '../../services/saved-content.service';
+import { ShareService } from '../../services/share.service';
 import { ToastService } from '../../services/toast.service';
 import { ForumRoom } from '../../models/forum.model';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
@@ -335,6 +337,8 @@ export class UserForumDetailPage {
   readonly auth = inject(AuthStateService);
   readonly confirmService = inject(ConfirmService);
   readonly forumService = inject(ForumService);
+  private readonly savedContentService = inject(SavedContentService);
+  private readonly shareService = inject(ShareService);
   readonly likedByMe = signal(false);
   readonly commentComposerOpen = signal(false);
   readonly editingForum = signal(false);
@@ -354,6 +358,7 @@ export class UserForumDetailPage {
   readonly reportError = signal('');
   readonly isSubmittingReport = signal(false);
   private readonly accessStoragePrefix = 'economia-com-historia.private-forum-access.v2';
+  private readonly forumLikeStoragePrefix = 'economia-com-historia.forum-like.v1';
 
   readonly room = computed(() => {
     const roomId = this.route.snapshot.paramMap.get('id');
@@ -564,7 +569,11 @@ export class UserForumDetailPage {
 
     event.preventDefault();
     event.stopPropagation();
-    this.likedByMe.update((liked) => !liked);
+    this.likedByMe.update((liked) => {
+      const next = !liked;
+      this.writeForumLike(next);
+      return next;
+    });
     this.forumFeedback.set('');
   }
 
@@ -588,13 +597,11 @@ export class UserForumDetailPage {
     const url = window.location.href.split('#')[0];
     const title = `${room?.name ?? 'F\u00f3rum'} - Economia com Hist\u00f3ria`;
 
-    if (navigator.share) {
-      await navigator.share({ title, url }).catch(() => undefined);
-      return;
-    }
+    const result = await this.shareService.share({ title, url }, 'native');
 
-    await navigator.clipboard?.writeText(url);
-    this.forumFeedback.set('Link do f\u00f3rum copiado.');
+    if (result === 'copied') {
+      this.forumFeedback.set('Link do f\u00f3rum copiado.');
+    }
   }
 
   openReportTopic(event: Event, topic: ForumCommentView): void {
@@ -672,7 +679,7 @@ export class UserForumDetailPage {
     }
   }
 
-  saveForum(event: Event): void {
+  async saveForum(event: Event): Promise<void> {
     if (!this.auth.isAuthenticated()) {
       this.requireLogin(event, 'guardar f\u00f3rum');
       return;
@@ -680,7 +687,21 @@ export class UserForumDetailPage {
 
     event.preventDefault();
     event.stopPropagation();
-    this.forumFeedback.set('F\u00f3rum guardado.');
+
+    const room = this.room();
+    const linkedContents = room?.linkedContents ?? [];
+
+    if (!linkedContents.length) {
+      this.forumFeedback.set('Este f\u00f3rum n\u00e3o tem conte\u00fados ligados para guardar.');
+      return;
+    }
+
+    try {
+      await Promise.all(linkedContents.map((content) => this.savedContentService.save(content.id)));
+      this.forumFeedback.set(linkedContents.length === 1 ? 'Conte\u00fado do f\u00f3rum guardado.' : 'Conte\u00fados do f\u00f3rum guardados.');
+    } catch {
+      this.forumFeedback.set('N\u00e3o foi poss\u00edvel guardar os conte\u00fados deste f\u00f3rum.');
+    }
   }
 
   requestPrivateAccess(event: Event): void {
@@ -787,6 +808,7 @@ export class UserForumDetailPage {
     }
 
     this.privateAccessStatus.set(this.resolvePrivateAccessStatus(room));
+    this.likedByMe.set(this.readForumLike(room.id));
     this.invitationNoticeOpen.set(room.visibility === 'private' && this.privateAccessStatus() === 'invited');
 
     if (this.isBackendForumId(roomId)) {
@@ -1175,6 +1197,32 @@ export class UserForumDetailPage {
 
   private privateAccessStorageKey(roomId: string): string {
     return `${this.accessStoragePrefix}.${this.auth.user()?.id ?? 'guest'}.${roomId}`;
+  }
+
+  private writeForumLike(liked: boolean): void {
+    const room = this.room();
+
+    if (!room) {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(this.forumLikeStorageKey(room.id), liked ? '1' : '0');
+    } catch {
+      // Local preference only; failing to persist must not block the action.
+    }
+  }
+
+  private readForumLike(roomId: string): boolean {
+    try {
+      return window.localStorage.getItem(this.forumLikeStorageKey(roomId)) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  private forumLikeStorageKey(roomId: string): string {
+    return `${this.forumLikeStoragePrefix}.${this.auth.user()?.id ?? 'guest'}.${roomId}`;
   }
 
   private isBackendForumId(value: string): boolean {

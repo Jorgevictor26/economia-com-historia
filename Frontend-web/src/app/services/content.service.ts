@@ -40,6 +40,9 @@ export interface BackendContent {
   content_type?: BackendRelation | null;
   reactions_count?: number | string;
   comments_count?: number | string;
+  shares_count?: number | string;
+  share_count?: number | string;
+  shared_count?: number | string;
   liked_by_me?: boolean | number;
   can_access?: boolean;
 }

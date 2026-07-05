@@ -13,6 +13,7 @@ export interface ContentListItem {
   premium?: boolean;
   reactionsCount?: number;
   commentsCount?: number;
+  sharesCount?: number;
   likedByMe?: boolean;
   searchText?: string;
   authorPhotoUrl?: string;

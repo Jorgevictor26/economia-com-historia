@@ -1,4 +1,5 @@
 ﻿import { Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { BackendContent, ContentService } from '../../../services/content.service';
 import { CreateQuestionPayload, QuizService } from '../../../services/quiz.service';
 import { ToastService } from '../../../services/toast.service';
@@ -39,6 +40,7 @@ interface ManualQuestion {
 export class QuizCreatePage {
   private readonly contentService = inject(ContentService);
   private readonly quizService = inject(QuizService);
+  private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
 
   readonly creationMode = signal<'ai' | 'manual'>('manual');
@@ -294,6 +296,7 @@ export class QuizCreatePage {
       this.status.set(asDraft ? 'Rascunho guardado' : 'Publicado');
       this.previewOpen.set(false);
       this.showSuccess(asDraft ? 'Quiz guardado com sucesso.' : 'Quiz criado com sucesso.');
+      await this.router.navigate(['/app/quizzes', quiz.id, 'play']);
     } catch (error) {
       this.status.set('Rascunho');
       this.showError(this.errorMessage(error));

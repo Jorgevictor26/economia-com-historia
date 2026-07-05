@@ -17,6 +17,8 @@ class ContentRepository
 
     public function all(array $filters = [])
     {
+        $perPage = min(max((int) ($filters['per_page'] ?? 10), 1), 30);
+
         return $this->contentQuery($filters)
             ->when($filters['category_id'] ?? null, fn ($query, $categoryId) => $query->where('category_id', $categoryId))
             ->when($filters['content_type_id'] ?? null, fn ($query, $contentTypeId) => $query->where('content_type_id', $contentTypeId))
@@ -33,7 +35,7 @@ class ContentRepository
                 });
             })
             ->latest()
-            ->paginate(10);
+            ->paginate($perPage);
     }
 
     public function suggestions(?User $user, bool $includeJindungo, int $limit): Collection

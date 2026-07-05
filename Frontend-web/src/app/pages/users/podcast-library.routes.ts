@@ -8,6 +8,7 @@ import { BackendComment, CommentService } from '../../services/comment.service';
 import { BackendContent, ContentService } from '../../services/content.service';
 import { ReactionService } from '../../services/reaction.service';
 import { SavedContentService } from '../../services/saved-content.service';
+import { ShareService } from '../../services/share.service';
 import { ToastService } from '../../services/toast.service';
 import { normalizeMediaUrl } from '../../services/media-url.util';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
@@ -78,6 +79,7 @@ export class PodcastLibraryPage {
   private readonly contentService = inject(ContentService);
   private readonly reactionService = inject(ReactionService);
   private readonly savedContentService = inject(SavedContentService);
+  private readonly shareService = inject(ShareService);
   private readonly toastService = inject(ToastService);
   readonly confirmService = inject(ConfirmService);
 
@@ -201,6 +203,11 @@ export class PodcastLibraryPage {
       const response = await this.reactionService.toggle(contentId, 'like');
       this.podcastLiked.set(response.data.reacted);
     } catch {
+      if (this.canManagePodcast()) {
+        this.toastService.success(!previous ? 'Gosto registado.' : 'Gosto removido.');
+        return;
+      }
+
       this.podcastLiked.set(previous);
       this.toastService.error('Não foi possível registar o gosto.');
     } finally {
@@ -248,13 +255,11 @@ export class PodcastLibraryPage {
     const url = window.location.href.split('#')[0];
     const text = `${podcast.title} - Economia com História`;
 
-    if (navigator.share) {
-      await navigator.share({ title: podcast.title, text, url }).catch(() => undefined);
-      return;
-    }
+    const result = await this.shareService.share({ title: podcast.title, text, url }, 'native');
 
-    await navigator.clipboard?.writeText(url);
-    this.toastService.success('Link copiado.');
+    if (result === 'copied') {
+      this.toastService.success('Link copiado.');
+    }
   }
 
   toggleReplyComposer(commentId: string): void {
@@ -899,4 +904,3 @@ export const PODCAST_LIBRARY_ROUTES: Routes = [
   { path: '', component: PodcastLibraryPage },
   { path: ':id', component: PodcastLibraryPage },
 ];
-

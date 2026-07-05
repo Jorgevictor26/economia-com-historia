@@ -1,4 +1,5 @@
 ﻿import { Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { BackendContent, ContentService } from '../../../services/content.service';
 import { Category } from '../../../models/category.model';
 import { CategoryService } from '../../../services/category.service';
@@ -30,6 +31,7 @@ import { AdminConsoleShellComponent } from '../../admin/components/admin-console
   ],
 })
 export class ForumCreatePage {
+  private readonly router = inject(Router);
   private readonly forumService = inject(ForumService);
   private readonly contentService = inject(ContentService);
   private readonly categoryService = inject(CategoryService);
@@ -142,7 +144,7 @@ export class ForumCreatePage {
     this.status.set('A publicar forum...');
 
     try {
-      await this.forumService.create({
+      const forum = await this.forumService.create({
         name: this.requireText(this.title(), 'titulo'),
         description: this.requireText(this.rules(), 'regras'),
         rules: this.requireText(this.rules(), 'regras'),
@@ -159,6 +161,7 @@ export class ForumCreatePage {
       this.status.set('Publicado');
       this.previewOpen.set(false);
       this.toastService.success('Forum publicado com sucesso.');
+      await this.router.navigate(['/app/forums', forum.id]);
     } catch (error) {
       this.status.set('Rascunho');
       this.showError(this.errorMessage(error));

@@ -32,6 +32,7 @@ class ContentController extends Controller
                 'content_type_id',
                 'type',
                 'search',
+                'per_page',
             ]), [
                 'include_jindungo' => (bool) $includeJindungo,
                 'user_id' => $user?->id,

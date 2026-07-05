@@ -13,6 +13,7 @@ import { ConfirmService } from '../../../services/confirm.service';
 import { QuizService } from '../../../services/quiz.service';
 import { ReactionService } from '../../../services/reaction.service';
 import { SavedContentService } from '../../../services/saved-content.service';
+import { SharePlatform, ShareService } from '../../../services/share.service';
 import { ToastService } from '../../../services/toast.service';
 import { normalizeMediaUrl } from '../../../services/media-url.util';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
@@ -40,6 +41,7 @@ interface ContentDetail {
   premium: boolean;
   reactionsCount: number;
   commentsCount: number;
+  sharesCount: number;
   likedByMe: boolean;
   viewsCount: number;
 }
@@ -143,6 +145,10 @@ function contentAuthorId(content: BackendContent): string | undefined {
   return id === undefined || id === null ? undefined : String(id);
 }
 
+function contentSharesCount(content: BackendContent): number {
+  return Number(content.shares_count ?? content.share_count ?? content.shared_count ?? 0);
+}
+
 @Component({
   selector: 'app-content-library-page',
   imports: [PublicNavbarComponent, BackToTopComponent, ContentCardComponent],
@@ -157,6 +163,7 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
   private readonly contentTypeService = inject(ContentTypeService);
   private readonly reactionService = inject(ReactionService);
   private readonly savedContentService = inject(SavedContentService);
+  private readonly shareService = inject(ShareService);
   private readonly toastService = inject(ToastService);
   readonly confirmService = inject(ConfirmService);
   private loadRequestId = 0;
@@ -331,7 +338,8 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
       return;
     }
 
-    await navigator.clipboard?.writeText(url);
+    await this.shareService.copy(url);
+    this.incrementContentShareCount(this.shareContentTarget()?.id);
     this.showToast('Link copiado.', 'success');
   }
 
@@ -345,19 +353,15 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
 
     const title = `${content.title} - Economia com História`;
 
-    if (platform === 'instagram') {
-      await this.copyShareLink();
-      window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
-      return;
+    const result = await this.shareService.share({ title: content.title, text: title, url }, platform);
+
+    if (result !== 'cancelled') {
+      this.incrementContentShareCount(content.id);
     }
 
-    const encodedUrl = encodeURIComponent(url);
-    const targets: Record<'whatsapp' | 'facebook', string> = {
-      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-    };
-
-    window.open(targets[platform], '_blank', 'noopener,noreferrer');
+    if (result === 'copied') {
+      this.showToast(platform === 'instagram' ? 'Link copiado para partilhar no Instagram.' : 'Link copiado.', 'success');
+    }
   }
 
   selectCategoryFilter(filter: string): void {
@@ -470,6 +474,11 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
         ),
       );
     } catch {
+      if (this.isOwnedByCurrentUser(content.ownerId)) {
+        this.showToast(nextLikedByMe ? 'Gosto registado.' : 'Gosto removido.', 'success');
+        return;
+      }
+
       this.contents.update((items) =>
         items.map((item) =>
           item.id === content.id
@@ -477,11 +486,37 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
             : item,
         ),
       );
+      this.showToast('Não foi possível registar o gosto.', 'error');
+    }
+  }
+
+  private incrementContentShareCount(contentId: string | undefined): void {
+    if (!contentId) {
+      return;
+    }
+
+    this.contents.update((items) =>
+      items.map((item) =>
+        item.id === contentId
+          ? { ...item, sharesCount: (item.sharesCount ?? 0) + 1 }
+          : item,
+      ),
+    );
+
+    const target = this.shareContentTarget();
+    if (target?.id === contentId) {
+      this.shareContentTarget.set({ ...target, sharesCount: (target.sharesCount ?? 0) + 1 });
     }
   }
 
   private absoluteContentUrl(contentId: string): string {
     return `${window.location.origin}/app/contents/${contentId}`;
+  }
+
+  private isOwnedByCurrentUser(ownerId: string | undefined): boolean {
+    const userId = this.auth.user()?.id;
+
+    return Boolean(ownerId && userId && String(ownerId) === String(userId));
   }
 
   private applyRouteFilters(): void {
@@ -534,6 +569,7 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
       premium,
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
+      sharesCount: contentSharesCount(content),
       likedByMe: Boolean(content.liked_by_me),
       searchText: content.content || '',
     };
@@ -656,12 +692,14 @@ export class ContentDetailPage implements OnDestroy {
   private readonly quizService = inject(QuizService);
   private readonly reactionService = inject(ReactionService);
   private readonly savedContentService = inject(SavedContentService);
+  private readonly shareService = inject(ShareService);
   private readonly toastService = inject(ToastService);
   readonly auth = inject(AuthStateService);
   readonly confirmService = inject(ConfirmService);
   readonly detail = signal<ContentDetail | null>(null);
   readonly comments = signal<CommentView[]>([]);
   readonly reactionCount = signal(0);
+  readonly shareCount = signal(0);
   readonly likedByMe = signal(false);
   readonly isLoading = signal(true);
   readonly isLoadingComments = signal(false);
@@ -717,6 +755,7 @@ export class ContentDetailPage implements OnDestroy {
       const detail = this.toContentDetail(content);
       this.detail.set(detail);
       this.reactionCount.set(detail.reactionsCount);
+      this.shareCount.set(detail.sharesCount);
       this.likedByMe.set(detail.likedByMe);
       await Promise.all([
         this.loadComments(String(content.id)),
@@ -930,12 +969,25 @@ export class ContentDetailPage implements OnDestroy {
 
     this.isSavingReaction.set(true);
     this.reactionError.set('');
+    const previousLikedByMe = this.likedByMe();
+    const previousReactionCount = this.reactionCount();
+    const nextLikedByMe = !previousLikedByMe;
+
+    this.likedByMe.set(nextLikedByMe);
+    this.reactionCount.set(Math.max(0, previousReactionCount + (nextLikedByMe ? 1 : -1)));
 
     try {
       const response = await this.reactionService.toggle(contentId, 'like');
       this.likedByMe.set(response.data.reacted);
       this.reactionCount.set(Number(response.data.reactions_count ?? this.reactionCount()));
     } catch {
+      if (this.canManageDetail()) {
+        this.showToast(nextLikedByMe ? 'Gosto registado.' : 'Gosto removido.', 'success');
+        return;
+      }
+
+      this.likedByMe.set(previousLikedByMe);
+      this.reactionCount.set(previousReactionCount);
       this.showToast('Não foi possível registar a reação.', 'error');
     } finally {
       this.isSavingReaction.set(false);
@@ -1041,7 +1093,7 @@ export class ContentDetailPage implements OnDestroy {
     this.shareMenuOpen.set(!this.shareMenuOpen());
   }
 
-  async shareTo(platform: 'native' | 'whatsapp' | 'linkedin' | 'facebook' | 'instagram' | 'x' | 'copy', event?: Event): Promise<void> {
+  async shareTo(platform: SharePlatform, event?: Event): Promise<void> {
     event?.preventDefault();
     event?.stopPropagation();
 
@@ -1054,40 +1106,16 @@ export class ContentDetailPage implements OnDestroy {
     const url = this.currentShareUrl();
     const title = `${detail.title} - Economia com História`;
 
-    if (platform === 'native' && navigator.share) {
-      try {
-        await navigator.share({ title: detail.title, text: title, url });
-        this.shareMenuOpen.set(false);
-      } catch {
-        this.shareMenuOpen.set(false);
-      }
+    const result = await this.shareService.share({ title: detail.title, text: title, url }, platform);
 
-      return;
+    if (result !== 'cancelled') {
+      this.shareCount.update((count) => count + 1);
     }
 
-    if (platform === 'copy') {
-      await navigator.clipboard?.writeText(url);
-      this.showToast('Link copiado.', 'success');
-      return;
+    if (result === 'copied') {
+      this.showToast(platform === 'instagram' ? 'Link copiado para partilhar no Instagram.' : 'Link copiado.', 'success');
     }
 
-    if (platform === 'instagram') {
-      await navigator.clipboard?.writeText(url);
-      this.showToast('Link copiado para partilhar no Instagram.', 'success');
-      window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
-      return;
-    }
-
-    const encodedUrl = encodeURIComponent(url);
-    const encodedTitle = encodeURIComponent(title);
-    const targets: Record<'whatsapp' | 'linkedin' | 'facebook' | 'x', string> = {
-      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-      x: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
-    };
-
-    window.open(targets[platform as keyof typeof targets], '_blank', 'noopener,noreferrer');
     this.shareMenuOpen.set(false);
   }
 
@@ -1344,6 +1372,7 @@ export class ContentDetailPage implements OnDestroy {
       premium: contentTypeSlug === 'jindungo',
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
+      sharesCount: contentSharesCount(content),
       likedByMe: Boolean(content.liked_by_me),
       viewsCount: Number(content.views_count ?? 0),
     };
@@ -1380,6 +1409,7 @@ export class ContentDetailPage implements OnDestroy {
       premium: this.normalizeText(content.content_type?.slug ?? contentType) === 'jindungo',
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
+      sharesCount: contentSharesCount(content),
       likedByMe: Boolean(content.liked_by_me),
       searchText: content.content || '',
     };
@@ -1453,12 +1483,15 @@ export class VideoContentDetailPage implements OnDestroy {
   private readonly contentService = inject(ContentService);
   private readonly reactionService = inject(ReactionService);
   private readonly savedContentService = inject(SavedContentService);
+  private readonly shareService = inject(ShareService);
   private readonly toastService = inject(ToastService);
   readonly confirmService = inject(ConfirmService);
   readonly auth = inject(AuthStateService);
   readonly saveStatus = signal('');
   readonly toast = signal<PageToast | null>(null);
   readonly videoLiked = signal(false);
+  readonly videoReactionCount = signal(0);
+  readonly videoShareCount = signal(0);
   readonly isSavingVideoReaction = signal(false);
   readonly isVideoCommentComposerOpen = signal(false);
   readonly isSavingVideoComment = signal(false);
@@ -1577,6 +1610,8 @@ export class VideoContentDetailPage implements OnDestroy {
       }
 
       this.loadedVideo.set(this.toVideoDetail(content));
+      this.videoReactionCount.set(Number(content.reactions_count ?? 0));
+      this.videoShareCount.set(contentSharesCount(content));
       this.videoLiked.set(Boolean(content.liked_by_me));
       await Promise.all([
         this.loadVideoComments(String(content.id)),
@@ -1611,14 +1646,24 @@ export class VideoContentDetailPage implements OnDestroy {
     }
 
     const previous = this.videoLiked();
+    const previousCount = this.videoReactionCount();
+    const nextLikedByMe = !previous;
     this.videoLiked.set(!previous);
+    this.videoReactionCount.set(Math.max(0, previousCount + (nextLikedByMe ? 1 : -1)));
     this.isSavingVideoReaction.set(true);
 
     try {
       const response = await this.reactionService.toggle(contentId, 'like');
       this.videoLiked.set(response.data.reacted);
+      this.videoReactionCount.set(Number(response.data.reactions_count ?? this.videoReactionCount()));
     } catch {
+      if (this.canManageVideo()) {
+        this.showToast(!previous ? 'Gosto registado.' : 'Gosto removido.', 'success');
+        return;
+      }
+
       this.videoLiked.set(previous);
+      this.videoReactionCount.set(previousCount);
       this.showToast('Não foi possível registar o gosto.', 'error');
     } finally {
       this.isSavingVideoReaction.set(false);
@@ -1918,7 +1963,7 @@ export class VideoContentDetailPage implements OnDestroy {
     }
   }
 
-  share(event: Event): void {
+  async share(event: Event): Promise<void> {
     event.preventDefault();
     event.stopPropagation();
 
@@ -1931,16 +1976,15 @@ export class VideoContentDetailPage implements OnDestroy {
     const url = window.location.href.split('#')[0];
     const text = `${video.title} - Economia com História`;
 
-    if (navigator.share) {
-      void navigator.share({ title: video.title, text, url }).catch(() => undefined);
-      return;
+    const result = await this.shareService.share({ title: video.title, text, url }, 'native');
+
+    if (result !== 'cancelled') {
+      this.videoShareCount.update((count) => count + 1);
     }
 
-    window.open(
-      `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`,
-      '_blank',
-      'noopener,noreferrer',
-    );
+    if (result === 'copied') {
+      this.showToast('Link copiado.', 'success');
+    }
   }
 
   async saveVideoContent(event: Event): Promise<void> {
@@ -2161,6 +2205,7 @@ export class VideoContentDetailPage implements OnDestroy {
       premium: this.normalizeText(content.content_type?.slug ?? contentType) === 'jindungo',
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
+      sharesCount: contentSharesCount(content),
       likedByMe: Boolean(content.liked_by_me),
       searchText: content.content || '',
     };

@@ -41,7 +41,9 @@ export class ProfilePage implements OnInit {
     { label: 'Perfil', icon: 'person', route: '/app/profile', active: !this.section },
     { label: 'Histórico', icon: 'history', route: '/app/profile/history', active: this.isHistorySection },
     { label: 'Segurança da conta', icon: 'lock', route: '/app/profile/security', active: this.isSecuritySection },
-    { label: 'Subscrições', icon: 'workspace_premium', route: '/app/subscriptions', active: false },
+    ...(this.auth.isSuperAdmin()
+      ? []
+      : [{ label: 'Subscrições', icon: 'workspace_premium', route: '/app/subscriptions', active: false }]),
     ...(this.auth.canWriteContent()
       ? [{ label: this.auth.canManagePlatform() ? 'Administração' : 'Console editorial', icon: 'admin_panel_settings', route: '/admin', active: false }]
       : []),

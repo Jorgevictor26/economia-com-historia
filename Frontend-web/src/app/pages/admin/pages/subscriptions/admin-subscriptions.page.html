@@ -13,21 +13,29 @@
       }
     </section>
 
-    <section class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
+    <section>
       <article class="overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
         <header class="flex flex-wrap items-center justify-between gap-3 border-b border-[#E0E0E0] px-5 py-4">
           <div>
-            <h2 class="text-[18px] font-extrabold text-[#5C1E2F]">Subscritores Recentes</h2>
-          <p class="mt-1 text-[12px] font-semibold text-[#9E9E9E]">{{ pendingCount }} subscrições pendentes para aprovar</p>
+            <h2 class="text-[18px] font-extrabold text-[#5C1E2F]">Pedidos e Subscritores Jindungo</h2>
+            <p class="mt-1 text-[12px] font-semibold text-[#9E9E9E]">{{ pendingCount }} subscrições pendentes para aceitar ou negar</p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <select [value]="selectedStatus" (change)="updateStatusFilter($event)" class="h-9 rounded-[6px] border border-[#E0E0E0] bg-white px-3 text-[12px] font-bold text-[#616161] outline-none">
-              <option>Todos</option>
-              <option>Ativo</option>
-              <option>Pendente</option>
-              <option>Expirado</option>
-            </select>
+            <div class="inline-flex rounded-[6px] border border-[#E0E0E0] bg-[#F5F5F5] p-1">
+              <button type="button" (click)="setView('requests')" class="h-8 rounded-[5px] px-3 text-[11px] font-extrabold transition"
+                [class.bg-white]="selectedView === 'requests'"
+                [class.text-[#5C1E2F]]="selectedView === 'requests'"
+                [class.text-[#616161]]="selectedView !== 'requests'">
+                Pedidos pendentes
+              </button>
+              <button type="button" (click)="setView('subscribers')" class="h-8 rounded-[5px] px-3 text-[11px] font-extrabold transition"
+                [class.bg-white]="selectedView === 'subscribers'"
+                [class.text-[#5C1E2F]]="selectedView === 'subscribers'"
+                [class.text-[#616161]]="selectedView !== 'subscribers'">
+                Subscritores ativos
+              </button>
+            </div>
             <button type="button" (click)="toggleSearch()" class="grid size-9 place-items-center rounded-[6px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]" aria-label="Pesquisar">
               <span class="material-symbols-outlined text-[18px]" aria-hidden="true">search</span>
             </button>
@@ -36,21 +44,22 @@
 
         @if (searchOpen) {
           <div class="grid gap-3 border-b border-[#E0E0E0] px-5 py-4">
-            <input type="search" placeholder="Pesquisar por nome, email ou plano..." [value]="searchTerm" (input)="updateSearch($event)" class="h-10 rounded-[6px] border border-[#E0E0E0] px-3 text-[12px] outline-none focus:border-[#8A3F50]" />
+            <input type="search" placeholder="Pesquisar por nome, email ou texto Jindungo..." [value]="searchTerm" (input)="updateSearch($event)" class="h-10 rounded-[6px] border border-[#E0E0E0] px-3 text-[12px] outline-none focus:border-[#8A3F50]" />
           </div>
         }
 
-        <div class="grid grid-cols-[minmax(220px,1fr)_150px_100px_120px_160px] gap-4 border-b border-[#E0E0E0] bg-[#F5F5F5] px-5 py-3 text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50] max-xl:hidden">
+        @if (selectedView === 'requests') {
+        <div class="grid grid-cols-[minmax(220px,1fr)_minmax(210px,1fr)_110px_120px_90px] gap-4 border-b border-[#E0E0E0] bg-[#F5F5F5] px-5 py-3 text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50] max-xl:hidden">
           <span>Membro</span>
-          <span>Nivel de acesso</span>
+          <span>Texto Jindungo</span>
           <span>Estado</span>
-          <span>Data de adesao</span>
-          <span class="text-right">Acoes</span>
+          <span>Data de adesão</span>
+          <span class="text-right">Ações</span>
         </div>
 
         <div class="grid divide-y divide-[#F2E6E9]">
-          @for (subscriber of visibleSubscribers(); track subscriber.email) {
-            <article class="grid grid-cols-[minmax(220px,1fr)_150px_100px_120px_160px] items-center gap-4 px-5 py-4 transition hover:bg-[#fff] max-xl:grid-cols-1">
+          @for (subscriber of visiblePendingRequests(); track subscriber.email) {
+            <article class="grid grid-cols-[minmax(220px,1fr)_minmax(210px,1fr)_110px_120px_90px] items-center gap-4 px-5 py-4 transition hover:bg-[#fff] max-xl:grid-cols-1">
               <div class="flex min-w-0 items-center gap-3">
                 <span class="grid size-9 shrink-0 place-items-center rounded-full bg-[#F2E6E9] text-[11px] font-extrabold text-[#8A3F50]">{{ subscriber.initials }}</span>
                 <span class="min-w-0">
@@ -59,67 +68,108 @@
                 </span>
               </div>
 
-              <span class="w-fit rounded-[4px] px-2.5 py-1 text-[9px] font-extrabold uppercase"
-                [class.bg-[#E6D5B8]]="subscriber.accessLevel !== 'Gratuito'"
-                [class.text-[#5C1E2F]]="subscriber.accessLevel !== 'Gratuito'"
-                [class.bg-[#F5F5F5]]="subscriber.accessLevel === 'Gratuito'"
-                [class.text-[#616161]]="subscriber.accessLevel === 'Gratuito'"
-              >
-                {{ subscriber.accessLevel }}
-              </span>
+              <span class="line-clamp-2 text-[12px] font-semibold leading-5 text-[#5C1E2F]">{{ subscriber.textTitle }}</span>
 
               <span class="inline-flex items-center gap-2 text-[12px] font-bold"
                 [class.text-[#616161]]="subscriber.status === 'Ativo'"
                 [class.text-[#8A3F50]]="subscriber.status === 'Pendente'"
                 [class.text-[#616161]]="subscriber.status === 'Expirado'"
+                [class.text-[#8A3F50]]="subscriber.status === 'Recusado'"
               >
                 <span class="size-1.5 rounded-full"
                   [class.bg-[#2A9D8F]]="subscriber.status === 'Ativo'"
                   [class.bg-[#D4AF37]]="subscriber.status === 'Pendente'"
                   [class.bg-[#9E9E9E]]="subscriber.status === 'Expirado'"
+                  [class.bg-[#8A3F50]]="subscriber.status === 'Recusado'"
                 ></span>
                 {{ subscriber.status }}
               </span>
 
               <span class="text-[12px] font-semibold text-[#616161]">{{ subscriber.joinedAt }}</span>
 
-              <div class="flex flex-wrap items-center justify-end gap-2 max-xl:justify-start">
-                @if (subscriber.status === 'Pendente') {
-                  <button type="button" (click)="approveSubscription(subscriber)" class="inline-flex h-8 items-center justify-center rounded-[5px] bg-[#5c1e2f] px-3 text-[11px] font-extrabold text-white transition hover:bg-[#8A3F50]">
+              <div class="relative flex justify-end max-xl:justify-start">
+                <details class="group relative">
+                  <summary class="grid size-8 cursor-pointer list-none place-items-center rounded-[5px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]" aria-label="Abrir ações da subscrição">
+                    <span class="material-symbols-outlined text-[20px]" aria-hidden="true">more_vert</span>
+                  </summary>
+                  <div class="absolute right-0 z-20 mt-2 grid min-w-36 overflow-hidden rounded-[6px] border border-[#E0E0E0] bg-white py-1 shadow-[0_14px_30px_rgba(45,33,37,0.12)] max-xl:left-0 max-xl:right-auto">
+                    <button type="button" (click)="approveSubscription(subscriber)" class="flex h-9 items-center gap-2 px-3 text-left text-[11px] font-extrabold text-[#5C1E2F] transition hover:bg-[#F5F5F5]">
+                      <span class="material-symbols-outlined text-[17px]" aria-hidden="true">check_circle</span>
                     Aprovar
-                  </button>
-                }
-
-                <button type="button" (click)="expireSubscription(subscriber)" class="grid size-8 place-items-center rounded-[5px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]" aria-label="Marcar como expirado">
-                  <span class="material-symbols-outlined text-[20px]" aria-hidden="true">more_vert</span>
-                </button>
+                    </button>
+                    <button type="button" (click)="rejectSubscription(subscriber)" class="flex h-9 items-center gap-2 px-3 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]">
+                      <span class="material-symbols-outlined text-[17px]" aria-hidden="true">cancel</span>
+                    Negar
+                    </button>
+                    <button type="button" (click)="deleteSubscription(subscriber)" class="flex h-9 items-center gap-2 px-3 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]">
+                      <span class="material-symbols-outlined text-[17px]" aria-hidden="true">delete</span>
+                      Eliminar
+                    </button>
+                  </div>
+                </details>
               </div>
             </article>
+          } @empty {
+            <div class="px-5 py-8 text-center text-sm font-semibold text-[#616161]">
+              Não existem pedidos pendentes para subscrição.
+            </div>
           }
         </div>
+        } @else {
+        <div class="grid grid-cols-[minmax(220px,1fr)_minmax(210px,1fr)_110px_120px_90px] gap-4 border-b border-[#E0E0E0] bg-[#F5F5F5] px-5 py-3 text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50] max-xl:hidden">
+          <span>Membro</span>
+          <span>Texto Jindungo</span>
+          <span>Estado</span>
+          <span>Data de adesão</span>
+          <span class="text-right">Ações</span>
+        </div>
+
+        <div class="grid divide-y divide-[#F2E6E9]">
+          @for (subscriber of visibleActiveSubscribers(); track subscriber.email) {
+            <article class="grid grid-cols-[minmax(220px,1fr)_minmax(210px,1fr)_110px_120px_90px] items-center gap-4 px-5 py-4 transition hover:bg-[#fff] max-xl:grid-cols-1">
+              <div class="flex min-w-0 items-center gap-3">
+                <span class="grid size-9 shrink-0 place-items-center rounded-full bg-[#F2E6E9] text-[11px] font-extrabold text-[#8A3F50]">{{ subscriber.initials }}</span>
+                <span class="min-w-0">
+                  <strong class="block truncate text-[13px] text-[#212121]">{{ subscriber.name }}</strong>
+                  <small class="block truncate text-[11px] text-[#9E9E9E]">{{ subscriber.email }}</small>
+                </span>
+              </div>
+
+              <span class="line-clamp-2 text-[12px] font-semibold leading-5 text-[#5C1E2F]">{{ subscriber.textTitle }}</span>
+
+              <span class="inline-flex items-center gap-2 text-[12px] font-bold text-[#616161]">
+                <span class="size-1.5 rounded-full bg-[#2A9D8F]"></span>
+                {{ subscriber.status }}
+              </span>
+
+              <span class="text-[12px] font-semibold text-[#616161]">{{ subscriber.joinedAt }}</span>
+
+              <div class="relative flex justify-end max-xl:justify-start">
+                <details class="group relative">
+                  <summary class="grid size-8 cursor-pointer list-none place-items-center rounded-[5px] text-[#616161] transition hover:bg-[#F5F5F5] hover:text-[#8A3F50]" aria-label="Abrir ações da subscrição">
+                    <span class="material-symbols-outlined text-[20px]" aria-hidden="true">more_vert</span>
+                  </summary>
+                  <div class="absolute right-0 z-20 mt-2 grid min-w-36 overflow-hidden rounded-[6px] border border-[#E0E0E0] bg-white py-1 shadow-[0_14px_30px_rgba(45,33,37,0.12)] max-xl:left-0 max-xl:right-auto">
+                    <button type="button" (click)="expireSubscription(subscriber)" class="flex h-9 items-center gap-2 px-3 text-left text-[11px] font-extrabold text-[#616161] transition hover:bg-[#F5F5F5]">
+                      <span class="material-symbols-outlined text-[17px]" aria-hidden="true">block</span>
+                        Expirar
+                    </button>
+                    <button type="button" (click)="deleteSubscription(subscriber)" class="flex h-9 items-center gap-2 px-3 text-left text-[11px] font-extrabold text-[#8A3F50] transition hover:bg-[#F2E6E9]">
+                      <span class="material-symbols-outlined text-[17px]" aria-hidden="true">delete</span>
+                      Eliminar
+                    </button>
+                  </div>
+                </details>
+              </div>
+            </article>
+          } @empty {
+            <div class="px-5 py-8 text-center text-sm font-semibold text-[#616161]">
+              Ainda não existem subscritores ativos nos textos Jindungo.
+            </div>
+          }
+        </div>
+        }
       </article>
-
-      <aside class="grid content-start gap-4">
-        <article class="rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] p-5 shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
-          <h2 class="text-[14px] font-extrabold text-[#5C1E2F]">Dicas de Engajamento</h2>
-          <div class="mt-4 grid gap-4 text-[12px] leading-5 text-[#616161]">
-            <p class="flex gap-3">
-              <span class="material-symbols-outlined text-[18px] text-[#8A3F50]" aria-hidden="true">lightbulb</span>
-              Publique conteúdos de História de Angola para aumentar a retenção em 15%.
-            </p>
-            <p class="flex gap-3">
-              <span class="material-symbols-outlined text-[18px] text-[#8A3F50]" aria-hidden="true">groups</span>
-              Responda aos comentarios no forum para converter membros gratuitos em Premium.
-            </p>
-          </div>
-        </article>
-
-        <article class="rounded-[8px] border border-[#E0E0E0] bg-[#F5F5F5] p-5">
-          <span class="text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50]">Aprovações pendentes</span>
-          <strong class="mt-2 block text-[28px] font-extrabold leading-none text-[#5c1e2f]">{{ pendingCount }}</strong>
-          <p class="mt-3 text-[12px] font-semibold leading-5 text-[#616161]">Use o botão Aprovar na tabela para liberar o acesso premium.</p>
-        </article>
-      </aside>
     </section>
   </section>
 </app-admin-console-shell>

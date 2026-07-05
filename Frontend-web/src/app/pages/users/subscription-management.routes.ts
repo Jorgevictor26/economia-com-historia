@@ -2,14 +2,9 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink, Routes } from '@angular/router';
 import { SubscribedJindungoText } from '../../models/subscription.model';
 import { AuthStateService } from '../../services/auth-state.service';
-<<<<<<< HEAD
 import { BackendContent, ContentService } from '../../services/content.service';
 import { normalizeMediaUrl } from '../../services/media-url.util';
 import { SubscriptionService } from '../../services/subscription.service';
-=======
-import { AuthService } from '../../services/auth.service';
-import { ToastService } from '../../services/toast.service';
->>>>>>> 3450bb942034554fcfdcd48b1d3c76fb011636b6
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
@@ -23,21 +18,21 @@ export class SubscriptionManagementPage implements OnInit {
   readonly subscriptionService = inject(SubscriptionService);
   private readonly contentService = inject(ContentService);
   readonly auth = inject(AuthStateService);
-<<<<<<< HEAD
   readonly jindungoTexts = signal<SubscribedJindungoText[]>([]);
   readonly pendingSubscriptionIds = signal<string[]>([]);
   readonly isLoadingTexts = signal(false);
   readonly textLoadError = signal('');
 
-=======
-  private readonly authService = inject(AuthService);
-  private readonly toastService = inject(ToastService);
->>>>>>> 3450bb942034554fcfdcd48b1d3c76fb011636b6
   readonly profileMenu = [
     { label: 'Perfil', icon: 'person', route: '/app/profile', active: false },
     { label: 'Histórico', icon: 'history', route: '/app/profile/history', active: false },
     { label: 'Segurança da conta', icon: 'lock', route: '/app/profile/security', active: false },
-    { label: 'Subscrições', icon: 'workspace_premium', route: '/app/subscriptions', active: true },
+    ...(this.auth.isSuperAdmin()
+      ? []
+      : [{ label: 'Subscrições', icon: 'workspace_premium', route: '/app/subscriptions', active: true }]),
+    ...(this.auth.canWriteContent()
+      ? [{ label: this.auth.canManagePlatform() ? 'Administração' : 'Console editorial', icon: 'admin_panel_settings', route: '/admin', active: false }]
+      : []),
     { label: 'Suporte', icon: 'help_outline', route: '/app/profile/support', active: false },
   ];
 
@@ -64,16 +59,7 @@ export class SubscriptionManagementPage implements OnInit {
   }
 
   subscribeToJindungo(): void {
-    if (this.auth.hasPremiumAccess() || this.auth.hasPendingJindungoRequest()) {
-      return;
-    }
-    void this.authService.requestJindungoSubscription()
-      .then(() => {
-        this.toastService.success('Pedido de subscrição enviado. Aguarde aprovação do SuperAdmin para ler os textos Jindungo.');
-      })
-      .catch(() => {
-        this.toastService.error('Não foi possível enviar o pedido de subscrição.');
-      });
+    this.auth.subscribeToJindungo();
   }
 
   subscribeToText(text: SubscribedJindungoText): void {
@@ -112,13 +98,38 @@ export class SubscriptionManagementPage implements OnInit {
   }
 
   initials(): string {
-    return (this.auth.user()?.name || 'Estudante Angola')
+    return this.profileName()
       .split(' ')
       .filter(Boolean)
       .slice(0, 2)
       .map((name) => name[0])
       .join('')
       .toUpperCase();
+  }
+
+  profileName(): string {
+    return this.auth.user()?.name || 'Estudante Angola';
+  }
+
+  profileAccessLevel(): string {
+    const role = this.auth.user()?.role;
+
+    switch (role) {
+      case 'super-admin':
+        return 'Super admin';
+      case 'admin':
+        return 'Admin';
+      case 'writer':
+        return 'Escritor';
+      case 'moderator':
+        return 'Moderador';
+      default:
+        return 'Utilizador comum';
+    }
+  }
+
+  profileAvatarUrl(): string {
+    return this.auth.user()?.avatarUrl ?? '';
   }
 
   private async loadJindungoTexts(): Promise<void> {

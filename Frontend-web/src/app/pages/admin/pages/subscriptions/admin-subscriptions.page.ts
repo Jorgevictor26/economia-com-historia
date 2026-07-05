@@ -12,9 +12,9 @@ interface Subscriber {
   initials: string;
   name: string;
   email: string;
-  accessLevel: 'Premium Académico' | 'Gratuito' | 'Premium Executivo';
-  status: 'Ativo' | 'Pendente' | 'Expirado';
+  status: 'Ativo' | 'Pendente' | 'Expirado' | 'Recusado';
   joinedAt: string;
+  textTitle: string;
 }
 
 @Component({
@@ -27,35 +27,38 @@ export class AdminSubscriptionsPage {
   periodLabel = 'Últimos 30 dias';
   searchOpen = false;
   searchTerm = '';
-  selectedStatus = 'Todos';
+  selectedView: 'requests' | 'subscribers' = 'requests';
 
   readonly metrics: SubscriptionMetric[] = [
-    { label: 'Total de subscritores', value: '12.450', note: '+12% novos seguidores' },
+    { label: 'Total de subscritores', value: '12.450', note: '+12% novos pedidos' },
     { label: 'Taxa de retenção', value: '97.6%', note: 'Alta fidelidade' },
     { label: 'Membros ativos', value: '1,842', note: '+45 novos hoje' },
-    { label: 'Engajamento médio', value: '8.4 / 10', note: 'Comentários e interações' },
+    { label: 'Textos Jindungo', value: '3', note: 'Com subscritores ativos' },
   ];
 
   subscribers: Subscriber[] = [
-    { initials: 'AM', name: 'Antonio Manuel', email: 'antonio.m@exemplo.co', accessLevel: 'Premium Académico', status: 'Ativo', joinedAt: '12 Mar, 2024' },
-    { initials: 'BS', name: 'Beatriz Santos', email: 'beatriz.s@exemplo.co', accessLevel: 'Gratuito', status: 'Pendente', joinedAt: '08 Mar, 2024' },
-    { initials: 'JL', name: 'Joao Lourenco', email: 'joao.l@exemplo.co', accessLevel: 'Premium Académico', status: 'Ativo', joinedAt: '25 Mar, 2024' },
-    { initials: 'MN', name: 'Mariana Neto', email: 'mariana.n@exemplo.co', accessLevel: 'Premium Executivo', status: 'Pendente', joinedAt: '02 Abr, 2024' },
+    { initials: 'AM', name: 'Antonio Manuel', email: 'antonio.m@exemplo.co', status: 'Ativo', joinedAt: '12 Mar, 2024', textTitle: 'O Impacto das Reservas Internacionais no Kwanza' },
+    { initials: 'BS', name: 'Beatriz Santos', email: 'beatriz.s@exemplo.co', status: 'Pendente', joinedAt: '08 Mar, 2024', textTitle: 'Análise do Mercado de Diamantes na Lunda Sul' },
+    { initials: 'JL', name: 'Joao Lourenco', email: 'joao.l@exemplo.co', status: 'Ativo', joinedAt: '25 Mar, 2024', textTitle: 'Análise da Política Monetaria de Angola' },
+    { initials: 'MN', name: 'Mariana Neto', email: 'mariana.n@exemplo.co', status: 'Pendente', joinedAt: '02 Abr, 2024', textTitle: 'O Impacto das Reservas Internacionais no Kwanza' },
+    { initials: 'CL', name: 'Carla Lopes', email: 'carla.l@exemplo.co', status: 'Ativo', joinedAt: '18 Abr, 2024', textTitle: 'Análise do Mercado de Diamantes na Lunda Sul' },
+    { initials: 'ED', name: 'Emanuel Dala', email: 'emanuel.d@exemplo.co', status: 'Ativo', joinedAt: '03 Mai, 2024', textTitle: 'O Impacto das Reservas Internacionais no Kwanza' },
   ];
 
   get pendingCount(): number {
     return this.subscribers.filter((subscriber) => subscriber.status === 'Pendente').length;
   }
 
-  visibleSubscribers(): Subscriber[] {
-    const query = this.normalize(this.searchTerm);
+  visiblePendingRequests(): Subscriber[] {
+    return this.visibleSubscribersByStatus('Pendente');
+  }
 
-    return this.subscribers.filter((subscriber) => {
-      const matchesSearch = !query || this.normalize(`${subscriber.name} ${subscriber.email} ${subscriber.accessLevel}`).includes(query);
-      const matchesStatus = this.selectedStatus === 'Todos' || subscriber.status === this.selectedStatus;
+  visibleActiveSubscribers(): Subscriber[] {
+    return this.visibleSubscribersByStatus('Ativo');
+  }
 
-      return matchesSearch && matchesStatus;
-    });
+  setView(view: 'requests' | 'subscribers'): void {
+    this.selectedView = view;
   }
 
   togglePeriod(): void {
@@ -73,19 +76,29 @@ export class AdminSubscriptionsPage {
     this.searchTerm = (event.target as HTMLInputElement).value;
   }
 
-  updateStatusFilter(event: Event): void {
-    this.selectedStatus = (event.target as HTMLSelectElement).value;
-  }
-
   approveSubscription(subscriber: Subscriber): void {
     subscriber.status = 'Ativo';
-    if (subscriber.accessLevel === 'Gratuito') {
-      subscriber.accessLevel = 'Premium Académico';
-    }
   }
 
   expireSubscription(subscriber: Subscriber): void {
     subscriber.status = 'Expirado';
+  }
+
+  rejectSubscription(subscriber: Subscriber): void {
+    subscriber.status = 'Recusado';
+  }
+
+  deleteSubscription(subscriber: Subscriber): void {
+    this.subscribers = this.subscribers.filter((item) => item !== subscriber);
+  }
+
+  private visibleSubscribersByStatus(status: Subscriber['status']): Subscriber[] {
+    return this.subscribers.filter((subscriber) => subscriber.status === status && this.matchesSearch(subscriber));
+  }
+
+  private matchesSearch(subscriber: Subscriber): boolean {
+    const query = this.normalize(this.searchTerm);
+    return !query || this.normalize(`${subscriber.name} ${subscriber.email} ${subscriber.textTitle}`).includes(query);
   }
 
   private normalize(value: string): string {

@@ -1,3 +1,4 @@
+import '../core/exceptions/app_exceptions.dart';
 import '../core/utils/api_client.dart';
 import '../core/utils/json_helpers.dart';
 import '../models/forum.dart';
@@ -8,10 +9,14 @@ class ForumService {
   ForumService({ApiClient? api}) : _api = api ?? ApiClient();
 
   Future<List<Forum>> getForums({String? search}) async {
-    final response = await _api.get('/forums', query: {'search': search});
-    final data = ApiClient.unwrapData(response);
-    if (data is List) return data.map(jsonMap).map(Forum.fromJson).toList();
-    return <Forum>[];
+    try {
+      final response = await _api.get('/forums', query: {'search': search});
+      final data = ApiClient.unwrapData(response);
+      if (data is List) return data.map(jsonMap).map(Forum.fromJson).toList();
+      return <Forum>[];
+    } on NotFoundException {
+      return <Forum>[];
+    }
   }
 
   Future<Forum> getForum(int id) async {
@@ -42,6 +47,11 @@ class ForumService {
         if (contentIds.isNotEmpty) 'content_ids': contentIds,
       },
     );
+    return Forum.fromJson(jsonMap(ApiClient.unwrapData(response)));
+  }
+
+  Future<Forum> requestJoin(int id) async {
+    final response = await _api.post('/forums/$id/join-request');
     return Forum.fromJson(jsonMap(ApiClient.unwrapData(response)));
   }
 

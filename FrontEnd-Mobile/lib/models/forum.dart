@@ -15,6 +15,11 @@ class Forum {
   final bool allowAttachments;
   final String? status;
   final int topicsCount;
+  final int membersCount;
+  final int contentsCount;
+  final int repliesCount;
+  final bool canView;
+  final String? accessStatus;
   final User? user;
   final List<Content> contents;
   final List<ForumTopic> topics;
@@ -34,6 +39,11 @@ class Forum {
     this.allowAttachments = false,
     this.status,
     this.topicsCount = 0,
+    this.membersCount = 0,
+    this.contentsCount = 0,
+    this.repliesCount = 0,
+    this.canView = true,
+    this.accessStatus,
     this.user,
     this.contents = const [],
     this.topics = const [],
@@ -42,6 +52,9 @@ class Forum {
   });
 
   factory Forum.fromJson(Map<String, dynamic> json) {
+    final contents = jsonList(json['contents'], Content.fromJson);
+    final topics = jsonList(json['topics'], ForumTopic.fromJson);
+
     return Forum(
       id: jsonInt(json['id']) ?? 0,
       userId: jsonInt(json['user_id']) ?? 0,
@@ -54,10 +67,15 @@ class Forum {
       contentPermission: jsonString(json['content_permission']),
       allowAttachments: jsonBool(json['allow_attachments']) ?? false,
       status: jsonString(json['status']),
-      topicsCount: jsonInt(json['topics_count']) ?? 0,
+      topicsCount: jsonInt(json['topics_count']) ?? topics.length,
+      membersCount: jsonInt(json['members_count']) ?? 0,
+      contentsCount: jsonInt(json['contents_count']) ?? contents.length,
+      repliesCount: jsonInt(json['replies_count']) ?? 0,
+      canView: jsonBool(json['can_view']) ?? true,
+      accessStatus: jsonString(json['access_status']),
       user: json['user'] != null ? User.fromJson(jsonMap(json['user'])) : null,
-      contents: jsonList(json['contents'], Content.fromJson),
-      topics: jsonList(json['topics'], ForumTopic.fromJson),
+      contents: contents,
+      topics: topics,
       createdAt: jsonDate(json['created_at']),
       updatedAt: jsonDate(json['updated_at']),
     );

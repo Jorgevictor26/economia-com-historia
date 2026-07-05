@@ -54,7 +54,7 @@ class _RankingGlobalScreenState extends State<RankingGlobalScreen> {
     final remaining = _ranking.skip(3).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F5F5),
+      backgroundColor: AppColors.soft,
       appBar: AppBar(
         backgroundColor: AppColors.cardBackground,
         elevation: 0,
@@ -122,7 +122,7 @@ class _RankingGlobalScreenState extends State<RankingGlobalScreen> {
                           icon: Icons.emoji_events_outlined,
                           label: 'Melhor pontuacao',
                           value: '$topScore pts',
-                          accentColor: const Color(0xFFD4AF37),
+                          accentColor: AppColors.accentGold,
                         ),
                       ),
                     ],
@@ -176,12 +176,12 @@ class _MetricCard extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 106),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(color: AppColors.line),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppColors.ink.withValues(alpha: 0.04),
             blurRadius: 14,
             offset: const Offset(0, 8),
           ),
@@ -252,12 +252,12 @@ class _PodiumCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: entry.position == 1 ? const Color(0xFFFFF8E1) : Colors.white,
+        color: entry.position == 1 ? AppColors.sand : AppColors.cardBackground,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: color.withValues(alpha: 0.65)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.ink.withValues(alpha: 0.05),
             blurRadius: 14,
             offset: const Offset(0, 8),
           ),
@@ -274,7 +274,10 @@ class _PodiumCard extends StatelessWidget {
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(_positionIcon(entry.position), color: Colors.white),
+                child: Icon(
+                  _positionIcon(entry.position),
+                  color: AppColors.cardBackground,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -308,7 +311,7 @@ class _PodiumCard extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFFD4AF37),
+                  color: AppColors.accentGold,
                 ),
               ),
             ],
@@ -352,7 +355,7 @@ class _SmallInfo extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.78),
+        color: AppColors.cardBackground.withValues(alpha: 0.78),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -394,9 +397,9 @@ class _RankingRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(color: AppColors.line),
       ),
       child: Row(
         children: [
@@ -405,7 +408,7 @@ class _RankingRow extends StatelessWidget {
             height: 42,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: const Color(0xFFF2E6E9),
+              color: AppColors.blush,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
@@ -470,9 +473,9 @@ class _NoMoreParticipants extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(color: AppColors.line),
       ),
       child: const Column(
         children: [
@@ -504,9 +507,9 @@ class _NoMoreParticipants extends StatelessWidget {
 }
 
 Color _positionColor(int position) {
-  if (position == 1) return const Color(0xFFD4AF37);
-  if (position == 2) return const Color(0xFF78909C);
-  if (position == 3) return const Color(0xFFC58A54);
+  if (position == 1) return AppColors.accentGold;
+  if (position == 2) return AppColors.roseMuted;
+  if (position == 3) return AppColors.sand;
   return AppColors.primary;
 }
 

@@ -50,7 +50,7 @@ class OnboardingPage extends StatelessWidget {
           data.imagemAsset,
           fit: BoxFit.cover,
           errorBuilder: (_, _, _) {
-            return Container(color: const Color(0xFFF3EEEE));
+            return Container(color: AppColors.blush);
           },
         ),
 

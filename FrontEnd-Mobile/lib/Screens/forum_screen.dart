@@ -5,8 +5,8 @@ import '../core/exceptions/app_exceptions.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/api_state_widgets.dart';
 import '../models/forum.dart';
-import '../services/perfil_service.dart';
 import '../services/forum_service.dart';
+import '../services/perfil_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_bar_principal.dart';
 import 'criar_sala_debate_screen.dart';
@@ -24,6 +24,14 @@ class _ForumScreenState extends State<ForumScreen> {
   bool _isLoading = true;
   String? _error;
   List<Forum> _forums = [];
+
+  List<Forum> get _featuredForums {
+    final items = [..._forums];
+    items.sort(
+      (a, b) => _forumEngagementScore(b).compareTo(_forumEngagementScore(a)),
+    );
+    return items.take(3).toList();
+  }
 
   @override
   void initState() {
@@ -43,7 +51,7 @@ class _ForumScreenState extends State<ForumScreen> {
     } on AppException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
-      if (mounted) setState(() => _error = 'Erro ao carregar fóruns.');
+      if (mounted) setState(() => _error = 'Erro ao carregar foruns.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -55,7 +63,7 @@ class _ForumScreenState extends State<ForumScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppBarPrincipal(
-        titulo: 'Fórum',
+        titulo: 'Forum',
         mostrarFavoritos: true,
         mostrarPerfil: true,
         mostrarVoltar: false,
@@ -65,7 +73,7 @@ class _ForumScreenState extends State<ForumScreen> {
           if (!canCreate) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Inicia sessão para criar um fórum.'),
+                content: Text('Inicia sessao para criar um forum.'),
                 behavior: SnackBarBehavior.floating,
                 backgroundColor: AppColors.primary,
               ),
@@ -79,7 +87,10 @@ class _ForumScreenState extends State<ForumScreen> {
           if (mounted) _load();
         },
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add_comment_outlined, color: Colors.white),
+        child: const Icon(
+          Icons.add_comment_outlined,
+          color: AppColors.cardBackground,
+        ),
       ),
       body: RefreshIndicator(
         color: AppColors.primary,
@@ -95,13 +106,13 @@ class _ForumScreenState extends State<ForumScreen> {
                   const _SectionHeader(),
                   const SizedBox(height: 14),
                   if (_isLoading)
-                    const LoadingState(message: 'A carregar fóruns...')
+                    const LoadingState(message: 'A carregar foruns...')
                   else if (_error != null)
                     ErrorState(message: _error!, onRetry: _load)
                   else if (_forums.isEmpty)
-                    const EmptyState(message: 'Nenhum fórum disponível.')
+                    const EmptyState(message: 'Nenhum forum disponivel.')
                   else ...[
-                    _DebateDestaque(forum: _forums.first),
+                    _FeaturedDebatesCarousel(forums: _featuredForums),
                     const SizedBox(height: 28),
                     const Text(
                       'Salas de Debate',
@@ -156,6 +167,27 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
+class _FeaturedDebatesCarousel extends StatelessWidget {
+  final List<Forum> forums;
+
+  const _FeaturedDebatesCarousel({required this.forums});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 190,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: forums.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          return _DebateDestaque(forum: forums[index]);
+        },
+      ),
+    );
+  }
+}
+
 class _DebateDestaque extends StatelessWidget {
   final Forum forum;
 
@@ -169,31 +201,46 @@ class _DebateDestaque extends StatelessWidget {
         MaterialPageRoute(builder: (_) => SalaDeDebateScreen(forum: forum)),
       ),
       child: Container(
-        height: 180,
-        padding: const EdgeInsets.all(18),
+        width: MediaQuery.of(context).size.width * 0.78,
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.primary,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.16),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFD1AF45),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Text(
-                'FÓRUM APROVADO',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: 0.5,
+            Row(
+              children: [
+                _ForumInitialsAvatar(
+                  label: initials(forum.name),
+                  backgroundColor: AppColors.cardBackground,
+                  foregroundColor: AppColors.primary,
+                  size: 46,
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      _ForumBadge(label: _forumCategory(forum), inverted: true),
+                      _ForumBadge(
+                        label: _visibilityLabel(forum.visibility),
+                        inverted: true,
+                        dark: forum.visibility?.toLowerCase() == 'private',
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             Text(
@@ -201,24 +248,37 @@ class _DebateDestaque extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
+                fontSize: 19,
+                fontWeight: FontWeight.w900,
+                color: AppColors.cardBackground,
                 height: 1.15,
               ),
             ),
-            const SizedBox(height: 8),
-            Row(
+            const SizedBox(height: 6),
+            Text(
+              _forumDescription(forum),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.cardBackground.withValues(alpha: 0.72),
+                height: 1.35,
+              ),
+            ),
+            const Spacer(),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
               children: [
-                const Icon(
-                  Icons.forum_outlined,
-                  size: 15,
-                  color: Colors.white70,
+                _ForumStat(
+                  icon: Icons.forum_outlined,
+                  label: '${_forumTopicsCount(forum)} debates',
+                  inverted: true,
                 ),
-                const SizedBox(width: 5),
-                Text(
-                  '${forum.topicsCount} tópicos',
-                  style: const TextStyle(fontSize: 12, color: Colors.white70),
+                _ForumStat(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  label: '${forum.repliesCount} respostas',
+                  inverted: true,
                 ),
               ],
             ),
@@ -243,72 +303,260 @@ class _SalaCard extends StatelessWidget {
       ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFEEE8E9)),
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.line),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: AppColors.ink.withValues(alpha: 0.03),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    forum.name,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _ForumInitialsAvatar(label: initials(forum.name)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.forum_outlined,
-                        size: 13,
-                        color: AppColors.textLight,
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _ForumBadge(label: _forumCategory(forum)),
+                          _ForumBadge(
+                            label: _visibilityLabel(forum.visibility),
+                            dark: forum.visibility?.toLowerCase() == 'private',
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(height: 8),
                       Text(
-                        '${forum.topicsCount} tópicos',
+                        forum.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textMedium,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary,
+                          height: 1.15,
                         ),
                       ),
-                      const SizedBox(width: 14),
-                      const Icon(
-                        Icons.access_time_rounded,
-                        size: 13,
-                        color: AppColors.textLight,
-                      ),
-                      const SizedBox(width: 4),
+                      const SizedBox(height: 6),
                       Text(
-                        timeAgo(forum.createdAt),
+                        _forumDescription(forum),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 12.5,
                           color: AppColors.textMedium,
+                          height: 1.35,
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppColors.textLight,
+                ),
+              ],
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.textLight),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 14,
+              runSpacing: 8,
+              children: [
+                _ForumStat(
+                  icon: Icons.groups_rounded,
+                  label: '${forum.membersCount} membros',
+                ),
+                _ForumStat(
+                  icon: Icons.forum_outlined,
+                  label: '${_forumTopicsCount(forum)} debates',
+                ),
+                _ForumStat(
+                  icon: Icons.link_rounded,
+                  label: '${_forumContentCount(forum)} conteudos',
+                ),
+                if (timeAgo(forum.createdAt).isNotEmpty)
+                  _ForumStat(
+                    icon: Icons.access_time_rounded,
+                    label: timeAgo(forum.createdAt),
+                  ),
+              ],
+            ),
           ],
         ),
       ),
     );
+  }
+}
+
+class _ForumInitialsAvatar extends StatelessWidget {
+  final String label;
+  final double size;
+  final Color backgroundColor;
+  final Color foregroundColor;
+
+  const _ForumInitialsAvatar({
+    required this.label,
+    this.size = 48,
+    this.backgroundColor = AppColors.blush,
+    this.foregroundColor = AppColors.primary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.clip,
+        style: TextStyle(
+          fontSize: size <= 46 ? 14 : 15,
+          fontWeight: FontWeight.w900,
+          color: foregroundColor,
+        ),
+      ),
+    );
+  }
+}
+
+class _ForumBadge extends StatelessWidget {
+  final String label;
+  final bool inverted;
+  final bool dark;
+
+  const _ForumBadge({
+    required this.label,
+    this.inverted = false,
+    this.dark = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundColor = dark
+        ? AppColors.textDark
+        : inverted
+        ? AppColors.cardBackground.withValues(alpha: 0.14)
+        : AppColors.blush;
+    final textColor = dark
+        ? AppColors.cardBackground
+        : inverted
+        ? AppColors.cardBackground
+        : AppColors.primary;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(999),
+        border: inverted
+            ? Border.all(
+                color: AppColors.cardBackground.withValues(alpha: 0.12),
+              )
+            : null,
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          color: textColor,
+          letterSpacing: 0.2,
+        ),
+      ),
+    );
+  }
+}
+
+class _ForumStat extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool inverted;
+
+  const _ForumStat({
+    required this.icon,
+    required this.label,
+    this.inverted = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = inverted
+        ? AppColors.cardBackground.withValues(alpha: 0.72)
+        : AppColors.textMedium;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 5),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+int _forumEngagementScore(Forum forum) {
+  return (forum.repliesCount * 3) +
+      (_forumTopicsCount(forum) * 2) +
+      forum.membersCount +
+      _forumContentCount(forum);
+}
+
+int _forumTopicsCount(Forum forum) {
+  return forum.topicsCount > 0 ? forum.topicsCount : forum.topics.length;
+}
+
+int _forumContentCount(Forum forum) {
+  return forum.contentsCount > 0 ? forum.contentsCount : forum.contents.length;
+}
+
+String _forumCategory(Forum forum) {
+  final value = forum.category?.trim();
+  return value == null || value.isEmpty ? 'Forum' : value;
+}
+
+String _forumDescription(Forum forum) {
+  final value = (forum.description ?? forum.rules ?? '').trim();
+  return value.isEmpty ? 'Sem descricao.' : value;
+}
+
+String _visibilityLabel(String? value) {
+  switch ((value ?? 'public').toLowerCase()) {
+    case 'private':
+      return 'Privado';
+    case 'public':
+      return 'Publico';
+    default:
+      return value ?? 'Publico';
   }
 }

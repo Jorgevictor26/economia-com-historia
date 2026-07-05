@@ -204,7 +204,7 @@ class _NavBar extends StatelessWidget {
                                 size: ativo ? 20 : 18,
                                 color: ativo
                                     ? AppColors.primary
-                                    : const Color(0xFFB0959A),
+                                    : AppColors.copyMuted,
                               ),
                             ),
                           ),
@@ -219,7 +219,7 @@ class _NavBar extends StatelessWidget {
                                 : FontWeight.w400,
                             color: ativo
                                 ? AppColors.primary
-                                : const Color(0xFFB0959A),
+                                : AppColors.copyMuted,
                             fontFamily: 'Poppins',
                           ),
                           child: Text(itens[i].label),

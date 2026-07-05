@@ -47,7 +47,7 @@ class ProfilePhotoImage extends StatelessWidget {
 
   Widget _fallback({bool iconOnly = false}) {
     return Container(
-      color: const Color(0xFFEEE8E9),
+      color: AppColors.blush,
       child: Center(
         child: iconOnly
             ? Icon(

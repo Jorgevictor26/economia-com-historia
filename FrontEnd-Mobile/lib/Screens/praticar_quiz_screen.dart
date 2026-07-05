@@ -28,6 +28,7 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
   final _service = QuizService();
   late DateTime _startedAt;
   late DateTime _questionStartedAt;
+  Timer? _questionTimer;
 
   bool _isLoading = true;
   bool _isLoadInFlight = false;
@@ -44,6 +45,7 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
   final Map<int, String> _answers = {};
   final Map<int, int> _answerAlternativeIds = {};
   final Map<int, int> _answerElapsedSeconds = {};
+  int? _remainingQuestionSeconds;
 
   @override
   void initState() {
@@ -52,6 +54,12 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
     _questionStartedAt = DateTime.now().toUtc();
     _relatedContent = widget.quiz.content;
     _load();
+  }
+
+  @override
+  void dispose() {
+    _questionTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -74,7 +82,16 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
         _questions = questions;
         _savedProgress = savedProgress;
         _resumePromptVisible = savedProgress != null;
+        _remainingQuestionSeconds =
+            savedProgress == null && questions.isNotEmpty
+            ? _timeLimitForQuestion(questions.first)
+            : null;
       });
+      if (savedProgress == null) {
+        _startQuestionTimer();
+      } else {
+        _questionTimer?.cancel();
+      }
     } on AppException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
@@ -106,6 +123,7 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
   void _selecionarResposta(String option) {
     if (_answerFeedbackVisible) return;
 
+    _questionTimer?.cancel();
     setState(() {
       _selectedOption = option;
       _answerFeedbackVisible = true;
@@ -131,7 +149,11 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
         _selectedOption = _answers[_questions[nextIndex].id];
         _answerFeedbackVisible = _selectedOption != null;
         _questionStartedAt = DateTime.now().toUtc();
+        _remainingQuestionSeconds = _answerFeedbackVisible
+            ? null
+            : _timeLimitForQuestion(_questions[nextIndex]);
       });
+      if (!_answerFeedbackVisible) _startQuestionTimer();
       return;
     }
     await _submit();
@@ -184,6 +206,42 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
         .inSeconds
         .clamp(0, 86400)
         .toInt();
+  }
+
+  int? _timeLimitForQuestion(Question question) {
+    final questionLimit = question.timeSeconds;
+    if (questionLimit != null && questionLimit > 0) return questionLimit;
+
+    final quizLimit = widget.quiz.timeLimit;
+    if (quizLimit != null && quizLimit > 0) return quizLimit;
+
+    return null;
+  }
+
+  void _startQuestionTimer() {
+    _questionTimer?.cancel();
+    if (_questions.isEmpty || _answerFeedbackVisible || _resumePromptVisible) {
+      return;
+    }
+
+    final limit = _timeLimitForQuestion(_question);
+    setState(() => _remainingQuestionSeconds = limit);
+    if (limit == null) return;
+
+    _questionTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || _answerFeedbackVisible || _resumePromptVisible) {
+        timer.cancel();
+        return;
+      }
+
+      final current = _remainingQuestionSeconds;
+      if (current == null || current <= 0) {
+        timer.cancel();
+        return;
+      }
+
+      setState(() => _remainingQuestionSeconds = current - 1);
+    });
   }
 
   void _showSnackBar(String message) {
@@ -327,11 +385,16 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
         Duration(seconds: progress.elapsedSeconds),
       );
       _questionStartedAt = DateTime.now().toUtc();
+      _remainingQuestionSeconds = _selectedOption == null
+          ? _timeLimitForQuestion(_questions[_currentIndex])
+          : null;
       _resumePromptVisible = false;
     });
+    if (_selectedOption == null) _startQuestionTimer();
   }
 
   Future<void> _restartQuiz() async {
+    _questionTimer?.cancel();
     setState(() {
       _answers.clear();
       _answerAlternativeIds.clear();
@@ -341,9 +404,13 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
       _answerFeedbackVisible = false;
       _startedAt = DateTime.now().toUtc();
       _questionStartedAt = DateTime.now().toUtc();
+      _remainingQuestionSeconds = _questions.isEmpty
+          ? null
+          : _timeLimitForQuestion(_questions.first);
       _resumePromptVisible = false;
       _result = null;
     });
+    _startQuestionTimer();
 
     await _persistirProgresso(0, currentQuestionIndex: 0);
   }
@@ -429,7 +496,7 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
     final result = _result;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.cardBackground,
       body: SafeArea(
         child: _isLoading
             ? const LoadingState(message: 'A carregar quiz...')
@@ -453,6 +520,7 @@ class _PraticarQuizScreenState extends State<PraticarQuizScreen> {
                     current: _currentIndex + 1,
                     total: _questions.length,
                     progress: (_currentIndex + 1) / _questions.length,
+                    remainingSeconds: _remainingQuestionSeconds,
                   ),
                   Expanded(
                     child: SingleChildScrollView(
@@ -563,12 +631,12 @@ class _ResumoProgressoQuiz extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.cardBackground,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE6D5B8)),
+          border: Border.all(color: AppColors.sand),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
+              color: AppColors.ink.withValues(alpha: 0.06),
               blurRadius: 18,
               offset: const Offset(0, 8),
             ),
@@ -612,7 +680,7 @@ class _ResumoProgressoQuiz extends StatelessWidget {
                 onPressed: onContinue,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.cardBackground,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -632,7 +700,7 @@ class _ResumoProgressoQuiz extends StatelessWidget {
                 onPressed: () => unawaited(onRestart()),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
-                  side: const BorderSide(color: Color(0xFFE6D5B8)),
+                  side: const BorderSide(color: AppColors.sand),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -667,10 +735,8 @@ class _FeedbackRespostaQuiz extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isCorrect ? const Color(0xFF2A9D8F) : AppColors.textBordeaux;
-    final backgroundColor = isCorrect
-        ? const Color(0xFFE8F5F1)
-        : const Color(0xFFF8ECEF);
+    final color = isCorrect ? AppColors.success : AppColors.textBordeaux;
+    final backgroundColor = isCorrect ? AppColors.successSoft : AppColors.blush;
     final content = relatedContent;
 
     return Container(
@@ -854,7 +920,7 @@ class _ResultadoQuiz extends StatelessWidget {
               onPressed: () => unawaited(onRestart()),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.cardBackground,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -874,7 +940,7 @@ class _ResultadoQuiz extends StatelessWidget {
               onPressed: onClose,
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.primary,
-                side: const BorderSide(color: Color(0xFFE6D5B8)),
+                side: const BorderSide(color: AppColors.sand),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -894,7 +960,7 @@ class _ResultadoQuiz extends StatelessWidget {
                 onPressed: onOpenRelatedContent,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
-                  side: const BorderSide(color: Color(0xFFE6D5B8)),
+                  side: const BorderSide(color: AppColors.sand),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -932,7 +998,7 @@ class _ResultadoStatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.background,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE6D5B8)),
+        border: Border.all(color: AppColors.sand),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -966,11 +1032,13 @@ class _BarraTopo extends StatelessWidget {
   final int current;
   final int total;
   final double progress;
+  final int? remainingSeconds;
 
   const _BarraTopo({
     required this.current,
     required this.total,
     required this.progress,
+    required this.remainingSeconds,
   });
 
   @override
@@ -997,13 +1065,15 @@ class _BarraTopo extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: progress,
                     minHeight: 5,
-                    backgroundColor: const Color(0xFFEEE8E9),
+                    backgroundColor: AppColors.line,
                     valueColor: const AlwaysStoppedAnimation<Color>(
                       AppColors.primary,
                     ),
                   ),
                 ),
               ),
+              const SizedBox(width: 12),
+              _QuizTimerPill(seconds: remainingSeconds),
             ],
           ),
           const SizedBox(height: 10),
@@ -1014,6 +1084,48 @@ class _BarraTopo extends StatelessWidget {
               fontWeight: FontWeight.w700,
               color: AppColors.primary,
               letterSpacing: 0.8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuizTimerPill extends StatelessWidget {
+  final int? seconds;
+
+  const _QuizTimerPill({required this.seconds});
+
+  @override
+  Widget build(BuildContext context) {
+    final value = seconds;
+    final isLow = value != null && value <= 5;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: isLow ? AppColors.blush : AppColors.soft,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: isLow ? AppColors.textBordeaux : AppColors.line,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.timer_outlined,
+            size: 15,
+            color: isLow ? AppColors.textBordeaux : AppColors.primary,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            value == null ? 'Sem limite' : '${value}s',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: isLow ? AppColors.textBordeaux : AppColors.primary,
             ),
           ),
         ],
@@ -1046,33 +1158,33 @@ class _OpcaoCard extends StatelessWidget {
 
     switch (estado) {
       case _EstadoOpcao.correta:
-        bordaColor = const Color(0xFF2A9D8F);
-        fundoColor = const Color(0xFFE8F5F1);
-        letraFundoColor = const Color(0xFF2A9D8F);
-        textoColor = const Color(0xFF1E6F62);
+        bordaColor = AppColors.success;
+        fundoColor = AppColors.successSoft;
+        letraFundoColor = AppColors.success;
+        textoColor = AppColors.success;
         break;
       case _EstadoOpcao.incorreta:
         bordaColor = AppColors.textBordeaux;
-        fundoColor = const Color(0xFFF8ECEF);
+        fundoColor = AppColors.blush;
         letraFundoColor = AppColors.textBordeaux;
         textoColor = AppColors.textBordeaux;
         break;
       case _EstadoOpcao.selecionada:
         bordaColor = AppColors.primary;
-        fundoColor = const Color(0xFFF7EEF0);
+        fundoColor = AppColors.blush;
         letraFundoColor = AppColors.primary;
         textoColor = AppColors.primary;
         break;
       case _EstadoOpcao.bloqueada:
-        bordaColor = const Color(0xFFE6DFE0);
-        fundoColor = const Color(0xFFFAF8F8);
-        letraFundoColor = const Color(0xFFD8D0D1);
+        bordaColor = AppColors.line;
+        fundoColor = AppColors.soft;
+        letraFundoColor = AppColors.muted;
         textoColor = AppColors.textLight;
         break;
       default:
-        bordaColor = const Color(0xFFDDD5D6);
-        fundoColor = Colors.white;
-        letraFundoColor = const Color(0xFFF0EAEA);
+        bordaColor = AppColors.line;
+        fundoColor = AppColors.cardBackground;
+        letraFundoColor = AppColors.blush;
         textoColor = AppColors.textMedium;
     }
 
@@ -1103,7 +1215,7 @@ class _OpcaoCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: AppColors.cardBackground,
                   ),
                 ),
               ),
@@ -1147,8 +1259,8 @@ class _BotaoContinuar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
       decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFEEE8E9))),
+        color: AppColors.cardBackground,
+        border: Border(top: BorderSide(color: AppColors.line)),
       ),
       child: SizedBox(
         width: double.infinity,
@@ -1157,8 +1269,8 @@ class _BotaoContinuar extends StatelessWidget {
           onPressed: ativo ? onTap : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
-            disabledBackgroundColor: const Color(0xFFEEE8E9),
-            foregroundColor: Colors.white,
+            disabledBackgroundColor: AppColors.line,
+            foregroundColor: AppColors.cardBackground,
             disabledForegroundColor: AppColors.textLight,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
@@ -1170,7 +1282,7 @@ class _BotaoContinuar extends StatelessWidget {
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
-                    color: Colors.white,
+                    color: AppColors.cardBackground,
                     strokeWidth: 2,
                   ),
                 )

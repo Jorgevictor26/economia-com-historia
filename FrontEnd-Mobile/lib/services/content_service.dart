@@ -206,4 +206,44 @@ class PodcastService {
       lastPositionSeconds: lastPositionSeconds,
     );
   }
+
+  Future<List<Comment>> getComments(int contentId) {
+    return _contents.getComments(contentId);
+  }
+
+  Future<Comment> addComment({
+    required int contentId,
+    required String comment,
+  }) {
+    return _contents.addComment(contentId: contentId, comment: comment);
+  }
+
+  Future<CommentReply> replyToComment({
+    required int commentId,
+    required String reply,
+  }) {
+    return _contents.replyToComment(commentId: commentId, reply: reply);
+  }
+
+  Future<ToggleReactionResult> toggleReaction({
+    required int contentId,
+    String reactionType = 'like',
+  }) {
+    return _contents.toggleReaction(
+      contentId: contentId,
+      reactionType: reactionType,
+    );
+  }
+
+  Future<PaginatedResponse<SavedContent>> getSavedContents({int page = 1}) {
+    return _contents.getSavedContents(page: page);
+  }
+
+  Future<SavedContent> saveContent(int contentId) {
+    return _contents.saveContent(contentId);
+  }
+
+  Future<void> removeSavedContent(int contentId) {
+    return _contents.removeSavedContent(contentId);
+  }
 }

@@ -564,10 +564,23 @@
                 <span class="line-clamp-1">{{ resource.title }}</span>
               </a>
               } @else {
+              @if (resource.href) {
+              <a [href]="resource.href" target="_blank" rel="noopener"
+                class="flex items-center gap-3 text-[12px] font-semibold text-[#616161] transition hover:text-[#5C1E2F]">
+                <span class="material-symbols-outlined text-[18px]">{{ resource.icon }}</span>
+                <span class="min-w-0">
+                  <span class="line-clamp-1">{{ resource.title }}</span>
+                  @if (resource.meta) {
+                  <small class="block text-[10px] text-[#9E9E9E]">{{ resource.meta }}</small>
+                  }
+                </span>
+              </a>
+              } @else {
               <span class="flex items-center gap-3 text-[12px] font-semibold text-[#616161]">
                 <span class="material-symbols-outlined text-[18px]">{{ resource.icon }}</span>
                 <span class="line-clamp-1">{{ resource.title }}</span>
               </span>
+              }
               }
               }
             </div>

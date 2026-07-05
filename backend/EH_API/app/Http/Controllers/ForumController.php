@@ -44,6 +44,7 @@ class ForumController extends Controller
             (bool) $request->boolean('join_approval_required'),
             $request->input('content_permission', 'public'),
             (bool) $request->boolean('allow_attachments'),
+            $request->input('artifacts', []),
             $request->input('content_ids', []),
             $request->input('invite_emails', [])
         ));
@@ -99,8 +100,10 @@ class ForumController extends Controller
         $forum = $this->service->update($id, new UpdateForumDTO(
             $request->has('name') ? $request->string('name')->toString() : null,
             $request->has('description') ? $request->input('description') : null,
+            $request->has('artifacts') ? $request->input('artifacts', []) : null,
             $request->has('name'),
-            $request->has('description')
+            $request->has('description'),
+            $request->has('artifacts')
         ));
 
         if (! $forum) {

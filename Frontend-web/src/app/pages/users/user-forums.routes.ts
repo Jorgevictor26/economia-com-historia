@@ -8,7 +8,7 @@ import { BackendForum, BackendForumReply, BackendForumTopic, ForumService } from
 import { SavedContentService } from '../../services/saved-content.service';
 import { ShareService } from '../../services/share.service';
 import { ToastService } from '../../services/toast.service';
-import { ForumRoom } from '../../models/forum.model';
+import { ForumArtifact, ForumRoom } from '../../models/forum.model';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
@@ -96,6 +96,7 @@ export class UserForumsPage {
   readonly privacy = signal<'public' | 'private'>('public');
   readonly inviteEmails = signal<string[]>([]);
   readonly selectedContentIds = signal<string[]>([]);
+  readonly selectedArtifacts = signal<ForumArtifact[]>([]);
   readonly contentOptions = signal<ForumContentOption[]>([]);
   readonly showAllResources = signal(false);
   readonly createModalOpen = signal(false);
@@ -186,6 +187,35 @@ export class UserForumsPage {
     this.inviteEmails.update((emails) => emails.filter((item) => item !== email));
   }
 
+  async onArtifactSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+
+    if (!files.length) {
+      return;
+    }
+
+    const acceptedFiles = files.filter((file) => this.isAcceptedArtifact(file));
+    const rejectedCount = files.length - acceptedFiles.length;
+
+    if (rejectedCount > 0) {
+      this.showToast('Alguns ficheiros foram ignorados. Use PDF, Word, Excel, PowerPoint ou TXT até 8 MB.', 'error');
+    }
+
+    const artifacts = await Promise.all(acceptedFiles.map((file) => this.toForumArtifact(file)));
+    const existingIds = new Set(this.selectedArtifacts().map((artifact) => artifact.id));
+
+    this.selectedArtifacts.update((current) => [
+      ...current,
+      ...artifacts.filter((artifact) => !existingIds.has(artifact.id)),
+    ]);
+    input.value = '';
+  }
+
+  removeArtifact(id: string): void {
+    this.selectedArtifacts.update((artifacts) => artifacts.filter((artifact) => artifact.id !== id));
+  }
+
   async createDebateRoom(titleInput: HTMLInputElement, objectiveInput: HTMLTextAreaElement): Promise<void> {
     if (!this.auth.isAuthenticated()) {
       this.auth.requireLoginFor('criar discuss\u00e3o');
@@ -213,7 +243,14 @@ export class UserForumsPage {
         access_code: null,
         join_approval_required: this.privacy() === 'private',
         content_permission: 'public',
-        allow_attachments: false,
+        allow_attachments: this.selectedArtifacts().length > 0,
+        artifacts: this.selectedArtifacts().map((artifact) => ({
+          id: artifact.id,
+          name: artifact.name,
+          type: artifact.type,
+          size: artifact.size,
+          data_url: artifact.dataUrl,
+        })),
         content_ids: linkedContents
           .map((content) => Number(content.id))
           .filter((id) => !Number.isNaN(id)),
@@ -225,6 +262,7 @@ export class UserForumsPage {
       objectiveInput.value = '';
       this.inviteEmails.set([]);
       this.selectedContentIds.set([]);
+      this.selectedArtifacts.set([]);
       this.privacy.set('public');
       this.showAllResources.set(false);
       this.createModalOpen.set(false);
@@ -309,6 +347,13 @@ export class UserForumsPage {
         type: content.content_type?.name ?? 'Conteúdo',
         meta: content.category?.name ?? '',
       })),
+      artifacts: (forum.artifacts ?? []).map((artifact) => ({
+        id: String(artifact.id),
+        name: artifact.name,
+        type: artifact.type,
+        size: Number(artifact.size ?? 0),
+        dataUrl: artifact.data_url,
+      })),
     };
   }
 
@@ -328,6 +373,46 @@ export class UserForumsPage {
       type: content.type,
       meta: content.meta,
     };
+  }
+
+  artifactSizeLabel(size: number): string {
+    if (size < 1024 * 1024) {
+      return `${Math.max(1, Math.round(size / 1024))} KB`;
+    }
+
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  private isAcceptedArtifact(file: File): boolean {
+    const acceptedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'text/plain',
+    ];
+    const acceptedExtensions = /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt)$/i;
+
+    return file.size <= 8 * 1024 * 1024 && (acceptedTypes.includes(file.type) || acceptedExtensions.test(file.name));
+  }
+
+  private toForumArtifact(file: File): Promise<ForumArtifact> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => resolve({
+        id: `${file.name}-${file.size}-${file.lastModified}`,
+        name: file.name,
+        type: file.type || 'application/octet-stream',
+        size: file.size,
+        dataUrl: String(reader.result ?? ''),
+      });
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
   }
 }
 
@@ -624,14 +709,21 @@ export class UserForumDetailPage {
     return Math.max(0, room.members - this.activeParticipantAvatars(room).length);
   }
 
-  sharedResources(room: ForumRoom): { title: string; icon: string; route?: string[] }[] {
+  sharedResources(room: ForumRoom): { title: string; icon: string; route?: string[]; href?: string; meta?: string }[] {
     const linked = room.linkedContents.slice(0, 3).map((content) => ({
       title: content.title,
       icon: this.resourceIcon(content.type),
       route: ['/app/contents', content.id],
     }));
 
-    return linked;
+    const artifacts = (room.artifacts ?? []).map((artifact) => ({
+      title: artifact.name,
+      icon: this.resourceIcon(artifact.type || artifact.name),
+      href: artifact.dataUrl,
+      meta: this.artifactSizeLabel(artifact.size),
+    }));
+
+    return [...artifacts, ...linked].slice(0, 6);
   }
 
   resourceIcon(type: string | undefined): string {
@@ -649,7 +741,27 @@ export class UserForumDetailPage {
       return 'quiz';
     }
 
+    if (normalized.includes('pdf')) {
+      return 'picture_as_pdf';
+    }
+
+    if (normalized.includes('word') || normalized.includes('document')) {
+      return 'article';
+    }
+
+    if (normalized.includes('excel') || normalized.includes('sheet')) {
+      return 'table_chart';
+    }
+
     return 'description';
+  }
+
+  artifactSizeLabel(size: number): string {
+    if (size < 1024 * 1024) {
+      return `${Math.max(1, Math.round(size / 1024))} KB`;
+    }
+
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
   }
 
   forumValueProposition(): string {
@@ -1243,6 +1355,13 @@ export class UserForumDetailPage {
         title: content.title,
         type: content.content_type?.name ?? 'Conteúdo',
         meta: content.category?.name ?? '',
+      })),
+      artifacts: (forum.artifacts ?? []).map((artifact) => ({
+        id: String(artifact.id),
+        name: artifact.name,
+        type: artifact.type,
+        size: Number(artifact.size ?? 0),
+        dataUrl: artifact.data_url,
       })),
     };
   }

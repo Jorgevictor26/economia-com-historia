@@ -22,6 +22,7 @@ class Forum extends Model
         'join_approval_required',
         'content_permission',
         'allow_attachments',
+        'artifacts',
         'status',
         'reviewed_by',
         'reviewed_at',
@@ -31,6 +32,7 @@ class Forum extends Model
         'reviewed_at' => 'datetime',
         'allow_attachments' => 'boolean',
         'join_approval_required' => 'boolean',
+        'artifacts' => 'array',
     ];
 
     public function user()

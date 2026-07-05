@@ -206,8 +206,10 @@ export class UserForumsPage {
         join_approval_required: this.privacy() === 'private',
         content_permission: 'public',
         allow_attachments: false,
-        content_ids: linkedContents.map((content) => content.id),
-        invite_emails: this.inviteEmails(),
+        content_ids: linkedContents
+          .map((content) => Number(content.id))
+          .filter((id) => !Number.isNaN(id)),
+        invite_emails: this.inviteEmails().filter(Boolean),
       });
 
       this.forumService.rooms.update((rooms) => [this.toForumRoom(forum), ...rooms.filter((room) => room.id !== String(forum.id))]);
@@ -220,8 +222,12 @@ export class UserForumsPage {
       this.createModalOpen.set(false);
       this.returnToSourceContentIfNeeded();
       this.showToast('Fórum criado com sucesso.', 'success');
-    } catch {
-      this.showToast('Não foi possível criar a sala de debate.', 'error');
+    } catch (error) {
+      const message = error instanceof Error
+        ? error.message
+        : (error as { error?: { message?: string } }).error?.message ?? 'Não foi possível criar a sala de debate.';
+
+      this.showToast(message, 'error');
     }
   }
 

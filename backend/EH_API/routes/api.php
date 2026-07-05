@@ -21,6 +21,7 @@ use App\Http\Controllers\ForumTopicController;
 use App\Http\Controllers\Api\V1\ReactionController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminStatisticsController;
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuizAnswerController;
@@ -62,6 +63,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', LogoutController::class);
         Route::get('/profile', [UserController::class, 'me']);
         Route::put('/profile', [UserController::class, 'updateProfile']);
+        Route::get('/activity/history', [ActivityController::class, 'history']);
         Route::get('/users', [UserController::class, 'index'])
             ->middleware('role:Admin,SuperAdmin');
         Route::post('/users/super-admin', [UserController::class, 'createSuperAdmin'])

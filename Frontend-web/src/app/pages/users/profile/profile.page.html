@@ -58,15 +58,76 @@
           <span>Retome conteúdos, quizzes e materiais consultados recentemente.</span>
         </header>
 
-        <section class="profile-history-list">
-          @for (item of historyItems; track item.title) {
-          <a [routerLink]="item.route">
-            <span class="profile-menu-icon" aria-hidden="true">history</span>
-            <strong>{{ item.title }}</strong>
-            <small>{{ item.detail }}</small>
-          </a>
+        @if (isLoadingHistory()) {
+        <div class="profile-history-list">
+          <p style="text-align: center; color: #666;">Carregando histórico...</p>
+        </div>
+        } @else if (historyError()) {
+        <div class="profile-history-list">
+          <p style="text-align: center; color: #d32f2f;">{{ historyError() }}</p>
+        </div>
+        } @else {
+        <div class="profile-history-tabs">
+          @if (recentContents().length > 0) {
+          <section class="history-section">
+            <h3>Conteúdos recentes</h3>
+            <div class="history-items">
+              @for (content of recentContents(); track content.id) {
+              <a [routerLink]="['/app/contents', content.id]" class="history-item">
+                <span class="profile-menu-icon" aria-hidden="true">article</span>
+                <div class="history-item-content">
+                  <strong>{{ content.title }}</strong>
+                  <small>{{ content.category || content.content_type || 'Conteúdo' }}</small>
+                </div>
+              </a>
+              }
+            </div>
+          </section>
           }
-        </section>
+
+          @if (recentQuizzes().length > 0) {
+          <section class="history-section">
+            <h3>Quizzes concluídos</h3>
+            <div class="history-items">
+              @for (quiz of recentQuizzes(); track quiz.id) {
+              <a [routerLink]="['/app/quizzes', quiz.id]" class="history-item">
+                <span class="profile-menu-icon" aria-hidden="true">quiz</span>
+                <div class="history-item-content">
+                  <strong>{{ quiz.title }}</strong>
+                  @if (quiz.score !== null) {
+                  <small>Pontuação: {{ quiz.score }}%</small>
+                  }
+                </div>
+              </a>
+              }
+            </div>
+          </section>
+          }
+
+          @if (forumActivity().length > 0) {
+          <section class="history-section">
+            <h3>Fórum</h3>
+            <div class="history-items">
+              @for (forum of forumActivity(); track forum.id) {
+              <a [routerLink]="['/app/forums', forum.id]" class="history-item">
+                <span class="profile-menu-icon" aria-hidden="true">forum</span>
+                <div class="history-item-content">
+                  <strong>{{ forum.title }}</strong>
+                  <small>Participação no fórum</small>
+                </div>
+              </a>
+              }
+            </div>
+          </section>
+          }
+
+          @if (recentContents().length === 0 && recentQuizzes().length === 0 && forumActivity().length === 0) {
+          <div class="profile-history-list">
+            <p style="text-align: center; color: #666;">Sem atividades registadas ainda. Comece a explorar conteúdos e quizzes!</p>
+          </div>
+          }
+        </div>
+        }
 
         } @else if (isSupportSection) {
         <header class="profile-form-header">

@@ -46,6 +46,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/quizzes', [QuizController::class, 'index']);
     Route::get('/quizzes/{id}', [QuizController::class, 'show']);
     Route::get('/quizzes/{id}/questions', [QuestionController::class, 'index']);
+    Route::get('/quizzes/{id}/ranking', [QuizAnswerController::class, 'ranking']);
     Route::get('/categories/{id}', [CategoryController::class, 'show']);
     Route::get('/content-types/{id}', [ContentTypeController::class, 'show']);
     Route::get('/comments/content/{contentId}', [CommentController::class, 'indexByContent']);

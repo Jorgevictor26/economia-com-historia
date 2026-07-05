@@ -1,6 +1,7 @@
-﻿import { Component } from '@angular/core';
+﻿import { Component, OnInit, inject } from '@angular/core';
 import { AdminConsoleShellComponent } from '../../components/admin-console-shell.component';
 import { AdminMetricCardComponent, AdminPageHeaderComponent } from '../../shared/components';
+import { AdminUserService, BackendManagedUser } from '../../../../services/admin-user.service';
 
 interface SubscriptionMetric {
   label: string;
@@ -9,6 +10,7 @@ interface SubscriptionMetric {
 }
 
 interface Subscriber {
+  id: string | number;
   initials: string;
   name: string;
   email: string;
@@ -23,27 +25,29 @@ interface Subscriber {
   imports: [AdminConsoleShellComponent, AdminMetricCardComponent, AdminPageHeaderComponent],
   templateUrl: './admin-subscriptions.page.html',
 })
-export class AdminSubscriptionsPage {
+export class AdminSubscriptionsPage implements OnInit {
+  private readonly adminUserService = inject(AdminUserService);
+
   periodLabel = 'Últimos 30 dias';
   searchOpen = false;
   searchTerm = '';
   selectedView: 'requests' | 'subscribers' = 'requests';
 
-  readonly metrics: SubscriptionMetric[] = [
-    { label: 'Total de subscritores', value: '12.450', note: '+12% novos pedidos' },
-    { label: 'Taxa de retenção', value: '97.6%', note: 'Alta fidelidade' },
-    { label: 'Membros ativos', value: '1,842', note: '+45 novos hoje' },
+  loading = false;
+  errorMessage = '';
+
+  metrics: SubscriptionMetric[] = [
+    { label: 'Total de subscritores', value: '0', note: 'Subscrições Jindungo' },
+    { label: 'Pedidos pendentes', value: '0', note: 'Aguardando aprovação' },
+    { label: 'Membros ativos', value: '0', note: 'Com subscrição ativa' },
     { label: 'Textos Jindungo', value: '3', note: 'Com subscritores ativos' },
   ];
 
-  subscribers: Subscriber[] = [
-    { initials: 'AM', name: 'Antonio Manuel', email: 'antonio.m@exemplo.co', status: 'Ativo', joinedAt: '12 Mar, 2024', textTitle: 'O Impacto das Reservas Internacionais no Kwanza' },
-    { initials: 'BS', name: 'Beatriz Santos', email: 'beatriz.s@exemplo.co', status: 'Pendente', joinedAt: '08 Mar, 2024', textTitle: 'Análise do Mercado de Diamantes na Lunda Sul' },
-    { initials: 'JL', name: 'Joao Lourenco', email: 'joao.l@exemplo.co', status: 'Ativo', joinedAt: '25 Mar, 2024', textTitle: 'Análise da Política Monetaria de Angola' },
-    { initials: 'MN', name: 'Mariana Neto', email: 'mariana.n@exemplo.co', status: 'Pendente', joinedAt: '02 Abr, 2024', textTitle: 'O Impacto das Reservas Internacionais no Kwanza' },
-    { initials: 'CL', name: 'Carla Lopes', email: 'carla.l@exemplo.co', status: 'Ativo', joinedAt: '18 Abr, 2024', textTitle: 'Análise do Mercado de Diamantes na Lunda Sul' },
-    { initials: 'ED', name: 'Emanuel Dala', email: 'emanuel.d@exemplo.co', status: 'Ativo', joinedAt: '03 Mai, 2024', textTitle: 'O Impacto das Reservas Internacionais no Kwanza' },
-  ];
+  subscribers: Subscriber[] = [];
+
+  async ngOnInit(): Promise<void> {
+    await this.loadSubscriptions();
+  }
 
   get pendingCount(): number {
     return this.subscribers.filter((subscriber) => subscriber.status === 'Pendente').length;
@@ -76,20 +80,68 @@ export class AdminSubscriptionsPage {
     this.searchTerm = (event.target as HTMLInputElement).value;
   }
 
-  approveSubscription(subscriber: Subscriber): void {
-    subscriber.status = 'Ativo';
+  async approveSubscription(subscriber: Subscriber): Promise<void> {
+    await this.adminUserService.approveJindungoSubscription(subscriber.id);
+    await this.loadSubscriptions();
   }
 
-  expireSubscription(subscriber: Subscriber): void {
-    subscriber.status = 'Expirado';
+  async expireSubscription(subscriber: Subscriber): Promise<void> {
+    await this.adminUserService.rejectJindungoSubscription(subscriber.id);
+    await this.loadSubscriptions();
   }
 
-  rejectSubscription(subscriber: Subscriber): void {
-    subscriber.status = 'Recusado';
+  async rejectSubscription(subscriber: Subscriber): Promise<void> {
+    await this.adminUserService.rejectJindungoSubscription(subscriber.id);
+    await this.loadSubscriptions();
   }
 
-  deleteSubscription(subscriber: Subscriber): void {
-    this.subscribers = this.subscribers.filter((item) => item !== subscriber);
+  async deleteSubscription(subscriber: Subscriber): Promise<void> {
+    await this.rejectSubscription(subscriber);
+  }
+
+  private async loadSubscriptions(): Promise<void> {
+    this.loading = true;
+    this.errorMessage = '';
+
+    try {
+      const result = await this.adminUserService.getAll({ perPage: 200 });
+
+      this.subscribers = result.data
+        .filter((user) => user.jindungo_subscription_requested_at || user.jindungo_subscription_expires_at)
+        .map((user) => this.toSubscriber(user));
+
+      const pending = this.subscribers.filter((item) => item.status === 'Pendente').length;
+      const active = this.subscribers.filter((item) => item.status === 'Ativo').length;
+
+      this.metrics = [
+        { label: 'Total de subscritores', value: String(this.subscribers.length), note: 'Subscrições Jindungo' },
+        { label: 'Pedidos pendentes', value: String(pending), note: 'Aguardando aprovação' },
+        { label: 'Membros ativos', value: String(active), note: 'Com subscrição ativa' },
+        { label: 'Textos Jindungo', value: '3', note: 'Com subscritores ativos' },
+      ];
+    } catch {
+      this.errorMessage = 'Não foi possível carregar as subscrições.';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  private toSubscriber(user: BackendManagedUser): Subscriber {
+    const expiresAt = user.jindungo_subscription_expires_at
+      ? new Date(user.jindungo_subscription_expires_at)
+      : null;
+
+    const isActive = expiresAt !== null && expiresAt.getTime() > Date.now();
+
+    return {
+      id: user.id,
+      initials: this.getInitials(user.name),
+      name: user.name,
+      email: user.email,
+      status: isActive ? 'Ativo' : 'Pendente',
+      joinedAt: this.formatDate(user.jindungo_subscription_requested_at ?? user.created_at),
+      textTitle: 'Subscrição Jindungo',
+    };
   }
 
   private visibleSubscribersByStatus(status: Subscriber['status']): Subscriber[] {
@@ -101,6 +153,28 @@ export class AdminSubscriptionsPage {
     return !query || this.normalize(`${subscriber.name} ${subscriber.email} ${subscriber.textTitle}`).includes(query);
   }
 
+  private getInitials(name: string): string {
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase();
+  }
+
+  private formatDate(value?: string | null): string {
+    if (!value) {
+      return '-';
+    }
+
+    return new Intl.DateTimeFormat('pt-AO', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(new Date(value));
+  }
+
   private normalize(value: string): string {
     return value
       .toLowerCase()
@@ -108,4 +182,3 @@ export class AdminSubscriptionsPage {
       .replace(/[\u0300-\u036f]/g, '');
   }
 }
-

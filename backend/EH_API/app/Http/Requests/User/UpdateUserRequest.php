@@ -24,8 +24,22 @@ class UpdateUserRequest extends FormRequest
                 Rule::unique('users', 'email')->ignore($this->user()?->id),
             ],
             'photo' => ['nullable', 'string'],
+            'avatar_url' => ['nullable', 'string'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ];
+    }
+
+    public function validated($key = null, $default = null)
+    {
+        $validated = parent::validated($key, $default);
+        
+        // Map avatar_url to photo for backend compatibility
+        if (isset($validated['avatar_url']) && !isset($validated['photo'])) {
+            $validated['photo'] = $validated['avatar_url'];
+            unset($validated['avatar_url']);
+        }
+        
+        return $validated;
     }
 }

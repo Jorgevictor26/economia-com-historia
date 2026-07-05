@@ -548,3 +548,73 @@ textarea:focus,
     padding-block: 0.85rem;
   }
 }
+
+.profile-history-tabs {
+  display: grid;
+  gap: 1.5rem;
+  padding: 1.25rem clamp(1rem, 4vw, 2.5rem);
+}
+
+.history-section {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.history-section h3 {
+  color: #5c1e2f;
+  font-size: 0.9rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.history-items {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  background: #f9f9f9;
+  border: 1px solid #e8e8e8;
+  color: #616161;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.history-item:hover {
+  background: #f5f5f5;
+  border-color: #d4aab8;
+  transform: translateX(2px);
+}
+
+.history-item .profile-menu-icon {
+  flex-shrink: 0;
+  color: #5c1e2f;
+  font-size: 1.25rem;
+}
+
+.history-item-content {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.history-item-content strong {
+  color: #5c1e2f;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-item-content small {
+  color: #999;
+  font-size: 0.75rem;
+}

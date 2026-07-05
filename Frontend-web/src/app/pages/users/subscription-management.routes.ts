@@ -2,9 +2,14 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink, Routes } from '@angular/router';
 import { SubscribedJindungoText } from '../../models/subscription.model';
 import { AuthStateService } from '../../services/auth-state.service';
+<<<<<<< HEAD
 import { BackendContent, ContentService } from '../../services/content.service';
 import { normalizeMediaUrl } from '../../services/media-url.util';
 import { SubscriptionService } from '../../services/subscription.service';
+=======
+import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
+>>>>>>> 3450bb942034554fcfdcd48b1d3c76fb011636b6
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
 import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.component';
 
@@ -18,11 +23,16 @@ export class SubscriptionManagementPage implements OnInit {
   readonly subscriptionService = inject(SubscriptionService);
   private readonly contentService = inject(ContentService);
   readonly auth = inject(AuthStateService);
+<<<<<<< HEAD
   readonly jindungoTexts = signal<SubscribedJindungoText[]>([]);
   readonly pendingSubscriptionIds = signal<string[]>([]);
   readonly isLoadingTexts = signal(false);
   readonly textLoadError = signal('');
 
+=======
+  private readonly authService = inject(AuthService);
+  private readonly toastService = inject(ToastService);
+>>>>>>> 3450bb942034554fcfdcd48b1d3c76fb011636b6
   readonly profileMenu = [
     { label: 'Perfil', icon: 'person', route: '/app/profile', active: false },
     { label: 'Histórico', icon: 'history', route: '/app/profile/history', active: false },
@@ -54,7 +64,16 @@ export class SubscriptionManagementPage implements OnInit {
   }
 
   subscribeToJindungo(): void {
-    this.auth.subscribeToJindungo();
+    if (this.auth.hasPremiumAccess() || this.auth.hasPendingJindungoRequest()) {
+      return;
+    }
+    void this.authService.requestJindungoSubscription()
+      .then(() => {
+        this.toastService.success('Pedido de subscrição enviado. Aguarde aprovação do SuperAdmin para ler os textos Jindungo.');
+      })
+      .catch(() => {
+        this.toastService.error('Não foi possível enviar o pedido de subscrição.');
+      });
   }
 
   subscribeToText(text: SubscribedJindungoText): void {

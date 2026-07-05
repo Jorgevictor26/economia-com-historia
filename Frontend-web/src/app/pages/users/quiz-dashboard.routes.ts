@@ -155,19 +155,25 @@ export class QuizDashboardPage {
   }
 
   private async loadFeaturedRanking(): Promise<void> {
-    const quiz = this.featuredQuiz();
-
-    if (!quiz) {
-      this.topFive.set([]);
-      this.rankingTitle.set('Top 5');
-      return;
-    }
-
     this.rankingLoading.set(true);
-    this.rankingTitle.set(`Top 5 - ${quiz.title}`);
+    this.rankingTitle.set('Top 5 Global');
 
     try {
-      this.topFive.set(await this.quizService.getRanking(quiz.id, 5));
+      const global = await this.quizService.getGlobalRanking(5);
+
+      // Map global entries to the local QuizRankingEntry shape used by the sidebar
+      const mapped = global.map((entry) => ({
+        position: entry.position,
+        userId: String(entry.userId),
+        name: entry.name,
+        score: entry.totalScore,
+        earnedXp: entry.totalEarnedXp,
+        durationSeconds: entry.totalDurationSeconds,
+        completedAt: entry.lastCompletedAt ?? null,
+        icon: entry.icon,
+      }));
+
+      this.topFive.set(mapped);
     } catch {
       this.topFive.set([]);
     } finally {

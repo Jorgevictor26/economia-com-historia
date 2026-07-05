@@ -8,6 +8,7 @@ export interface User {
   avatarUrl?: string;
   biography?: string;
   hasPremiumAccess: boolean;
+  hasPendingJindungoRequest?: boolean;
   invitedForumIds?: string[];
   streakDays: number;
 }

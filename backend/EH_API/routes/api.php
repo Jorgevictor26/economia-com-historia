@@ -21,6 +21,7 @@ use App\Http\Controllers\ForumTopicController;
 use App\Http\Controllers\Api\V1\ReactionController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminStatisticsController;
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuizAnswerController;
@@ -46,6 +47,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/quizzes', [QuizController::class, 'index']);
     Route::get('/quizzes/{id}', [QuizController::class, 'show']);
     Route::get('/quizzes/{id}/questions', [QuestionController::class, 'index']);
+    Route::get('/quizzes/{id}/ranking', [QuizAnswerController::class, 'ranking']);
     Route::get('/categories/{id}', [CategoryController::class, 'show']);
     Route::get('/content-types/{id}', [ContentTypeController::class, 'show']);
     Route::get('/comments/content/{contentId}', [CommentController::class, 'indexByContent']);
@@ -61,6 +63,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', LogoutController::class);
         Route::get('/profile', [UserController::class, 'me']);
         Route::put('/profile', [UserController::class, 'updateProfile']);
+        Route::get('/activity/history', [ActivityController::class, 'history']);
         Route::get('/users', [UserController::class, 'index'])
             ->middleware('role:Admin,SuperAdmin');
         Route::post('/users/super-admin', [UserController::class, 'createSuperAdmin'])
@@ -73,6 +76,7 @@ Route::prefix('v1')->group(function () {
             ->middleware('role:SuperAdmin');
         Route::patch('/users/{user}/jindungo-subscription', [UserController::class, 'updateJindungoSubscription'])
             ->middleware('role:SuperAdmin');
+        Route::post('/users/jindungo-subscription/request', [UserController::class, 'requestJindungoSubscription']);
         Route::get('/admin/dashboard', AdminDashboardController::class)
             ->middleware('role:Admin,SuperAdmin');
         Route::get('/admin/statistics', AdminStatisticsController::class)

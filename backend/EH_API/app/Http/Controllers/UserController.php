@@ -21,8 +21,10 @@ class UserController extends Controller
 
     public function me(Request $request)
     {
+        $user = $request->user('sanctum')->load('roles');
+
         return response()->json([
-            'data' => $request->user()->load('roles'),
+            'data' => $user,
         ]);
     }
 
@@ -115,6 +117,16 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Subscrição jindungo atualizada com sucesso',
+            'data' => $user,
+        ]);
+    }
+
+    public function requestJindungoSubscription(Request $request): JsonResponse
+    {
+        $user = $this->users->requestJindungoSubscription($request->user());
+
+        return response()->json([
+            'message' => 'Pedido de subscrição Jindungo registado com sucesso',
             'data' => $user,
         ]);
     }

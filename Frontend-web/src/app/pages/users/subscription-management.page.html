@@ -51,6 +51,7 @@
                 </div>
               </div>
 
+<<<<<<< HEAD
               <div class="mt-5 grid gap-3">
                 @for (request of pendingRequests(); track request.id) {
                   <article class="grid gap-4 rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] p-4 lg:grid-cols-[1fr_auto] lg:items-center">
@@ -71,7 +72,29 @@
                 } @empty {
                   <div class="rounded-[8px] border border-dashed border-[#E0E0E0] bg-[#FAFAFA] p-5 text-center text-sm font-semibold text-[#616161]">
                     Nao existem pedidos pendentes.
+=======
+                <ul class="mt-4 grid gap-2 text-xs text-[#616161]">
+                  @for (feature of plan.features; track feature) {
+                    <li class="flex items-center gap-2">
+                      <span class="grid size-5 place-items-center rounded-full bg-[#5C1E2F] text-[10px] font-bold text-white">+</span>
+                      {{ feature }}
+                    </li>
+                  }
+                </ul>
+
+                @if (plan.id === 'jindungo') {
+                  <div class="mt-5 flex flex-wrap gap-3">
+                    <button type="button" class="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-[#8A3F50] bg-[#8A3F50] px-5 text-xs font-bold text-white shadow-[0_14px_28px_rgb(178_47_84_/_0.18)]" (click)="subscribeToJindungo()" [disabled]="auth.hasPremiumAccess() || auth.hasPendingJindungoRequest()">
+                      {{ auth.hasPremiumAccess() ? 'Já subscrito' : auth.hasPendingJindungoRequest() ? 'Pedido enviado' : 'Subscrever' }}
+                    </button>
+                    <a routerLink="/app/contents" class="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-[#5C1E2F] px-5 text-xs font-bold text-[#5C1E2F]">
+                      Ver mais textos
+                    </a>
+>>>>>>> 3450bb942034554fcfdcd48b1d3c76fb011636b6
                   </div>
+                  @if (auth.hasPendingJindungoRequest() && !auth.hasPremiumAccess()) {
+                    <p class="mt-3 text-[11px] text-[#616161]">Pedido enviado para análise do SuperAdmin. A sua conta será desbloqueada assim que a aprovação for concedida.</p>
+                  }
                 }
               </div>
             </section>

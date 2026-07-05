@@ -19,7 +19,11 @@ class ForumReplyController extends Controller
 
     public function index(Request $request, int $topicId): JsonResponse
     {
-        $replies = $this->service->getByTopic($topicId, $request->only('search'));
+        try {
+            $replies = $this->service->getByTopic($topicId, $request->only('search'), $request->user('sanctum'));
+        } catch (AuthorizationException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 403);
+        }
 
         if (is_null($replies)) {
             return response()->json(['message' => 'Topic not found'], 404);
@@ -30,11 +34,15 @@ class ForumReplyController extends Controller
 
     public function store(ReplyTopicRequest $request, int $topicId): JsonResponse
     {
-        $reply = $this->service->create(new ReplyTopicDTO(
-            $topicId,
-            $request->user()->id,
-            $request->string('reply')->toString()
-        ));
+        try {
+            $reply = $this->service->create(new ReplyTopicDTO(
+                $topicId,
+                $request->user()->id,
+                $request->string('reply')->toString()
+            ));
+        } catch (AuthorizationException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 403);
+        }
 
         if (! $reply) {
             return response()->json(['message' => 'Topic not found'], 404);

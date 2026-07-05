@@ -19,7 +19,11 @@ class ForumTopicController extends Controller
 
     public function index(Request $request, int $forumId): JsonResponse
     {
-        $topics = $this->service->getByForum($forumId, $request->only('search'));
+        try {
+            $topics = $this->service->getByForum($forumId, $request->only('search'), $request->user('sanctum'));
+        } catch (AuthorizationException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 403);
+        }
 
         if (is_null($topics)) {
             return response()->json(['message' => 'Forum not found'], 404);
@@ -30,12 +34,16 @@ class ForumTopicController extends Controller
 
     public function store(StoreTopicRequest $request, int $forumId): JsonResponse
     {
-        $topic = $this->service->create(new CreateTopicDTO(
-            $forumId,
-            $request->user()->id,
-            $request->string('title')->toString(),
-            $request->string('content')->toString()
-        ));
+        try {
+            $topic = $this->service->create(new CreateTopicDTO(
+                $forumId,
+                $request->user()->id,
+                $request->string('title')->toString(),
+                $request->string('content')->toString()
+            ));
+        } catch (AuthorizationException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 403);
+        }
 
         if (! $topic) {
             return response()->json(['message' => 'Forum not found'], 404);
@@ -47,9 +55,13 @@ class ForumTopicController extends Controller
         ], 201);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
-        $topic = $this->service->findById($id);
+        try {
+            $topic = $this->service->findById($id, $request->user('sanctum'));
+        } catch (AuthorizationException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 403);
+        }
 
         if (! $topic) {
             return response()->json(['message' => 'Topic not found'], 404);

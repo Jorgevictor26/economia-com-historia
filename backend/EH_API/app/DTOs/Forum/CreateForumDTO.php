@@ -17,5 +17,6 @@ readonly class CreateForumDTO
         public string $contentPermission = 'public',
         public bool $allowAttachments = false,
         public array $contentIds = [],
+        public array $inviteEmails = [],
     ) {}
 }

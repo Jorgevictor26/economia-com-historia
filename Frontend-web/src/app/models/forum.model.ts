@@ -12,6 +12,8 @@ export interface ForumRoom {
   category?: string;
   objective?: string;
   inviteEmails?: string[];
+  accessStatus?: 'none' | 'pending' | 'invited' | 'member' | 'rejected' | 'invitation_rejected' | string;
+  canView?: boolean;
   protectedByPassword?: boolean;
   linkedContents: ForumLinkedContent[];
 }

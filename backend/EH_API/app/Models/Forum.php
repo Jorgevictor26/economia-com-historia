@@ -48,6 +48,11 @@ class Forum extends Model
         return $this->hasMany(ForumTopic::class);
     }
 
+    public function memberships(): HasMany
+    {
+        return $this->hasMany(ForumMembership::class);
+    }
+
     public function contents()
     {
         return $this->belongsToMany(Content::class, 'content_forum')

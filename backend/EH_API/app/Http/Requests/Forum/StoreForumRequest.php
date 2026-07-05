@@ -26,6 +26,8 @@ class StoreForumRequest extends FormRequest
             'allow_attachments' => ['nullable', 'boolean'],
             'content_ids' => ['nullable', 'array'],
             'content_ids.*' => ['integer', 'exists:contents,id'],
+            'invite_emails' => ['nullable', 'array'],
+            'invite_emails.*' => ['email', 'max:255'],
         ];
     }
 }

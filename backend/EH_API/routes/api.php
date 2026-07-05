@@ -126,6 +126,9 @@ Route::prefix('v1')->group(function () {
 
         // FORUMS
         Route::post('/forums', [ForumController::class, 'store']);
+        Route::post('/forums/{id}/join-request', [ForumController::class, 'requestJoin']);
+        Route::post('/forums/{id}/accept-invitation', [ForumController::class, 'acceptInvitation']);
+        Route::post('/forums/{id}/invite', [ForumController::class, 'invite']);
         Route::post('/forums/{forumId}/topics', [ForumTopicController::class, 'store']);
         Route::put('/topics/{id}', [ForumTopicController::class, 'update']);
         Route::delete('/topics/{id}', [ForumTopicController::class, 'destroy']);

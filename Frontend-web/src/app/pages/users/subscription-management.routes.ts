@@ -36,17 +36,44 @@ export class SubscriptionManagementPage implements OnInit {
     { label: 'Suporte', icon: 'help_outline', route: '/app/profile/support', active: false },
   ];
 
-  readonly subscribedTextIds = computed(() => new Set(this.subscriptionService.subscribedJindungoTexts().map((text) => text.id)));
+  readonly subscribedTextKeys = computed(() => {
+    const keys = new Set<string>();
+
+    for (const text of this.subscriptionService.subscribedJindungoTexts()) {
+      keys.add(String(text.id));
+      keys.add(this.normalize(text.title));
+    }
+
+    return keys;
+  });
   readonly availableJindungoTexts = computed(() =>
     this.jindungoTexts().map((text) => ({
       ...text,
-      status: this.subscribedTextIds().has(text.id)
+      status: this.isSubscribedText(text)
         ? 'subscribed' as const
         : this.pendingSubscriptionIds().includes(text.id)
           ? 'pending' as const
           : 'available' as const,
     })),
   );
+  readonly requestableJindungoTexts = computed(() =>
+    this.availableJindungoTexts().filter((text) => text.status !== 'subscribed'),
+  );
+  readonly activeSubscribedTexts = computed(() => {
+    const textsByKey = new Map<string, SubscribedJindungoText>();
+
+    for (const text of this.subscriptionService.subscribedJindungoTexts()) {
+      textsByKey.set(this.normalize(text.title), text);
+    }
+
+    for (const text of this.availableJindungoTexts()) {
+      if (text.status === 'subscribed') {
+        textsByKey.set(this.normalize(text.title), text);
+      }
+    }
+
+    return Array.from(textsByKey.values());
+  });
   readonly pendingRequests = computed(() =>
     this.subscriptionService.jindungoSubscriptionRequests().filter((request) => request.status === 'pending'),
   );
@@ -63,7 +90,7 @@ export class SubscriptionManagementPage implements OnInit {
   }
 
   subscribeToText(text: SubscribedJindungoText): void {
-    if (this.subscribedTextIds().has(text.id) || this.pendingSubscriptionIds().includes(text.id)) {
+    if (this.isSubscribedText(text) || this.pendingSubscriptionIds().includes(text.id)) {
       return;
     }
 
@@ -140,9 +167,9 @@ export class SubscriptionManagementPage implements OnInit {
       const response = await this.contentService.getAll({ perPage: 60 });
       const texts = response.data.filter((content) => this.isJindungoContent(content));
 
-      this.jindungoTexts.set(texts.length ? texts.map((content) => this.toJindungoText(content)) : this.subscriptionService.subscribedJindungoTexts());
+      this.jindungoTexts.set(texts.length ? texts.map((content) => this.toJindungoText(content)) : this.subscriptionService.jindungoTextCatalog());
     } catch {
-      this.jindungoTexts.set(this.subscriptionService.subscribedJindungoTexts());
+      this.jindungoTexts.set(this.subscriptionService.jindungoTextCatalog());
       this.textLoadError.set('Não foi possível carregar todos os textos Jindungo agora.');
     } finally {
       this.isLoadingTexts.set(false);
@@ -180,6 +207,12 @@ export class SubscriptionManagementPage implements OnInit {
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase()
       .trim();
+  }
+
+  private isSubscribedText(text: SubscribedJindungoText): boolean {
+    const keys = this.subscribedTextKeys();
+
+    return keys.has(String(text.id)) || keys.has(this.normalize(text.title));
   }
 
   private toPlainText(value: string | null | undefined): string {

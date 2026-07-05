@@ -114,13 +114,13 @@
             </div>
             } @else {
             <div class="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              @for (text of availableJindungoTexts(); track text.id) {
+              @for (text of requestableJindungoTexts(); track text.id) {
               <article class="group flex min-h-[320px] flex-col overflow-hidden rounded-[18px] border border-[#E0E0E0] bg-white shadow-[0_16px_40px_rgba(64,8,26,0.07)] transition duration-300 hover:-translate-y-1 hover:border-[#E6D5B8]">
                 <a [routerLink]="text.status === 'subscribed' ? text.route : null" class="flex flex-1 flex-col">
                   <div class="relative h-40 overflow-hidden bg-[#F2E6E9]">
                     <img [src]="text.imageUrl || '/assets/bna-hero.jpg'" [alt]="text.title" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                     <span class="absolute left-4 top-4 rounded-full bg-white/92 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5c1e2f] shadow-sm backdrop-blur">
-                      {{ text.status === 'subscribed' ? 'Subscrito' : text.status === 'pending' ? 'Pendente' : 'Jindungo' }}
+                      {{ text.status === 'pending' ? 'Pendente' : 'Jindungo' }}
                     </span>
                   </div>
                   <div class="flex flex-1 flex-col px-6 pb-5 pt-5">
@@ -129,9 +129,7 @@
                     <p class="mt-3 line-clamp-2 min-h-[48px] text-[13px] leading-6 text-[#616161]">{{ text.excerpt }}</p>
                     <div class="mt-auto flex items-center justify-between gap-3 border-t border-[#E0E0E0] pt-4">
                       <span class="text-xs font-bold text-[#616161]">{{ text.readingMinutes }} min leitura</span>
-                      @if (text.status === 'subscribed') {
-                      <span class="eh-card-action">Ler texto</span>
-                      } @else if (text.status === 'pending') {
+                      @if (text.status === 'pending') {
                       <span class="rounded-[8px] border border-[#E0E0E0] px-4 py-2 text-[11px] font-extrabold text-[#616161]">Aguardando</span>
                       } @else {
                       <button type="button" class="eh-card-action" (click)="$event.preventDefault(); subscribeToText(text)">Subscrever</button>
@@ -140,6 +138,10 @@
                   </div>
                 </a>
               </article>
+              } @empty {
+              <div class="rounded-[8px] border border-dashed border-[#E0E0E0] bg-[#FAFAFA] p-5 text-center text-sm font-semibold text-[#616161] md:col-span-2 xl:col-span-3">
+                Não existem novos textos Jindungo para subscrever agora.
+              </div>
               }
             </div>
             }
@@ -149,7 +151,7 @@
             <h2 class="font-display text-base font-extrabold text-[#5c1e2f]">Já subscritos</h2>
             <p class="mt-2 text-xs text-[#616161]">Textos Jindungo que já estão associados à sua conta.</p>
             <div class="mt-4 grid gap-3 lg:grid-cols-3">
-              @for (text of subscriptionService.subscribedJindungoTexts(); track text.id) {
+              @for (text of activeSubscribedTexts(); track text.id) {
               <a [routerLink]="text.route" class="block rounded-[8px] border border-[#E0E0E0] p-4 hover:border-[#d4af37] hover:bg-[#d4af37]/5">
                 <span class="text-[10px] font-extrabold uppercase tracking-[0.08em] text-[#5C1E2F]">Subscrito em {{ text.subscribedAt }}</span>
                 <h3 class="mt-3 text-sm font-extrabold leading-snug text-[#5c1e2f]">{{ text.title }}</h3>

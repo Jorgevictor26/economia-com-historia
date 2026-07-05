@@ -319,6 +319,18 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
       return;
     }
 
+    if (payload.operation === 'subscrever ao Jindungo') {
+      if (!this.auth.isAuthenticated()) {
+        this.auth.requireLoginFor('subscrever ao Jindungo');
+        return;
+      }
+
+      await this.router.navigate(['/app/subscriptions'], {
+        queryParams: { contentId: payload.content.id },
+      });
+      return;
+    }
+
     this.auth.requireLoginFor(payload.operation);
   }
 
@@ -763,6 +775,14 @@ export class ContentDetailPage implements OnDestroy {
     try {
       const content = await this.contentService.getById(id);
       const detail = this.toContentDetail(content);
+
+      if (detail.premium && !this.auth.canReadJindungo()) {
+        await this.router.navigate(['/app/subscriptions'], {
+          queryParams: { contentId: detail.id },
+        });
+        return;
+      }
+
       this.detail.set(detail);
       this.reactionCount.set(detail.reactionsCount);
       this.shareCount.set(detail.sharesCount);
@@ -773,6 +793,11 @@ export class ContentDetailPage implements OnDestroy {
       ]);
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.status === 403) {
+        await this.router.navigate(['/app/subscriptions'], {
+          queryParams: { contentId: id },
+        });
+        return;
+
         this.isJindungoBlocked.set(true);
         this.jindungoBlockedMessage.set(
           'Este texto com Jindungo exige uma subscrição ativa. Subscreva e aguarde aprovação do SuperAdmin para desbloquear o artigo.',

@@ -46,6 +46,26 @@ export class SubscriptionService {
     },
   ]);
 
+  readonly jindungoTextCatalog = signal<SubscribedJindungoText[]>([
+    ...this.subscribedJindungoTexts(),
+    {
+      id: 'petroleo-divida-publica',
+      title: 'Petróleo, Dívida Pública e o Orçamento Geral do Estado',
+      excerpt: 'Uma leitura sobre receitas petrolíferas, despesa pública e escolhas fiscais em Angola.',
+      subscribedAt: '',
+      readingMinutes: 13,
+      route: '/app/contents/petroleo-divida-publica',
+    },
+    {
+      id: 'inflacao-cesta-basica',
+      title: 'Inflação e Cesta Básica nas Famílias Angolanas',
+      excerpt: 'Como a variação de preços altera consumo, poupança e prioridades domésticas.',
+      subscribedAt: '',
+      readingMinutes: 11,
+      route: '/app/contents/inflacao-cesta-basica',
+    },
+  ]);
+
   readonly jindungoSubscriptionRequests = signal<JindungoSubscriptionRequest[]>([
     {
       id: 'req-1',

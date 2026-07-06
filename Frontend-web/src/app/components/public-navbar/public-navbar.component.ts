@@ -185,6 +185,9 @@ export class PublicNavbarComponent implements OnInit {
   navItems(): Array<{ label: string; route: string; exact: boolean }> {
     if (this.auth.isAuthenticated()) {
       return [
+        ...(this.auth.canManagePlatform()
+          ? [{ label: 'Painel', route: '/admin', exact: false }]
+          : []),
         { label: 'Home', route: this.homeRoute(), exact: true },
         { label: 'Conteúdo', route: '/app/contents', exact: false },
         { label: 'Favoritos', route: '/app/favorites', exact: false },

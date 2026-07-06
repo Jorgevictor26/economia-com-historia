@@ -16,6 +16,12 @@ class UpdateForumRequest extends FormRequest
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'rules' => ['nullable', 'string'],
+            'category' => ['nullable', 'string', 'max:120'],
+            'visibility' => ['sometimes', 'in:public,private'],
+            'access_code' => ['nullable', 'string', 'max:80'],
+            'join_approval_required' => ['sometimes', 'boolean'],
+            'content_permission' => ['sometimes', 'in:public,subscribers'],
             'artifacts' => ['sometimes', 'array', 'max:8'],
             'artifacts.*.id' => ['required_with:artifacts', 'string', 'max:255'],
             'artifacts.*.name' => ['required_with:artifacts', 'string', 'max:255'],

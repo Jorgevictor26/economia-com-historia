@@ -36,6 +36,13 @@ export interface BackendContent {
   author_photo?: string | null;
   author_photo_url?: string | null;
   authorPhotoUrl?: string | null;
+  user_photo?: string | null;
+  user_photo_url?: string | null;
+  userPhotoUrl?: string | null;
+  photo?: string | null;
+  avatar?: string | null;
+  avatar_url?: string | null;
+  avatarUrl?: string | null;
   category?: BackendRelation | null;
   content_type?: BackendRelation | null;
   reactions_count?: number | string;

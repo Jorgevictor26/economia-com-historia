@@ -16,6 +16,7 @@ import { ReactionService } from '../../../services/reaction.service';
 import { SavedContentService } from '../../../services/saved-content.service';
 import { SharePlatform, ShareService } from '../../../services/share.service';
 import { ToastService } from '../../../services/toast.service';
+import { ContentSubscriptionService } from '../../../services/content-subscription.service';
 import { SubscriptionService } from '../../../services/subscription.service';
 import { normalizeMediaUrl } from '../../../services/media-url.util';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
@@ -41,6 +42,7 @@ interface ContentDetail {
   authorBio?: string;
   imageUrl?: string;
   premium: boolean;
+  canReadPremium?: boolean;
   reactionsCount: number;
   commentsCount: number;
   sharesCount: number;
@@ -132,6 +134,13 @@ function contentAuthorPhotoUrl(content: BackendContent): string | undefined {
     content.author_photo_url
       ?? content.authorPhotoUrl
       ?? content.author_photo
+      ?? content.user_photo
+      ?? content.user_photo_url
+      ?? content.userPhotoUrl
+      ?? content.photo
+      ?? content.avatar_url
+      ?? content.avatarUrl
+      ?? content.avatar
       ?? author?.photo
       ?? author?.avatar_url
       ?? author?.avatarUrl
@@ -167,6 +176,7 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
   private readonly savedContentService = inject(SavedContentService);
   private readonly shareService = inject(ShareService);
   private readonly toastService = inject(ToastService);
+  private readonly contentSubscriptionService = inject(ContentSubscriptionService);
   private readonly subscriptionService = inject(SubscriptionService);
   readonly confirmService = inject(ConfirmService);
   private loadRequestId = 0;
@@ -195,6 +205,7 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
   readonly jindungoPromptTarget = signal<ContentListItem | null>(null);
   readonly jindungoPromptFeedback = signal('');
   readonly isRequestingJindungo = signal(false);
+  readonly approvedJindungoContentIds = signal<Set<string>>(new Set());
   private toastTimeout?: ReturnType<typeof setTimeout>;
   readonly shareUrl = computed(() => {
     const content = this.shareContentTarget();
@@ -348,7 +359,45 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
     this.isRequestingJindungo.set(false);
   }
 
-  requestJindungoSubscription(): void {
+  async requestJindungoSubscription(): Promise<void> {
+    const content = this.jindungoPromptTarget();
+    const user = this.auth.user();
+
+    if (!content) {
+      return;
+    }
+
+    if (!user) {
+      this.auth.requireLoginFor('subscrever ao Jindungo');
+      return;
+    }
+
+    this.isRequestingJindungo.set(true);
+
+    try {
+      const subscription = await this.contentSubscriptionService.request(content.id);
+
+      if (subscription.status === 'approved') {
+        this.approvedJindungoContentIds.update((ids) => new Set(ids).add(String(content.id)));
+        this.contents.update((items) =>
+          items.map((item) => item.id === content.id ? { ...item, canReadPremium: true } : item),
+        );
+        this.jindungoPromptFeedback.set('Subscrição aprovada. O texto já está desbloqueado nos conteúdos.');
+        this.showToast('Texto com Jindungo desbloqueado.', 'success');
+        return;
+      }
+
+      this.jindungoPromptFeedback.set('O seu pedido está a ser processado. Aguarde a aprovação para aceder a este texto.');
+      this.showToast('Pedido de subscrição enviado para processamento.', 'success');
+    } catch {
+      this.jindungoPromptFeedback.set('Não foi possível enviar o pedido de subscrição.');
+      this.showToast('Não foi possível enviar o pedido de subscrição.', 'error');
+    } finally {
+      this.isRequestingJindungo.set(false);
+    }
+  }
+
+  private legacyRequestJindungoSubscription(): void {
     const content = this.jindungoPromptTarget();
     const user = this.auth.user();
 
@@ -632,6 +681,7 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
       sharesCount: contentSharesCount(content),
       likedByMe: Boolean(content.liked_by_me),
       searchText: content.content || '',
+      canReadPremium: !premium || this.canReadJindungoContent(content),
     };
   }
 
@@ -641,6 +691,7 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
     this.isLoadingContents.set(true);
 
     try {
+      await this.loadApprovedJindungoContentIds();
       const response = await this.contentService.getAll({
         page,
         perPage: 9,
@@ -703,7 +754,34 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
         ? new Intl.DateTimeFormat('pt-AO', { day: '2-digit', month: 'short', year: 'numeric' }).format(date)
         : 'Sem data';
 
-    return `${formattedDate} - ${contentType}`;
+    return formattedDate;
+  }
+
+  private async loadApprovedJindungoContentIds(): Promise<void> {
+    if (!this.auth.isAuthenticated() || this.auth.canReadJindungo()) {
+      this.approvedJindungoContentIds.set(new Set());
+      return;
+    }
+
+    try {
+      const subscriptions = await this.contentSubscriptionService.mine();
+      this.approvedJindungoContentIds.set(
+        new Set(
+          subscriptions
+            .filter((subscription) => subscription.status === 'approved')
+            .map((subscription) => String(subscription.content_id)),
+        ),
+      );
+    } catch {
+      this.approvedJindungoContentIds.set(new Set());
+    }
+  }
+
+  private canReadJindungoContent(content: BackendContent): boolean {
+    return this.auth.canReadJindungo()
+      || Boolean(content.can_access)
+      || content.subscription_status === 'approved'
+      || this.approvedJindungoContentIds().has(String(content.id));
   }
 
   private getInitials(name: string): string {
@@ -802,6 +880,11 @@ export class ContentDetailPage implements OnDestroy {
 
     const routeId = String(this.route.snapshot.params['id'] ?? '').toLowerCase();
     return routeId.includes('jindungo');
+  });
+  readonly canReadCurrentPremium = computed(() => {
+    const detail = this.detail();
+
+    return this.auth.canReadJindungo() || Boolean(detail?.canReadPremium);
   });
   readonly isEditMode = computed(() => this.route.snapshot.url.some((segment) => segment.path === 'edit'));
   readonly canManageDetail = computed(() => {
@@ -1452,6 +1535,7 @@ export class ContentDetailPage implements OnDestroy {
       authorBio: content.author?.bio || content.user?.bio || undefined,
       imageUrl: normalizeMediaUrl(content.image_url, { contentId: content.id, mediaType: 'image' }),
       premium: contentTypeSlug === 'jindungo',
+      canReadPremium: contentTypeSlug !== 'jindungo' || this.canReadJindungoContent(content),
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
       sharesCount: contentSharesCount(content),
@@ -1489,6 +1573,7 @@ export class ContentDetailPage implements OnDestroy {
       authorPhotoUrl: contentAuthorPhotoUrl(content) ?? this.authenticatedAuthorPhotoUrl(authorId),
       imageUrl: normalizeMediaUrl(content.image_url, { contentId: content.id, mediaType: 'image' }),
       premium: this.normalizeText(content.content_type?.slug ?? contentType) === 'jindungo',
+      canReadPremium: this.normalizeText(content.content_type?.slug ?? contentType) !== 'jindungo' || this.canReadJindungoContent(content),
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
       sharesCount: contentSharesCount(content),
@@ -1511,7 +1596,7 @@ export class ContentDetailPage implements OnDestroy {
         ? new Intl.DateTimeFormat('pt-AO', { day: '2-digit', month: 'short', year: 'numeric' }).format(date)
         : 'Sem data';
 
-    return `${formattedDate} - ${contentType}`;
+    return formattedDate;
   }
 
   private normalizeText(value: string): string {
@@ -1519,6 +1604,12 @@ export class ContentDetailPage implements OnDestroy {
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  private canReadJindungoContent(content: BackendContent): boolean {
+    return this.auth.canReadJindungo()
+      || Boolean(content.can_access)
+      || content.subscription_status === 'approved';
   }
 
   private detailOwnerId(content: BackendContent): string | undefined {
@@ -2285,6 +2376,7 @@ export class VideoContentDetailPage implements OnDestroy {
       authorPhotoUrl: contentAuthorPhotoUrl(content) ?? this.authenticatedAuthorPhotoUrl(authorId),
       imageUrl: normalizeMediaUrl(content.image_url, { contentId: content.id, mediaType: 'image' }),
       premium: this.normalizeText(content.content_type?.slug ?? contentType) === 'jindungo',
+      canReadPremium: this.normalizeText(content.content_type?.slug ?? contentType) !== 'jindungo' || this.canReadJindungoContent(content),
       reactionsCount: Number(content.reactions_count ?? 0),
       commentsCount: Number(content.comments_count ?? 0),
       sharesCount: contentSharesCount(content),
@@ -2300,7 +2392,7 @@ export class VideoContentDetailPage implements OnDestroy {
         ? new Intl.DateTimeFormat('pt-AO', { day: '2-digit', month: 'short', year: 'numeric' }).format(date)
         : 'Sem data';
 
-    return `${formattedDate} - ${contentType}`;
+    return formattedDate;
   }
 
   private formatCommentDate(value: string | null | undefined): string {
@@ -2340,6 +2432,12 @@ export class VideoContentDetailPage implements OnDestroy {
 
   private normalizeText(value: string): string {
     return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  }
+
+  private canReadJindungoContent(content: BackendContent): boolean {
+    return this.auth.canReadJindungo()
+      || Boolean(content.can_access)
+      || content.subscription_status === 'approved';
   }
 
   private videoOwnerId(content: BackendContent): string | undefined {

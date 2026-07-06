@@ -136,7 +136,7 @@ class ForumService
         return $this->accessStatus($forum, $user) === ForumMembership::STATUS_MEMBER;
     }
 
-    public function update(int $id, UpdateForumDTO $dto): ?Forum
+    public function update(int $id, UpdateForumDTO $dto, User $user): ?Forum
     {
         $forum = $this->repository->findById($id, false);
 
@@ -144,16 +144,25 @@ class ForumService
             return null;
         }
 
-        return $this->repository->update($forum, $dto->toArray());
+        $this->ensureCanManageForum($forum, $user);
+
+        $data = $dto->toArray();
+        if (($data['visibility'] ?? $forum->visibility) === 'private' && empty($data['access_code']) && empty($forum->access_code)) {
+            $data['access_code'] = $this->generateAccessCode();
+        }
+
+        return $this->repository->update($forum, $data);
     }
 
-    public function delete(int $id): bool
+    public function delete(int $id, User $user): bool
     {
         $forum = $this->repository->findById($id, false);
 
         if (! $forum) {
             return false;
         }
+
+        $this->ensureCanManageForum($forum, $user);
 
         return $this->repository->delete($forum);
     }
@@ -226,6 +235,15 @@ class ForumService
         }
 
         return $this->decorateForum($forum->fresh(['user', 'reviewer', 'contents.category', 'contents.contentType', 'memberships']), $user);
+    }
+
+    private function ensureCanManageForum(Forum $forum, User $user): void
+    {
+        if ((int) $forum->user_id === (int) $user->id || $user->isAdminOrSuperAdmin()) {
+            return;
+        }
+
+        throw new AccessDeniedHttpException('You cannot manage this forum');
     }
 
     private function decorateForums(Collection $forums, ?User $user): Collection

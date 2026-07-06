@@ -137,6 +137,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/forums/{id}/join-request', [ForumController::class, 'requestJoin']);
         Route::post('/forums/{id}/accept-invitation', [ForumController::class, 'acceptInvitation']);
         Route::post('/forums/{id}/invite', [ForumController::class, 'invite']);
+        Route::put('/forums/{id}', [ForumController::class, 'update']);
+        Route::delete('/forums/{id}', [ForumController::class, 'destroy']);
         Route::post('/forums/{forumId}/topics', [ForumTopicController::class, 'store']);
         Route::put('/topics/{id}', [ForumTopicController::class, 'update']);
         Route::delete('/topics/{id}', [ForumTopicController::class, 'destroy']);
@@ -163,8 +165,6 @@ Route::prefix('v1')->group(function () {
             Route::get('/forum-approvals', [ForumController::class, 'moderationIndex']);
             Route::patch('/forums/{id}/approve', [ForumController::class, 'approve']);
             Route::patch('/forums/{id}/reject', [ForumController::class, 'reject']);
-            Route::put('/forums/{id}', [ForumController::class, 'update']);
-            Route::delete('/forums/{id}', [ForumController::class, 'destroy']);
         });
 
         Route::middleware('role:Admin,SuperAdmin,Writer')->group(function () {

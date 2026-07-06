@@ -12,8 +12,20 @@ export class ContentCardComponent {
   @Input() canReadPremium = false;
   @Output() contentAction = new EventEmitter<{ event: Event; operation: string; content: ContentListItem }>();
 
+  get isPremiumUnlocked(): boolean {
+    return this.canReadPremium || Boolean(this.content.canReadPremium);
+  }
+
+  get primaryBadgeLabel(): string {
+    return this.content.category || this.content.contentType;
+  }
+
+  get showContentTypeBadge(): boolean {
+    return !this.content.premium && this.normalize(this.content.contentType) !== this.normalize(this.content.category);
+  }
+
   get contentRoute(): unknown[] {
-    if (this.content.premium && !this.canReadPremium) {
+    if (this.content.premium && !this.isPremiumUnlocked) {
       return ['/app/contents', this.content.id];
     }
 
@@ -29,7 +41,7 @@ export class ContentCardComponent {
   }
 
   handleContentOpen(event: Event): void {
-    if (!this.content.premium || this.canReadPremium) {
+    if (!this.content.premium || this.isPremiumUnlocked) {
       return;
     }
 

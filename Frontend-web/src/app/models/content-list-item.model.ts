@@ -11,6 +11,7 @@ export interface ContentListItem {
   ownerId?: string;
   imageUrl?: string;
   premium?: boolean;
+  canReadPremium?: boolean;
   reactionsCount?: number;
   commentsCount?: number;
   sharesCount?: number;

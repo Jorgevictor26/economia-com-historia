@@ -8,28 +8,32 @@
           [src]="content.imageUrl"
           [alt]="content.title"
           class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-          [class.brightness-[0.55]]="content.premium && !canReadPremium"
+          [class.brightness-[0.55]]="content.premium && !isPremiumUnlocked"
         />
       } @else {
         <div class="default-category-cover">
           <span>
-            <strong>{{ content.premium ? 'Jindungo' : content.category }}</strong>
+            <strong>{{ primaryBadgeLabel }}</strong>
+            @if (showContentTypeBadge) {
             <small>{{ content.contentType }}</small>
+            }
           </span>
         </div>
       }
 
       <div class="absolute left-4 top-4 flex flex-wrap gap-2">
         <span class="rounded-full bg-white/92 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#5c1e2f] shadow-sm backdrop-blur">
-          {{ content.premium ? 'Jindungo' : content.category }}
+          {{ primaryBadgeLabel }}
         </span>
 
+        @if (showContentTypeBadge) {
         <span class="rounded-full bg-[#F2E6E9]/95 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#D4AF37] shadow-sm backdrop-blur">
           {{ content.contentType }}
         </span>
+        }
       </div>
 
-      @if (content.premium && !canReadPremium) {
+      @if (content.premium && !isPremiumUnlocked) {
         <div class="absolute inset-0 grid place-items-center bg-[#5C1E2F]/16">
           <div class="grid size-[58px] place-items-center rounded-[8px] bg-white/95 shadow-lg">
             <img src="/assets/icons/lock.png" alt="Bloqueado" class="h-7 w-7 object-contain" />
@@ -92,12 +96,11 @@
       </span>
     </div>
 
-    @if (content.premium && !canReadPremium) {
+    @if (content.premium && !isPremiumUnlocked) {
       <button
         type="button"
         class="eh-card-action mt-4 w-full gap-2"
         (click)="contentAction.emit({ event: $event, operation: 'subscrever ao Jindungo', content })">
-        <img src="/assets/icons/lock.png" alt="" class="h-4 w-4" />
         Subscrever
       </button>
     }

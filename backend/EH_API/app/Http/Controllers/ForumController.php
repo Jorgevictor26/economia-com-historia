@@ -100,11 +100,23 @@ class ForumController extends Controller
         $forum = $this->service->update($id, new UpdateForumDTO(
             $request->has('name') ? $request->string('name')->toString() : null,
             $request->has('description') ? $request->input('description') : null,
+            $request->has('rules') ? $request->input('rules') : null,
+            $request->has('category') ? $request->input('category') : null,
+            $request->has('visibility') ? $request->input('visibility') : null,
+            $request->has('access_code') ? $request->input('access_code') : null,
+            $request->has('join_approval_required') ? (bool) $request->boolean('join_approval_required') : null,
+            $request->has('content_permission') ? $request->input('content_permission') : null,
             $request->has('artifacts') ? $request->input('artifacts', []) : null,
             $request->has('name'),
             $request->has('description'),
+            $request->has('rules'),
+            $request->has('category'),
+            $request->has('visibility'),
+            $request->has('access_code'),
+            $request->has('join_approval_required'),
+            $request->has('content_permission'),
             $request->has('artifacts')
-        ));
+        ), $request->user());
 
         if (! $forum) {
             return response()->json(['message' => 'Forum not found'], 404);
@@ -116,9 +128,9 @@ class ForumController extends Controller
         ]);
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, int $id): JsonResponse
     {
-        if (! $this->service->delete($id)) {
+        if (! $this->service->delete($id, $request->user())) {
             return response()->json(['message' => 'Forum not found'], 404);
         }
 

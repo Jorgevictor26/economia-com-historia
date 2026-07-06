@@ -63,8 +63,8 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final contentWidth = screenWidth > 480 ? 420.0 : screenWidth * 0.88;
+    final horizontalPadding = authPageHorizontalPadding(context);
+    final contentWidth = authContentWidth(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -77,7 +77,10 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
                 MediaQuery.of(context).padding.bottom,
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: 32,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [

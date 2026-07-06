@@ -100,14 +100,14 @@ class _ReporPalavraPasseScreenState extends State<ReporPalavraPasseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final contentWidth = screenWidth > 480 ? 420.0 : screenWidth * 0.88;
+    final horizontalPadding = authPageHorizontalPadding(context);
+    final contentWidth = authContentWidth(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight:

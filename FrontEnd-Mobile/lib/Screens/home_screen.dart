@@ -133,11 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 totalForuns: _forums.length,
               ),
               const SizedBox(height: 28),
-              _SectionHeader(
-                title: 'Continuar a Estudar',
-                actionLabel: 'Ver tudo',
-                onAction: () {},
-              ),
+              const _SectionHeader(title: 'Continuar a Estudar'),
               const SizedBox(height: 14),
               if (recentes.isEmpty)
                 const EmptyState(message: 'Ainda não há conteúdos disponíveis.')
@@ -167,11 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 allowDeselect: true,
               ),
               const SizedBox(height: 28),
-              _SectionHeader(
-                title: 'Em Destaque',
-                actionLabel: 'Ver tudo',
-                onAction: () {},
-              ),
+              const _SectionHeader(title: 'Em Destaque'),
               const SizedBox(height: 14),
               if (destaques.isEmpty)
                 const EmptyState(message: 'Ainda não há destaques disponíveis.')
@@ -325,13 +317,13 @@ class _SessionCard extends StatelessWidget {
 
 class _SectionHeader extends StatelessWidget {
   final String title;
-  final String actionLabel;
-  final VoidCallback onAction;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   const _SectionHeader({
     required this.title,
-    required this.actionLabel,
-    required this.onAction,
+    this.actionLabel,
+    this.onAction,
   });
 
   @override
@@ -347,27 +339,28 @@ class _SectionHeader extends StatelessWidget {
             color: AppColors.primary,
           ),
         ),
-        GestureDetector(
-          onTap: onAction,
-          child: Row(
-            children: [
-              Text(
-                actionLabel,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
+        if (actionLabel != null && onAction != null)
+          GestureDetector(
+            onTap: onAction,
+            child: Row(
+              children: [
+                Text(
+                  actionLabel!,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 15,
                   color: AppColors.primary,
                 ),
-              ),
-              const SizedBox(width: 4),
-              const Icon(
-                Icons.arrow_forward_rounded,
-                size: 15,
-                color: AppColors.primary,
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
       ],
     );
   }

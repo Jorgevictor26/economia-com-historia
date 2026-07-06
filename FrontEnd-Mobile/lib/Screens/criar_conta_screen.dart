@@ -139,20 +139,29 @@ class _CriarContaScreenState extends State<CriarContaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final horizontalPadding = authPageHorizontalPadding(context);
+    final contentWidth = authContentWidth(context);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: 32,
+          ),
+          child: Center(
+            child: SizedBox(
+              width: contentWidth,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 16),
               const AuthHeader(title: 'Bem-Vindo a\nEconomia com História'),
               const SizedBox(height: 32),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.symmetric(vertical: 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -340,7 +349,9 @@ class _CriarContaScreenState extends State<CriarContaScreen> {
               const SizedBox(height: 32),
               const FooterSection(),
               const SizedBox(height: 16),
-            ],
+                ],
+              ),
+            ),
           ),
         ),
       ),

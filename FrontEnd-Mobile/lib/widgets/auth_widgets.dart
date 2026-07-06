@@ -2,6 +2,19 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import 'package:flutter/gestures.dart';
 
+double authPageHorizontalPadding(BuildContext context) {
+  final width = MediaQuery.of(context).size.width;
+  if (width < 360) return 16;
+  if (width < 600) return 20;
+  return 32;
+}
+
+double authContentWidth(BuildContext context) {
+  final width = MediaQuery.of(context).size.width;
+  final available = width - (authPageHorizontalPadding(context) * 2);
+  return available > 460 ? 460 : available;
+}
+
 class AuthHeader extends StatelessWidget {
   final String title;
 
@@ -96,8 +109,8 @@ class AppTextField extends StatelessWidget {
         suffixIcon: suffixIcon,
 
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+          horizontal: 18,
+          vertical: 17,
         ),
 
         filled: true,

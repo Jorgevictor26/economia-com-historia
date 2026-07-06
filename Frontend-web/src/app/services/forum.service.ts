@@ -74,6 +74,23 @@ export interface BackendForumReply {
   } | null;
 }
 
+export interface BackendForumMembership {
+  id: number | string;
+  forum_id: number | string;
+  user_id?: number | string | null;
+  email?: string | null;
+  status: 'pending' | 'invited' | 'member' | 'rejected' | string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  responded_at?: string | null;
+  user?: {
+    id: number | string;
+    name: string;
+    email?: string | null;
+    photo?: string | null;
+  } | null;
+}
+
 export interface CreateForumPayload {
   name: string;
   description?: string | null;
@@ -139,6 +156,26 @@ export class ForumService {
 
   async invite(id: number | string, emails: string[]): Promise<BackendForum> {
     const response = await firstValueFrom(this.http.post<{ data: BackendForum }>(`/forums/${id}/invite`, { emails }));
+
+    return response.data;
+  }
+
+  async getPendingMembers(id: number | string): Promise<BackendForumMembership[]> {
+    return firstValueFrom(this.http.get<BackendForumMembership[]>(`/forums/${id}/join-requests`));
+  }
+
+  async approveMember(id: number | string, membershipId: number | string): Promise<BackendForumMembership> {
+    const response = await firstValueFrom(
+      this.http.patch<{ data: BackendForumMembership }>(`/forums/${id}/join-requests/${membershipId}/approve`, {}),
+    );
+
+    return response.data;
+  }
+
+  async rejectMember(id: number | string, membershipId: number | string): Promise<BackendForumMembership> {
+    const response = await firstValueFrom(
+      this.http.patch<{ data: BackendForumMembership }>(`/forums/${id}/join-requests/${membershipId}/reject`, {}),
+    );
 
     return response.data;
   }

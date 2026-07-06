@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { UserRole } from '../../../../models/user.model';
 import { AdminUserService, BackendManagedUser } from '../../../../services/admin-user.service';
 import { AuthStateService } from '../../../../services/auth-state.service';
@@ -36,7 +36,7 @@ interface UserTab {
   imports: [AdminConsoleShellComponent, AdminPageHeaderComponent],
   templateUrl: './admin-users.page.html',
 })
-export class AdminUsersPage {
+export class AdminUsersPage implements OnInit {
   readonly auth = inject(AuthStateService);
   private readonly adminUsers = inject(AdminUserService);
   private readonly toastService = inject(ToastService);
@@ -53,7 +53,7 @@ export class AdminUsersPage {
   isSaving = false;
   loadError = '';
 
-  constructor() {
+  ngOnInit(): void {
     void this.loadUsers();
   }
 

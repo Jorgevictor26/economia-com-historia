@@ -479,6 +479,13 @@
             </p>
 
             <div class="mt-5 grid gap-4">
+              @if (isLoadingPendingMembers()) {
+              <div class="rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] p-4 text-center">
+                <p class="text-[12px] font-semibold text-[#616161]">
+                  A carregar pedidos...
+                </p>
+              </div>
+              } @else {
               @for (member of pendingMembers(); track member.id) {
               <article
                 class="flex items-center justify-between gap-4 rounded-[8px] border border-[#E0E0E0] bg-[#FAFAFA] p-4">
@@ -497,6 +504,11 @@
                     <p class="text-[11px] text-[#9E9E9E]">
                       Solicitou acesso {{ member.requestedAt }}
                     </p>
+                    @if (member.email) {
+                    <p class="mt-1 text-[11px] text-[#9E9E9E]">
+                      {{ member.email }}
+                    </p>
+                    }
                   </div>
                 </div>
 
@@ -519,6 +531,7 @@
                   Não existem pedidos pendentes.
                 </p>
               </div>
+              }
               }
             </div>
           </section>

@@ -26,6 +26,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   bool _isLoadingResults = true;
   String? _error;
   List<UserQuizResult> _results = [];
+  QuizUserStats _stats = QuizUserStats.empty;
 
   @override
   void initState() {
@@ -48,14 +49,20 @@ class _PerfilScreenState extends State<PerfilScreen> {
     try {
       await perfil.carregarPerfil();
       var results = <UserQuizResult>[];
+      var stats = QuizUserStats.empty;
       try {
-        final response = await _quizService.getMyResults();
-        results = response.data;
+        final response = await _quizService.getMyResultsWithStats();
+        results = response.results.data;
+        stats = response.stats;
       } on NotFoundException {
         results = [];
+        stats = QuizUserStats.empty;
       }
       if (!mounted) return;
-      setState(() => _results = results);
+      setState(() {
+        _results = results;
+        _stats = stats;
+      });
     } on AppException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
@@ -145,7 +152,11 @@ class _PerfilScreenState extends State<PerfilScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const _EstatisticasCard(),
+                    _EstatisticasCard(
+                      stats: _stats,
+                      isLoading: _isLoadingResults,
+                      hasError: _error != null,
+                    ),
                     const SizedBox(height: 24),
                     const Text(
                       'Resultados de Quiz',
@@ -274,28 +285,76 @@ class _CabecalhoPerfil extends StatelessWidget {
 }
 
 class _EstatisticasCard extends StatelessWidget {
-  const _EstatisticasCard();
+  final QuizUserStats stats;
+  final bool isLoading;
+  final bool hasError;
+
+  const _EstatisticasCard({
+    required this.stats,
+    required this.isLoading,
+    required this.hasError,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final ranking = stats.rankingPosition == null
+        ? 'Sem ranking'
+        : '#${stats.rankingPosition}';
+    final level = stats.level?.trim().isNotEmpty == true
+        ? stats.level!.trim()
+        : _levelFromXp(stats.totalXp);
+    final points = '${stats.totalXp}';
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.line),
       ),
-      child: const IntrinsicHeight(
+      child: IntrinsicHeight(
         child: Row(
           children: [
-            _StatItem(label: 'RANKING', valor: '--', sublabel: 'Geral'),
-            VerticalDivider(color: AppColors.line, width: 1),
-            _StatItem(label: 'NÍVEL', valor: 'Nível 1', sublabel: 'Académico'),
-            VerticalDivider(color: AppColors.line, width: 1),
-            _StatItem(label: 'PONTOS', valor: '0', sublabel: 'XP'),
+            _StatItem(
+              label: 'RANKING',
+              valor: isLoading
+                  ? '...'
+                  : hasError
+                  ? 'Indisp.'
+                  : ranking,
+              sublabel: 'Geral',
+            ),
+            const VerticalDivider(color: AppColors.line, width: 1),
+            _StatItem(
+              label: 'NÍVEL',
+              valor: isLoading
+                  ? '...'
+                  : hasError
+                  ? 'Indisp.'
+                  : level,
+              sublabel: 'Académico',
+            ),
+            const VerticalDivider(color: AppColors.line, width: 1),
+            _StatItem(
+              label: 'PONTOS',
+              valor: isLoading
+                  ? '...'
+                  : hasError
+                  ? 'Indisp.'
+                  : points,
+              sublabel: 'XP',
+            ),
           ],
         ),
       ),
     );
+  }
+
+  String _levelFromXp(int totalXp) {
+    if (totalXp >= 2000) return 'Nível 5';
+    if (totalXp >= 1000) return 'Nível 4';
+    if (totalXp >= 500) return 'Nível 3';
+    if (totalXp >= 100) return 'Nível 2';
+    return 'Nível 1';
   }
 }
 

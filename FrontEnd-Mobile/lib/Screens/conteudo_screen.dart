@@ -41,6 +41,7 @@ class _ConteudoScreenState extends State<ConteudoScreen> {
   bool _isSharing = false;
   bool _isUpdatingProgress = false;
   bool _isAccessBlocked = false;
+  bool _isRequestingSubscription = false;
   bool _commentsExpanded = false;
   bool _isLoadingComments = false;
   bool _isSendingComment = false;
@@ -480,6 +481,30 @@ class _ConteudoScreenState extends State<ConteudoScreen> {
     );
   }
 
+  Future<void> _requestJindungoSubscription() async {
+    final contentId =
+        (_content ?? widget.initialContent)?.id ?? widget.contentId;
+    if (contentId == null || _isRequestingSubscription) return;
+
+    setState(() => _isRequestingSubscription = true);
+    try {
+      await _service.requestContentSubscription(contentId);
+      if (!mounted) return;
+      _showSnackBar(
+        'Pedido de subscrição enviado. O acesso ficará disponível após aprovação.',
+      );
+      await _load();
+    } on AppException catch (e) {
+      if (mounted) _showSnackBar(e.message);
+    } catch (_) {
+      if (mounted) {
+        _showSnackBar('Não foi possível enviar o pedido de subscrição.');
+      }
+    } finally {
+      if (mounted) setState(() => _isRequestingSubscription = false);
+    }
+  }
+
   bool _isJindungoAccessDenied(ForbiddenException exception) {
     final message = exception.message.toLowerCase();
     final content = _content ?? widget.initialContent;
@@ -522,7 +547,12 @@ class _ConteudoScreenState extends State<ConteudoScreen> {
                         ],
                       )
                     : _isAccessBlocked
-                    ? _LockedContentView(content: content, onRetry: _load)
+                    ? _LockedContentView(
+                        content: content ?? widget.initialContent,
+                        onRetry: _load,
+                        onSubscribe: _requestJindungoSubscription,
+                        isSubscribing: _isRequestingSubscription,
+                      )
                     : content == null
                     ? ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
@@ -531,7 +561,12 @@ class _ConteudoScreenState extends State<ConteudoScreen> {
                         ],
                       )
                     : content.isLocked
-                    ? _LockedContentView(content: content, onRetry: _load)
+                    ? _LockedContentView(
+                        content: content,
+                        onRetry: _load,
+                        onSubscribe: _requestJindungoSubscription,
+                        isSubscribing: _isRequestingSubscription,
+                      )
                     : _ContentBody(
                         content: content,
                         scrollController: _scrollController,
@@ -684,10 +719,6 @@ class _ContentBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (content.isLocked) {
-      return _LockedContentView(content: content, onRetry: null);
-    }
-
     return SingleChildScrollView(
       controller: scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
@@ -818,8 +849,15 @@ class _ContentBody extends StatelessWidget {
 class _LockedContentView extends StatelessWidget {
   final Content? content;
   final VoidCallback? onRetry;
+  final VoidCallback onSubscribe;
+  final bool isSubscribing;
 
-  const _LockedContentView({required this.content, required this.onRetry});
+  const _LockedContentView({
+    required this.content,
+    required this.onRetry,
+    required this.onSubscribe,
+    required this.isSubscribing,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -915,6 +953,40 @@ class _LockedContentView extends StatelessWidget {
                   fontSize: 13,
                   color: AppColors.textMedium,
                   height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: isSubscribing ? null : onSubscribe,
+                  icon: Icon(
+                    isSubscribing
+                        ? Icons.hourglass_empty_rounded
+                        : Icons.workspace_premium_outlined,
+                    size: 18,
+                  ),
+                  label: Text(
+                    isSubscribing ? 'A enviar pedido...' : 'Subscrever agora',
+                  ),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.cardBackground,
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'O pedido fica sujeito a aprovação antes de libertar o acesso.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textLight,
+                  height: 1.35,
                 ),
               ),
               if (onRetry != null) ...[

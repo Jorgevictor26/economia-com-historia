@@ -72,6 +72,7 @@ class PerfilService extends ChangeNotifier {
           name: cached.name,
           email: cached.email,
           status: cached.status,
+          photo: cached.photo,
           roles: [Role(id: 0, name: cached.role)],
         );
         notifyListeners();
@@ -144,17 +145,48 @@ class PerfilService extends ChangeNotifier {
   Future<void> atualizarPerfil(String nome, String bio, {String? photo}) async {
     _setLoading(true);
     try {
+      final previousPhoto = _usuario?.photo;
       final user = await _userService.updateProfile(
         name: nome,
         bio: bio,
         photo: photo,
       );
-      _usuario = user;
-      await _storage.saveUser(user);
+      final updatedUser = _withImmediatePhotoFallback(
+        user,
+        submittedPhoto: photo,
+        previousPhoto: previousPhoto,
+      );
+      _usuario = updatedUser;
+      await _storage.saveUser(updatedUser);
       notifyListeners();
     } finally {
       _setLoading(false);
     }
+  }
+
+  User _withImmediatePhotoFallback(
+    User user, {
+    required String? submittedPhoto,
+    required String? previousPhoto,
+  }) {
+    final fallback = submittedPhoto?.trim();
+    if (fallback == null || fallback.isEmpty) return user;
+    if (user.photo != null &&
+        user.photo!.trim().isNotEmpty &&
+        user.photo != previousPhoto) {
+      return user;
+    }
+
+    return User(
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      photo: fallback,
+      bio: user.bio,
+      status: user.status,
+      jindungoSubscriptionExpiresAt: user.jindungoSubscriptionExpiresAt,
+      roles: user.roles,
+    );
   }
 
   Future<void> atualizarPalavraPasse(

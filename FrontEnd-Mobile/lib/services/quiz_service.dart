@@ -73,6 +73,11 @@ class QuizService {
     return PaginatedResponse.fromJson(response, UserQuizResult.fromJson);
   }
 
+  Future<QuizMyResults> getMyResultsWithStats({int page = 1}) async {
+    final response = await _api.get('/my-results', query: {'page': page});
+    return QuizMyResults.fromJson(response);
+  }
+
   Future<QuizUserStats> loadMyStats() async {
     final response = await _api.get('/my-results');
     return QuizUserStats.fromResultsResponse(response);

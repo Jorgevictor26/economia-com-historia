@@ -68,6 +68,10 @@ class ContentService {
     return Content.fromJson(jsonMap(response));
   }
 
+  Future<void> requestContentSubscription(int contentId) async {
+    await _api.post('/contents/$contentId/subscriptions');
+  }
+
   Future<List<ContentProgress>> getContentProgress({int limit = 3}) async {
     final response = await _api.get(
       '/content-progress',

@@ -137,14 +137,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/forums/{id}/join-request', [ForumController::class, 'requestJoin']);
         Route::post('/forums/{id}/accept-invitation', [ForumController::class, 'acceptInvitation']);
         Route::post('/forums/{id}/invite', [ForumController::class, 'invite']);
-<<<<<<< HEAD
         Route::put('/forums/{id}', [ForumController::class, 'update']);
         Route::delete('/forums/{id}', [ForumController::class, 'destroy']);
-=======
         Route::get('/forums/{id}/join-requests', [ForumController::class, 'pendingMemberships']);
         Route::patch('/forums/{id}/join-requests/{membershipId}/approve', [ForumController::class, 'approveMembership']);
         Route::patch('/forums/{id}/join-requests/{membershipId}/reject', [ForumController::class, 'rejectMembership']);
->>>>>>> 570c3803e777b36d31124a0608f9a3c25deb9778
         Route::post('/forums/{forumId}/topics', [ForumTopicController::class, 'store']);
         Route::put('/topics/{id}', [ForumTopicController::class, 'update']);
         Route::delete('/topics/{id}', [ForumTopicController::class, 'destroy']);

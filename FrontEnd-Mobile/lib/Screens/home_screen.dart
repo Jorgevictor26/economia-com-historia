@@ -14,6 +14,7 @@ import '../widgets/app_bar_principal.dart';
 import '../widgets/content_card.dart';
 import '../widgets/filter_chip_bar.dart';
 import 'conteudo_screen.dart';
+import 'sala_de_debate_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onIrParaForum;
@@ -102,9 +103,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final destaqueJindungo = _filtroSelecionado == 'Jindungo'
         ? _featuredJindungo
         : null;
-    final destaque =
-        destaqueJindungo ??
-        (conteudosVisiveis.isNotEmpty ? conteudosVisiveis.first : null);
+    final destaques = [
+      ?destaqueJindungo,
+      ...conteudosVisiveis.where(
+        (content) => content.id != destaqueJindungo?.id,
+      ),
+    ].take(6).toList();
     final progressoConteudos = _progressos
         .map((progress) => progress.content)
         .whereType<Content>()
@@ -163,22 +167,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 allowDeselect: true,
               ),
               const SizedBox(height: 28),
-              const Text(
-                'Destaques do Dia',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
-                ),
+              _SectionHeader(
+                title: 'Em Destaque',
+                actionLabel: 'Ver tudo',
+                onAction: () {},
               ),
               const SizedBox(height: 14),
-              if (destaque == null)
+              if (destaques.isEmpty)
                 const EmptyState(message: 'Ainda não há destaques disponíveis.')
               else
-                AppContentCard(
-                  content: destaque,
-                  onTap: () => _abrirConteudo(destaque),
-                ),
+                _ContentsRow(contents: destaques),
               const SizedBox(height: 28),
               _SectionHeader(
                 title: 'Comunidade',
@@ -191,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
               if (_forums.isEmpty)
                 const EmptyState(message: 'Ainda não há fóruns disponíveis.')
               else
-                ..._forums.take(3).map((forum) => _ForumTile(forum: forum)),
+                _ForumsRow(forums: _forums.take(6).toList()),
               const SizedBox(height: 32),
             ]),
           ),
@@ -251,13 +249,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ? null
           : filtro;
     });
-  }
-
-  void _abrirConteudo(Content content) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => ConteudoScreen(contentId: content.id)),
-    );
   }
 
   String _normalizarFiltro(String filtro) {
@@ -416,86 +407,154 @@ class _ContentsRow extends StatelessWidget {
   }
 }
 
-class _ForumTile extends StatelessWidget {
-  final Forum forum;
+class _ForumsRow extends StatelessWidget {
+  final List<Forum> forums;
 
-  const _ForumTile({required this.forum});
+  const _ForumsRow({required this.forums});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: AppColors.primary,
-                child: Text(
-                  initials(forum.user?.name ?? forum.name),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  forum.name,
-                  style: const TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
-                  ),
-                ),
-              ),
-              Text(
-                timeAgo(forum.createdAt),
-                style: const TextStyle(
-                  fontSize: 11.5,
-                  color: AppColors.textLight,
-                ),
-              ),
-            ],
-          ),
-          if ((forum.description ?? '').isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              forum.description!,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 13.5,
-                color: AppColors.textMedium,
-                height: 1.45,
+    return SizedBox(
+      height: 150,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        clipBehavior: Clip.none,
+        itemCount: forums.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 14),
+        itemBuilder: (context, index) {
+          final forum = forums[index];
+          final width = (MediaQuery.of(context).size.width * 0.78)
+              .clamp(260.0, 330.0)
+              .toDouble();
+
+          return _ForumTile(
+            forum: forum,
+            width: width,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => SalaDeDebateScreen(forum: forum),
               ),
             ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ForumTile extends StatelessWidget {
+  final Forum forum;
+  final double width;
+  final VoidCallback onTap;
+
+  const _ForumTile({
+    required this.forum,
+    required this.width,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final description = forum.description?.trim() ?? '';
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        width: width,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.line),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.ink.withValues(alpha: 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 8),
+            ),
           ],
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const Icon(
-                Icons.forum_outlined,
-                size: 18,
-                color: AppColors.textLight,
-              ),
-              const SizedBox(width: 6),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: AppColors.primary,
+                  child: Text(
+                    initials(forum.user?.name ?? forum.name),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.cardBackground,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    forum.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+              ],
+            ),
+            if (description.isNotEmpty) ...[
+              const SizedBox(height: 9),
               Text(
-                '${forum.topicsCount} tópicos',
+                description,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textLight,
+                  fontSize: 13,
+                  color: AppColors.textMedium,
+                  height: 1.35,
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 14),
-          const Divider(color: AppColors.borderSoft, thickness: 1, height: 1),
-        ],
+            const Spacer(),
+            Row(
+              children: [
+                const Icon(
+                  Icons.forum_outlined,
+                  size: 17,
+                  color: AppColors.textLight,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '${forum.topicsCount} tópicos',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textLight,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  timeAgo(forum.createdAt),
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    color: AppColors.textLight,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

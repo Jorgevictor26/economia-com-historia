@@ -390,67 +390,74 @@ class _PodcastSelecionadoScreenState extends State<PodcastSelecionadoScreen> {
                                           color: AppColors.textDark,
                                         ),
                                       ),
-                                if ((content.summary ?? '').isNotEmpty) ...[
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    content.summary!,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      color: AppColors.textMedium,
-                                      height: 1.5,
-                                    ),
-                                  ),
-                                ],
-                                const SizedBox(height: 16),
-                                _BarraProgresso(
-                                  progresso: _audioProgress,
-                                  enabled:
-                                      content.displayAudio != null &&
-                                      _audioDuration > Duration.zero,
-                                  onChanged: _previewAudioSeek,
-                                  onChangeEnd: _seekAudioToFraction,
-                                ),
-                                const SizedBox(height: 6),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      _formatMediaDuration(_audioPosition),
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.textLight,
+                                      if ((content.summary ?? '')
+                                          .isNotEmpty) ...[
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          content.summary!,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            color: AppColors.textMedium,
+                                            height: 1.5,
+                                          ),
+                                        ),
+                                      ],
+                                      const SizedBox(height: 16),
+                                      _BarraProgresso(
+                                        progresso: _audioProgress,
+                                        enabled:
+                                            content.displayAudio != null &&
+                                            _audioDuration > Duration.zero,
+                                        onChanged: _previewAudioSeek,
+                                        onChangeEnd: _seekAudioToFraction,
                                       ),
-                                    ),
-                                    Text(
-                                      content.displayAudio == null ||
-                                              _audioDuration <= Duration.zero
-                                          ? 'audio indisponivel'
-                                          : _formatMediaDuration(
-                                              _audioDuration,
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            _formatMediaDuration(
+                                              _audioPosition,
                                             ),
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.textLight,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: AppColors.textLight,
+                                            ),
+                                          ),
+                                          Text(
+                                            content.displayAudio == null ||
+                                                    _audioDuration <=
+                                                        Duration.zero
+                                                ? 'audio indisponivel'
+                                                : _formatMediaDuration(
+                                                    _audioDuration,
+                                                  ),
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: AppColors.textLight,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                if (_audioLoadError) ...[
-                                  const SizedBox(height: 10),
-                                  _AudioErrorBanner(onRetry: _retryAudio),
-                                ],
-                                const SizedBox(height: 20),
-                                _Controlos(
-                                  isPlaying: _isPlaying,
-                                  audioAvailable: content.displayAudio != null,
-                                  canSeek: _audioDuration > Duration.zero,
-                                  onPlayPause: _togglePlayPause,
-                                  onSkipBackward: () =>
-                                      _skipAudio(const Duration(seconds: -10)),
-                                  onSkipForward: () =>
-                                      _skipAudio(const Duration(seconds: 10)),
-                                ),
+                                      if (_audioLoadError) ...[
+                                        const SizedBox(height: 10),
+                                        _AudioErrorBanner(onRetry: _retryAudio),
+                                      ],
+                                      const SizedBox(height: 20),
+                                      _Controlos(
+                                        isPlaying: _isPlaying,
+                                        audioAvailable:
+                                            content.displayAudio != null,
+                                        canSeek: _audioDuration > Duration.zero,
+                                        onPlayPause: _togglePlayPause,
+                                        onSkipBackward: () => _skipAudio(
+                                          const Duration(seconds: -10),
+                                        ),
+                                        onSkipForward: () => _skipAudio(
+                                          const Duration(seconds: 10),
+                                        ),
+                                      ),
                                       const Divider(
                                         color: AppColors.line,
                                         height: 28,
@@ -459,8 +466,7 @@ class _PodcastSelecionadoScreenState extends State<PodcastSelecionadoScreen> {
                                         content: content,
                                         isLiking: _isTogglingReaction,
                                         isSaved: _isSaved,
-                                        isSaving:
-                                            _isSaving || _isCheckingSaved,
+                                        isSaving: _isSaving || _isCheckingSaved,
                                         isSharing: _isSharing,
                                         onLike: _toggleLikePodcast,
                                         onShare: _sharePodcast,
@@ -874,7 +880,9 @@ class _PodcastActionBar extends StatelessWidget {
         ),
         Expanded(
           child: _PodcastActionButton(
-            icon: isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+            icon: isSaved
+                ? Icons.bookmark_rounded
+                : Icons.bookmark_border_rounded,
             label: 'Guardar',
             active: isSaved,
             busy: isSaving,

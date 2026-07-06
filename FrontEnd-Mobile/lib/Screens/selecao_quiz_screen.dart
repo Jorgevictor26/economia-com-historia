@@ -200,9 +200,7 @@ class _DifficultyFilters extends StatelessWidget {
                     ? AppColors.primary
                     : AppColors.cardBackground,
                 side: BorderSide(
-                  color: isSelected
-                      ? AppColors.primary
-                      : AppColors.line,
+                  color: isSelected ? AppColors.primary : AppColors.line,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),

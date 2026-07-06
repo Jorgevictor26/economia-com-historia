@@ -1,6 +1,7 @@
 import '../core/constants/api_constants.dart';
 import '../core/utils/json_helpers.dart';
 import 'content.dart';
+import 'paginated_response.dart';
 import 'taxonomy.dart';
 import 'user.dart';
 
@@ -351,6 +352,20 @@ class QuizUserStats {
       completedQuizIds: completedIds,
       rankingPosition: rankingPosition.isEmpty ? null : rankingPosition.first,
       level: jsonString(stats['level']),
+    );
+  }
+}
+
+class QuizMyResults {
+  final PaginatedResponse<UserQuizResult> results;
+  final QuizUserStats stats;
+
+  const QuizMyResults({required this.results, required this.stats});
+
+  factory QuizMyResults.fromJson(Object? json) {
+    return QuizMyResults(
+      results: PaginatedResponse.fromJson(json, UserQuizResult.fromJson),
+      stats: QuizUserStats.fromResultsResponse(json),
     );
   }
 }

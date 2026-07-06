@@ -10,6 +10,7 @@ class SessionStorage {
   static const _userEmailKey = 'user_email';
   static const _userRoleKey = 'user_role';
   static const _userStatusKey = 'user_status';
+  static const _userPhotoKey = 'user_photo';
 
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -39,6 +40,12 @@ class SessionStorage {
     await prefs.setString(_userEmailKey, user.email);
     await prefs.setString(_userRoleKey, user.primaryRole);
     await prefs.setString(_userStatusKey, user.status ?? '');
+    final photo = user.photo?.trim();
+    if (photo == null || photo.isEmpty) {
+      await prefs.remove(_userPhotoKey);
+    } else {
+      await prefs.setString(_userPhotoKey, photo);
+    }
   }
 
   Future<CachedUser?> loadUser() async {
@@ -53,6 +60,7 @@ class SessionStorage {
       email: email,
       role: prefs.getString(_userRoleKey) ?? 'user',
       status: prefs.getString(_userStatusKey),
+      photo: prefs.getString(_userPhotoKey),
     );
   }
 
@@ -65,6 +73,7 @@ class SessionStorage {
     await prefs.remove(_userEmailKey);
     await prefs.remove(_userRoleKey);
     await prefs.remove(_userStatusKey);
+    await prefs.remove(_userPhotoKey);
   }
 }
 
@@ -74,6 +83,7 @@ class CachedUser {
   final String email;
   final String role;
   final String? status;
+  final String? photo;
 
   const CachedUser({
     required this.id,
@@ -81,5 +91,6 @@ class CachedUser {
     required this.email,
     required this.role,
     this.status,
+    this.photo,
   });
 }

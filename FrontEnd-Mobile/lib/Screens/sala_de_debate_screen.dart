@@ -273,8 +273,8 @@ class _SalaDeDebateScreenState extends State<SalaDeDebateScreen> {
                 focusNode: _inputFocus,
                 isSending: _isSending,
                 hint: _isTopicMode
-                  ? 'Escreva uma resposta...'
-                  : 'Criar tópico...',
+                    ? 'Escreva uma resposta...'
+                    : 'Criar tópico...',
                 onSend: _send,
               ),
           ],
@@ -395,7 +395,8 @@ class _PrivateForumGate extends StatelessWidget {
                 children: [
                   _ForumMiniStat(
                     icon: Icons.person_outline_rounded,
-                    label: 'Criado por ${forum.user?.name ?? 'Economia com Historia'}',
+                    label:
+                        'Criado por ${forum.user?.name ?? 'Economia com Historia'}',
                   ),
                   _ForumMiniStat(
                     icon: Icons.groups_rounded,
@@ -1378,6 +1379,8 @@ class _ForumReportMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
       tooltip: 'Mais opcoes',
+      color: AppColors.cardBackground,
+      surfaceTintColor: AppColors.cardBackground,
       icon: const Icon(
         Icons.more_vert_rounded,
         color: AppColors.textLight,
@@ -1391,13 +1394,15 @@ class _ForumReportMenu extends StatelessWidget {
           value: 'report',
           child: Row(
             children: [
-              Icon(
-                Icons.flag_outlined,
-                size: 18,
-                color: AppColors.primary,
-              ),
+              Icon(Icons.flag_outlined, size: 18, color: AppColors.primary),
               SizedBox(width: 10),
-              Text('Denunciar'),
+              Text(
+                'Denunciar',
+                style: TextStyle(
+                  color: AppColors.textBordeaux,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
         ),

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { AdminConsoleShellComponent } from '../../components/admin-console-shell.component';
 import { AdminPageHeaderComponent } from '../../shared/components';
 import {
@@ -58,7 +58,7 @@ interface ReportItem {
   imports: [AdminConsoleShellComponent, AdminPageHeaderComponent],
   templateUrl: './admin-reports.page.html',
 })
-export class AdminReportsPage {
+export class AdminReportsPage implements OnInit {
   private readonly commentReports = inject(CommentReportService);
   private readonly toastService = inject(ToastService);
 
@@ -73,7 +73,7 @@ export class AdminReportsPage {
   isModerating = false;
   loadError = '';
 
-  constructor() {
+  ngOnInit(): void {
     void this.loadReports();
   }
 

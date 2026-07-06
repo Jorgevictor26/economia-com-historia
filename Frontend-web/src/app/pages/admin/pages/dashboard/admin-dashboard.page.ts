@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AdminDashboardActivity, AdminDashboardMetricSummary, AdminDashboardService } from '../../../../services/admin-dashboard.service';
 import { AdminConsoleShellComponent } from '../../components/admin-console-shell.component';
@@ -41,7 +41,7 @@ interface AlertItem {
   imports: [RouterLink, AdminConsoleShellComponent, AdminMetricCardComponent, AdminPageHeaderComponent],
   templateUrl: './admin-dashboard.page.html',
 })
-export class AdminDashboardPage {
+export class AdminDashboardPage implements OnInit {
   private readonly dashboardService = inject(AdminDashboardService);
 
   readonly isLoading = signal(true);
@@ -58,7 +58,7 @@ export class AdminDashboardPage {
     { label: 'Ver Estatisticas', route: '/admin/statistics', icon: 'monitoring', tone: 'primary' },
   ];
 
-  constructor() {
+  ngOnInit(): void {
     void this.loadDashboard();
   }
 

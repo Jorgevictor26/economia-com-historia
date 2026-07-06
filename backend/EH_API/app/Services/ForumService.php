@@ -9,6 +9,7 @@ use App\Models\ForumMembership;
 use App\Models\User;
 use App\Repositories\ForumRepository;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection as SupportCollection;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -123,6 +124,75 @@ class ForumService
         return $this->decorateForum($forum->fresh(['user', 'reviewer', 'contents.category', 'contents.contentType', 'memberships']), $user);
     }
 
+    public function pendingMemberships(int $id, User $user): SupportCollection
+    {
+        $forum = $this->repository->findById($id);
+
+        if (! $forum) {
+            throw new NotFoundHttpException('Forum not found');
+        }
+
+        $this->authorizeManageMemberships($forum, $user);
+
+        return $forum->memberships()
+            ->with('user')
+            ->where('status', ForumMembership::STATUS_PENDING)
+            ->latest()
+            ->get();
+    }
+
+    public function approveMembership(int $id, int $membershipId, User $user): ForumMembership
+    {
+        $forum = $this->repository->findById($id);
+
+        if (! $forum) {
+            throw new NotFoundHttpException('Forum not found');
+        }
+
+        $this->authorizeManageMemberships($forum, $user);
+
+        $membership = $forum->memberships()
+            ->whereKey($membershipId)
+            ->first();
+
+        if (! $membership) {
+            throw new NotFoundHttpException('Forum membership not found');
+        }
+
+        $membership->update([
+            'status' => ForumMembership::STATUS_MEMBER,
+            'responded_at' => now(),
+        ]);
+
+        return $membership->fresh(['user']);
+    }
+
+    public function rejectMembership(int $id, int $membershipId, User $user): ForumMembership
+    {
+        $forum = $this->repository->findById($id);
+
+        if (! $forum) {
+            throw new NotFoundHttpException('Forum not found');
+        }
+
+        $this->authorizeManageMemberships($forum, $user);
+
+        $membership = $forum->memberships()
+            ->whereKey($membershipId)
+            ->first();
+
+        if (! $membership) {
+            throw new NotFoundHttpException('Forum membership not found');
+        }
+
+        $membership->update([
+            'status' => ForumMembership::STATUS_REJECTED,
+            'responded_at' => now(),
+        ]);
+
+        return $membership->fresh(['user']);
+    }
+
     public function canViewForum(Forum $forum, ?User $user): bool
     {
         if ($forum->visibility !== 'private') {
@@ -203,6 +273,15 @@ class ForumService
                     ]
                 );
             });
+    }
+
+    private function authorizeManageMemberships(Forum $forum, User $user): void
+    {
+        if ((int) $forum->user_id === (int) $user->id || $user->isAdminOrSuperAdmin()) {
+            return;
+        }
+
+        throw new AccessDeniedHttpException('You cannot manage forum membership requests');
     }
 
     private function grantMembership(Forum $forum, User $user): Forum

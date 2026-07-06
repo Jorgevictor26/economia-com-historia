@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { AdminStatisticsPeriod, AdminStatisticsService } from '../../../../services/admin-statistics.service';
 import { AdminConsoleShellComponent } from '../../components/admin-console-shell.component';
 import { AdminPageHeaderComponent } from '../../shared/components';
@@ -39,7 +39,7 @@ interface PerformanceRow {
   imports: [AdminConsoleShellComponent, AdminPageHeaderComponent],
   templateUrl: './admin-statistics.page.html',
 })
-export class AdminStatisticsPage {
+export class AdminStatisticsPage implements OnInit {
   private readonly statisticsService = inject(AdminStatisticsService);
 
   readonly selectedPeriod = signal<Period>('Semanal');
@@ -60,7 +60,7 @@ export class AdminStatisticsPage {
   readonly forumStats = signal<DataRow[]>([]);
   readonly quizStats = signal<DataRow[]>([]);
 
-  constructor() {
+  ngOnInit(): void {
     void this.loadStatistics();
   }
 

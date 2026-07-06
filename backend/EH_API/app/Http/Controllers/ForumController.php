@@ -95,6 +95,29 @@ class ForumController extends Controller
         ]);
     }
 
+    public function pendingMemberships(Request $request, int $id): JsonResponse
+    {
+        return response()->json(
+            $this->service->pendingMemberships($id, $request->user())
+        );
+    }
+
+    public function approveMembership(Request $request, int $id, int $membershipId): JsonResponse
+    {
+        return response()->json([
+            'message' => 'Forum membership approved',
+            'data' => $this->service->approveMembership($id, $membershipId, $request->user()),
+        ]);
+    }
+
+    public function rejectMembership(Request $request, int $id, int $membershipId): JsonResponse
+    {
+        return response()->json([
+            'message' => 'Forum membership rejected',
+            'data' => $this->service->rejectMembership($id, $membershipId, $request->user()),
+        ]);
+    }
+
     public function update(UpdateForumRequest $request, int $id): JsonResponse
     {
         $forum = $this->service->update($id, new UpdateForumDTO(

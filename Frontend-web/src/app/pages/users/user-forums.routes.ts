@@ -4,7 +4,7 @@ import { AuthStateService } from '../../services/auth-state.service';
 import { ConfirmService } from '../../services/confirm.service';
 import { authGuard } from '../../services/auth.guard';
 import { ContentService } from '../../services/content.service';
-import { BackendForum, BackendForumReply, BackendForumTopic, ForumService } from '../../services/forum.service';
+import { BackendForum, BackendForumMembership, BackendForumReply, BackendForumTopic, ForumService } from '../../services/forum.service';
 import { SavedContentService } from '../../services/saved-content.service';
 import { ShareService } from '../../services/share.service';
 import { ToastService } from '../../services/toast.service';
@@ -72,6 +72,7 @@ interface ForumReportTarget {
 interface PendingMember {
   id: string;
   name: string;
+  email?: string;
   initials: string;
   requestedAt: string;
 }
@@ -511,10 +512,9 @@ export class UserForumDetailPage {
     this.isLoadingPendingMembers.set(true);
 
     try {
-      // Frontend-only for now. When the API is available, replace this with:
-      // const members = await this.forumService.getPendingMembers(room.id);
-      // this.pendingMembers.set(members.map((member) => this.toPendingMember(member)));
-      this.pendingMembers.set([]);
+      const members = await this.forumService.getPendingMembers(room.id);
+
+      this.pendingMembers.set(members.map((member) => this.toPendingMember(member)));
     } catch {
       this.pendingMembers.set([]);
       this.forumFeedback.set('Não foi possível carregar os pedidos de adesão.');
@@ -532,9 +532,11 @@ export class UserForumDetailPage {
     }
 
     try {
-      // Frontend-only for now. When the API is available, replace this with:
-      // await this.forumService.approveMember(room.id, id);
+      await this.forumService.approveMember(room.id, id);
       this.pendingMembers.update((members) => members.filter((member) => member.id !== id));
+      this.forumService.rooms.update((rooms) =>
+        rooms.map((item) => item.id === room.id ? { ...item, members: item.members + 1 } : item),
+      );
       this.forumFeedback.set('Membro aceite com sucesso.');
     } catch {
       this.forumFeedback.set('Não foi possível aceitar este membro.');
@@ -550,8 +552,7 @@ export class UserForumDetailPage {
     }
 
     try {
-      // Frontend-only for now. When the API is available, replace this with:
-      // await this.forumService.rejectMember(room.id, id);
+      await this.forumService.rejectMember(room.id, id);
       this.pendingMembers.update((members) => members.filter((member) => member.id !== id));
       this.forumFeedback.set('Pedido recusado.');
     } catch {
@@ -1129,6 +1130,18 @@ export class UserForumDetailPage {
       ownerId: topic.user_id === undefined || topic.user_id === null ? (topic.user?.id === undefined || topic.user?.id === null ? undefined : String(topic.user.id)) : String(topic.user_id),
       replies: Number(topic.replies_count ?? 0),
       lastActivity: this.formatForumDate(topic.created_at),
+    };
+  }
+
+  private toPendingMember(member: BackendForumMembership): PendingMember {
+    const name = member.user?.name ?? member.email ?? 'Utilizador';
+
+    return {
+      id: String(member.id),
+      name,
+      email: member.user?.email ?? member.email ?? undefined,
+      initials: this.roomInitials(name),
+      requestedAt: this.formatForumDate(member.created_at),
     };
   }
 

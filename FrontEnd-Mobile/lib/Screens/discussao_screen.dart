@@ -204,7 +204,7 @@ class _CabecalhoArtigo extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xFFEEE8E9))),
+        border: Border(bottom: BorderSide(color: AppColors.line)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -334,7 +334,7 @@ class _BarraComentario extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFEEE8E9))),
+        border: Border(top: BorderSide(color: AppColors.line)),
       ),
       child: Row(
         children: [
@@ -349,7 +349,7 @@ class _BarraComentario extends StatelessWidget {
                   color: AppColors.textLight,
                 ),
                 filled: true,
-                fillColor: const Color(0xFFF7F3F4),
+                fillColor: AppColors.soft,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,

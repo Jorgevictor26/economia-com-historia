@@ -40,6 +40,8 @@ dependencies:
   image_picker: ^1.1.2
   google_sign_in: ^6.2.1
   share_plus: ^13.2.0
+  audioplayers: ^6.1.0
+  video_player: ^2.9.2
 
 dev_dependencies:
   flutter_test:
@@ -107,5 +109,10 @@ flutter:
           weight: 700
         - asset: assets/fonts/Poppins-ExtraBold.ttf
           weight: 800
+    - family: Geist
+      fonts:
+        - asset: assets/fonts/Geist-VariableFont_wght.ttf
+        - asset: assets/fonts/Geist-Italic-VariableFont_wght.ttf
+          style: italic
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

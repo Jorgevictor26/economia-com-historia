@@ -58,7 +58,7 @@
         </div>
 
         <div class="grid divide-y divide-[#F2E6E9]">
-          @for (subscriber of visiblePendingRequests(); track subscriber.email) {
+          @for (subscriber of visiblePendingRequests(); track subscriber.id) {
             <article class="grid grid-cols-[minmax(220px,1fr)_minmax(210px,1fr)_110px_120px_90px] items-center gap-4 px-5 py-4 transition hover:bg-[#fff] max-xl:grid-cols-1">
               <div class="flex min-w-0 items-center gap-3">
                 <span class="grid size-9 shrink-0 place-items-center rounded-full bg-[#F2E6E9] text-[11px] font-extrabold text-[#8A3F50]">{{ subscriber.initials }}</span>
@@ -125,7 +125,7 @@
         </div>
 
         <div class="grid divide-y divide-[#F2E6E9]">
-          @for (subscriber of visibleActiveSubscribers(); track subscriber.email) {
+          @for (subscriber of visibleActiveSubscribers(); track subscriber.id) {
             <article class="grid grid-cols-[minmax(220px,1fr)_minmax(210px,1fr)_110px_120px_90px] items-center gap-4 px-5 py-4 transition hover:bg-[#fff] max-xl:grid-cols-1">
               <div class="flex min-w-0 items-center gap-3">
                 <span class="grid size-9 shrink-0 place-items-center rounded-full bg-[#F2E6E9] text-[11px] font-extrabold text-[#8A3F50]">{{ subscriber.initials }}</span>
@@ -173,4 +173,3 @@
     </section>
   </section>
 </app-admin-console-shell>
-

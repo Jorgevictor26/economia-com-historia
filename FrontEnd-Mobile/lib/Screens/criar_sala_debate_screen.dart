@@ -137,7 +137,7 @@ class _CriarSalaDebateScreenState extends State<CriarSalaDebateScreen> {
                         color: AppColors.primary,
                       ),
                     ),
-                    const Divider(color: Color(0xFFEEE8E9), height: 24),
+                    const Divider(color: AppColors.line, height: 24),
                     const _RotuloCampo(label: 'Nome da Sala'),
                     const SizedBox(height: 8),
                     _CampoTexto(
@@ -210,7 +210,7 @@ class _CriarSalaDebateScreenState extends State<CriarSalaDebateScreen> {
                       label: Text(_isLoading ? 'A criar...' : 'Criar Sala'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        disabledBackgroundColor: const Color(0xFFEEE8E9),
+                        disabledBackgroundColor: AppColors.line,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -328,18 +328,18 @@ class _CampoTexto extends StatelessWidget {
         border: isMultiline
             ? OutlineInputBorder(
                 borderRadius: BorderRadius.circular(0),
-                borderSide: const BorderSide(color: Color(0xFFEEE8E9)),
+                borderSide: const BorderSide(color: AppColors.line),
               )
             : const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFFEEE8E9)),
+                borderSide: BorderSide(color: AppColors.line),
               ),
         enabledBorder: isMultiline
             ? OutlineInputBorder(
                 borderRadius: BorderRadius.circular(0),
-                borderSide: const BorderSide(color: Color(0xFFEEE8E9)),
+                borderSide: const BorderSide(color: AppColors.line),
               )
             : const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFFEEE8E9)),
+                borderSide: BorderSide(color: AppColors.line),
               ),
         focusedBorder: isMultiline
             ? OutlineInputBorder(
@@ -379,7 +379,7 @@ class _DropdownCategoria extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xFFEEE8E9))),
+        border: Border(bottom: BorderSide(color: AppColors.line)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -429,7 +429,7 @@ class _SeletorPrivacidade extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: const Color(0xFFEEEFF1),
+        color: AppColors.soft,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -518,10 +518,10 @@ class _CheckDiretrizes extends StatelessWidget {
       decoration: BoxDecoration(
         color: valor
             ? AppColors.primary.withValues(alpha: 0.05)
-            : const Color(0xFFF7F3F4),
+            : AppColors.soft,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: valor ? AppColors.primary : const Color(0xFFEEE8E9),
+          color: valor ? AppColors.primary : AppColors.line,
           width: valor ? 1.5 : 1,
         ),
       ),

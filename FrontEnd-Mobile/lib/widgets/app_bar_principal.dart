@@ -8,6 +8,7 @@ import '../Screens/favoritos_screen.dart';
 import '../Screens/perfil_screen.dart';
 import '../Screens/ranking_global_screen.dart';
 import '../services/perfil_service.dart';
+import 'profile_photo_image.dart';
 import 'search_modal.dart';
 
 class AppBarPrincipal extends StatelessWidget implements PreferredSizeWidget {
@@ -27,7 +28,7 @@ class AppBarPrincipal extends StatelessWidget implements PreferredSizeWidget {
     this.mostrarVoltar = false,
     this.mostrarFavoritos = false,
     this.mostrarPerfil = false,
-    this.mostrarRankingGlobal = false,
+    this.mostrarRankingGlobal = true,
   });
 
   @override
@@ -261,6 +262,9 @@ class AppBarPrincipal extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final perfil = context.watch<PerfilService>();
+    final usuario = perfil.usuario;
+
     return AppBar(
       backgroundColor: AppColors.cardBackground,
       elevation: 0,
@@ -307,7 +311,54 @@ class AppBarPrincipal extends StatelessWidget implements PreferredSizeWidget {
               size: 24,
             ),
           ),
+        if (perfil.isAuthenticated && usuario != null)
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: _TopBarAvatar(
+              name: usuario.name,
+              photo: usuario.photo,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PerfilScreen()),
+              ),
+            ),
+          ),
       ],
+    );
+  }
+}
+
+class _TopBarAvatar extends StatelessWidget {
+  final String name;
+  final String? photo;
+  final VoidCallback onTap;
+
+  const _TopBarAvatar({
+    required this.name,
+    required this.photo,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Perfil',
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: ClipOval(
+          child: SizedBox(
+            width: 32,
+            height: 32,
+            child: ProfilePhotoImage(
+              photo: photo,
+              name: name,
+              initialsFontSize: 11,
+              iconSize: 17,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

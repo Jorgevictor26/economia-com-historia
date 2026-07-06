@@ -87,7 +87,7 @@ class _SelecaoQuizScreenState extends State<SelecaoQuizScreen> {
     final filteredQuizzes = _filteredQuizzes;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F5F5),
+      backgroundColor: AppColors.soft,
       appBar: const AppBarPrincipal(
         titulo: 'Quiz',
         mostrarPesquisa: false,
@@ -194,13 +194,15 @@ class _DifficultyFilters extends StatelessWidget {
                 minimumSize: const Size(0, 42),
                 padding: const EdgeInsets.symmetric(horizontal: 18),
                 foregroundColor: isSelected
-                    ? Colors.white
+                    ? AppColors.cardBackground
                     : AppColors.textMedium,
-                backgroundColor: isSelected ? AppColors.primary : Colors.white,
+                backgroundColor: isSelected
+                    ? AppColors.primary
+                    : AppColors.cardBackground,
                 side: BorderSide(
                   color: isSelected
                       ? AppColors.primary
-                      : const Color(0xFFE0E0E0),
+                      : AppColors.line,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -251,12 +253,12 @@ class _QuizStatsBlock extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(color: AppColors.line),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppColors.ink.withValues(alpha: 0.04),
             blurRadius: 14,
             offset: const Offset(0, 8),
           ),
@@ -317,7 +319,7 @@ class _StatTile extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 96),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F5F5),
+        color: AppColors.soft,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -446,12 +448,12 @@ class _QuizCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(color: AppColors.line),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AppColors.ink.withValues(alpha: 0.06),
             blurRadius: 18,
             offset: const Offset(0, 10),
           ),
@@ -502,7 +504,7 @@ class _QuizCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
             decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: Color(0xFFE0E0E0))),
+              border: Border(top: BorderSide(color: AppColors.line)),
             ),
             child: Row(
               children: [
@@ -556,7 +558,7 @@ class _QuizCard extends StatelessWidget {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.cardBackground,
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(9),
@@ -625,8 +627,8 @@ class _QuizCover extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withValues(alpha: 0.02),
-                  Colors.black.withValues(alpha: 0.50),
+                  AppColors.ink.withValues(alpha: 0.02),
+                  AppColors.ink.withValues(alpha: 0.50),
                 ],
               ),
             ),
@@ -655,7 +657,7 @@ class _DefaultQuizCover extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: const Color(0xFFF2E6E9),
+      color: AppColors.blush,
       child: Align(
         alignment: Alignment.bottomLeft,
         child: Column(
@@ -700,7 +702,7 @@ class _DifficultyBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.94),
+        color: AppColors.cardBackground.withValues(alpha: 0.94),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -725,7 +727,7 @@ class _CategoryBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: const Color(0xFFF2E6E9),
+        color: AppColors.blush,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -735,7 +737,7 @@ class _CategoryBadge extends StatelessWidget {
         style: const TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w900,
-          color: Color(0xFFD4AF37),
+          color: AppColors.accentGold,
         ),
       ),
     );
@@ -759,7 +761,7 @@ class _ProgressBlock extends StatelessWidget {
           child: LinearProgressIndicator(
             value: normalized / 100,
             minHeight: 6,
-            backgroundColor: const Color(0xFFF2E6E9),
+            backgroundColor: AppColors.blush,
             valueColor: AlwaysStoppedAnimation<Color>(
               _progressColor(normalized),
             ),
@@ -789,8 +791,8 @@ class _ProgressBlock extends StatelessWidget {
 }
 
 Color _progressColor(int progressPercent) {
-  if (progressPercent >= 100) return const Color(0xFF2A9D8F);
-  if (progressPercent >= 50) return const Color(0xFFD4AF37);
+  if (progressPercent >= 100) return AppColors.primaryHover;
+  if (progressPercent >= 50) return AppColors.accentGold;
   return AppColors.primary;
 }
 

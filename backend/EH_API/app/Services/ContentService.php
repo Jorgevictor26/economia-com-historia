@@ -5,6 +5,7 @@ namespace App\Services;
 use App\DTOs\Content\CreateContentDTO;
 use App\DTOs\Content\UpdateContentDTO;
 use App\Models\Content;
+use App\Models\ContentSubscription;
 use App\Models\User;
 use App\Repositories\ContentRepository;
 use App\Repositories\ContentTypeRepository;
@@ -47,7 +48,7 @@ class ContentService
 
     public function getSuggestions(?User $actor, int $limit = 9)
     {
-        $includeJindungo = $actor?->hasRoleName('super-admin') || $actor?->hasActiveJindungoSubscription();
+        $includeJindungo = $actor?->hasRoleName('super-admin');
 
         return $this->repository->suggestions($actor, (bool) $includeJindungo, $limit);
     }
@@ -84,8 +85,59 @@ class ContentService
             return true;
         }
 
-        return $actor !== null
-            && ($actor->hasRoleName('super-admin') || $actor->hasActiveJindungoSubscription());
+        if ($actor === null) {
+            return false;
+        }
+
+        if ($actor->hasRoleName('super-admin')) {
+            return true;
+        }
+
+        return ContentSubscription::query()
+            ->where('user_id', $actor->id)
+            ->where('content_id', $content->id)
+            ->where('status', ContentSubscription::STATUS_APPROVED)
+            ->where(function ($query): void {
+                $query
+                    ->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->exists();
+    }
+
+    public function subscriptionStatus(Content $content, ?User $actor): string
+    {
+        $content->loadMissing('contentType');
+
+        if ($content->contentType?->slug !== 'jindungo') {
+            return 'available';
+        }
+
+        if ($actor?->hasRoleName('super-admin')) {
+            return ContentSubscription::STATUS_APPROVED;
+        }
+
+        if (! $actor) {
+            return 'available';
+        }
+
+        $subscription = ContentSubscription::query()
+            ->where('user_id', $actor->id)
+            ->where('content_id', $content->id)
+            ->latest()
+            ->first();
+
+        if (! $subscription) {
+            return 'available';
+        }
+
+        if ($subscription->status === ContentSubscription::STATUS_APPROVED
+            && $subscription->expires_at !== null
+            && $subscription->expires_at->isPast()) {
+            return ContentSubscription::STATUS_EXPIRED;
+        }
+
+        return $subscription->status;
     }
 
     public function delete(Content $content, User $actor): bool

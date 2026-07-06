@@ -197,7 +197,7 @@ class _FilterChip extends StatelessWidget {
           color: active ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: active ? AppColors.primary : const Color(0xFFD8C1C4),
+            color: active ? AppColors.primary : AppColors.roseMuted,
           ),
         ),
         child: Text(
@@ -229,11 +229,11 @@ class _NotificacaoCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: item.isRead ? Colors.white : const Color(0xFFFFFBFC),
+            color: item.isRead ? AppColors.cardBackground : AppColors.blush,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: item.isRead
-                  ? const Color(0xFFEEE8E9)
+                  ? AppColors.line
                   : AppColors.primary.withValues(alpha: 0.35),
             ),
             boxShadow: [

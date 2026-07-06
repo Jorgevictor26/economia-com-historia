@@ -1,8 +1,9 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink, Routes } from '@angular/router';
-import { SubscribedJindungoText } from '../../models/subscription.model';
+import { JindungoSubscriptionRequest, SubscribedJindungoText } from '../../models/subscription.model';
 import { AuthStateService } from '../../services/auth-state.service';
 import { BackendContent, ContentService } from '../../services/content.service';
+import { BackendContentSubscription, ContentSubscriptionService } from '../../services/content-subscription.service';
 import { normalizeMediaUrl } from '../../services/media-url.util';
 import { SubscriptionService } from '../../services/subscription.service';
 import { BackToTopComponent } from '../shared/back-to-top/back-to-top.component';
@@ -16,9 +17,11 @@ import { PublicNavbarComponent } from '../shared/public-navbar/public-navbar.com
 })
 export class SubscriptionManagementPage implements OnInit {
   readonly subscriptionService = inject(SubscriptionService);
+  private readonly contentSubscriptionService = inject(ContentSubscriptionService);
   private readonly contentService = inject(ContentService);
   readonly auth = inject(AuthStateService);
   readonly jindungoTexts = signal<SubscribedJindungoText[]>([]);
+  readonly jindungoRequests = signal<JindungoSubscriptionRequest[]>([]);
   readonly pendingSubscriptionIds = signal<string[]>([]);
   readonly isLoadingTexts = signal(false);
   readonly textLoadError = signal('');
@@ -39,9 +42,11 @@ export class SubscriptionManagementPage implements OnInit {
   readonly subscribedTextKeys = computed(() => {
     const keys = new Set<string>();
 
-    for (const text of this.subscriptionService.subscribedJindungoTexts()) {
-      keys.add(String(text.id));
-      keys.add(this.normalize(text.title));
+    for (const text of this.jindungoTexts()) {
+      if (text.status === 'subscribed') {
+        keys.add(String(text.id));
+        keys.add(this.normalize(text.title));
+      }
     }
 
     return keys;
@@ -51,8 +56,10 @@ export class SubscriptionManagementPage implements OnInit {
       ...text,
       status: this.isSubscribedText(text)
         ? 'subscribed' as const
-        : this.pendingSubscriptionIds().includes(text.id)
+        : text.status === 'pending' || this.pendingSubscriptionIds().includes(text.id)
           ? 'pending' as const
+          : text.status === 'rejected'
+            ? 'rejected' as const
           : 'available' as const,
     })),
   );
@@ -61,10 +68,6 @@ export class SubscriptionManagementPage implements OnInit {
   );
   readonly activeSubscribedTexts = computed(() => {
     const textsByKey = new Map<string, SubscribedJindungoText>();
-
-    for (const text of this.subscriptionService.subscribedJindungoTexts()) {
-      textsByKey.set(this.normalize(text.title), text);
-    }
 
     for (const text of this.availableJindungoTexts()) {
       if (text.status === 'subscribed') {
@@ -75,44 +78,53 @@ export class SubscriptionManagementPage implements OnInit {
     return Array.from(textsByKey.values());
   });
   readonly pendingRequests = computed(() =>
-    this.subscriptionService.jindungoSubscriptionRequests().filter((request) => request.status === 'pending'),
+    this.jindungoRequests().filter((request) => request.status === 'pending'),
   );
   readonly reviewedRequests = computed(() =>
-    this.subscriptionService.jindungoSubscriptionRequests().filter((request) => request.status !== 'pending'),
+    this.jindungoRequests().filter((request) => request.status !== 'pending'),
   );
 
   ngOnInit(): void {
+    if (this.auth.isSuperAdmin()) {
+      void this.loadJindungoSubscriptionRequests();
+      return;
+    }
+
     void this.loadJindungoTexts();
   }
 
   subscribeToJindungo(): void {
-    this.auth.subscribeToJindungo();
+    const firstAvailable = this.requestableJindungoTexts().find((text) => text.status === 'available' || text.status === 'rejected');
+
+    if (firstAvailable) {
+      void this.subscribeToText(firstAvailable);
+    }
   }
 
   async subscribeToText(text: SubscribedJindungoText): Promise<void> {
-    if (this.isSubscribedText(text) || this.pendingSubscriptionIds().includes(text.id)) {
+    if (this.isSubscribedText(text) || text.status === 'pending' || this.pendingSubscriptionIds().includes(text.id)) {
       return;
     }
 
     try {
-      const user = this.auth.user();
-      this.subscriptionService.requestTextSubscription(
-        text,
-        user?.name ?? 'Utilizador',
-        user?.email ?? 'utilizador@economiahistoria.ao',
-      );
+      await this.contentSubscriptionService.request(text.id);
       this.pendingSubscriptionIds.update((ids) => ids.includes(text.id) ? ids : [...ids, text.id]);
+      this.jindungoTexts.update((texts) =>
+        texts.map((item) => item.id === text.id ? { ...item, status: 'pending' } : item),
+      );
     } catch {
       this.textLoadError.set('Não foi possível enviar o pedido de subscrição.');
     }
   }
 
-  approveRequest(id: string): void {
-    this.subscriptionService.approveRequest(id);
+  async approveRequest(id: string): Promise<void> {
+    await this.contentSubscriptionService.approve(id);
+    await this.loadJindungoSubscriptionRequests();
   }
 
-  rejectRequest(id: string): void {
-    this.subscriptionService.rejectRequest(id);
+  async rejectRequest(id: string): Promise<void> {
+    await this.contentSubscriptionService.reject(id);
+    await this.loadJindungoSubscriptionRequests();
   }
 
   onSidebarPhotoSelected(event: Event): void {
@@ -174,16 +186,43 @@ export class SubscriptionManagementPage implements OnInit {
     this.textLoadError.set('');
 
     try {
-      const response = await this.contentService.getAll({ perPage: 60 });
+      const response = await this.contentService.getAll({ perPage: 60, type: 'jindungo' });
       const texts = response.data.filter((content) => this.isJindungoContent(content));
 
-      this.jindungoTexts.set(texts.length ? texts.map((content) => this.toJindungoText(content)) : this.subscriptionService.jindungoTextCatalog());
+      this.jindungoTexts.set(texts.map((content) => this.toJindungoText(content)));
     } catch {
-      this.jindungoTexts.set(this.subscriptionService.jindungoTextCatalog());
+      this.jindungoTexts.set([]);
       this.textLoadError.set('Não foi possível carregar todos os textos Jindungo agora.');
     } finally {
       this.isLoadingTexts.set(false);
     }
+  }
+
+  private async loadJindungoSubscriptionRequests(): Promise<void> {
+    this.textLoadError.set('');
+
+    try {
+      const response = await this.contentSubscriptionService.getAll();
+      this.jindungoRequests.set(
+        response
+          .filter((subscription) => ['pending', 'approved', 'rejected'].includes(subscription.status))
+          .map((subscription) => this.toJindungoRequest(subscription)),
+      );
+    } catch {
+      this.jindungoRequests.set([]);
+      this.textLoadError.set('Não foi possível carregar os pedidos de subscrição.');
+    }
+  }
+
+  private toJindungoRequest(subscription: BackendContentSubscription): JindungoSubscriptionRequest {
+    return {
+      id: String(subscription.id),
+      userName: subscription.user?.name ?? 'Utilizador',
+      email: subscription.user?.email ?? '-',
+      textTitle: subscription.content?.title ?? 'Texto Jindungo',
+      requestedAt: this.formatDate(subscription.requested_at ?? subscription.created_at),
+      status: subscription.status === 'approved' ? 'approved' : subscription.status === 'rejected' ? 'rejected' : 'pending',
+    };
   }
 
   private toJindungoText(content: BackendContent): SubscribedJindungoText {
@@ -196,6 +235,7 @@ export class SubscriptionManagementPage implements OnInit {
       route: `/app/contents/${content.id}`,
       imageUrl: normalizeMediaUrl(content.image_url, { contentId: content.id, mediaType: 'image' }) ?? '/assets/bna-hero.jpg',
       author: content.author?.name ?? content.user?.name ?? 'Equipa editorial',
+      status: this.toTextStatus(content.subscription_status, content.can_access),
     };
   }
 
@@ -225,6 +265,22 @@ export class SubscriptionManagementPage implements OnInit {
     return keys.has(String(text.id)) || keys.has(this.normalize(text.title));
   }
 
+  private toTextStatus(status: string | null | undefined, canAccess: boolean | undefined): SubscribedJindungoText['status'] {
+    if (canAccess || status === 'approved') {
+      return 'subscribed';
+    }
+
+    if (status === 'pending') {
+      return 'pending';
+    }
+
+    if (status === 'rejected') {
+      return 'rejected';
+    }
+
+    return 'available';
+  }
+
   private toPlainText(value: string | null | undefined): string {
     return (value ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   }
@@ -233,6 +289,24 @@ export class SubscriptionManagementPage implements OnInit {
     const words = this.toPlainText(value).split(/\s+/).filter(Boolean).length;
 
     return Math.max(6, Math.ceil(words / 180));
+  }
+
+  private formatDate(value?: string | null): string {
+    if (!value) {
+      return '-';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return '-';
+    }
+
+    return new Intl.DateTimeFormat('pt-AO', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(date);
   }
 }
 

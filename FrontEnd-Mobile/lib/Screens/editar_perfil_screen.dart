@@ -495,7 +495,7 @@ class _ItemAcao extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFEEE8E9)),
+          border: Border.all(color: AppColors.line),
         ),
         child: Row(
           children: [
@@ -552,7 +552,7 @@ class _CampoTexto extends StatelessWidget {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFEEE8E9), width: 1.2),
+          borderSide: const BorderSide(color: AppColors.line, width: 1.2),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

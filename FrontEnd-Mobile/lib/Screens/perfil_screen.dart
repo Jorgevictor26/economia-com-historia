@@ -282,15 +282,15 @@ class _EstatisticasCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEEE8E9)),
+        border: Border.all(color: AppColors.line),
       ),
       child: const IntrinsicHeight(
         child: Row(
           children: [
             _StatItem(label: 'RANKING', valor: '--', sublabel: 'Geral'),
-            VerticalDivider(color: Color(0xFFEEE8E9), width: 1),
+            VerticalDivider(color: AppColors.line, width: 1),
             _StatItem(label: 'NÍVEL', valor: 'Nível 1', sublabel: 'Académico'),
-            VerticalDivider(color: Color(0xFFEEE8E9), width: 1),
+            VerticalDivider(color: AppColors.line, width: 1),
             _StatItem(label: 'PONTOS', valor: '0', sublabel: 'XP'),
           ],
         ),
@@ -362,7 +362,7 @@ class _ResultadoQuizCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEEE8E9)),
+        border: Border.all(color: AppColors.line),
       ),
       child: Row(
         children: [

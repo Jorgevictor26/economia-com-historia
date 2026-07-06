@@ -157,7 +157,7 @@ class _Fallback extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      color: const Color(0xFFEEE8E9),
+      color: AppColors.line,
       child: Icon(icon, color: AppColors.textLight),
     );
   }

@@ -23,7 +23,13 @@ class ForumRepository
         return Forum::query()
             ->where('status', 'approved')
             ->with(['user', 'reviewer', 'contents.category', 'contents.contentType', 'memberships'])
-            ->withCount('topics')
+            ->withCount([
+                'topics',
+                'contents',
+                'topics as replies_count' => function ($query) {
+                    $query->join('forum_replies', 'forum_replies.topic_id', '=', 'forum_topics.id');
+                },
+            ])
             ->when($filters['search'] ?? null, function ($query, string $search) {
                 $query->where(function ($searchQuery) use ($search) {
                     $searchQuery
@@ -56,6 +62,13 @@ class ForumRepository
     public function findById(int $id, bool $onlyApproved = true): ?Forum
     {
         return Forum::with(['topics.user', 'user', 'reviewer', 'contents.category', 'contents.contentType', 'memberships'])
+            ->withCount([
+                'topics',
+                'contents',
+                'topics as replies_count' => function ($query) {
+                    $query->join('forum_replies', 'forum_replies.topic_id', '=', 'forum_topics.id');
+                },
+            ])
             ->when($onlyApproved, fn ($query) => $query->where('status', 'approved'))
             ->find($id);
     }

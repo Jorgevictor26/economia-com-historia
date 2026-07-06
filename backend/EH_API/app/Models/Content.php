@@ -80,4 +80,9 @@ class Content extends Model
         return $this->hasMany(SavedContent::class);
     }
 
+    public function subscriptions()
+    {
+        return $this->hasMany(ContentSubscription::class);
+    }
+
 }

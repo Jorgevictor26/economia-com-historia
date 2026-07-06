@@ -128,7 +128,17 @@ export class AuthService {
   }
 
   private hasPremiumAccess(user: BackendUser): boolean {
-    return this.resolveRole(user.roles) !== 'student' || Boolean(user.jindungo_subscription_expires_at);
+    if (this.resolveRole(user.roles) !== 'student') {
+      return true;
+    }
+
+    if (!user.jindungo_subscription_expires_at) {
+      return false;
+    }
+
+    const expiresAt = new Date(user.jindungo_subscription_expires_at);
+
+    return !Number.isNaN(expiresAt.getTime()) && expiresAt.getTime() > Date.now();
   }
 
   async requestJindungoSubscription(): Promise<void> {

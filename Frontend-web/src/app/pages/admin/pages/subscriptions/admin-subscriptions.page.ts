@@ -1,7 +1,7 @@
 ﻿import { Component, OnInit, inject } from '@angular/core';
 import { AdminConsoleShellComponent } from '../../components/admin-console-shell.component';
 import { AdminMetricCardComponent, AdminPageHeaderComponent } from '../../shared/components';
-import { AdminUserService, BackendManagedUser } from '../../../../services/admin-user.service';
+import { BackendContentSubscription, ContentSubscriptionService } from '../../../../services/content-subscription.service';
 
 interface SubscriptionMetric {
   label: string;
@@ -26,7 +26,7 @@ interface Subscriber {
   templateUrl: './admin-subscriptions.page.html',
 })
 export class AdminSubscriptionsPage implements OnInit {
-  private readonly adminUserService = inject(AdminUserService);
+  private readonly contentSubscriptionService = inject(ContentSubscriptionService);
 
   periodLabel = 'Últimos 30 dias';
   searchOpen = false;
@@ -40,7 +40,7 @@ export class AdminSubscriptionsPage implements OnInit {
     { label: 'Total de subscritores', value: '0', note: 'Subscrições Jindungo' },
     { label: 'Pedidos pendentes', value: '0', note: 'Aguardando aprovação' },
     { label: 'Membros ativos', value: '0', note: 'Com subscrição ativa' },
-    { label: 'Textos Jindungo', value: '3', note: 'Com subscritores ativos' },
+    { label: 'Textos Jindungo', value: '0', note: 'Com subscrições' },
   ];
 
   subscribers: Subscriber[] = [];
@@ -81,22 +81,23 @@ export class AdminSubscriptionsPage implements OnInit {
   }
 
   async approveSubscription(subscriber: Subscriber): Promise<void> {
-    await this.adminUserService.approveJindungoSubscription(subscriber.id);
+    await this.contentSubscriptionService.approve(subscriber.id);
     await this.loadSubscriptions();
   }
 
   async expireSubscription(subscriber: Subscriber): Promise<void> {
-    await this.adminUserService.rejectJindungoSubscription(subscriber.id);
+    await this.contentSubscriptionService.expire(subscriber.id);
     await this.loadSubscriptions();
   }
 
   async rejectSubscription(subscriber: Subscriber): Promise<void> {
-    await this.adminUserService.rejectJindungoSubscription(subscriber.id);
+    await this.contentSubscriptionService.reject(subscriber.id);
     await this.loadSubscriptions();
   }
 
   async deleteSubscription(subscriber: Subscriber): Promise<void> {
-    await this.rejectSubscription(subscriber);
+    await this.contentSubscriptionService.delete(subscriber.id);
+    await this.loadSubscriptions();
   }
 
   private async loadSubscriptions(): Promise<void> {
@@ -104,20 +105,19 @@ export class AdminSubscriptionsPage implements OnInit {
     this.errorMessage = '';
 
     try {
-      const result = await this.adminUserService.getAll({ perPage: 200 });
+      const subscriptions = await this.contentSubscriptionService.getAll();
 
-      this.subscribers = result.data
-        .filter((user) => user.jindungo_subscription_requested_at || user.jindungo_subscription_expires_at)
-        .map((user) => this.toSubscriber(user));
+      this.subscribers = subscriptions.map((subscription) => this.toSubscriber(subscription));
 
       const pending = this.subscribers.filter((item) => item.status === 'Pendente').length;
       const active = this.subscribers.filter((item) => item.status === 'Ativo').length;
+      const uniqueTexts = new Set(this.subscribers.map((item) => item.textTitle)).size;
 
       this.metrics = [
         { label: 'Total de subscritores', value: String(this.subscribers.length), note: 'Subscrições Jindungo' },
         { label: 'Pedidos pendentes', value: String(pending), note: 'Aguardando aprovação' },
         { label: 'Membros ativos', value: String(active), note: 'Com subscrição ativa' },
-        { label: 'Textos Jindungo', value: '3', note: 'Com subscritores ativos' },
+        { label: 'Textos Jindungo', value: String(uniqueTexts), note: 'Com subscrições' },
       ];
     } catch {
       this.errorMessage = 'Não foi possível carregar as subscrições.';
@@ -126,22 +126,34 @@ export class AdminSubscriptionsPage implements OnInit {
     }
   }
 
-  private toSubscriber(user: BackendManagedUser): Subscriber {
-    const expiresAt = user.jindungo_subscription_expires_at
-      ? new Date(user.jindungo_subscription_expires_at)
-      : null;
-
-    const isActive = expiresAt !== null && expiresAt.getTime() > Date.now();
-
+  private toSubscriber(subscription: BackendContentSubscription): Subscriber {
     return {
-      id: user.id,
-      initials: this.getInitials(user.name),
-      name: user.name,
-      email: user.email,
-      status: isActive ? 'Ativo' : 'Pendente',
-      joinedAt: this.formatDate(user.jindungo_subscription_requested_at ?? user.created_at),
-      textTitle: 'Subscrição Jindungo',
+      id: subscription.id,
+      initials: this.getInitials(subscription.user?.name ?? 'Utilizador'),
+      name: subscription.user?.name ?? 'Utilizador',
+      email: subscription.user?.email ?? '-',
+      status: this.toStatus(subscription),
+      joinedAt: this.formatDate(subscription.requested_at ?? subscription.created_at),
+      textTitle: subscription.content?.title ?? 'Texto Jindungo',
     };
+  }
+
+  private toStatus(subscription: BackendContentSubscription): Subscriber['status'] {
+    if (subscription.status === 'approved') {
+      const expiresAt = subscription.expires_at ? new Date(subscription.expires_at) : null;
+
+      return expiresAt && expiresAt.getTime() <= Date.now() ? 'Expirado' : 'Ativo';
+    }
+
+    if (subscription.status === 'rejected') {
+      return 'Recusado';
+    }
+
+    if (subscription.status === 'expired') {
+      return 'Expirado';
+    }
+
+    return 'Pendente';
   }
 
   private visibleSubscribersByStatus(status: Subscriber['status']): Subscriber[] {

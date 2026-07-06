@@ -25,7 +25,7 @@ class ContentController extends Controller
     public function index(Request $request)
     {
         $user = $request->user('sanctum');
-        $includeJindungo = $user?->hasRoleName('super-admin') || $user?->hasActiveJindungoSubscription();
+        $includeJindungo = $user?->hasRoleName('super-admin');
 
         $contents = $this->service->getAll(array_merge($request->only([
                 'category_id',
@@ -39,7 +39,7 @@ class ContentController extends Controller
                 'user_id' => $user?->id,
             ]));
 
-        return response()->json($this->withAuthorPhotoUrls($contents));
+        return response()->json($this->withAuthorPhotoUrls($contents, $user));
     }
 
     public function suggestions(Request $request)
@@ -60,7 +60,7 @@ class ContentController extends Controller
             ], 404);
         }
 
-        $content = $this->withAuthorPhotoUrl($content);
+        $content = $this->withAuthorPhotoUrl($content, $request->user('sanctum'));
         $content->setAttribute('can_access', $this->service->canAccess($content, $request->user('sanctum')));
 
         if (! $content->getAttribute('can_access')) {
@@ -126,7 +126,7 @@ class ContentController extends Controller
             ->where('reaction_type', 'like')
             ->exists());
 
-        return response()->json($this->withAuthorPhotoUrl($content));
+        return response()->json($this->withAuthorPhotoUrl($content, $request->user('sanctum')));
     }
 
     public function update(UpdateContentRequest $request, int $id)
@@ -208,26 +208,28 @@ class ContentController extends Controller
         ], 403);
     }
 
-    private function withAuthorPhotoUrls(LengthAwarePaginator|iterable $contents): LengthAwarePaginator|iterable
+    private function withAuthorPhotoUrls(LengthAwarePaginator|iterable $contents, ?\App\Models\User $user = null): LengthAwarePaginator|iterable
     {
         if ($contents instanceof LengthAwarePaginator) {
-            $contents->getCollection()->transform(fn (Content $content): Content => $this->withAuthorPhotoUrl($content));
+            $contents->getCollection()->transform(fn (Content $content): Content => $this->withAuthorPhotoUrl($content, $user));
 
             return $contents;
         }
 
         foreach ($contents as $content) {
-            $this->withAuthorPhotoUrl($content);
+            $this->withAuthorPhotoUrl($content, $user);
         }
 
         return $contents;
     }
 
-    private function withAuthorPhotoUrl(Content $content): Content
+    private function withAuthorPhotoUrl(Content $content, ?\App\Models\User $user = null): Content
     {
-        $content->loadMissing('author');
+        $content->loadMissing('author', 'contentType');
 
         $content->setAttribute('author_photo_url', $content->author?->photo);
+        $content->setAttribute('subscription_status', $this->service->subscriptionStatus($content, $user));
+        $content->setAttribute('can_access', $this->service->canAccess($content, $user));
 
         return $content;
     }

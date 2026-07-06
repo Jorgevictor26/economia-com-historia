@@ -45,6 +45,7 @@ export interface BackendContent {
   shared_count?: number | string;
   liked_by_me?: boolean | number;
   can_access?: boolean;
+  subscription_status?: 'available' | 'pending' | 'approved' | 'rejected' | 'expired' | string;
 }
 
 export interface BackendContentProgress {
@@ -84,6 +85,7 @@ export interface ContentQuery {
   page?: number;
   perPage?: number;
   search?: string;
+  type?: string;
   categoryId?: number | string;
   contentTypeId?: number | string;
 }
@@ -124,6 +126,10 @@ export class ContentService {
 
     if (query.search) {
       params = params.set('search', query.search);
+    }
+
+    if (query.type) {
+      params = params.set('type', query.type);
     }
 
     if (query.categoryId) {

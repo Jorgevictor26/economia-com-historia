@@ -13,6 +13,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommentReplyController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\ContentProgressController;
+use App\Http\Controllers\ContentSubscriptionController;
 use App\Http\Controllers\ContentMediaController;
 use App\Http\Controllers\ContentTypeController;
 use App\Http\Controllers\ForumController;
@@ -83,6 +84,8 @@ Route::prefix('v1')->group(function () {
             ->middleware('role:Admin,SuperAdmin');
         Route::get('/my-results', [QuizAnswerController::class, 'myResults']);
         Route::get('/my-comment-reports', [CommentReportController::class, 'myCommentReports']);
+        Route::get('/my-content-subscriptions', [ContentSubscriptionController::class, 'mine']);
+        Route::post('/contents/{content}/subscriptions', [ContentSubscriptionController::class, 'store']);
         Route::get('/content-progress', [ContentProgressController::class, 'mine']);
         Route::put('/contents/{contentId}/progress', [ContentProgressController::class, 'update']);
         Route::get('/quiz-progress', [QuizProgressController::class, 'mine']);
@@ -151,6 +154,11 @@ Route::prefix('v1')->group(function () {
             Route::get('/comment-reports', [CommentReportController::class, 'index']);
             Route::patch('/comment-reports/{id}/approve', [CommentReportController::class, 'approve']);
             Route::patch('/comment-reports/{id}/reject', [CommentReportController::class, 'reject']);
+            Route::get('/content-subscriptions', [ContentSubscriptionController::class, 'index']);
+            Route::patch('/content-subscriptions/{subscription}/approve', [ContentSubscriptionController::class, 'approve']);
+            Route::patch('/content-subscriptions/{subscription}/reject', [ContentSubscriptionController::class, 'reject']);
+            Route::patch('/content-subscriptions/{subscription}/expire', [ContentSubscriptionController::class, 'expire']);
+            Route::delete('/content-subscriptions/{subscription}', [ContentSubscriptionController::class, 'destroy']);
 
             Route::get('/forum-approvals', [ForumController::class, 'moderationIndex']);
             Route::patch('/forums/{id}/approve', [ForumController::class, 'approve']);

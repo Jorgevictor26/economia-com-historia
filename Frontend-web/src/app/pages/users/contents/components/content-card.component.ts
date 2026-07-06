@@ -14,7 +14,7 @@ export class ContentCardComponent {
 
   get contentRoute(): unknown[] {
     if (this.content.premium && !this.canReadPremium) {
-      return ['/app/subscriptions'];
+      return ['/app/contents', this.content.id];
     }
 
     if (this.isPodcastContent()) {
@@ -26,6 +26,14 @@ export class ContentCardComponent {
     }
 
     return ['/app/contents', this.content.id];
+  }
+
+  handleContentOpen(event: Event): void {
+    if (!this.content.premium || this.canReadPremium) {
+      return;
+    }
+
+    this.contentAction.emit({ event, operation: 'pedir subscrição Jindungo', content: this.content });
   }
 
   private normalize(value: string): string {

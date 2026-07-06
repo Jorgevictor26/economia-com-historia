@@ -76,6 +76,43 @@
       }
     </div>
 
+    @if (jindungoPromptTarget(); as content) {
+    <div class="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4" role="dialog" aria-modal="true" aria-labelledby="jindungo-subscription-title" (click)="closeJindungoPrompt()">
+      <section class="w-full max-w-[480px] rounded-[8px] bg-white p-6 shadow-[0_24px_80px_rgba(0,0,0,0.24)]" (click)="$event.stopPropagation()">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#D4AF37]">Texto com Jindungo</p>
+            <h2 id="jindungo-subscription-title" class="mt-2 font-display text-[22px] font-extrabold text-[#5C1E2F]">Subscrição necessária</h2>
+          </div>
+          <button type="button" class="grid size-9 place-items-center rounded-full text-[#616161] hover:bg-[#F5F5F5]" aria-label="Fechar" (click)="closeJindungoPrompt()">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <p class="mt-4 text-[13px] leading-6 text-[#616161]">
+          O texto <strong class="text-[#5C1E2F]">{{ content.title }}</strong> está reservado a subscritores. Pode pedir acesso agora; o seu pedido será enviado para processamento.
+        </p>
+
+        @if (jindungoPromptFeedback()) {
+        <p class="mt-4 rounded-[8px] border border-[#E6D5B8] bg-[#F5F5F5] px-4 py-3 text-[12px] font-bold text-[#5C1E2F]">
+          {{ jindungoPromptFeedback() }}
+        </p>
+        }
+
+        <div class="mt-6 flex flex-wrap justify-end gap-3">
+          <button type="button" class="h-10 rounded-[8px] border border-[#E0E0E0] px-5 text-[12px] font-extrabold text-[#616161] hover:bg-[#F5F5F5]" (click)="closeJindungoPrompt()">
+            {{ jindungoPromptFeedback() ? 'Fechar' : 'Agora não' }}
+          </button>
+          @if (!jindungoPromptFeedback()) {
+          <button type="button" class="h-10 rounded-[8px] bg-[#5C1E2F] px-5 text-[12px] font-extrabold text-white disabled:opacity-60" [disabled]="isRequestingJindungo()" (click)="requestJindungoSubscription()">
+            {{ isRequestingJindungo() ? 'A enviar...' : 'Pedir subscrição' }}
+          </button>
+          }
+        </div>
+      </section>
+    </div>
+    }
+
     @if (shareContentTarget(); as content) {
     <div class="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4" role="dialog" aria-modal="true" (click)="closeShareModal()">
       <section class="w-full max-w-[470px] rounded-[8px] bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)]" (click)="$event.stopPropagation()">

@@ -16,6 +16,7 @@ import { ReactionService } from '../../../services/reaction.service';
 import { SavedContentService } from '../../../services/saved-content.service';
 import { SharePlatform, ShareService } from '../../../services/share.service';
 import { ToastService } from '../../../services/toast.service';
+import { SubscriptionService } from '../../../services/subscription.service';
 import { normalizeMediaUrl } from '../../../services/media-url.util';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
 import { ContentForumActionComponent } from '../../shared/content-forum-action/content-forum-action.component';
@@ -166,6 +167,7 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
   private readonly savedContentService = inject(SavedContentService);
   private readonly shareService = inject(ShareService);
   private readonly toastService = inject(ToastService);
+  private readonly subscriptionService = inject(SubscriptionService);
   readonly confirmService = inject(ConfirmService);
   private loadRequestId = 0;
   readonly categories = signal<Category[]>([]);
@@ -190,6 +192,9 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
   readonly saveStatus = signal('');
   readonly toast = signal<PageToast | null>(null);
   readonly savingContentId = signal<string | null>(null);
+  readonly jindungoPromptTarget = signal<ContentListItem | null>(null);
+  readonly jindungoPromptFeedback = signal('');
+  readonly isRequestingJindungo = signal(false);
   private toastTimeout?: ReturnType<typeof setTimeout>;
   readonly shareUrl = computed(() => {
     const content = this.shareContentTarget();
@@ -319,19 +324,61 @@ export class ContentLibraryPage implements OnInit, OnDestroy {
       return;
     }
 
-    if (payload.operation === 'subscrever ao Jindungo') {
+    if (payload.operation === 'subscrever ao Jindungo' || payload.operation === 'pedir subscrição Jindungo') {
       if (!this.auth.isAuthenticated()) {
         this.auth.requireLoginFor('subscrever ao Jindungo');
         return;
       }
 
-      await this.router.navigate(['/app/subscriptions'], {
-        queryParams: { contentId: payload.content.id },
-      });
+      this.openJindungoPrompt(payload.content);
       return;
     }
 
     this.auth.requireLoginFor(payload.operation);
+  }
+
+  openJindungoPrompt(content: ContentListItem): void {
+    this.jindungoPromptTarget.set(content);
+    this.jindungoPromptFeedback.set('');
+  }
+
+  closeJindungoPrompt(): void {
+    this.jindungoPromptTarget.set(null);
+    this.jindungoPromptFeedback.set('');
+    this.isRequestingJindungo.set(false);
+  }
+
+  requestJindungoSubscription(): void {
+    const content = this.jindungoPromptTarget();
+    const user = this.auth.user();
+
+    if (!content) {
+      return;
+    }
+
+    if (!user) {
+      this.auth.requireLoginFor('subscrever ao Jindungo');
+      return;
+    }
+
+    this.isRequestingJindungo.set(true);
+    this.subscriptionService.requestTextSubscription(
+      {
+        id: content.id,
+        title: content.title,
+        excerpt: content.excerpt,
+        subscribedAt: '',
+        readingMinutes: 0,
+        route: `/app/contents/${content.id}`,
+        imageUrl: content.imageUrl,
+        author: content.author,
+      },
+      user.name,
+      user.email,
+    );
+    this.jindungoPromptFeedback.set('O seu pedido está a ser processado. Aguarde a aprovação para aceder a este texto.');
+    this.showToast('Pedido de subscrição enviado para processamento.', 'success');
+    this.isRequestingJindungo.set(false);
   }
 
   openShareModal(content: ContentListItem): void {

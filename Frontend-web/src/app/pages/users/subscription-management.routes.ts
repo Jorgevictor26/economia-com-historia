@@ -186,10 +186,16 @@ export class SubscriptionManagementPage implements OnInit {
     this.textLoadError.set('');
 
     try {
-      const response = await this.contentService.getAll({ perPage: 60, type: 'jindungo' });
+      const [response, subscriptions] = await Promise.all([
+        this.contentService.getAll({ perPage: 60, type: 'jindungo' }),
+        this.contentSubscriptionService.mine(),
+      ]);
       const texts = response.data.filter((content) => this.isJindungoContent(content));
+      const subscriptionsByContent = new Map(
+        subscriptions.map((subscription) => [String(subscription.content_id), subscription]),
+      );
 
-      this.jindungoTexts.set(texts.map((content) => this.toJindungoText(content)));
+      this.jindungoTexts.set(texts.map((content) => this.toJindungoText(content, subscriptionsByContent.get(String(content.id)))));
     } catch {
       this.jindungoTexts.set([]);
       this.textLoadError.set('Não foi possível carregar todos os textos Jindungo agora.');
@@ -225,7 +231,7 @@ export class SubscriptionManagementPage implements OnInit {
     };
   }
 
-  private toJindungoText(content: BackendContent): SubscribedJindungoText {
+  private toJindungoText(content: BackendContent, subscription?: BackendContentSubscription): SubscribedJindungoText {
     return {
       id: String(content.id),
       title: content.title,
@@ -235,7 +241,7 @@ export class SubscriptionManagementPage implements OnInit {
       route: `/app/contents/${content.id}`,
       imageUrl: normalizeMediaUrl(content.image_url, { contentId: content.id, mediaType: 'image' }) ?? '/assets/bna-hero.jpg',
       author: content.author?.name ?? content.user?.name ?? 'Equipa editorial',
-      status: this.toTextStatus(content.subscription_status, content.can_access),
+      status: this.toTextStatus(subscription?.status ?? content.subscription_status, content.can_access),
     };
   }
 

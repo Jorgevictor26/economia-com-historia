@@ -1,5 +1,5 @@
 ﻿<app-admin-console-shell activeItem="subscriptions">
-  <section class="mx-auto grid max-w-6xl gap-5">
+  <section class="mx-auto grid max-w-7xl gap-5">
     <app-admin-page-header title="Gestão de Subscrições">
       <button type="button" (click)="togglePeriod()" class="inline-flex h-10 items-center justify-center gap-2 rounded-[6px] border border-[#E0E0E0] bg-white px-4 text-[12px] font-extrabold text-[#5c1e2f] shadow-[0_10px_24px_rgba(27,22,30,0.035)] transition hover:border-[#8A3F50]">
         <span class="material-symbols-outlined text-[16px]" aria-hidden="true">calendar_month</span>
@@ -14,7 +14,7 @@
     </section>
 
     <section>
-      <article class="overflow-hidden rounded-[8px] border border-[#E0E0E0] bg-white shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
+      <article class="overflow-visible rounded-[8px] border border-[#E0E0E0] bg-white shadow-[0_12px_28px_rgba(45,33,37,0.04)]">
         <header class="flex flex-wrap items-center justify-between gap-3 border-b border-[#E0E0E0] px-5 py-4">
           <div>
             <h2 class="text-[18px] font-extrabold text-[#5C1E2F]">Pedidos e Subscritores Jindungo</h2>
@@ -49,7 +49,7 @@
         }
 
         @if (selectedView === 'requests') {
-        <div class="grid grid-cols-[minmax(220px,1fr)_minmax(210px,1fr)_110px_120px_90px] gap-4 border-b border-[#E0E0E0] bg-[#F5F5F5] px-5 py-3 text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50] max-xl:hidden">
+        <div class="grid grid-cols-[minmax(220px,1fr)_minmax(210px,1fr)_110px_120px_112px] gap-4 border-b border-[#E0E0E0] bg-[#F5F5F5] px-5 py-3 text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50] max-xl:hidden">
           <span>Membro</span>
           <span>Texto Jindungo</span>
           <span>Estado</span>
@@ -59,7 +59,7 @@
 
         <div class="grid divide-y divide-[#F2E6E9]">
           @for (subscriber of visiblePendingRequests(); track subscriber.id) {
-            <article class="grid grid-cols-[minmax(220px,1fr)_minmax(210px,1fr)_110px_120px_90px] items-center gap-4 px-5 py-4 transition hover:bg-[#fff] max-xl:grid-cols-1">
+            <article class="grid grid-cols-[minmax(220px,1fr)_minmax(210px,1fr)_110px_120px_112px] items-center gap-4 px-5 py-4 transition hover:bg-[#fff] max-xl:grid-cols-1">
               <div class="flex min-w-0 items-center gap-3">
                 <span class="grid size-9 shrink-0 place-items-center rounded-full bg-[#F2E6E9] text-[11px] font-extrabold text-[#8A3F50]">{{ subscriber.initials }}</span>
                 <span class="min-w-0">
@@ -116,7 +116,7 @@
           }
         </div>
         } @else {
-        <div class="grid grid-cols-[minmax(220px,1fr)_minmax(210px,1fr)_110px_120px_90px] gap-4 border-b border-[#E0E0E0] bg-[#F5F5F5] px-5 py-3 text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50] max-xl:hidden">
+        <div class="grid grid-cols-[minmax(220px,1fr)_minmax(210px,1fr)_110px_120px_112px] gap-4 border-b border-[#E0E0E0] bg-[#F5F5F5] px-5 py-3 text-[9px] font-extrabold uppercase tracking-[0.04em] text-[#8A3F50] max-xl:hidden">
           <span>Membro</span>
           <span>Texto Jindungo</span>
           <span>Estado</span>
@@ -126,7 +126,7 @@
 
         <div class="grid divide-y divide-[#F2E6E9]">
           @for (subscriber of visibleActiveSubscribers(); track subscriber.id) {
-            <article class="grid grid-cols-[minmax(220px,1fr)_minmax(210px,1fr)_110px_120px_90px] items-center gap-4 px-5 py-4 transition hover:bg-[#fff] max-xl:grid-cols-1">
+            <article class="grid grid-cols-[minmax(220px,1fr)_minmax(210px,1fr)_110px_120px_112px] items-center gap-4 px-5 py-4 transition hover:bg-[#fff] max-xl:grid-cols-1">
               <div class="flex min-w-0 items-center gap-3">
                 <span class="grid size-9 shrink-0 place-items-center rounded-full bg-[#F2E6E9] text-[11px] font-extrabold text-[#8A3F50]">{{ subscriber.initials }}</span>
                 <span class="min-w-0">
